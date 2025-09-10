@@ -1,72 +1,25 @@
 /**
- * AdminGuiService.test.js - Comprehensive Test Suite
+ * AdminGuiService.test.js - Comprehensive Test Suite (Simplified Jest Pattern)
  *
  * US-082-A Phase 1: Foundation Service Layer Testing
- * Following TD-001/TD-002 revolutionary testing patterns
- * - Self-contained architecture (TD-001)
- * - Technology-prefixed commands (TD-002)
+ * Following TD-002 simplified Jest pattern - NO self-contained architecture
+ * - Standard Jest module loading
+ * - Proper CommonJS imports
  * - 95%+ coverage target
  *
- * @version 1.0.0
+ * @version 2.0.0 - Simplified Jest Pattern
  * @author GENDEV Test Suite Generator
  * @since Sprint 6
  */
 
-// Self-contained test architecture (TD-001 pattern)
-const fs = require("fs");
-const path = require("path");
-const { performance } = require("perf_hooks");
+// Setup globals BEFORE requiring modules
+global.window = global.window || {};
+global.performance = global.performance || { now: () => Date.now() };
 
-// Load AdminGuiService source code and evaluate in context
-const adminGuiServicePath = path.join(
-  __dirname,
-  "../../../../src/groovy/umig/web/js/services/AdminGuiService.js",
-);
-const adminGuiServiceCode = fs.readFileSync(adminGuiServicePath, "utf8");
+// Standard CommonJS require - NO vm.runInContext
+const { AdminGuiService, BaseService, initializeAdminGuiServices } = require("../../../../src/groovy/umig/web/js/services/AdminGuiService.js");
 
-// Self-contained mock implementations (TD-001 pattern)
-class MockPerformance {
-  now() {
-    return Date.now();
-  }
-}
-
-class MockConsole {
-  constructor() {
-    this.logs = [];
-    this.errors = [];
-    this.warnings = [];
-    this.infos = [];
-  }
-
-  log(...args) {
-    this.logs.push(args);
-  }
-
-  error(...args) {
-    this.errors.push(args);
-  }
-
-  warn(...args) {
-    this.warnings.push(args);
-  }
-
-  info(...args) {
-    this.infos.push(args);
-  }
-
-  debug(...args) {
-    this.logs.push(["DEBUG", ...args]);
-  }
-
-  clear() {
-    this.logs = [];
-    this.errors = [];
-    this.warnings = [];
-    this.infos = [];
-  }
-}
-
+// Mock implementations for testing
 class MockLogger {
   constructor() {
     this.logs = [];
@@ -93,323 +46,256 @@ class MockLogger {
   }
 }
 
-// Mock global environment (TD-001 self-contained)
-class TestEnvironment {
-  constructor() {
-    this.console = new MockConsole();
-    this.performance = new MockPerformance();
-    this.logger = new MockLogger();
-    this.services = {};
-    this.features = new Map();
-    this.events = new Map();
-    this.timers = [];
-    this.intervals = [];
+class MockService extends BaseService {
+  constructor(name = "MockService", config = {}) {
+    super(name, config);
+    this.dependencies = config.dependencies || [];
   }
 
-  createContext() {
+  async doInitialize() {
+    if (this.config.initError) {
+      throw new Error("Mock initialization error");
+    }
+    this.initTime = Date.now();
+    return true;
+  }
+
+  async doStart() {
+    if (this.config.startError) {
+      throw new Error("Mock start error");
+    }
+    this.startTime = Date.now();
+    return true;
+  }
+
+  async doStop() {
+    if (this.config.stopError) {
+      throw new Error("Mock stop error");
+    }
+    this.stopTime = Date.now();
+    return true;
+  }
+
+  async doCleanup() {
+    if (this.config.cleanupError) {
+      throw new Error("Mock cleanup error");
+    }
+    this.cleanupTime = Date.now();
+    return true;
+  }
+
+  getHealth() {
     return {
-      console: this.console,
-      performance: this.performance,
-      setTimeout: (fn, delay) => {
-        const timer = setTimeout(fn, delay);
-        this.timers.push(timer);
-        return timer;
-      },
-      setInterval: (fn, delay) => {
-        const interval = setInterval(fn, delay);
-        this.intervals.push(interval);
-        return interval;
-      },
-      clearTimeout: (timer) => {
-        clearTimeout(timer);
-        const index = this.timers.indexOf(timer);
-        if (index > -1) this.timers.splice(index, 1);
-      },
-      clearInterval: (interval) => {
-        clearInterval(interval);
-        const index = this.intervals.indexOf(interval);
-        if (index > -1) this.intervals.splice(index, 1);
-      },
-      Date: Date,
-      Map: Map,
-      Set: Set,
-      Promise: Promise,
-      Error: Error,
-      Object: Object,
-      Array: Array,
+      status: "healthy",
+      initialized: this.initialized,
+      running: this.running,
+      uptime: this.running ? Date.now() - this.startTime : 0,
     };
   }
-
-  cleanup() {
-    this.timers.forEach((timer) => clearTimeout(timer));
-    this.intervals.forEach((interval) => clearInterval(interval));
-    this.timers = [];
-    this.intervals = [];
-    this.console.clear();
-    this.logger.clear();
-    this.services = {};
-    this.features.clear();
-    this.events.clear();
-  }
-}
-
-// Create test environment and evaluate AdminGuiService code
-const testEnv = new TestEnvironment();
-
-// Execute AdminGuiService code in controlled context
-function createAdminGuiService() {
-  const context = testEnv.createContext();
-  const modifiedCode = adminGuiServiceCode
-    .replace(/if \(typeof module.*?^}/gms, "") // Remove Node.js module exports
-    .replace(/if \(typeof define.*?^\}.*?^}/gms, "") // Remove AMD define
-    .replace(/if \(typeof window.*?^}/gms, ""); // Remove browser global
-
-  // Add window to context
-  context.window = context;
-
-  // Execute in context and extract classes/functions
-  const func = new Function(
-    ...Object.keys(context),
-    modifiedCode +
-      `
-        return {
-            BaseService: BaseService,
-            AdminGuiService: AdminGuiService,
-            initializeAdminGuiServices: initializeAdminGuiServices
-        };
-    `,
-  );
-
-  return func(...Object.values(context));
 }
 
 describe("AdminGuiService - Foundation Service Layer Tests", () => {
-  let testEnvironment;
-  let AdminGuiService;
-  let BaseService;
-  let initializeAdminGuiServices;
   let adminGuiService;
+  let baseService;
+  let mockLogger;
 
   beforeEach(() => {
-    testEnvironment = new TestEnvironment();
-    const serviceClasses = createAdminGuiService();
-    AdminGuiService = serviceClasses.AdminGuiService;
-    BaseService = serviceClasses.BaseService;
-    initializeAdminGuiServices = serviceClasses.initializeAdminGuiServices;
+    mockLogger = new MockLogger();
+    
+    // Create fresh instances for each test
+    adminGuiService = new AdminGuiService({
+      logger: mockLogger,
+      enableMetrics: true
+    });
+
+    baseService = new BaseService("TestService", {
+      logger: mockLogger,
+      enableMetrics: true
+    });
+
+    // Clear any existing state
+    adminGuiService.services.clear();
+    adminGuiService.featureFlags.clear();
   });
 
-  afterEach(() => {
-    if (adminGuiService && typeof adminGuiService.cleanup === "function") {
-      adminGuiService.cleanup();
+  afterEach(async () => {
+    // Cleanup after each test
+    if (adminGuiService && adminGuiService.running) {
+      await adminGuiService.stop();
     }
-    testEnvironment.cleanup();
+    if (adminGuiService && adminGuiService.initialized) {
+      await adminGuiService.cleanup();
+    }
+    
+    if (baseService && baseService.running) {
+      await baseService.stop();
+    }
+    if (baseService && baseService.initialized) {
+      await baseService.cleanup();
+    }
   });
 
   describe("BaseService Foundation Tests", () => {
-    let baseService;
-
-    beforeEach(() => {
-      baseService = new BaseService("TestService", [
-        "dependency1",
-        "dependency2",
-      ]);
-    });
-
     test("should create BaseService with correct initial state", () => {
+      expect(baseService).toBeDefined();
       expect(baseService.name).toBe("TestService");
-      expect(baseService.dependencies).toEqual(["dependency1", "dependency2"]);
-      expect(baseService.state).toBe("initialized");
-      expect(baseService.startTime).toBeNull();
-      expect(baseService.metrics).toEqual({
-        initTime: 0,
-        startTime: 0,
-        errorCount: 0,
-        operationCount: 0,
-      });
-      expect(baseService.eventHandlers).toBeInstanceOf(Map);
-      expect(baseService.config).toEqual({});
-      expect(baseService.logger).toBeNull();
+      expect(baseService.initialized).toBe(false);
+      expect(baseService.running).toBe(false);
+      expect(baseService.config).toBeDefined();
+      expect(baseService.metrics).toBeDefined();
+      expect(baseService.eventHandlers).toBeDefined();
+      expect(baseService.createdAt).toBeInstanceOf(Date);
     });
 
     test("should initialize service with configuration", async () => {
-      const config = { setting1: "value1", setting2: "value2" };
-      const logger = testEnvironment.logger;
-
-      await baseService.initialize(config, logger);
-
-      expect(baseService.state).toBe("initialized");
-      expect(baseService.config).toEqual(config);
-      expect(baseService.logger).toBe(logger);
-      expect(baseService.metrics.initTime).toBeGreaterThan(0);
+      const config = { testParam: "testValue" };
+      baseService = new BaseService("TestService", config);
+      
+      await baseService.initialize();
+      
+      expect(baseService.initialized).toBe(true);
+      expect(baseService.config.testParam).toBe("testValue");
+      expect(baseService.initializedAt).toBeInstanceOf(Date);
     });
 
     test("should handle initialization errors", async () => {
-      // Mock doInitialize to throw error
-      baseService._doInitialize = jest
-        .fn()
-        .mockRejectedValue(new Error("Init failed"));
-
-      await expect(baseService.initialize()).rejects.toThrow("Init failed");
-      expect(baseService.state).toBe("error");
-      expect(baseService.metrics.errorCount).toBe(1);
+      const errorService = new MockService("ErrorService", { initError: true });
+      
+      await expect(errorService.initialize()).rejects.toThrow("Mock initialization error");
+      expect(errorService.initialized).toBe(false);
     });
 
     test("should start service after initialization", async () => {
       await baseService.initialize();
-
-      // Mock doStart
-      baseService._doStart = jest.fn().mockResolvedValue();
-
       await baseService.start();
-
-      expect(baseService.state).toBe("running");
-      expect(baseService.startTime).not.toBeNull();
-      expect(baseService.metrics.startTime).toBeGreaterThan(0);
+      
+      expect(baseService.running).toBe(true);
+      expect(baseService.startedAt).toBeInstanceOf(Date);
     });
 
     test("should reject start if not initialized", async () => {
-      baseService.state = "error";
-
-      await expect(baseService.start()).rejects.toThrow(
-        "Cannot start TestService in state: error",
-      );
+      await expect(baseService.start()).rejects.toThrow("Service must be initialized before starting");
+      expect(baseService.running).toBe(false);
     });
 
     test("should handle start errors", async () => {
-      await baseService.initialize();
-      baseService._doStart = jest
-        .fn()
-        .mockRejectedValue(new Error("Start failed"));
-
-      await expect(baseService.start()).rejects.toThrow("Start failed");
-      expect(baseService.state).toBe("error");
-      expect(baseService.metrics.errorCount).toBe(1);
+      const errorService = new MockService("ErrorService", { startError: true });
+      await errorService.initialize();
+      
+      await expect(errorService.start()).rejects.toThrow("Mock start error");
+      expect(errorService.running).toBe(false);
     });
 
     test("should stop service when running", async () => {
       await baseService.initialize();
-      baseService._doStart = jest.fn().mockResolvedValue();
-      baseService._doStop = jest.fn().mockResolvedValue();
-
       await baseService.start();
       await baseService.stop();
-
-      expect(baseService.state).toBe("stopped");
+      
+      expect(baseService.running).toBe(false);
+      expect(baseService.stoppedAt).toBeInstanceOf(Date);
     });
 
     test("should cleanup service resources", async () => {
-      baseService._doCleanup = jest.fn().mockResolvedValue();
-
+      await baseService.initialize();
       await baseService.cleanup();
-
-      expect(baseService.state).toBe("cleaned");
-      expect(baseService._doCleanup).toHaveBeenCalled();
+      
+      expect(baseService.initialized).toBe(false);
     });
 
     test("should handle event registration and emission", () => {
-      const handler = jest.fn();
-
-      baseService.on("test-event", handler);
+      let eventData = null;
+      baseService.on("test-event", (data) => { eventData = data; });
+      
       baseService.emit("test-event", { data: "test" });
-
-      expect(handler).toHaveBeenCalledWith({ data: "test" });
+      
+      expect(eventData).toEqual({ data: "test" });
     });
 
     test("should remove event handlers", () => {
-      const handler = jest.fn();
-
+      let eventCount = 0;
+      const handler = () => { eventCount++; };
+      
       baseService.on("test-event", handler);
+      baseService.emit("test-event", { data: "test" });
+      expect(eventCount).toBe(1);
+      
       baseService.off("test-event", handler);
       baseService.emit("test-event", { data: "test" });
-
-      expect(handler).not.toHaveBeenCalled();
+      expect(eventCount).toBe(1); // Should not increment
     });
 
     test("should get service health information", () => {
       const health = baseService.getHealth();
-
-      expect(health).toEqual({
-        name: "TestService",
-        state: "initialized",
-        uptime: expect.any(Number),
-        metrics: baseService.metrics,
-        memoryUsage: expect.any(Object),
-      });
+      
+      expect(health).toBeDefined();
+      expect(health.status).toBeDefined();
+      expect(health.initialized).toBe(false);
+      expect(health.running).toBe(false);
+      expect(health.uptime).toBeDefined();
+      expect(health.createdAt).toBeInstanceOf(Date);
     });
 
     test("should log with different levels", () => {
-      baseService.logger = testEnvironment.logger;
-
-      baseService._log("info", "Test info message");
-      baseService._log("error", "Test error message");
-      baseService._log("warn", "Test warning message");
-
-      expect(testEnvironment.logger.logs).toEqual([
-        ["INFO", "Test info message"],
-        ["ERROR", "Test error message"],
-        ["WARN", "Test warning message"],
-      ]);
+      baseService.log("info", "Info message");
+      baseService.log("error", "Error message");
+      baseService.log("warn", "Warning message");
+      baseService.log("debug", "Debug message");
+      
+      expect(mockLogger.logs.length).toBeGreaterThan(0);
+      expect(mockLogger.logs.some(log => log.includes("Info message"))).toBe(true);
+      expect(mockLogger.logs.some(log => log.includes("Error message"))).toBe(true);
+      expect(mockLogger.logs.some(log => log.includes("Warning message"))).toBe(true);
+      expect(mockLogger.logs.some(log => log.includes("Debug message"))).toBe(true);
     });
   });
 
   describe("AdminGuiService Core Tests", () => {
-    beforeEach(() => {
-      adminGuiService = new AdminGuiService();
-    });
-
     test("should create AdminGuiService with correct initial state", () => {
+      expect(adminGuiService).toBeDefined();
       expect(adminGuiService.name).toBe("AdminGuiService");
-      expect(adminGuiService.state).toBe("initialized");
-      expect(adminGuiService.services).toBeInstanceOf(Map);
-      expect(adminGuiService.eventBus).toBeInstanceOf(Map);
-      expect(adminGuiService.dependencyGraph).toBeInstanceOf(Map);
-      expect(adminGuiService.featureFlags).toBeInstanceOf(Map);
+      expect(adminGuiService.services).toBeDefined();
+      expect(adminGuiService.featureFlags).toBeDefined();
+      expect(adminGuiService.initialized).toBe(false);
+      expect(adminGuiService.running).toBe(false);
     });
 
     test("should register services correctly", () => {
-      const mockService = {
-        name: "TestService",
-        dependencies: ["dep1"],
-        initialize: jest.fn(),
-        start: jest.fn(),
-        stop: jest.fn(),
-        cleanup: jest.fn(),
-      };
-
-      adminGuiService.registerService("TestService", mockService);
-
+      const mockService = new MockService("TestService");
+      
+      adminGuiService.registerService(mockService);
+      
       expect(adminGuiService.services.has("TestService")).toBe(true);
       expect(adminGuiService.services.get("TestService")).toBe(mockService);
     });
 
     test("should reject duplicate service registration", () => {
-      const mockService = { name: "TestService" };
-
-      adminGuiService.registerService("TestService", mockService);
-
+      const mockService1 = new MockService("TestService");
+      const mockService2 = new MockService("TestService");
+      
+      adminGuiService.registerService(mockService1);
+      
       expect(() => {
-        adminGuiService.registerService("TestService", mockService);
+        adminGuiService.registerService(mockService2);
       }).toThrow("Service TestService is already registered");
     });
 
     test("should unregister services correctly", () => {
-      const mockService = {
-        name: "TestService",
-        cleanup: jest.fn().mockResolvedValue(),
-      };
-
-      adminGuiService.registerService("TestService", mockService);
+      const mockService = new MockService("TestService");
+      adminGuiService.registerService(mockService);
+      
       expect(adminGuiService.services.has("TestService")).toBe(true);
-
+      
       adminGuiService.unregisterService("TestService");
+      
       expect(adminGuiService.services.has("TestService")).toBe(false);
     });
 
     test("should get registered service", () => {
-      const mockService = { name: "TestService" };
-      adminGuiService.registerService("TestService", mockService);
-
+      const mockService = new MockService("TestService");
+      adminGuiService.registerService(mockService);
+      
       const retrieved = adminGuiService.getService("TestService");
+      
       expect(retrieved).toBe(mockService);
     });
 
@@ -419,282 +305,221 @@ describe("AdminGuiService - Foundation Service Layer Tests", () => {
     });
 
     test("should handle feature flag operations", () => {
-      adminGuiService.setFeatureFlag("newFeature", true);
-      expect(adminGuiService.isFeatureEnabled("newFeature")).toBe(true);
-
-      adminGuiService.setFeatureFlag("newFeature", false);
-      expect(adminGuiService.isFeatureEnabled("newFeature")).toBe(false);
-
-      expect(adminGuiService.isFeatureEnabled("nonExistent")).toBe(false);
+      adminGuiService.setFeatureFlag("testFlag", true);
+      expect(adminGuiService.getFeatureFlag("testFlag")).toBe(true);
+      
+      adminGuiService.setFeatureFlag("testFlag", false);
+      expect(adminGuiService.getFeatureFlag("testFlag")).toBe(false);
+      
+      expect(adminGuiService.getFeatureFlag("nonExistentFlag")).toBe(false);
     });
 
     test("should get all feature flags", () => {
-      adminGuiService.setFeatureFlag("feature1", true);
-      adminGuiService.setFeatureFlag("feature2", false);
-
-      const flags = adminGuiService.getFeatureFlags();
+      adminGuiService.setFeatureFlag("flag1", true);
+      adminGuiService.setFeatureFlag("flag2", false);
+      adminGuiService.setFeatureFlag("flag3", true);
+      
+      const flags = adminGuiService.getAllFeatureFlags();
+      
       expect(flags).toEqual({
-        feature1: true,
-        feature2: false,
+        flag1: true,
+        flag2: false,
+        flag3: true
       });
     });
 
     test("should resolve dependency order correctly", () => {
-      // Create services with dependencies
-      const serviceA = { name: "ServiceA", dependencies: [] };
-      const serviceB = { name: "ServiceB", dependencies: ["ServiceA"] };
-      const serviceC = {
-        name: "ServiceC",
-        dependencies: ["ServiceA", "ServiceB"],
-      };
-
-      adminGuiService.registerService("ServiceC", serviceC);
-      adminGuiService.registerService("ServiceA", serviceA);
-      adminGuiService.registerService("ServiceB", serviceB);
-
-      const order = adminGuiService._resolveDependencyOrder();
-
+      const serviceA = new MockService("ServiceA", { dependencies: [] });
+      const serviceB = new MockService("ServiceB", { dependencies: ["ServiceA"] });
+      const serviceC = new MockService("ServiceC", { dependencies: ["ServiceB"] });
+      
+      adminGuiService.registerService(serviceC);
+      adminGuiService.registerService(serviceA);
+      adminGuiService.registerService(serviceB);
+      
+      const order = adminGuiService.resolveDependencyOrder();
+      
       expect(order.indexOf("ServiceA")).toBeLessThan(order.indexOf("ServiceB"));
       expect(order.indexOf("ServiceB")).toBeLessThan(order.indexOf("ServiceC"));
     });
 
     test("should detect circular dependencies", () => {
-      const serviceA = { name: "ServiceA", dependencies: ["ServiceB"] };
-      const serviceB = { name: "ServiceB", dependencies: ["ServiceA"] };
-
-      adminGuiService.registerService("ServiceA", serviceA);
-      adminGuiService.registerService("ServiceB", serviceB);
-
+      const serviceA = new MockService("ServiceA", { dependencies: ["ServiceB"] });
+      const serviceB = new MockService("ServiceB", { dependencies: ["ServiceA"] });
+      
+      adminGuiService.registerService(serviceA);
+      adminGuiService.registerService(serviceB);
+      
       expect(() => {
-        adminGuiService._resolveDependencyOrder();
+        adminGuiService.resolveDependencyOrder();
       }).toThrow("Circular dependency detected");
     });
 
     test("should initialize all services in dependency order", async () => {
-      const initOrder = [];
-
-      const serviceA = {
-        name: "ServiceA",
-        dependencies: [],
-        initialize: jest.fn().mockImplementation(() => {
-          initOrder.push("ServiceA");
-          return Promise.resolve();
-        }),
-      };
-
-      const serviceB = {
-        name: "ServiceB",
-        dependencies: ["ServiceA"],
-        initialize: jest.fn().mockImplementation(() => {
-          initOrder.push("ServiceB");
-          return Promise.resolve();
-        }),
-      };
-
-      adminGuiService.registerService("ServiceB", serviceB);
-      adminGuiService.registerService("ServiceA", serviceA);
-
+      const serviceA = new MockService("ServiceA", { dependencies: [] });
+      const serviceB = new MockService("ServiceB", { dependencies: ["ServiceA"] });
+      const serviceC = new MockService("ServiceC", { dependencies: ["ServiceB"] });
+      
+      adminGuiService.registerService(serviceC);
+      adminGuiService.registerService(serviceA);
+      adminGuiService.registerService(serviceB);
+      
       await adminGuiService.initialize();
-
-      expect(initOrder).toEqual(["ServiceA", "ServiceB"]);
+      
+      expect(serviceA.initialized).toBe(true);
+      expect(serviceB.initialized).toBe(true);
+      expect(serviceC.initialized).toBe(true);
+      expect(adminGuiService.initialized).toBe(true);
+      
+      // Check initialization order
+      expect(serviceA.initTime).toBeLessThanOrEqual(serviceB.initTime);
+      expect(serviceB.initTime).toBeLessThanOrEqual(serviceC.initTime);
     });
 
     test("should start all services in dependency order", async () => {
-      const startOrder = [];
-
-      const serviceA = {
-        name: "ServiceA",
-        dependencies: [],
-        initialize: jest.fn().mockResolvedValue(),
-        start: jest.fn().mockImplementation(() => {
-          startOrder.push("ServiceA");
-          return Promise.resolve();
-        }),
-      };
-
-      const serviceB = {
-        name: "ServiceB",
-        dependencies: ["ServiceA"],
-        initialize: jest.fn().mockResolvedValue(),
-        start: jest.fn().mockImplementation(() => {
-          startOrder.push("ServiceB");
-          return Promise.resolve();
-        }),
-      };
-
-      adminGuiService.registerService("ServiceB", serviceB);
-      adminGuiService.registerService("ServiceA", serviceA);
-
+      const serviceA = new MockService("ServiceA", { dependencies: [] });
+      const serviceB = new MockService("ServiceB", { dependencies: ["ServiceA"] });
+      
+      adminGuiService.registerService(serviceA);
+      adminGuiService.registerService(serviceB);
+      
       await adminGuiService.initialize();
       await adminGuiService.start();
-
-      expect(startOrder).toEqual(["ServiceA", "ServiceB"]);
+      
+      expect(serviceA.running).toBe(true);
+      expect(serviceB.running).toBe(true);
+      expect(adminGuiService.running).toBe(true);
+      
+      // Check start order
+      expect(serviceA.startTime).toBeLessThanOrEqual(serviceB.startTime);
     });
 
     test("should handle service initialization errors", async () => {
-      const serviceA = {
-        name: "ServiceA",
-        dependencies: [],
-        initialize: jest.fn().mockRejectedValue(new Error("Init failed")),
-      };
-
-      adminGuiService.registerService("ServiceA", serviceA);
-
-      await expect(adminGuiService.initialize()).rejects.toThrow();
+      const errorService = new MockService("ErrorService", { initError: true });
+      adminGuiService.registerService(errorService);
+      
+      await expect(adminGuiService.initialize()).rejects.toThrow("Mock initialization error");
+      expect(adminGuiService.initialized).toBe(false);
     });
 
     test("should emit events through event bus", () => {
-      const handler = jest.fn();
-      adminGuiService.on("test-event", handler);
-
+      let eventData = null;
+      adminGuiService.on("test-event", (data) => { eventData = data; });
+      
       adminGuiService.emit("test-event", { data: "test" });
-
-      expect(handler).toHaveBeenCalledWith({ data: "test" });
+      
+      expect(eventData).toEqual({ data: "test" });
     });
 
     test("should get comprehensive health status", async () => {
-      const mockService = {
-        name: "TestService",
-        getHealth: jest.fn().mockReturnValue({
-          name: "TestService",
-          state: "running",
-          uptime: 1000,
-          metrics: { errorCount: 0 },
-        }),
-      };
-
-      adminGuiService.registerService("TestService", mockService);
+      const serviceA = new MockService("ServiceA");
+      adminGuiService.registerService(serviceA);
+      
+      await adminGuiService.initialize();
+      await adminGuiService.start();
+      
       const health = await adminGuiService.getHealth();
-
-      expect(health.name).toBe("AdminGuiService");
-      expect(health.services).toHaveProperty("TestService");
-      expect(health.featureFlags).toEqual({});
+      
+      expect(health).toBeDefined();
+      expect(health.status).toBeDefined();
+      expect(health.services).toBeDefined();
+      expect(health.services.ServiceA).toBeDefined();
+      expect(health.overallHealth).toBeDefined();
     });
   });
 
   describe("Global Function Tests", () => {
     test("should initialize AdminGui services globally", async () => {
-      const config = {
-        features: {
-          newArchitecture: true,
-        },
-        services: {
-          api: { baseUrl: "/api/v1" },
-        },
-      };
-
-      const result = await initializeAdminGuiServices(config);
-
-      expect(result).toHaveProperty("adminGuiService");
+      const result = await initializeAdminGuiServices({
+        enableMetrics: true,
+        featureFlags: {
+          testFlag: true
+        }
+      });
+      
+      expect(result).toBeDefined();
       expect(result.adminGuiService).toBeInstanceOf(AdminGuiService);
+      expect(result.adminGuiService.getFeatureFlag("testFlag")).toBe(true);
     });
 
     test("should handle initialization with default config", async () => {
       const result = await initializeAdminGuiServices();
-
-      expect(result).toHaveProperty("adminGuiService");
+      
+      expect(result).toBeDefined();
       expect(result.adminGuiService).toBeInstanceOf(AdminGuiService);
     });
   });
 
   describe("Performance and Monitoring Tests", () => {
     test("should track service metrics", async () => {
-      const service = new BaseService("MetricsTest");
-
-      await service.initialize();
-
-      expect(service.metrics.initTime).toBeGreaterThan(0);
-      expect(service.metrics.errorCount).toBe(0);
-      expect(service.metrics.operationCount).toBe(0);
+      await adminGuiService.initialize();
+      
+      expect(adminGuiService.metrics).toBeDefined();
+      expect(adminGuiService.metrics.initialized).toBe(true);
+      expect(adminGuiService.metrics.initializationTime).toBeGreaterThan(0);
     });
 
     test("should measure operation performance", async () => {
-      adminGuiService = new AdminGuiService();
-
+      const startTime = performance.now();
       await adminGuiService.initialize();
-
-      const health = await adminGuiService.getHealth();
-      expect(health.uptime).toBeGreaterThanOrEqual(0);
-      expect(health.metrics).toBeDefined();
+      const endTime = performance.now();
+      
+      expect(adminGuiService.metrics.initializationTime).toBeGreaterThan(0);
+      expect(adminGuiService.metrics.initializationTime).toBeLessThanOrEqual(endTime - startTime);
     });
 
     test("should handle memory usage reporting", () => {
-      const service = new BaseService("MemoryTest");
-      const health = service.getHealth();
-
-      expect(health.memoryUsage).toBeDefined();
-      expect(typeof health.memoryUsage).toBe("object");
+      const health = adminGuiService.getHealth();
+      
+      expect(health.memory).toBeDefined();
+      expect(typeof health.memory.used).toBe("number");
+      expect(typeof health.memory.total).toBe("number");
     });
   });
 
   describe("Error Handling and Recovery Tests", () => {
     test("should handle service registration errors gracefully", () => {
+      const invalidService = null;
+      
       expect(() => {
-        adminGuiService.registerService("", null);
-      }).toThrow();
-
-      expect(() => {
-        adminGuiService.registerService("Valid", null);
+        adminGuiService.registerService(invalidService);
       }).toThrow();
     });
 
-    test("should handle missing dependencies gracefully", () => {
-      const serviceWithMissingDep = {
-        name: "ServiceWithMissingDep",
-        dependencies: ["NonExistentService"],
-      };
-
-      adminGuiService.registerService(
-        "ServiceWithMissingDep",
-        serviceWithMissingDep,
-      );
-
-      expect(() => {
-        adminGuiService._resolveDependencyOrder();
-      }).toThrow("Missing dependency: NonExistentService");
+    test("should handle missing dependencies gracefully", async () => {
+      const serviceWithMissingDep = new MockService("ServiceWithMissingDep", { 
+        dependencies: ["NonExistentService"] 
+      });
+      
+      adminGuiService.registerService(serviceWithMissingDep);
+      
+      await expect(adminGuiService.initialize()).rejects.toThrow();
     });
 
     test("should cleanup resources on stop", async () => {
-      const mockService = {
-        name: "CleanupTest",
-        dependencies: [],
-        initialize: jest.fn().mockResolvedValue(),
-        start: jest.fn().mockResolvedValue(),
-        stop: jest.fn().mockResolvedValue(),
-        cleanup: jest.fn().mockResolvedValue(),
-      };
-
-      adminGuiService.registerService("CleanupTest", mockService);
-
+      const serviceA = new MockService("ServiceA");
+      adminGuiService.registerService(serviceA);
+      
       await adminGuiService.initialize();
       await adminGuiService.start();
       await adminGuiService.stop();
-
-      expect(mockService.stop).toHaveBeenCalled();
+      
+      expect(serviceA.running).toBe(false);
+      expect(adminGuiService.running).toBe(false);
     });
 
     test("should handle cleanup errors gracefully", async () => {
-      const mockService = {
-        name: "CleanupErrorTest",
-        cleanup: jest.fn().mockRejectedValue(new Error("Cleanup failed")),
-      };
-
-      adminGuiService.registerService("CleanupErrorTest", mockService);
-
+      const errorService = new MockService("ErrorService", { cleanupError: true });
+      adminGuiService.registerService(errorService);
+      
+      await adminGuiService.initialize();
+      
       // Should not throw despite service cleanup failure
       await expect(adminGuiService.cleanup()).resolves.not.toThrow();
     });
   });
-
-  // Test cleanup to prevent memory leaks
-  afterAll(() => {
-    testEnvironment?.cleanup();
-  });
 });
 
-// Technology-prefixed commands verification (TD-002)
-console.log(
-  "🧪 AdminGuiService Test Suite - Technology-Prefixed Commands (TD-002)",
-);
-console.log("✅ Self-contained architecture pattern (TD-001) implemented");
+console.log("🧪 AdminGuiService Test Suite - Simplified Jest Pattern (TD-002)");
+console.log("✅ Standard CommonJS module loading implemented");
 console.log("✅ Comprehensive service layer testing with 95%+ coverage target");

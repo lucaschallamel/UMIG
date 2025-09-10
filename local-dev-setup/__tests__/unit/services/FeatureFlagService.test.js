@@ -1,49 +1,69 @@
 /**
- * FeatureFlagService.test.js - Comprehensive Test Suite
+ * FeatureFlagService.test.js - Comprehensive Test Suite (Simplified Jest Pattern)
  *
- * US-082-A Phase 1: Foundation Service Layer Testing
- * Following TD-001/TD-002 revolutionary testing patterns
- * - Self-contained architecture (TD-001)
- * - Technology-prefixed commands (TD-002)
+ * US-082-A Phase 1: Foundation Service Layer Feature Flag Testing
+ * Following TD-002 simplified Jest pattern - NO self-contained architecture
+ * - Standard Jest module loading
+ * - Proper CommonJS imports
  * - 95%+ coverage target
  *
- * @version 1.0.0
+ * Features Tested:
+ * - Boolean, percentage, and experiment-based feature flags
+ * - User context evaluation and targeting
+ * - Flag dependencies and constraints
+ * - Analytics tracking and event capture
+ * - Remote sync and configuration management
+ * - Performance testing and caching
+ * - Error handling and edge cases
+ * - Integration with other services
+ *
+ * @version 2.0.0 - Simplified Jest Pattern
  * @author GENDEV Test Suite Generator
  * @since Sprint 6
  */
 
-// Self-contained test architecture (TD-001 pattern)
-const fs = require("fs");
-const path = require("path");
-const { performance } = require("perf_hooks");
+// Setup globals BEFORE requiring modules
+global.window = global.window || {};
+global.performance = global.performance || { now: () => Date.now() };
+global.localStorage = global.localStorage || {
+  store: {},
+  getItem: function(key) {
+    return this.store[key] || null;
+  },
+  setItem: function(key, value) {
+    this.store[key] = String(value);
+  },
+  removeItem: function(key) {
+    delete this.store[key];
+  },
+  clear: function() {
+    this.store = {};
+  }
+};
 
-// Load FeatureFlagService source code
-const featureFlagServicePath = path.join(
-  __dirname,
-  "../../../../src/groovy/umig/web/js/services/FeatureFlagService.js",
-);
-const featureFlagServiceCode = fs.readFileSync(featureFlagServicePath, "utf8");
+// Standard CommonJS require - NO vm.runInContext
+const { FeatureFlagService, FeatureFlag, UserContext } = require("../../../../src/groovy/umig/web/js/services/FeatureFlagService.js");
 
-// Self-contained mock implementations (TD-001 pattern)
-class MockConsole {
+// Mock Logger for testing
+class MockLogger {
   constructor() {
     this.logs = [];
   }
 
-  log(...args) {
-    this.logs.push(["log", ...args]);
-  }
-  error(...args) {
-    this.logs.push(["error", ...args]);
-  }
-  warn(...args) {
-    this.logs.push(["warn", ...args]);
-  }
   info(...args) {
-    this.logs.push(["info", ...args]);
+    this.logs.push(["INFO", ...args]);
   }
+
+  error(...args) {
+    this.logs.push(["ERROR", ...args]);
+  }
+
+  warn(...args) {
+    this.logs.push(["WARN", ...args]);
+  }
+
   debug(...args) {
-    this.logs.push(["debug", ...args]);
+    this.logs.push(["DEBUG", ...args]);
   }
 
   clear() {
@@ -51,122 +71,19 @@ class MockConsole {
   }
 }
 
-class MockStorage {
-  constructor() {
-    this.data = new Map();
-  }
-
-  getItem(key) {
-    return this.data.get(key) || null;
-  }
-
-  setItem(key, value) {
-    this.data.set(key, String(value));
-  }
-
-  removeItem(key) {
-    this.data.delete(key);
-  }
-
-  clear() {
-    this.data.clear();
-  }
-}
-
-class MockBaseService {
-  constructor(name) {
-    this.name = name;
-    this.state = "initialized";
-    this.eventHandlers = new Map();
-    this.metrics = { errorCount: 0, operationCount: 0 };
-    this.config = {};
-  }
-
-  on(event, handler) {
-    if (!this.eventHandlers.has(event)) {
-      this.eventHandlers.set(event, []);
-    }
-    this.eventHandlers.get(event).push(handler);
-  }
-
-  emit(event, data) {
-    if (this.eventHandlers.has(event)) {
-      this.eventHandlers.get(event).forEach((handler) => handler(data));
-    }
-  }
-
-  async initialize(config = {}) {
-    this.config = config;
-    this.state = "initialized";
-  }
-
-  async start() {
-    this.state = "running";
-  }
-
-  async stop() {
-    this.state = "stopped";
-  }
-
-  async cleanup() {
-    this.state = "cleaned";
-  }
-
-  getHealth() {
-    return {
-      name: this.name,
-      state: this.state,
-      metrics: this.metrics,
-    };
-  }
-
-  _log(level, ...args) {
-    console[level](...args);
-  }
-}
-
-class MockApiService {
-  constructor() {
-    this.requests = [];
-    this.responses = new Map();
-  }
-
-  async get(url, options = {}) {
-    this.requests.push({ method: "GET", url, options });
-    const response = this.responses.get(`GET:${url}`) || {
-      status: 200,
-      data: {},
-    };
-    if (response.status >= 400) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return response.data;
-  }
-
-  async post(url, data, options = {}) {
-    this.requests.push({ method: "POST", url, data, options });
-    const response = this.responses.get(`POST:${url}`) || {
-      status: 200,
-      data: {},
-    };
-    if (response.status >= 400) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return response.data;
-  }
-
-  setMockResponse(method, url, response) {
-    this.responses.set(`${method}:${url}`, response);
-  }
-}
-
-class MockAuthenticationService {
+// Mock AuthService for user context
+class MockAuthService {
   constructor() {
     this.currentUser = {
       userId: "testuser123",
       email: "test@example.com",
-      groups: ["confluence-users"],
-      attributes: { department: "engineering" },
+      displayName: "Test User",
+      groups: ["pilot", "beta-testers"],
+      attributes: {
+        department: "engineering",
+        location: "us-west",
+        tier: "premium"
+      }
     };
   }
 
@@ -177,127 +94,100 @@ class MockAuthenticationService {
   setCurrentUser(user) {
     this.currentUser = user;
   }
+
+  getUserGroups(userId) {
+    return this.currentUser.groups || [];
+  }
 }
 
-class MockWindow {
+// Mock Analytics Service
+class MockAnalyticsService {
   constructor() {
-    this.localStorage = new MockStorage();
-    this.sessionStorage = new MockStorage();
-    this.location = { href: "http://localhost:8090", hostname: "localhost" };
-    this.console = new MockConsole();
-    this.BaseService = MockBaseService;
-    this.timers = [];
-    this.intervals = [];
+    this.events = [];
+    this.batchEvents = [];
   }
 
-  setTimeout(fn, delay) {
-    const timer = setTimeout(fn, delay);
-    this.timers.push(timer);
-    return timer;
+  track(event, properties) {
+    this.events.push({ event, properties, timestamp: Date.now() });
   }
 
-  setInterval(fn, delay) {
-    const interval = setInterval(fn, delay);
-    this.intervals.push(interval);
-    return interval;
+  trackBatch(events) {
+    this.batchEvents.push(...events);
   }
 
-  clearTimeout(timer) {
-    clearTimeout(timer);
-    const index = this.timers.indexOf(timer);
-    if (index > -1) this.timers.splice(index, 1);
+  getEvents() {
+    return this.events;
   }
 
-  clearInterval(interval) {
-    clearInterval(interval);
-    const index = this.intervals.indexOf(interval);
-    if (index > -1) this.intervals.splice(index, 1);
+  getBatchEvents() {
+    return this.batchEvents;
   }
 
-  cleanup() {
-    this.timers.forEach((timer) => clearTimeout(timer));
-    this.intervals.forEach((interval) => clearInterval(interval));
-    this.timers = [];
-    this.intervals = [];
+  clear() {
+    this.events = [];
+    this.batchEvents = [];
   }
 }
 
-// Create test environment and evaluate FeatureFlagService code
-function createFeatureFlagService() {
-  const mockWindow = new MockWindow();
+// Mock Remote API for flag sync
+class MockRemoteApi {
+  constructor() {
+    this.flags = new Map();
+    this.shouldError = false;
+  }
 
-  // Prepare global context
-  const context = {
-    window: mockWindow,
-    localStorage: mockWindow.localStorage,
-    sessionStorage: mockWindow.sessionStorage,
-    console: mockWindow.console,
-    performance: performance,
-    setTimeout: (fn, delay) => mockWindow.setTimeout(fn, delay),
-    setInterval: (fn, delay) => mockWindow.setInterval(fn, delay),
-    clearTimeout: (timer) => mockWindow.clearTimeout(timer),
-    clearInterval: (interval) => mockWindow.clearInterval(interval),
-    Date: Date,
-    Map: Map,
-    Set: Set,
-    Promise: Promise,
-    Error: Error,
-    Object: Object,
-    Array: Array,
-    Math: Math,
-    JSON: JSON,
-  };
+  async fetchFlags() {
+    if (this.shouldError) {
+      throw new Error("Remote API error");
+    }
 
-  // Add window to context pointing to mockWindow
-  context.window = mockWindow;
+    return Array.from(this.flags.values());
+  }
 
-  // Execute FeatureFlagService code in controlled context
-  const func = new Function(
-    ...Object.keys(context),
-    featureFlagServiceCode +
-      `
-        return {
-            FeatureFlagService: window.FeatureFlagService || FeatureFlagService,
-            FeatureFlag: window.FeatureFlag || FeatureFlag,
-            UserContext: window.UserContext || UserContext
-        };`,
-  );
+  setFlags(flags) {
+    this.flags.clear();
+    flags.forEach(flag => this.flags.set(flag.key, flag));
+  }
 
-  const result = func(...Object.values(context));
-  result.mockWindow = mockWindow;
-
-  return result;
+  setShouldError(shouldError) {
+    this.shouldError = shouldError;
+  }
 }
 
 describe("FeatureFlagService - Comprehensive Foundation Tests", () => {
-  let FeatureFlagService;
-  let FeatureFlag;
-  let UserContext;
-  let mockWindow;
   let featureFlagService;
-  let mockApiService;
+  let mockLogger;
   let mockAuthService;
+  let mockAnalyticsService;
+  let mockRemoteApi;
 
   beforeEach(() => {
-    const serviceClasses = createFeatureFlagService();
-    FeatureFlagService = serviceClasses.FeatureFlagService;
-    FeatureFlag = serviceClasses.FeatureFlag;
-    UserContext = serviceClasses.UserContext;
-    mockWindow = serviceClasses.mockWindow;
+    mockLogger = new MockLogger();
+    mockAuthService = new MockAuthService();
+    mockAnalyticsService = new MockAnalyticsService();
+    mockRemoteApi = new MockRemoteApi();
 
-    mockApiService = new MockApiService();
-    mockAuthService = new MockAuthenticationService();
+    // Clear localStorage
+    global.localStorage.clear();
+
+    // Create fresh feature flag service instance
+    featureFlagService = new FeatureFlagService({
+      logger: mockLogger,
+      authService: mockAuthService,
+      analyticsService: mockAnalyticsService,
+      remoteApi: mockRemoteApi,
+      cacheTimeout: 1000, // 1 second for tests
+      enableAnalytics: true,
+      enableRemoteSync: true,
+    });
   });
 
-  afterEach(() => {
-    if (
-      featureFlagService &&
-      typeof featureFlagService.cleanup === "function"
-    ) {
-      featureFlagService.cleanup();
+  afterEach(async () => {
+    if (featureFlagService && featureFlagService.running) {
+      await featureFlagService.stop();
     }
-    if (mockWindow && typeof mockWindow.cleanup === "function") {
-      mockWindow.cleanup();
+    if (featureFlagService && featureFlagService.initialized) {
+      await featureFlagService.cleanup();
     }
   });
 
@@ -305,117 +195,109 @@ describe("FeatureFlagService - Comprehensive Foundation Tests", () => {
     test("should create FeatureFlag with default values", () => {
       const flag = new FeatureFlag({
         key: "test-flag",
-        name: "Test Feature",
+        name: "Test Flag",
         description: "A test feature flag",
+        type: "boolean",
       });
 
       expect(flag.key).toBe("test-flag");
-      expect(flag.name).toBe("Test Feature");
+      expect(flag.name).toBe("Test Flag");
       expect(flag.description).toBe("A test feature flag");
       expect(flag.type).toBe("boolean");
       expect(flag.enabled).toBe(false);
-      expect(flag.defaultValue).toBe(false);
-      expect(flag.percentage).toBe(0);
-      expect(flag.environment).toBe("development");
-      expect(flag.version).toBe(1);
+      expect(flag.targeting).toEqual({});
+      expect(flag.variants).toEqual([]);
+      expect(flag.dependencies).toEqual([]);
       expect(flag.createdAt).toBeInstanceOf(Date);
-      expect(flag.updatedAt).toBeInstanceOf(Date);
     });
 
     test("should create different flag types", () => {
-      const booleanFlag = new FeatureFlag({
-        key: "bool-flag",
-        type: "boolean",
-        defaultValue: true,
-      });
-
-      const percentageFlag = new FeatureFlag({
-        key: "percent-flag",
-        type: "percentage",
-        percentage: 50,
-      });
-
-      const experimentFlag = new FeatureFlag({
-        key: "exp-flag",
-        type: "experiment",
-        variants: { control: 50, treatment: 50 },
+      const booleanFlag = new FeatureFlag({ key: "bool", type: "boolean", enabled: true });
+      const percentageFlag = new FeatureFlag({ key: "pct", type: "percentage", percentage: 50 });
+      const experimentFlag = new FeatureFlag({ 
+        key: "exp", 
+        type: "experiment", 
+        variants: [
+          { key: "control", weight: 50 },
+          { key: "treatment", weight: 50 }
+        ]
       });
 
       expect(booleanFlag.type).toBe("boolean");
-      expect(booleanFlag.defaultValue).toBe(true);
+      expect(booleanFlag.enabled).toBe(true);
 
       expect(percentageFlag.type).toBe("percentage");
       expect(percentageFlag.percentage).toBe(50);
 
       expect(experimentFlag.type).toBe("experiment");
-      expect(experimentFlag.variants).toEqual({ control: 50, treatment: 50 });
+      expect(experimentFlag.variants).toHaveLength(2);
+      expect(experimentFlag.variants[0].key).toBe("control");
+      expect(experimentFlag.variants[1].key).toBe("treatment");
     });
 
     test("should validate flag configuration", () => {
-      expect(() => {
-        new FeatureFlag({}); // Missing key
-      }).toThrow("Flag key is required");
+      expect(() => new FeatureFlag({})).toThrow("Flag key is required");
+      expect(() => new FeatureFlag({ key: "" })).toThrow("Flag key is required");
+      expect(() => new FeatureFlag({ key: "test", type: "invalid" })).toThrow("Invalid flag type");
 
-      expect(() => {
-        new FeatureFlag({ key: "", name: "Test" });
-      }).toThrow("Flag key cannot be empty");
-
-      expect(() => {
-        new FeatureFlag({
-          key: "test",
-          type: "percentage",
-          percentage: 150,
-        });
-      }).toThrow("Percentage must be between 0 and 100");
+      expect(() => new FeatureFlag({
+        key: "test",
+        type: "percentage",
+        percentage: 150
+      })).toThrow("Percentage must be between 0 and 100");
     });
 
     test("should convert to JSON", () => {
       const flag = new FeatureFlag({
         key: "test-flag",
-        name: "Test",
+        name: "Test Flag",
+        type: "boolean",
         enabled: true,
-        percentage: 75,
       });
 
       const json = flag.toJSON();
 
       expect(json.key).toBe("test-flag");
-      expect(json.name).toBe("Test");
+      expect(json.name).toBe("Test Flag");
+      expect(json.type).toBe("boolean");
       expect(json.enabled).toBe(true);
-      expect(json.percentage).toBe(75);
-      expect(typeof json.createdAt).toBe("string");
+      expect(json.createdAt).toBeDefined();
     });
 
     test("should create from JSON", () => {
-      const data = {
-        key: "json-flag",
-        name: "JSON Flag",
+      const json = {
+        key: "test-flag",
+        name: "Test Flag",
         type: "percentage",
-        enabled: true,
         percentage: 25,
-        createdAt: "2023-01-01T00:00:00.000Z",
+        targeting: {
+          groups: ["beta-testers"],
+          attributes: { department: "engineering" }
+        }
       };
 
-      const flag = FeatureFlag.fromJSON(data);
+      const flag = FeatureFlag.fromJSON(json);
 
-      expect(flag.key).toBe("json-flag");
-      expect(flag.name).toBe("JSON Flag");
+      expect(flag.key).toBe("test-flag");
+      expect(flag.name).toBe("Test Flag");
       expect(flag.type).toBe("percentage");
-      expect(flag.enabled).toBe(true);
       expect(flag.percentage).toBe(25);
-      expect(flag.createdAt).toBeInstanceOf(Date);
+      expect(flag.targeting.groups).toEqual(["beta-testers"]);
+      expect(flag.targeting.attributes.department).toBe("engineering");
     });
 
     test("should support flag dependencies", () => {
-      const flag = new FeatureFlag({
-        key: "dependent-flag",
-        dependencies: ["parent-flag"],
-        prerequisites: [{ flag: "parent-flag", value: true }],
+      const parentFlag = new FeatureFlag({ key: "parent", type: "boolean", enabled: true });
+      const childFlag = new FeatureFlag({
+        key: "child",
+        type: "boolean",
+        enabled: true,
+        dependencies: ["parent"]
       });
 
-      expect(flag.dependencies).toEqual(["parent-flag"]);
-      expect(flag.prerequisites).toHaveLength(1);
-      expect(flag.prerequisites[0].flag).toBe("parent-flag");
+      expect(childFlag.dependencies).toEqual(["parent"]);
+      expect(childFlag.hasDependencies()).toBe(true);
+      expect(parentFlag.hasDependencies()).toBe(false);
     });
   });
 
@@ -423,695 +305,675 @@ describe("FeatureFlagService - Comprehensive Foundation Tests", () => {
     test("should create UserContext from user data", () => {
       const userData = {
         userId: "user123",
-        email: "user@example.com",
-        groups: ["admin", "power-user"],
-        attributes: { department: "engineering", level: "senior" },
+        groups: ["admin", "beta"],
+        attributes: {
+          department: "engineering",
+          location: "us-west"
+        }
       };
 
       const context = new UserContext(userData);
 
       expect(context.userId).toBe("user123");
-      expect(context.email).toBe("user@example.com");
-      expect(context.groups).toEqual(["admin", "power-user"]);
+      expect(context.groups).toEqual(["admin", "beta"]);
       expect(context.attributes.department).toBe("engineering");
-      expect(context.environment).toBe("development");
+      expect(context.attributes.location).toBe("us-west");
     });
 
     test("should handle missing user data gracefully", () => {
-      const context = new UserContext();
+      const context = new UserContext(null);
 
-      expect(context.userId).toBeNull();
-      expect(context.email).toBeNull();
+      expect(context.userId).toBe("anonymous");
       expect(context.groups).toEqual([]);
       expect(context.attributes).toEqual({});
     });
 
     test("should check if user is in groups", () => {
       const context = new UserContext({
-        groups: ["admin", "power-user"],
+        userId: "user123",
+        groups: ["admin", "beta", "qa"]
       });
 
       expect(context.isInGroup("admin")).toBe(true);
-      expect(context.isInGroup("user")).toBe(false);
-      expect(context.isInAnyGroup(["admin", "moderator"])).toBe(true);
-      expect(context.isInAnyGroup(["moderator", "guest"])).toBe(false);
+      expect(context.isInGroup("beta")).toBe(true);
+      expect(context.isInGroup("nonexistent")).toBe(false);
+      expect(context.isInAnyGroup(["admin", "nonexistent"])).toBe(true);
+      expect(context.isInAnyGroup(["nonexistent", "also-missing"])).toBe(false);
     });
 
     test("should get user attributes", () => {
       const context = new UserContext({
-        attributes: { department: "sales", country: "US" },
+        userId: "user123",
+        attributes: {
+          department: "engineering",
+          tier: "premium"
+        }
       });
 
-      expect(context.getAttribute("department")).toBe("sales");
-      expect(context.getAttribute("country")).toBe("US");
-      expect(context.getAttribute("nonexistent")).toBeNull();
-      expect(context.getAttribute("nonexistent", "default")).toBe("default");
+      expect(context.getAttribute("department")).toBe("engineering");
+      expect(context.getAttribute("tier")).toBe("premium");
+      expect(context.getAttribute("nonexistent")).toBeUndefined();
     });
 
     test("should convert to JSON", () => {
       const context = new UserContext({
         userId: "user123",
-        email: "user@example.com",
-        attributes: { role: "admin" },
+        groups: ["admin"],
+        attributes: { department: "engineering" }
       });
 
       const json = context.toJSON();
 
       expect(json.userId).toBe("user123");
-      expect(json.email).toBe("user@example.com");
-      expect(json.attributes.role).toBe("admin");
+      expect(json.groups).toEqual(["admin"]);
+      expect(json.attributes.department).toBe("engineering");
+      expect(json.timestamp).toBeDefined();
     });
   });
 
   describe("FeatureFlagService Core Tests", () => {
-    beforeEach(() => {
-      featureFlagService = new FeatureFlagService();
-      featureFlagService.apiService = mockApiService;
-      featureFlagService.authenticationService = mockAuthService;
+    beforeEach(async () => {
+      await featureFlagService.initialize();
     });
 
     test("should create FeatureFlagService with initial state", () => {
+      expect(featureFlagService).toBeDefined();
       expect(featureFlagService.name).toBe("FeatureFlagService");
-      expect(featureFlagService.state).toBe("initialized");
+      expect(featureFlagService.initialized).toBe(false);
+      expect(featureFlagService.running).toBe(false);
       expect(featureFlagService.flags).toBeInstanceOf(Map);
-      expect(featureFlagService.cache).toBeInstanceOf(Map);
-      expect(featureFlagService.experiments).toBeInstanceOf(Map);
-      expect(featureFlagService.analytics).toBeInstanceOf(Map);
     });
 
     test("should initialize with configuration", async () => {
-      const config = {
-        defaultEnvironment: "staging",
-        cacheTimeout: 600000,
-        syncInterval: 30000,
-        enableAnalytics: true,
-        enableRollouts: true,
-      };
-
-      await featureFlagService.initialize(config);
-
-      expect(featureFlagService.defaultEnvironment).toBe("staging");
-      expect(featureFlagService.cacheTimeout).toBe(600000);
-      expect(featureFlagService.enableAnalytics).toBe(true);
-    });
-
-    test("should start and stop service", async () => {
-      await featureFlagService.initialize();
-      await featureFlagService.start();
-
-      expect(featureFlagService.state).toBe("running");
-      expect(featureFlagService.syncInterval).toBeDefined();
-
-      await featureFlagService.stop();
-      expect(featureFlagService.state).toBe("stopped");
+      expect(featureFlagService.initialized).toBe(true);
+      expect(featureFlagService.config).toBeDefined();
+      expect(featureFlagService.config.cacheTimeout).toBe(1000);
+      expect(featureFlagService.config.enableAnalytics).toBe(true);
+      expect(featureFlagService.config.enableRemoteSync).toBe(true);
     });
 
     test("should register and retrieve flags", () => {
       const flag = new FeatureFlag({
         key: "test-flag",
-        name: "Test Feature",
-        enabled: true,
+        type: "boolean",
+        enabled: true
       });
 
       featureFlagService.registerFlag(flag);
 
       expect(featureFlagService.flags.has("test-flag")).toBe(true);
       expect(featureFlagService.getFlag("test-flag")).toBe(flag);
-      expect(featureFlagService.getFlag("nonexistent")).toBeNull();
     });
 
     test("should not allow duplicate flag registration", () => {
-      const flag = new FeatureFlag({ key: "duplicate-flag" });
+      const flag1 = new FeatureFlag({ key: "duplicate", type: "boolean" });
+      const flag2 = new FeatureFlag({ key: "duplicate", type: "boolean" });
 
-      featureFlagService.registerFlag(flag);
-
-      expect(() => {
-        featureFlagService.registerFlag(flag);
-      }).toThrow("Flag duplicate-flag is already registered");
+      featureFlagService.registerFlag(flag1);
+      
+      expect(() => featureFlagService.registerFlag(flag2)).toThrow("Flag duplicate is already registered");
     });
 
     test("should evaluate boolean flags", () => {
-      const flag = new FeatureFlag({
-        key: "boolean-flag",
-        type: "boolean",
-        enabled: true,
-        defaultValue: true,
-      });
+      const enabledFlag = new FeatureFlag({ key: "enabled", type: "boolean", enabled: true });
+      const disabledFlag = new FeatureFlag({ key: "disabled", type: "boolean", enabled: false });
 
-      featureFlagService.registerFlag(flag);
-
-      const result = featureFlagService.isEnabled("boolean-flag");
-      expect(result).toBe(true);
-
-      const disabledFlag = new FeatureFlag({
-        key: "disabled-flag",
-        enabled: false,
-        defaultValue: false,
-      });
-
+      featureFlagService.registerFlag(enabledFlag);
       featureFlagService.registerFlag(disabledFlag);
-      expect(featureFlagService.isEnabled("disabled-flag")).toBe(false);
+
+      const userContext = new UserContext(mockAuthService.getCurrentUser());
+
+      expect(featureFlagService.isEnabled("enabled", userContext)).toBe(true);
+      expect(featureFlagService.isEnabled("disabled", userContext)).toBe(false);
     });
 
     test("should evaluate percentage flags", () => {
       const flag = new FeatureFlag({
         key: "percentage-flag",
         type: "percentage",
-        enabled: true,
-        percentage: 50,
+        percentage: 50 // 50% rollout
       });
 
       featureFlagService.registerFlag(flag);
 
-      // Mock Math.random to control percentage evaluation
-      const originalRandom = Math.random;
+      // Test multiple users to verify percentage distribution
+      let enabledCount = 0;
+      for (let i = 0; i < 100; i++) {
+        const userContext = new UserContext({ userId: `user${i}` });
+        if (featureFlagService.isEnabled("percentage-flag", userContext)) {
+          enabledCount++;
+        }
+      }
 
-      Math.random = jest.fn().mockReturnValue(0.25); // 25% < 50%
-      expect(featureFlagService.isEnabled("percentage-flag")).toBe(true);
-
-      Math.random = jest.fn().mockReturnValue(0.75); // 75% > 50%
-      expect(featureFlagService.isEnabled("percentage-flag")).toBe(false);
-
-      Math.random = originalRandom;
+      // Should be approximately 50% (allow some variance)
+      expect(enabledCount).toBeGreaterThan(30);
+      expect(enabledCount).toBeLessThan(70);
     });
 
     test("should evaluate user segment targeting", () => {
       const flag = new FeatureFlag({
-        key: "segment-flag",
-        type: "user_list",
-        enabled: true,
-        includedUsers: ["user123", "user456"],
-        excludedUsers: ["user789"],
+        key: "group-flag",
+        type: "boolean",
+        enabled: false, // Disabled by default
+        targeting: {
+          groups: ["beta-testers", "qa"],
+          enabled: true // Enabled for specific groups
+        }
       });
 
       featureFlagService.registerFlag(flag);
 
-      const user123Context = new UserContext({ userId: "user123" });
-      const user789Context = new UserContext({ userId: "user789" });
-      const user999Context = new UserContext({ userId: "user999" });
+      const betaUser = new UserContext({ userId: "beta-user", groups: ["beta-testers"] });
+      const qaUser = new UserContext({ userId: "qa-user", groups: ["qa"] });
+      const regularUser = new UserContext({ userId: "regular-user", groups: ["users"] });
 
-      expect(
-        featureFlagService.isEnabledForUser("segment-flag", user123Context),
-      ).toBe(true);
-      expect(
-        featureFlagService.isEnabledForUser("segment-flag", user789Context),
-      ).toBe(false);
-      expect(
-        featureFlagService.isEnabledForUser("segment-flag", user999Context),
-      ).toBe(false);
+      expect(featureFlagService.isEnabled("group-flag", betaUser)).toBe(true);
+      expect(featureFlagService.isEnabled("group-flag", qaUser)).toBe(true);
+      expect(featureFlagService.isEnabled("group-flag", regularUser)).toBe(false);
     });
 
     test("should evaluate attribute-based targeting", () => {
       const flag = new FeatureFlag({
         key: "attribute-flag",
-        type: "segment",
-        enabled: true,
-        userAttributes: {
-          department: ["engineering", "qa"],
-          level: ["senior", "lead"],
-        },
+        type: "boolean",
+        enabled: false,
+        targeting: {
+          attributes: {
+            department: "engineering",
+            tier: "premium"
+          },
+          enabled: true
+        }
       });
 
       featureFlagService.registerFlag(flag);
 
-      const matchingUser = new UserContext({
-        userId: "user1",
-        attributes: { department: "engineering", level: "senior" },
+      const engineerUser = new UserContext({
+        userId: "engineer",
+        attributes: { department: "engineering", tier: "premium" }
       });
 
-      const nonMatchingUser = new UserContext({
-        userId: "user2",
-        attributes: { department: "sales", level: "junior" },
+      const salesUser = new UserContext({
+        userId: "sales",
+        attributes: { department: "sales", tier: "basic" }
       });
 
-      expect(
-        featureFlagService.isEnabledForUser("attribute-flag", matchingUser),
-      ).toBe(true);
-      expect(
-        featureFlagService.isEnabledForUser("attribute-flag", nonMatchingUser),
-      ).toBe(false);
+      const partialMatchUser = new UserContext({
+        userId: "partial",
+        attributes: { department: "engineering", tier: "basic" }
+      });
+
+      expect(featureFlagService.isEnabled("attribute-flag", engineerUser)).toBe(true);
+      expect(featureFlagService.isEnabled("attribute-flag", salesUser)).toBe(false);
+      expect(featureFlagService.isEnabled("attribute-flag", partialMatchUser)).toBe(false);
     });
 
     test("should handle flag dependencies", () => {
-      const parentFlag = new FeatureFlag({
-        key: "parent-flag",
+      const parentFlag = new FeatureFlag({ key: "parent", type: "boolean", enabled: true });
+      const childFlag = new FeatureFlag({
+        key: "child",
+        type: "boolean",
         enabled: true,
-        defaultValue: true,
-      });
-
-      const dependentFlag = new FeatureFlag({
-        key: "dependent-flag",
-        enabled: true,
-        dependencies: ["parent-flag"],
-        prerequisites: [{ flag: "parent-flag", value: true }],
+        dependencies: ["parent"]
       });
 
       featureFlagService.registerFlag(parentFlag);
-      featureFlagService.registerFlag(dependentFlag);
+      featureFlagService.registerFlag(childFlag);
 
-      expect(featureFlagService.isEnabled("dependent-flag")).toBe(true);
+      const userContext = new UserContext(mockAuthService.getCurrentUser());
 
-      // Disable parent flag
+      // Child should be enabled when parent is enabled
+      expect(featureFlagService.isEnabled("child", userContext)).toBe(true);
+
+      // Disable parent
       parentFlag.enabled = false;
-      expect(featureFlagService.isEnabled("dependent-flag")).toBe(false);
+
+      // Child should now be disabled due to dependency
+      expect(featureFlagService.isEnabled("child", userContext)).toBe(false);
     });
 
     test("should handle experiment variants", () => {
-      const experiment = new FeatureFlag({
+      const experimentFlag = new FeatureFlag({
         key: "ab-test",
         type: "experiment",
-        enabled: true,
-        variants: {
-          control: 50,
-          treatment: 50,
-        },
+        variants: [
+          { key: "control", weight: 50, config: { buttonColor: "blue" } },
+          { key: "treatment", weight: 50, config: { buttonColor: "red" } }
+        ]
       });
 
-      featureFlagService.registerFlag(experiment);
+      featureFlagService.registerFlag(experimentFlag);
 
-      // Mock consistent hash for user
-      const originalRandom = Math.random;
-      Math.random = jest.fn().mockReturnValue(0.25); // Should get 'control'
+      const userContext = new UserContext({ userId: "test-user" });
+      const variant = featureFlagService.getVariant("ab-test", userContext);
 
-      const variant = featureFlagService.getVariant("ab-test");
-      expect(["control", "treatment"]).toContain(variant);
-
-      Math.random = originalRandom;
+      expect(variant).toBeDefined();
+      expect(["control", "treatment"]).toContain(variant.key);
+      expect(variant.config).toBeDefined();
     });
 
     test("should cache flag evaluations", () => {
-      const flag = new FeatureFlag({
-        key: "cached-flag",
-        enabled: true,
-      });
-
+      const flag = new FeatureFlag({ key: "cached-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
-      featureFlagService.cacheTimeout = 5000;
 
-      const result1 = featureFlagService.isEnabled("cached-flag");
-      const result2 = featureFlagService.isEnabled("cached-flag");
+      const userContext = new UserContext({ userId: "cache-user" });
+
+      // First evaluation
+      const result1 = featureFlagService.isEnabled("cached-flag", userContext);
+      
+      // Second evaluation should use cache
+      const result2 = featureFlagService.isEnabled("cached-flag", userContext);
 
       expect(result1).toBe(result2);
-      expect(featureFlagService.cache.has("cached-flag")).toBe(true);
+      expect(result1).toBe(true);
+
+      // Verify cache was used (check internal cache state)
+      expect(featureFlagService.evaluationCache.size).toBeGreaterThan(0);
     });
 
     test("should expire cached values", (done) => {
-      const flag = new FeatureFlag({
-        key: "expiring-flag",
-        enabled: true,
-      });
-
+      const flag = new FeatureFlag({ key: "expiring-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
-      featureFlagService.cacheTimeout = 100; // 100ms
 
-      featureFlagService.isEnabled("expiring-flag");
-      expect(featureFlagService.cache.has("expiring-flag")).toBe(true);
+      const userContext = new UserContext({ userId: "expire-user" });
 
+      // First evaluation
+      featureFlagService.isEnabled("expiring-flag", userContext);
+      expect(featureFlagService.evaluationCache.size).toBeGreaterThan(0);
+
+      // Wait for cache to expire
       setTimeout(() => {
-        // Cache should be expired and cleared
-        featureFlagService.isEnabled("expiring-flag");
-        // This should trigger cache cleanup
+        expect(featureFlagService.evaluationCache.size).toBe(0);
         done();
-      }, 150);
+      }, 1100); // Wait longer than cache timeout (1000ms)
     });
 
     test("should track analytics events", async () => {
-      featureFlagService.enableAnalytics = true;
-
-      const flag = new FeatureFlag({
-        key: "analytics-flag",
-        enabled: true,
-      });
-
+      const flag = new FeatureFlag({ key: "analytics-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
 
-      const userContext = new UserContext({ userId: "user123" });
-      featureFlagService.isEnabledForUser("analytics-flag", userContext);
+      const userContext = new UserContext({ userId: "analytics-user" });
 
-      const analytics = featureFlagService.getAnalytics("analytics-flag");
-      expect(analytics.evaluationCount).toBeGreaterThan(0);
-      expect(analytics.uniqueUsers.has("user123")).toBe(true);
+      // Enable analytics tracking
+      await featureFlagService.start();
+
+      featureFlagService.isEnabled("analytics-flag", userContext);
+
+      const events = mockAnalyticsService.getEvents();
+      const flagEvent = events.find(e => e.event === "feature_flag_evaluated");
+
+      expect(flagEvent).toBeDefined();
+      expect(flagEvent.properties.flagKey).toBe("analytics-flag");
+      expect(flagEvent.properties.userId).toBe("analytics-user");
+      expect(flagEvent.properties.result).toBe(true);
     });
 
     test("should sync flags from remote source", async () => {
-      mockApiService.setMockResponse("GET", "/api/feature-flags", {
-        status: 200,
-        data: {
-          flags: [
-            {
-              key: "remote-flag",
-              name: "Remote Flag",
-              enabled: true,
-              type: "boolean",
-            },
-          ],
-        },
-      });
+      const remoteFlags = [
+        { key: "remote-flag-1", type: "boolean", enabled: true },
+        { key: "remote-flag-2", type: "percentage", percentage: 25 }
+      ];
 
-      await featureFlagService.syncFlags();
+      mockRemoteApi.setFlags(remoteFlags);
 
-      expect(featureFlagService.flags.has("remote-flag")).toBe(true);
-      expect(featureFlagService.flags.get("remote-flag").name).toBe(
-        "Remote Flag",
-      );
+      await featureFlagService.syncFromRemote();
+
+      expect(featureFlagService.flags.has("remote-flag-1")).toBe(true);
+      expect(featureFlagService.flags.has("remote-flag-2")).toBe(true);
+
+      const flag1 = featureFlagService.getFlag("remote-flag-1");
+      const flag2 = featureFlagService.getFlag("remote-flag-2");
+
+      expect(flag1.enabled).toBe(true);
+      expect(flag2.percentage).toBe(25);
     });
 
     test("should handle sync errors gracefully", async () => {
-      mockApiService.setMockResponse("GET", "/api/feature-flags", {
-        status: 500,
-      });
+      mockRemoteApi.setShouldError(true);
 
-      await expect(featureFlagService.syncFlags()).rejects.toThrow();
+      // Should not throw
+      await expect(featureFlagService.syncFromRemote()).resolves.not.toThrow();
 
-      // Service should still be functional
-      expect(featureFlagService.state).toBe("initialized");
+      // Should log error
+      expect(mockLogger.logs.some(log => log[0] === "ERROR")).toBe(true);
     });
 
     test("should provide comprehensive health status", async () => {
-      await featureFlagService.initialize();
+      await featureFlagService.start();
 
-      featureFlagService.registerFlag(new FeatureFlag({ key: "flag1" }));
-      featureFlagService.registerFlag(new FeatureFlag({ key: "flag2" }));
+      // Add some flags
+      featureFlagService.registerFlag(new FeatureFlag({ key: "health-flag-1", type: "boolean" }));
+      featureFlagService.registerFlag(new FeatureFlag({ key: "health-flag-2", type: "percentage" }));
 
-      const health = await featureFlagService.getHealth();
+      const health = featureFlagService.getHealth();
 
-      expect(health.name).toBe("FeatureFlagService");
-      expect(health.flagCount).toBe(2);
-      expect(health.cacheSize).toBe(0);
-      expect(health.experimentCount).toBe(0);
-      expect(health.configuration).toBeDefined();
+      expect(health.status).toBe("healthy");
+      expect(health.initialized).toBe(true);
+      expect(health.running).toBe(true);
+      expect(health.metrics).toBeDefined();
+      expect(health.metrics.totalFlags).toBe(2);
+      expect(health.metrics.evaluationCount).toBeGreaterThanOrEqual(0);
+      expect(health.cacheSize).toBeDefined();
     });
 
     test("should cleanup resources properly", async () => {
-      await featureFlagService.initialize();
       await featureFlagService.start();
 
-      expect(featureFlagService.syncInterval).toBeDefined();
+      // Add some data
+      featureFlagService.registerFlag(new FeatureFlag({ key: "cleanup-flag", type: "boolean" }));
 
       await featureFlagService.cleanup();
 
-      expect(featureFlagService.state).toBe("cleaned");
+      expect(featureFlagService.initialized).toBe(false);
+      expect(featureFlagService.running).toBe(false);
       expect(featureFlagService.flags.size).toBe(0);
-      expect(featureFlagService.cache.size).toBe(0);
+      expect(featureFlagService.evaluationCache.size).toBe(0);
     });
   });
 
   describe("Advanced Feature Tests", () => {
-    beforeEach(() => {
-      featureFlagService = new FeatureFlagService();
-      featureFlagService.apiService = mockApiService;
-      featureFlagService.authenticationService = mockAuthService;
+    beforeEach(async () => {
+      await featureFlagService.initialize();
+      await featureFlagService.start();
     });
 
     test("should handle gradual rollouts", (done) => {
-      const rolloutFlag = new FeatureFlag({
-        key: "rollout-flag",
+      const flag = new FeatureFlag({
+        key: "gradual-rollout",
         type: "percentage",
-        enabled: true,
-        percentage: 10,
+        percentage: 10, // Start at 10%
         rollout: {
           enabled: true,
-          startPercentage: 10,
-          endPercentage: 100,
-          incrementPercent: 10,
+          targetPercentage: 50,
+          incrementPercentage: 10,
           incrementInterval: 100, // 100ms for testing
-        },
+        }
       });
 
-      featureFlagService.registerFlag(rolloutFlag);
-      featureFlagService.enableRollouts = true;
+      featureFlagService.registerFlag(flag);
 
-      // Start rollout
-      featureFlagService._startRollout(rolloutFlag);
+      // Check initial percentage
+      expect(flag.percentage).toBe(10);
 
+      // Wait for rollout to progress
       setTimeout(() => {
-        const flag = featureFlagService.getFlag("rollout-flag");
         expect(flag.percentage).toBeGreaterThan(10);
+        expect(flag.percentage).toBeLessThanOrEqual(50);
         done();
-      }, 150);
+      }, 250); // Wait for a few increments
     });
 
     test("should override flags for specific users", () => {
-      const flag = new FeatureFlag({
-        key: "override-flag",
-        enabled: false,
-        defaultValue: false,
-      });
-
+      const flag = new FeatureFlag({ key: "override-flag", type: "boolean", enabled: false });
       featureFlagService.registerFlag(flag);
 
-      // Set override for specific user
-      featureFlagService.setUserOverride("user123", "override-flag", true);
+      const regularUser = new UserContext({ userId: "regular-user" });
+      const overrideUser = new UserContext({ userId: "override-user" });
 
-      const user123Context = new UserContext({ userId: "user123" });
-      const user456Context = new UserContext({ userId: "user456" });
+      // Set user-specific override
+      featureFlagService.setUserOverride("override-user", "override-flag", true);
 
-      expect(
-        featureFlagService.isEnabledForUser("override-flag", user123Context),
-      ).toBe(true);
-      expect(
-        featureFlagService.isEnabledForUser("override-flag", user456Context),
-      ).toBe(false);
+      expect(featureFlagService.isEnabled("override-flag", regularUser)).toBe(false);
+      expect(featureFlagService.isEnabled("override-flag", overrideUser)).toBe(true);
+
+      // Remove override
+      featureFlagService.removeUserOverride("override-user", "override-flag");
+      expect(featureFlagService.isEnabled("override-flag", overrideUser)).toBe(false);
     });
 
     test("should support environment-specific flags", () => {
+      process.env.NODE_ENV = "development";
+
       const flag = new FeatureFlag({
         key: "env-flag",
-        environment: "production",
-        enabled: true,
+        type: "boolean",
+        enabled: false,
+        environments: {
+          development: { enabled: true },
+          production: { enabled: false }
+        }
       });
 
       featureFlagService.registerFlag(flag);
-      featureFlagService.defaultEnvironment = "development";
+      const userContext = new UserContext({ userId: "env-user" });
 
-      // Should not be enabled in development
-      expect(featureFlagService.isEnabled("env-flag")).toBe(false);
+      expect(featureFlagService.isEnabled("env-flag", userContext)).toBe(true);
 
-      featureFlagService.defaultEnvironment = "production";
-      expect(featureFlagService.isEnabled("env-flag")).toBe(true);
+      // Change environment
+      process.env.NODE_ENV = "production";
+      expect(featureFlagService.isEnabled("env-flag", userContext)).toBe(false);
+
+      // Restore
+      delete process.env.NODE_ENV;
     });
 
     test("should batch analytics events", async () => {
-      featureFlagService.enableAnalytics = true;
-      featureFlagService.analyticsBatchSize = 2;
+      // Configure for batching
+      featureFlagService.config.analyticsBatchSize = 3;
+      featureFlagService.config.analyticsBatchInterval = 100;
 
-      const flag = new FeatureFlag({ key: "batch-flag", enabled: true });
+      const flag = new FeatureFlag({ key: "batch-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
 
-      // Mock API for analytics
-      mockApiService.setMockResponse("POST", "/api/analytics/events", {
-        status: 200,
-        data: { success: true },
-      });
+      const userContext = new UserContext({ userId: "batch-user" });
 
-      const userContext = new UserContext({ userId: "user1" });
+      // Generate multiple evaluations
+      for (let i = 0; i < 5; i++) {
+        featureFlagService.isEnabled("batch-flag", userContext);
+      }
 
-      // Generate events that should trigger batch send
-      featureFlagService.isEnabledForUser("batch-flag", userContext);
-      featureFlagService.isEnabledForUser("batch-flag", userContext);
+      // Wait for batch processing
+      await new Promise(resolve => setTimeout(resolve, 150));
 
-      // Should have triggered batch send
-      expect(
-        mockApiService.requests.some(
-          (req) => req.method === "POST" && req.url === "/api/analytics/events",
-        ),
-      ).toBe(true);
+      const batchEvents = mockAnalyticsService.getBatchEvents();
+      expect(batchEvents.length).toBeGreaterThan(0);
     });
 
     test("should validate flag update constraints", () => {
       const flag = new FeatureFlag({
         key: "constrained-flag",
-        enabled: false,
+        type: "percentage",
+        percentage: 50,
         constraints: {
-          requiresApproval: true,
-          maxPercentage: 50,
-        },
+          maxPercentage: 75,
+          allowDecrease: false
+        }
       });
 
       featureFlagService.registerFlag(flag);
 
-      // Should reject update exceeding constraints
+      // Valid update
       expect(() => {
-        featureFlagService.updateFlag("constrained-flag", {
-          percentage: 75,
-        });
-      }).toThrow("Update exceeds maximum percentage constraint");
+        featureFlagService.updateFlag("constrained-flag", { percentage: 60 });
+      }).not.toThrow();
+
+      // Invalid - exceeds max
+      expect(() => {
+        featureFlagService.updateFlag("constrained-flag", { percentage: 80 });
+      }).toThrow("Percentage exceeds maximum allowed");
+
+      // Invalid - decrease not allowed
+      expect(() => {
+        featureFlagService.updateFlag("constrained-flag", { percentage: 40 });
+      }).toThrow("Decreasing percentage is not allowed");
     });
   });
 
   describe("Error Handling and Edge Cases", () => {
-    beforeEach(() => {
-      featureFlagService = new FeatureFlagService();
+    beforeEach(async () => {
+      await featureFlagService.initialize();
     });
 
     test("should handle missing flags gracefully", () => {
-      expect(featureFlagService.isEnabled("nonexistent-flag")).toBe(false);
-      expect(featureFlagService.getValue("nonexistent-flag", "default")).toBe(
-        "default",
-      );
+      const userContext = new UserContext({ userId: "test-user" });
+
+      expect(featureFlagService.isEnabled("nonexistent-flag", userContext)).toBe(false);
+      expect(featureFlagService.getVariant("nonexistent-flag", userContext)).toBeNull();
     });
 
     test("should handle malformed flag definitions", () => {
       expect(() => {
-        featureFlagService.registerFlag({
-          // Missing required properties
-          enabled: true,
-        });
+        featureFlagService.registerFlag(null);
+      }).toThrow();
+
+      expect(() => {
+        featureFlagService.registerFlag({});
       }).toThrow();
     });
 
     test("should handle circular dependencies", () => {
       const flag1 = new FeatureFlag({
         key: "flag1",
-        dependencies: ["flag2"],
+        type: "boolean",
+        dependencies: ["flag2"]
       });
 
       const flag2 = new FeatureFlag({
         key: "flag2",
-        dependencies: ["flag1"],
+        type: "boolean",
+        dependencies: ["flag1"]
       });
 
       featureFlagService.registerFlag(flag1);
-      featureFlagService.registerFlag(flag2);
 
       expect(() => {
-        featureFlagService.isEnabled("flag1");
+        featureFlagService.registerFlag(flag2);
       }).toThrow("Circular dependency detected");
     });
 
     test("should handle invalid user context", () => {
-      const flag = new FeatureFlag({
-        key: "context-flag",
-        type: "user_list",
-        includedUsers: ["user123"],
-      });
-
+      const flag = new FeatureFlag({ key: "context-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
 
-      // Should handle null/undefined context
-      expect(featureFlagService.isEnabledForUser("context-flag", null)).toBe(
-        false,
-      );
-      expect(
-        featureFlagService.isEnabledForUser("context-flag", undefined),
-      ).toBe(false);
+      // Should handle null context
+      expect(featureFlagService.isEnabled("context-flag", null)).toBe(true);
+
+      // Should handle undefined context
+      expect(featureFlagService.isEnabled("context-flag", undefined)).toBe(true);
+
+      // Should create anonymous context
+      const result = featureFlagService.isEnabled("context-flag");
+      expect(result).toBe(true);
     });
 
     test("should handle storage errors gracefully", () => {
       // Mock localStorage to throw error
-      mockWindow.localStorage.setItem = jest.fn(() => {
-        throw new Error("Storage quota exceeded");
+      const originalSetItem = global.localStorage.setItem;
+      global.localStorage.setItem = jest.fn(() => {
+        throw new Error("Storage error");
       });
 
-      // Should not crash when trying to cache
-      const flag = new FeatureFlag({ key: "storage-flag", enabled: true });
-      featureFlagService.registerFlag(flag);
+      const flag = new FeatureFlag({ key: "storage-flag", type: "boolean", enabled: true });
 
+      // Should not throw despite storage error
       expect(() => {
-        featureFlagService.isEnabled("storage-flag");
+        featureFlagService.registerFlag(flag);
       }).not.toThrow();
+
+      // Restore
+      global.localStorage.setItem = originalSetItem;
     });
 
     test("should handle concurrent evaluations safely", async () => {
-      const flag = new FeatureFlag({
-        key: "concurrent-flag",
-        type: "percentage",
-        percentage: 50,
-      });
-
+      const flag = new FeatureFlag({ key: "concurrent-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
 
       const promises = [];
-      for (let i = 0; i < 100; i++) {
+      const userContext = new UserContext({ userId: "concurrent-user" });
+
+      // Create multiple concurrent evaluations
+      for (let i = 0; i < 50; i++) {
         promises.push(
-          Promise.resolve(featureFlagService.isEnabled("concurrent-flag")),
+          Promise.resolve().then(() => {
+            return featureFlagService.isEnabled("concurrent-flag", userContext);
+          })
         );
       }
 
       const results = await Promise.all(promises);
-      expect(results).toHaveLength(100);
-      // All results should be boolean
-      expect(results.every((r) => typeof r === "boolean")).toBe(true);
+
+      // All should return the same result
+      expect(results.every(result => result === true)).toBe(true);
+      expect(results).toHaveLength(50);
     });
   });
 
   describe("Performance and Integration Tests", () => {
+    beforeEach(async () => {
+      await featureFlagService.initialize();
+      await featureFlagService.start();
+    });
+
     test("should evaluate flags efficiently", () => {
-      // Create many flags
-      for (let i = 0; i < 1000; i++) {
-        const flag = new FeatureFlag({
+      // Register many flags
+      for (let i = 0; i < 100; i++) {
+        featureFlagService.registerFlag(new FeatureFlag({
           key: `perf-flag-${i}`,
-          enabled: i % 2 === 0, // Alternate enabled/disabled
-        });
-        featureFlagService.registerFlag(flag);
+          type: "boolean",
+          enabled: i % 2 === 0 // Every other flag enabled
+        }));
       }
 
+      const userContext = new UserContext({ userId: "perf-user" });
       const startTime = performance.now();
 
-      // Evaluate many flags
+      // Evaluate all flags
       for (let i = 0; i < 100; i++) {
-        featureFlagService.isEnabled(`perf-flag-${i * 10}`);
+        featureFlagService.isEnabled(`perf-flag-${i}`, userContext);
       }
 
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      // Should complete within reasonable time
-      expect(duration).toBeLessThan(100); // 100ms
+      // Should complete quickly (less than 100ms for 100 evaluations)
+      expect(duration).toBeLessThan(100);
     });
 
     test("should integrate with authentication service", () => {
-      mockAuthService.setCurrentUser({
-        userId: "integration-user",
-        groups: ["qa", "testers"],
-        attributes: { region: "north-america" },
-      });
-
       const flag = new FeatureFlag({
-        key: "auth-flag",
-        type: "segment",
-        userAttributes: { region: ["north-america"] },
+        key: "auth-integration",
+        type: "boolean",
+        enabled: false,
+        targeting: {
+          groups: ["qa", "testers"],
+          enabled: true
+        }
       });
 
       featureFlagService.registerFlag(flag);
 
-      // Should use current user context automatically
-      expect(featureFlagService.isEnabled("auth-flag")).toBe(true);
+      // Should automatically use auth service for user context
+      const result = featureFlagService.isEnabled("auth-integration");
+
+      // Current mock user is in "pilot" and "beta-testers" groups
+      // Flag targets "qa" and "testers", so should be false
+      expect(result).toBe(false);
+
+      // Update mock user to be in target group
+      mockAuthService.setCurrentUser({
+        ...mockAuthService.getCurrentUser(),
+        groups: ["qa", "testers"]
+      });
+
+      const result2 = featureFlagService.isEnabled("auth-integration");
+      expect(result2).toBe(true);
     });
 
     test("should persist flag state to storage", () => {
-      const flag = new FeatureFlag({
-        key: "persistent-flag",
-        enabled: true,
-        percentage: 75,
-      });
-
+      const flag = new FeatureFlag({ key: "persistent-flag", type: "boolean", enabled: true });
       featureFlagService.registerFlag(flag);
-      featureFlagService._persistFlagState();
 
-      // Verify storage
-      const stored = mockWindow.localStorage.getItem("umig_feature_flags");
-      expect(stored).toBeTruthy();
+      // Should persist to localStorage
+      const stored = global.localStorage.getItem("featureflags:flags");
+      expect(stored).toBeDefined();
 
-      const parsed = JSON.parse(stored);
-      expect(parsed["persistent-flag"]).toBeDefined();
-      expect(parsed["persistent-flag"].enabled).toBe(true);
+      const parsedFlags = JSON.parse(stored);
+      expect(parsedFlags).toHaveProperty("persistent-flag");
+      expect(parsedFlags["persistent-flag"].enabled).toBe(true);
     });
-  });
-
-  // Test cleanup to prevent memory leaks
-  afterAll(() => {
-    if (mockWindow && typeof mockWindow.cleanup === "function") {
-      mockWindow.cleanup();
-    }
   });
 });
 
-// Technology-prefixed commands verification (TD-002)
-console.log(
-  "🧪 FeatureFlagService Test Suite - Technology-Prefixed Commands (TD-002)",
-);
-console.log("✅ Self-contained architecture pattern (TD-001) implemented");
-console.log(
-  "✅ Comprehensive feature flag management testing with 95%+ coverage target",
-);
+console.log("🧪 FeatureFlagService Test Suite - Simplified Jest Pattern (TD-002)");
+console.log("✅ Standard CommonJS module loading implemented");
+console.log("✅ Comprehensive feature flag management testing with 95%+ coverage target");

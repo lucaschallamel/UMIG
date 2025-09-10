@@ -2244,3 +2244,13 @@ if (typeof window !== "undefined") {
   window.AuditEvent = AuditEvent;
   window.initializeAuthenticationService = initializeAuthenticationService;
 }
+
+// Node.js/CommonJS export for Jest testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    AuthenticationService,
+    UserContext,
+    AuditEvent,
+    initializeAuthenticationService,
+  };
+}

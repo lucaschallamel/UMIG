@@ -164,6 +164,40 @@ class BaseService {
   }
 
   /**
+   * Compatibility method for on() - delegates to subscribe()
+   * @param {string} eventName - Event name to listen for
+   * @param {Function} handler - Event handler function
+   */
+  on(eventName, handler) {
+    return this.subscribe(eventName, handler);
+  }
+
+  /**
+   * Compatibility method for off() - unsubscribes from events
+   * @param {string} eventName - Event name to unsubscribe from
+   * @param {Function} handler - Event handler to remove (optional)
+   */
+  off(eventName, handler) {
+    if (!this.eventHandlers.has(eventName)) {
+      return;
+    }
+    
+    if (handler) {
+      const handlers = this.eventHandlers.get(eventName);
+      const index = handlers.indexOf(handler);
+      if (index > -1) {
+        handlers.splice(index, 1);
+      }
+      if (handlers.length === 0) {
+        this.eventHandlers.delete(eventName);
+      }
+    } else {
+      // Remove all handlers for this event
+      this.eventHandlers.delete(eventName);
+    }
+  }
+
+  /**
    * Handle incoming events
    * @param {string} eventName - Event name
    * @param {*} data - Event data
@@ -979,4 +1013,13 @@ if (typeof window !== "undefined") {
   window.AdminGuiService = AdminGuiService;
   window.BaseService = BaseService;
   window.initializeAdminGuiServices = initializeAdminGuiServices;
+}
+
+// Node.js/CommonJS export for Jest testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    AdminGuiService,
+    BaseService,
+    initializeAdminGuiServices,
+  };
 }
