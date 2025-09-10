@@ -803,9 +803,22 @@ class AdminGuiService extends BaseService {
       timestamp: Date.now(),
       context,
       error: error.message || error,
-      stack: error.stack || "",
-      metadata,
+      // SECURITY: Only include stack traces in development environment
+      ...(this._isDevelopmentEnvironment()
+        ? { stack: error.stack || "" }
+        : { errorId: this._generateErrorId() }),
+      metadata: this._sanitizeErrorMetadata(metadata),
     };
+
+    // SECURITY: Log full error details server-side in production
+    if (!this._isDevelopmentEnvironment() && error.stack) {
+      console.error(`AdminGuiService Error ${errorEntry.errorId}:`, {
+        stack: error.stack,
+        fullError: error,
+        context,
+        metadata,
+      });
+    }
 
     this.errorBoundary.errorHistory.push(errorEntry);
 
@@ -973,7 +986,7 @@ class AdminGuiService extends BaseService {
     // Cleanup all service instances
     for (const [serviceName, instance] of this.serviceInstances) {
       try {
-        if (instance && typeof instance.cleanup === 'function') {
+        if (instance && typeof instance.cleanup === "function") {
           await instance.cleanup();
         }
       } catch (error) {
@@ -991,6 +1004,64 @@ class AdminGuiService extends BaseService {
     this.errorBoundary.errorHistory = [];
 
     this._log("info", "AdminGuiService cleanup completed successfully");
+  }
+
+  /**
+   * SECURITY: Check if running in development environment
+   * @returns {boolean} True if development environment
+   * @private
+   */
+  _isDevelopmentEnvironment() {
+    return (
+      (typeof process !== "undefined" &&
+        process.env &&
+        process.env.NODE_ENV === "development") ||
+      (typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname.includes("dev") ||
+          window.location.hostname.startsWith("127.") ||
+          window.location.hostname.endsWith(".local")))
+    );
+  }
+
+  /**
+   * SECURITY: Generate unique error ID for tracking without exposing internals
+   * @returns {string} Unique error ID
+   * @private
+   */
+  _generateErrorId() {
+    return `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * SECURITY: Sanitize error metadata to remove sensitive information
+   * @param {Object} metadata - Original metadata
+   * @returns {Object} Sanitized metadata
+   * @private
+   */
+  _sanitizeErrorMetadata(metadata) {
+    if (!metadata || typeof metadata !== "object") {
+      return metadata;
+    }
+
+    const sanitized = { ...metadata };
+    const sensitiveFields = [
+      "password",
+      "token",
+      "key",
+      "secret",
+      "credential",
+      "auth",
+      "session",
+    ];
+
+    sensitiveFields.forEach((field) => {
+      if (sanitized[field]) {
+        sanitized[field] = "[REDACTED]";
+      }
+    });
+
+    return sanitized;
   }
 }
 

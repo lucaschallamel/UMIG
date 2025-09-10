@@ -1461,11 +1461,30 @@ class ApiService {
 
     // Log error
     if (this.config.logging.logErrors) {
-      this._log("error", `API ${context.method} ${context.endpoint} failed`, {
+      const errorDetails = {
         requestId: context.requestId,
         error: error.message,
-        stack: error.stack,
-      });
+        // SECURITY: Only include stack traces in development environment
+        ...(this._isDevelopmentEnvironment()
+          ? { stack: error.stack }
+          : { errorId: this._generateErrorId() }),
+      };
+
+      // SECURITY: Log full error details server-side in production
+      if (!this._isDevelopmentEnvironment() && error.stack) {
+        console.error(`ApiService Error ${errorDetails.errorId}:`, {
+          stack: error.stack,
+          fullError: error,
+          context,
+          requestId: context.requestId,
+        });
+      }
+
+      this._log(
+        "error",
+        `API ${context.method} ${context.endpoint} failed`,
+        errorDetails,
+      );
     }
   }
 
@@ -3087,6 +3106,33 @@ class ApiService {
       // Fallback to console
       console[level](`[ApiService] ${message}`, data || "");
     }
+  }
+
+  /**
+   * SECURITY: Check if running in development environment
+   * @returns {boolean} True if development environment
+   * @private
+   */
+  _isDevelopmentEnvironment() {
+    return (
+      (typeof process !== "undefined" &&
+        process.env &&
+        process.env.NODE_ENV === "development") ||
+      (typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname.includes("dev") ||
+          window.location.hostname.startsWith("127.") ||
+          window.location.hostname.endsWith(".local")))
+    );
+  }
+
+  /**
+   * SECURITY: Generate unique error ID for tracking without exposing internals
+   * @returns {string} Unique error ID
+   * @private
+   */
+  _generateErrorId() {
+    return `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

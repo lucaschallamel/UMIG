@@ -210,6 +210,34 @@ class AuditEvent {
 }
 
 /**
+ * Import BoundedCache for secure cache management
+ */
+// Try different import approaches for BoundedCache utility
+let BoundedCache = null;
+try {
+  // Try Node.js require (for tests)
+  if (typeof require !== "undefined") {
+    BoundedCache = require("../utils/BoundedCache").BoundedCache;
+  }
+  // Try browser global (for runtime)
+  else if (typeof window !== "undefined" && window.BoundedCache) {
+    BoundedCache = window.BoundedCache;
+  }
+  // Try AMD/ES6 modules if available
+  else if (typeof define !== "undefined") {
+    // Will be resolved by module loader
+    BoundedCache = null;
+  }
+} catch (e) {
+  // Import failed, will use Map fallback
+  console.warn(
+    "[AuthenticationService] BoundedCache import failed, using Map fallback:",
+    e.message,
+  );
+  BoundedCache = null;
+}
+
+/**
  * AuthenticationService - Enhanced authentication with 4-level fallback
  * Extends BaseService for service layer integration
  */
@@ -299,16 +327,79 @@ class AuthenticationService {
     // Current user context
     this.currentUser = null;
 
-    // Enhanced cache storage with performance optimizations
-    this.userCache = new Map();
-    this.roleCache = new Map();
-    this.permissionCache = new Map();
-    this.sessionCache = new Map();
+    // SECURITY: Enhanced cache storage with BOUNDED sizes to prevent memory leaks
+    // Import BoundedCache if available, fallback to Map
+    const BoundedCacheClass =
+      typeof BoundedCache !== "undefined" ? BoundedCache : Map;
+    const createBoundedCache = (options) => {
+      if (BoundedCacheClass === BoundedCache) {
+        return new BoundedCache(options);
+      } else {
+        // Fallback to Map with manual size limits
+        const cache = new Map();
+        cache._maxSize = options.maxSize || 1000;
+        cache._originalSet = cache.set;
+        cache.set = function (key, value) {
+          if (this.size >= this._maxSize && !this.has(key)) {
+            // Simple LRU: delete oldest entry
+            const firstKey = this.keys().next().value;
+            this.delete(firstKey);
+          }
+          return this._originalSet.call(this, key, value);
+        };
+        return cache;
+      }
+    };
 
-    // Performance optimization: Fast authentication cache
-    this.fastAuthCache = new Map(); // userId -> quick auth result
-    this.authTokenCache = new Map(); // token -> user mapping
-    this.rolePermissionCache = new Map(); // role -> permissions (pre-computed)
+    this.userCache = createBoundedCache({
+      maxSize: this.config.maxCacheEntries || 1000,
+      maxMemory: 10 * 1024 * 1024, // 10MB
+      ttl: this.config.cacheTimeout,
+      evictionPolicy: "lru",
+    });
+
+    this.roleCache = createBoundedCache({
+      maxSize: 500, // Smaller for roles
+      maxMemory: 5 * 1024 * 1024, // 5MB
+      ttl: this.config.permissionCacheTimeout,
+      evictionPolicy: "lru",
+    });
+
+    this.permissionCache = createBoundedCache({
+      maxSize: 2000, // Larger for permissions
+      maxMemory: 20 * 1024 * 1024, // 20MB
+      ttl: this.config.permissionCacheTimeout,
+      evictionPolicy: "lfu", // Permissions accessed frequently
+    });
+
+    this.sessionCache = createBoundedCache({
+      maxSize: this.config.fastCacheSize || 500,
+      maxMemory: 15 * 1024 * 1024, // 15MB
+      ttl: this.config.sessionTimeout,
+      evictionPolicy: "lru",
+    });
+
+    // Performance optimization: Fast authentication cache with bounds
+    this.fastAuthCache = createBoundedCache({
+      maxSize: this.config.fastCacheSize || 500,
+      maxMemory: 5 * 1024 * 1024, // 5MB
+      ttl: this.config.tokenCacheTimeout,
+      evictionPolicy: "lru",
+    });
+
+    this.authTokenCache = createBoundedCache({
+      maxSize: 1000,
+      maxMemory: 10 * 1024 * 1024, // 10MB
+      ttl: this.config.tokenCacheTimeout,
+      evictionPolicy: "lru",
+    });
+
+    this.rolePermissionCache = createBoundedCache({
+      maxSize: 200, // Limited number of roles
+      maxMemory: 5 * 1024 * 1024, // 5MB
+      ttl: this.config.permissionCacheTimeout * 2, // Longer TTL for role permissions
+      evictionPolicy: "lru",
+    });
 
     // Cache management
     this.cacheStats = {
@@ -514,11 +605,49 @@ class AuthenticationService {
    */
   async cleanup() {
     try {
-      // Clear caches
-      this.userCache.clear();
-      this.roleCache.clear();
-      this.permissionCache.clear();
-      this.sessionCache.clear();
+      // Clear caches (properly destroy BoundedCache instances)
+      if (typeof this.userCache.destroy === "function") {
+        this.userCache.destroy();
+      } else {
+        this.userCache.clear();
+      }
+
+      if (typeof this.roleCache.destroy === "function") {
+        this.roleCache.destroy();
+      } else {
+        this.roleCache.clear();
+      }
+
+      if (typeof this.permissionCache.destroy === "function") {
+        this.permissionCache.destroy();
+      } else {
+        this.permissionCache.clear();
+      }
+
+      if (typeof this.sessionCache.destroy === "function") {
+        this.sessionCache.destroy();
+      } else {
+        this.sessionCache.clear();
+      }
+
+      // Clear performance caches
+      if (typeof this.fastAuthCache.destroy === "function") {
+        this.fastAuthCache.destroy();
+      } else {
+        this.fastAuthCache.clear();
+      }
+
+      if (typeof this.authTokenCache.destroy === "function") {
+        this.authTokenCache.destroy();
+      } else {
+        this.authTokenCache.clear();
+      }
+
+      if (typeof this.rolePermissionCache.destroy === "function") {
+        this.rolePermissionCache.destroy();
+      } else {
+        this.rolePermissionCache.clear();
+      }
 
       // Clear audit log
       this.auditLog = [];

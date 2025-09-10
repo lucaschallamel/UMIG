@@ -676,6 +676,34 @@ class InputValidator {
 }
 
 /**
+ * Import BoundedCache for secure cache management
+ */
+// Try different import approaches for BoundedCache utility
+let BoundedCache = null;
+try {
+  // Try Node.js require (for tests)
+  if (typeof require !== "undefined") {
+    BoundedCache = require("../utils/BoundedCache").BoundedCache;
+  }
+  // Try browser global (for runtime)
+  else if (typeof window !== "undefined" && window.BoundedCache) {
+    BoundedCache = window.BoundedCache;
+  }
+  // Try AMD/ES6 modules if available
+  else if (typeof define !== "undefined") {
+    // Will be resolved by module loader
+    BoundedCache = null;
+  }
+} catch (e) {
+  // Import failed, will use Map fallback
+  console.warn(
+    "[SecurityService] BoundedCache import failed, using Map fallback:",
+    e.message,
+  );
+  BoundedCache = null;
+}
+
+/**
  * SecurityService - Comprehensive security infrastructure
  * Extends BaseService for service layer integration
  */
@@ -769,11 +797,56 @@ class SecurityService {
       },
     };
 
-    // Security state
-    this.csrfTokens = new Map(); // token -> {userId, expires, created}
+    // Security state with BOUNDED caches to prevent memory leaks
+    const BoundedCacheClass =
+      typeof BoundedCache !== "undefined" ? BoundedCache : Map;
+    const createBoundedCache = (options) => {
+      if (BoundedCacheClass === BoundedCache) {
+        return new BoundedCache(options);
+      } else {
+        // Fallback to Map with manual size limits
+        const cache = new Map();
+        cache._maxSize = options.maxSize || 1000;
+        cache._originalSet = cache.set;
+        cache.set = function (key, value) {
+          if (this.size >= this._maxSize && !this.has(key)) {
+            const firstKey = this.keys().next().value;
+            this.delete(firstKey);
+          }
+          return this._originalSet.call(this, key, value);
+        };
+        return cache;
+      }
+    };
+
+    this.csrfTokens = createBoundedCache({
+      maxSize: 10000, // Large number of CSRF tokens
+      maxMemory: 20 * 1024 * 1024, // 20MB
+      ttl: this.config.csrf.tokenExpiry,
+      evictionPolicy: "lru",
+      cleanupInterval: 300000, // 5 minutes
+    });
+
+    // SECURITY: Bounded rate limiters prevent memory exhaustion attacks
     this.rateLimiters = {
-      byUser: new Map(),
-      byIP: new Map(),
+      byUser: createBoundedCache({
+        maxSize: 5000, // Max 5000 users being rate limited simultaneously
+        maxMemory: 50 * 1024 * 1024, // 50MB
+        ttl:
+          this.config.rateLimit.perUser.blockDuration +
+          this.config.rateLimit.perUser.window,
+        evictionPolicy: "lru",
+        cleanupInterval: 60000, // 1 minute cleanup
+      }),
+      byIP: createBoundedCache({
+        maxSize: 10000, // Max 10000 IPs being rate limited simultaneously
+        maxMemory: 100 * 1024 * 1024, // 100MB
+        ttl:
+          this.config.rateLimit.perIP.blockDuration +
+          this.config.rateLimit.perIP.window,
+        evictionPolicy: "lru",
+        cleanupInterval: 60000, // 1 minute cleanup
+      }),
     };
     this.securityEvents = [];
     this.blacklistedTokens = new Set();
@@ -930,10 +1003,24 @@ class SecurityService {
    */
   async cleanup() {
     try {
-      // Clear security state
-      this.csrfTokens.clear();
-      this.rateLimiters.byUser.clear();
-      this.rateLimiters.byIP.clear();
+      // Clear security state (properly destroy BoundedCache instances)
+      if (typeof this.csrfTokens.destroy === "function") {
+        this.csrfTokens.destroy();
+      } else {
+        this.csrfTokens.clear();
+      }
+
+      if (typeof this.rateLimiters.byUser.destroy === "function") {
+        this.rateLimiters.byUser.destroy();
+      } else {
+        this.rateLimiters.byUser.clear();
+      }
+
+      if (typeof this.rateLimiters.byIP.destroy === "function") {
+        this.rateLimiters.byIP.destroy();
+      } else {
+        this.rateLimiters.byIP.clear();
+      }
       this.securityEvents = [];
       this.blacklistedTokens.clear();
       this.securityChecks = [];
