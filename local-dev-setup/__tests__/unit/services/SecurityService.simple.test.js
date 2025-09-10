@@ -9,7 +9,7 @@ global.performance = global.performance || { now: () => Date.now() };
 describe("SecurityService Module Loading", () => {
   it("should be able to require SecurityService module", () => {
     const securityModule = require("../../../../src/groovy/umig/web/js/services/SecurityService.js");
-    
+
     expect(securityModule).toBeDefined();
     expect(securityModule.SecurityService).toBeDefined();
     expect(securityModule.RateLimitEntry).toBeDefined();
@@ -18,8 +18,10 @@ describe("SecurityService Module Loading", () => {
   });
 
   it("should be able to instantiate SecurityService", () => {
-    const { SecurityService } = require("../../../../src/groovy/umig/web/js/services/SecurityService.js");
-    
+    const {
+      SecurityService,
+    } = require("../../../../src/groovy/umig/web/js/services/SecurityService.js");
+
     const service = new SecurityService();
     expect(service).toBeDefined();
     expect(service.name).toBe("SecurityService");

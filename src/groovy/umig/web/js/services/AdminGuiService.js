@@ -181,7 +181,7 @@ class BaseService {
     if (!this.eventHandlers.has(eventName)) {
       return;
     }
-    
+
     if (handler) {
       const handlers = this.eventHandlers.get(eventName);
       const index = handlers.indexOf(handler);

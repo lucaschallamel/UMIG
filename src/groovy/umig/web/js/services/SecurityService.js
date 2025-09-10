@@ -1297,14 +1297,46 @@ class SecurityService {
    * @private
    */
   _validateStringInput(input, options) {
-    const validationResult = this.validator.validateInput(input, {
+    // Handle type-based validation options for compatibility
+    const validationOptions = {
       maxLength:
         options.maxLength || this.config.inputValidation.maxInputLength,
       allowHtml: options.allowHtml || false,
       allowSql: options.allowSql || false,
       allowPaths: options.allowPaths || false,
       allowCommands: options.allowCommands || false,
-    });
+    };
+
+    // Map type option to specific allow flags for test compatibility
+    if (options.type) {
+      switch (options.type) {
+        case "html":
+        case "xss":
+          validationOptions.allowHtml = false; // We want to detect XSS, so don't allow HTML
+          break;
+        case "sql":
+        case "sql_injection":
+          validationOptions.allowSql = false; // We want to detect SQL injection
+          break;
+        case "path":
+        case "path_traversal":
+          validationOptions.allowPaths = false; // We want to detect path traversal
+          break;
+        case "command":
+        case "command_injection":
+          validationOptions.allowCommands = false; // We want to detect command injection
+          break;
+        case "general":
+        default:
+          // For general validation, don't allow any dangerous content
+          break;
+      }
+    }
+
+    const validationResult = this.validator.validateInput(
+      input,
+      validationOptions,
+    );
 
     let sanitized = input;
 
@@ -1811,12 +1843,12 @@ class SecurityService {
   }
 
   /**
-   * Get security headers
+   * Get security headers (public method for testing)
+   * @param {string} context - Optional context for customized headers
    * @returns {Object} Security headers
-   * @private
    */
-  _getSecurityHeaders() {
-    return {
+  getSecurityHeaders(context = null) {
+    const headers = {
       "Content-Security-Policy":
         this.config.securityHeaders.contentSecurityPolicy,
       "X-Frame-Options": this.config.securityHeaders.xFrameOptions,
@@ -1826,6 +1858,26 @@ class SecurityService {
       "X-XSS-Protection": this.config.securityHeaders.xXSSProtection,
       "Referrer-Policy": this.config.securityHeaders.referrerPolicy,
     };
+
+    // Customize CSP based on context
+    if (context === "admin") {
+      headers["Content-Security-Policy"] =
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
+    } else if (context === "api") {
+      headers["Content-Security-Policy"] =
+        "default-src 'none'; frame-ancestors 'none';";
+    }
+
+    return headers;
+  }
+
+  /**
+   * Get security headers (private method for internal use)
+   * @returns {Object} Security headers
+   * @private
+   */
+  _getSecurityHeaders() {
+    return this.getSecurityHeaders();
   }
 
   /**
