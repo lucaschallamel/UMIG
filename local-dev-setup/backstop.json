@@ -1,0 +1,291 @@
+{
+  "id": "umig_component_visual_regression",
+  "viewports": [
+    {
+      "label": "mobile",
+      "width": 375,
+      "height": 667
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "label": "desktop_large",
+      "width": 1920,
+      "height": 1080
+    }
+  ],
+  "onBeforeScript": "puppet/onBefore.js",
+  "onReadyScript": "puppet/onReady.js",
+  "scenarios": [
+    {
+      "label": "BaseComponent_Default",
+      "cookiePath": "backstop_data/engine_scripts/cookies.json",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#baseComponent",
+      "referenceUrl": "",
+      "readyEvent": "",
+      "readySelector": ".base-component",
+      "delay": 1000,
+      "hideSelectors": [],
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "hoverSelector": "",
+      "clickSelector": "",
+      "postInteractionWait": 0,
+      "selectors": [".base-component"],
+      "selectorExpansion": true,
+      "expect": 0,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "TableComponent_Empty_State",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#tableComponent",
+      "referenceUrl": "",
+      "readySelector": ".table-component",
+      "delay": 1000,
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".table-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "TableComponent_With_Data",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#tableComponent",
+      "referenceUrl": "",
+      "readySelector": ".table-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/table_load_data.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".table-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "TableComponent_Selected_Rows",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#tableComponent",
+      "referenceUrl": "",
+      "readySelector": ".table-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/table_select_rows.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".table-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "TableComponent_Sorted",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#tableComponent",
+      "referenceUrl": "",
+      "readySelector": ".table-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/table_sort_column.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".table-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "FilterComponent_Default",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#filterComponent",
+      "referenceUrl": "",
+      "readySelector": ".filter-component",
+      "delay": 1000,
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".filter-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "FilterComponent_With_Values",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#filterComponent",
+      "referenceUrl": "",
+      "readySelector": ".filter-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/filter_apply_values.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".filter-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "FilterComponent_Validation_Errors",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#filterComponent",
+      "referenceUrl": "",
+      "readySelector": ".filter-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/filter_validation_errors.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".filter-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "PaginationComponent_Default",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#paginationComponent",
+      "referenceUrl": "",
+      "readySelector": ".pagination-component",
+      "delay": 1000,
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".pagination-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "PaginationComponent_Multiple_Pages",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#paginationComponent",
+      "referenceUrl": "",
+      "readySelector": ".pagination-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/pagination_multiple_pages.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".pagination-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "PaginationComponent_Current_Page_5",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#paginationComponent",
+      "referenceUrl": "",
+      "readySelector": ".pagination-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/pagination_page_5.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".pagination-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "ModalComponent_Closed",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#modalComponent",
+      "referenceUrl": "",
+      "readySelector": ".modal-component",
+      "delay": 1000,
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".modal-component"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "ModalComponent_Small_Modal",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#modalComponent",
+      "referenceUrl": "",
+      "readySelector": ".modal-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/modal_open_small.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": ["viewport"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "ModalComponent_Medium_Modal",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#modalComponent",
+      "referenceUrl": "",
+      "readySelector": ".modal-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/modal_open_medium.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": ["viewport"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "ModalComponent_Large_Modal",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#modalComponent",
+      "referenceUrl": "",
+      "readySelector": ".modal-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/modal_open_large.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": ["viewport"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "ModalComponent_Form_Validation",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#modalComponent",
+      "referenceUrl": "",
+      "readySelector": ".modal-component",
+      "delay": 1000,
+      "onReadyScript": "puppet/modal_form_validation.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": ["viewport"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Integrated_Table_Filter_Pagination",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#integratedView",
+      "referenceUrl": "",
+      "readySelector": ".integrated-view",
+      "delay": 1000,
+      "onReadyScript": "puppet/integrated_setup.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".integrated-view"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Integrated_With_Active_Filter",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#integratedView",
+      "referenceUrl": "",
+      "readySelector": ".integrated-view",
+      "delay": 1000,
+      "onReadyScript": "puppet/integrated_active_filter.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".integrated-view"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Integrated_Page_2",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#integratedView",
+      "referenceUrl": "",
+      "readySelector": ".integrated-view",
+      "delay": 1000,
+      "onReadyScript": "puppet/integrated_page_2.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".integrated-view"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Dark_Theme_Components",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#darkTheme",
+      "referenceUrl": "",
+      "readySelector": ".dark-theme",
+      "delay": 1000,
+      "onReadyScript": "puppet/dark_theme_setup.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".dark-theme"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Loading_States",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#loadingStates",
+      "referenceUrl": "",
+      "readySelector": ".loading-states",
+      "delay": 1000,
+      "onReadyScript": "puppet/loading_states.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".loading-states"],
+      "misMatchThreshold": 0.1
+    },
+    {
+      "label": "Error_States",
+      "url": "http://localhost:8090/pages/viewpage.action?pageId=admin-gui-test#errorStates",
+      "referenceUrl": "",
+      "readySelector": ".error-states",
+      "delay": 1000,
+      "onReadyScript": "puppet/error_states.js",
+      "removeSelectors": [".confluence-header", ".confluence-footer"],
+      "selectors": [".error-states"],
+      "misMatchThreshold": 0.1
+    }
+  ],
+  "paths": {
+    "bitmaps_reference": "backstop_data/bitmaps_reference",
+    "bitmaps_test": "backstop_data/bitmaps_test",
+    "engine_scripts": "backstop_data/engine_scripts",
+    "html_report": "backstop_data/html_report",
+    "ci_report": "backstop_data/ci_report"
+  },
+  "report": ["browser"],
+  "engine": "puppeteer",
+  "engineOptions": {
+    "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+  },
+  "asyncCaptureLimit": 5,
+  "asyncCompareLimit": 50,
+  "debug": false,
+  "debugWindow": false
+}
