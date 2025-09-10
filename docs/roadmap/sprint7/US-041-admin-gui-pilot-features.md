@@ -4,14 +4,17 @@
 
 **Story ID**: US-041  
 **Epic**: Admin GUI Enhancement Suite  
-**Sprint**: Backlog (Post-MVP)  
+**Sprint**: Sprint 7 (Moved from Sprint 6)  
 **Priority**: P1 (High Value Enhancement)  
 **Story Points**: 5 points  
-**Status**: BACKLOG  
+**Status**: READY FOR SPRINT 7  
 **Created**: August 26, 2025  
+**Moved to Sprint 7**: September 10, 2025  
 **Owner**: Frontend Development  
 **Dependencies**: US-031 (Admin GUI Complete Integration) - MUST BE 100% COMPLETE  
 **Risk**: LOW (builds on proven US-031 patterns)
+
+**Sprint 6 Descope Note**: Originally planned for Sprint 6 but descoped on September 10, 2025, as Sprint 6 successfully completed all core objectives (US-042, US-043, TD-001, TD-002, US-082 epic planning) achieving full deployment readiness without requiring this enhancement.
 
 ---
 
