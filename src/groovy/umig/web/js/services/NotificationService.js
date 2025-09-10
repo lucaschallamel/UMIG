@@ -1358,7 +1358,18 @@
   }
 
   // Export to global namespace
-  window.NotificationService = NotificationService;
-  window.NotificationEntry = NotificationEntry;
-  window.UserPreferences = UserPreferences;
+  if (typeof window !== "undefined") {
+    window.NotificationService = NotificationService;
+    window.NotificationEntry = NotificationEntry;
+    window.UserPreferences = UserPreferences;
+  }
+
+  // Node.js/CommonJS export for Jest testing
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      NotificationService,
+      NotificationEntry,
+      UserPreferences,
+    };
+  }
 })();

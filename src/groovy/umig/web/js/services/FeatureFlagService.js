@@ -1633,7 +1633,18 @@
   }
 
   // Export to global namespace
-  window.FeatureFlagService = FeatureFlagService;
-  window.FeatureFlag = FeatureFlag;
-  window.UserContext = UserContext;
+  if (typeof window !== "undefined") {
+    window.FeatureFlagService = FeatureFlagService;
+    window.FeatureFlag = FeatureFlag;
+    window.UserContext = UserContext;
+  }
+
+  // Node.js/CommonJS export for Jest testing
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      FeatureFlagService,
+      FeatureFlag,
+      UserContext,
+    };
+  }
 })();

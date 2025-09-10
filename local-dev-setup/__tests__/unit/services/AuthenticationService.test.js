@@ -1,10 +1,10 @@
 /**
- * AuthenticationService.test.js - Comprehensive Test Suite
+ * AuthenticationService.test.js - Comprehensive Test Suite (Simplified Jest Pattern)
  *
  * US-082-A Phase 1: Enhanced Authentication Service Testing
- * Following TD-001/TD-002 revolutionary testing patterns
- * - Self-contained architecture (TD-001)
- * - Technology-prefixed commands (TD-002)
+ * Following TD-002 simplified Jest pattern - NO self-contained architecture
+ * - Standard Jest module loading
+ * - Proper CommonJS imports
  * - 95%+ coverage target for 4-level authentication hierarchy
  * - Complete RBAC and audit logging testing
  *
@@ -16,113 +16,92 @@
  * - Cache performance and TTL management
  * - ScriptRunner environment integration
  *
- * @version 1.0.0
+ * @version 2.0.0 - Simplified Jest Pattern
  * @author GENDEV Security Architect + QA Coordinator
  * @since Sprint 6
  */
 
-// Self-contained test architecture (TD-001 pattern)
-// Embed all dependencies directly to eliminate external dependencies
-const { performance } = require("perf_hooks");
+// Setup globals BEFORE requiring modules
+global.window = global.window || {};
+global.performance = global.performance || { now: () => Date.now() };
+global.navigator = global.navigator || { userAgent: "Jest/MockAgent" };
 
-/**
- * Mock browser environment for AuthenticationService testing (TD-001 pattern)
- * Complete simulation of ScriptRunner + Atlassian environment
- */
-class MockWindow {
+// Mock localStorage and sessionStorage
+global.localStorage = global.localStorage || {
+  store: {},
+  getItem: function(key) {
+    return this.store[key] || null;
+  },
+  setItem: function(key, value) {
+    this.store[key] = String(value);
+  },
+  removeItem: function(key) {
+    delete this.store[key];
+  },
+  clear: function() {
+    this.store = {};
+  }
+};
+
+global.sessionStorage = global.sessionStorage || {
+  store: {},
+  getItem: function(key) {
+    return this.store[key] || null;
+  },
+  setItem: function(key, value) {
+    this.store[key] = String(value);
+  },
+  removeItem: function(key) {
+    delete this.store[key];
+  },
+  clear: function() {
+    this.store = {};
+  }
+};
+
+// Standard CommonJS require - NO vm.runInContext
+const { AuthenticationService, UserContext, AuditEvent, initializeAuthenticationService } = require("../../../../src/groovy/umig/web/js/services/AuthenticationService.js");
+
+// Mock implementations for testing
+class MockLogger {
   constructor() {
-    this.AuthenticationService = null;
-    this.UserContext = null;
-    this.AuditEvent = null;
-    this.initializeAuthenticationService = null;
-    this.AdminGuiService = null;
-    this.ApiService = null;
-    this.AdminGuiState = null;
-    this.AJS = null;
-    this.navigator = {
-      userAgent: "Jest/MockAgent",
-    };
-    this.localStorage = new MockLocalStorage();
-    this.sessionStorage = new MockLocalStorage();
-    this.eventListeners = new Map();
-    this.performance = {
-      memory: { usedJSHeapSize: 2048 * 1024 }, // 2MB
-      now: () => Date.now(),
-    };
+    this.logs = [];
   }
 
-  addEventListener(event, listener) {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, []);
-    }
-    this.eventListeners.get(event).push(listener);
+  info(...args) {
+    this.logs.push(["INFO", ...args]);
   }
 
-  removeEventListener(event, listener) {
-    if (this.eventListeners.has(event)) {
-      const listeners = this.eventListeners.get(event);
-      const index = listeners.indexOf(listener);
-      if (index !== -1) {
-        listeners.splice(index, 1);
-      }
-    }
-  }
-}
-
-/**
- * Mock LocalStorage for session testing
- */
-class MockLocalStorage {
-  constructor() {
-    this.storage = new Map();
+  error(...args) {
+    this.logs.push(["ERROR", ...args]);
   }
 
-  getItem(key) {
-    return this.storage.get(key) || null;
+  warn(...args) {
+    this.logs.push(["WARN", ...args]);
   }
 
-  setItem(key, value) {
-    this.storage.set(key, String(value));
-  }
-
-  removeItem(key) {
-    this.storage.delete(key);
+  debug(...args) {
+    this.logs.push(["DEBUG", ...args]);
   }
 
   clear() {
-    this.storage.clear();
+    this.logs = [];
   }
 }
 
-/**
- * Mock Atlassian JavaScript SDK for ScriptRunner environment
- */
 class MockAJS {
   constructor() {
-    this.Meta = new MockMeta();
+    this.Meta = {
+      data: new Map(),
+      get: function(key) { return this.data.get(key); },
+      set: function(key, value) { this.data.set(key, value); }
+    };
     this.params = {
       remoteUser: null,
     };
   }
 }
 
-class MockMeta {
-  constructor() {
-    this.data = new Map();
-  }
-
-  get(key) {
-    return this.data.get(key);
-  }
-
-  set(key, value) {
-    this.data.set(key, value);
-  }
-}
-
-/**
- * Mock AdminGuiState for frontend user context
- */
 class MockAdminGuiState {
   constructor() {
     this.currentUser = null;
@@ -137,9 +116,6 @@ class MockAdminGuiState {
   }
 }
 
-/**
- * Mock API Service for user data operations
- */
 class MockApiService {
   constructor() {
     this.responses = new Map();
@@ -208,46 +184,6 @@ class MockApiService {
   }
 }
 
-/**
- * Mock Logger for audit trail testing
- */
-class MockLogger {
-  constructor() {
-    this.logs = [];
-    this.config = {
-      level: "debug",
-    };
-  }
-
-  log(level, message, data) {
-    this.logs.push({ level, message, data, timestamp: Date.now() });
-  }
-
-  info(message, data) {
-    this.log("info", message, data);
-  }
-  warn(message, data) {
-    this.log("warn", message, data);
-  }
-  error(message, data) {
-    this.log("error", message, data);
-  }
-  debug(message, data) {
-    this.log("debug", message, data);
-  }
-
-  getLogs(level = null) {
-    return level ? this.logs.filter((log) => log.level === level) : this.logs;
-  }
-
-  clear() {
-    this.logs = [];
-  }
-}
-
-/**
- * Mock Console for testing output capture
- */
 class MockConsole {
   constructor() {
     this.logs = [];
@@ -282,9 +218,7 @@ class MockConsole {
   }
 }
 
-/**
- * Test helper utilities (TD-001 pattern)
- */
+// Test helper utilities
 class AuthTestUtils {
   static createMockUser(overrides = {}) {
     return {
@@ -350,105 +284,42 @@ class AuthTestUtils {
   }
 }
 
-// Test Suite Implementation
-describe("AuthenticationService - Comprehensive Test Suite", () => {
-  let mockWindow;
+describe("AuthenticationService - Foundation Service Layer Tests", () => {
   let mockConsole;
   let mockLogger;
   let mockApiService;
   let mockAdminGuiState;
   let mockAJS;
-  let AuthenticationService;
-  let UserContext;
-  let AuditEvent;
 
-  beforeEach(async () => {
-    // Clear Jest environment
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-
-    // Setup mock environment (TD-001 pattern)
-    mockWindow = new MockWindow();
+  beforeEach(() => {
     mockConsole = new MockConsole();
     mockLogger = new MockLogger();
     mockApiService = new MockApiService();
     mockAdminGuiState = new MockAdminGuiState();
     mockAJS = new MockAJS();
 
-    // Setup global mocks
-    global.window = mockWindow;
-    global.console = mockConsole;
-    global.navigator = mockWindow.navigator;
-    global.localStorage = mockWindow.localStorage;
-    global.sessionStorage = mockWindow.sessionStorage;
-    global.performance = mockWindow.performance;
-
-    // Load AuthenticationService implementation
-    const fs = require("fs");
-    const path = require("path");
-    const servicePath = path.join(
-      __dirname,
-      "../../../../src/groovy/umig/web/js/services/AuthenticationService.js",
-    );
-    const serviceCode = fs.readFileSync(servicePath, "utf8");
-
-    // Execute in mock context
-    const vm = require("vm");
-    const context = {
-      window: mockWindow,
-      console: mockConsole,
-      navigator: mockWindow.navigator,
-      localStorage: mockWindow.localStorage,
-      sessionStorage: mockWindow.sessionStorage,
-      performance: mockWindow.performance,
-      setTimeout,
-      clearTimeout,
-      setInterval,
-      clearInterval,
-      Date,
-      Math,
-      JSON,
-      Object,
-      Array,
-      Map,
-      Set,
-      Promise,
-      Error,
-      module: { exports: {} },
-      define: jest.fn(),
-    };
-
-    vm.createContext(context);
-    vm.runInContext(serviceCode, context);
-
-    // Extract classes from context
-    AuthenticationService = context.window.AuthenticationService;
-    UserContext = context.window.UserContext;
-    AuditEvent = context.window.AuditEvent;
-
-    // Setup environment references
-    mockWindow.AdminGuiService = {
+    // Setup global window environment
+    global.window = global.window || {};
+    global.window.AdminGuiService = {
       getService: jest.fn().mockImplementation((serviceName) => {
         if (serviceName === "ApiService") return mockApiService;
         return null;
       }),
     };
-    mockWindow.ApiService = mockApiService;
-    mockWindow.AdminGuiState = mockAdminGuiState;
-    mockWindow.AJS = mockAJS;
+    global.window.ApiService = mockApiService;
+    global.window.AdminGuiState = mockAdminGuiState;
+    global.window.AJS = mockAJS;
+
+    // Clear storage between tests
+    global.localStorage.clear();
+    global.sessionStorage.clear();
   });
 
   afterEach(() => {
-    // Cleanup intervals and timeouts
     jest.clearAllTimers();
-
-    // Reset global state
-    delete global.window;
-    delete global.console;
-    delete global.navigator;
-    delete global.localStorage;
-    delete global.sessionStorage;
-    delete global.performance;
+    mockLogger.clear();
+    mockConsole.clear();
+    mockApiService.clearRequestLog();
   });
 
   // ===== Core Service Lifecycle Tests =====
@@ -1697,16 +1568,6 @@ describe("AuthenticationService Test Coverage Summary", () => {
   });
 });
 
-/**
- * Export test utilities for other test files
- */
-module.exports = {
-  AuthTestUtils,
-  MockWindow,
-  MockLocalStorage,
-  MockAJS,
-  MockAdminGuiState,
-  MockApiService,
-  MockLogger,
-  MockConsole,
-};
+console.log("🧪 AuthenticationService Test Suite - Simplified Jest Pattern (TD-002)");
+console.log("✅ Standard CommonJS module loading implemented");
+console.log("✅ Comprehensive authentication testing with 95%+ coverage target");
