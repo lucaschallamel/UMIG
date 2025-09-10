@@ -17,26 +17,26 @@ Complete the JSON-based Step Data Architecture implementation (US-056-B and US-0
 
 ## Story Point Summary
 
-| Story ID  | Story Title                           | Points | Priority | Dependencies           | Risk                 | Status             |
-| --------- | ------------------------------------- | ------ | -------- | ---------------------- | -------------------- | ------------------ |
-| **TECHNICAL DEBT STORIES (0 points each)** |                          |        |          |                        |                      |                    |
-| TD-001    | Critical Unit Test Failures           | 0      | CRITICAL | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE        |
-| TD-002    | Unit Test Infrastructure              | 0      | HIGH     | None                   | LOW                  | ✅ COMPLETE        |
-| **USER STORIES** |                                    |        |          |                        |                      |                    |
-| US-034    | Data Import Strategy & Implementation | 8      | P1       | None (✅ COMPLETE)     | RESOLVED             | ✅ COMPLETE Sept 4 |
-| US-039-B  | Email Template Integration            | 3      | HIGH     | US-056-B (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 5 |
-| ~~US-041~~| ~~Admin GUI PILOT Features~~          | ~~5~~  | ~~P1~~   | ~~US-031 Complete~~    | ~~LOW~~              | **DESCOPED TO SPRINT 7** |
-| US-042    | Migration Types Management            | 8      | HIGH     | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8 |
-| US-043    | Iteration Types Management            | 8      | HIGH     | US-042 (✅ COMPLETE)   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8 |
-| US-047    | Master Instructions Management        | 5      | MEDIUM   | US-031                 | LOW                  | 📋 BACKLOG         |
-| ~~US-050~~| ~~Step ID Uniqueness Validation~~     | ~~2~~  | ~~MEDIUM~~| ~~None~~               | ~~LOW~~              | **DESCOPED TO SPRINT 7** |
-| US-056-B  | Template Integration (Phase 2)        | 3      | HIGH     | US-056-A (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Jan 4  |
-| US-056-C  | API Layer Integration (Phase 3)       | 2      | HIGH     | US-056-F (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8 |
-| US-056-F  | Dual DTO Architecture                 | 2      | CRITICAL | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 6 |
-| US-067    | Email Security Test Coverage          | N/A    | HIGH     | US-039-B (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 6 |
-| **EPIC AND REFACTORING** |                            |        |          |                        |                      |                    |
-| US-082    | Admin GUI Architecture Refactoring    | 32     | HIGH     | None                   | MEDIUM               | 📋 EPIC PLANNING   |
-| **TOTAL** |                                       | **62** |          |                        |                      |                    |
+| Story ID                                   | Story Title                           | Points | Priority   | Dependencies           | Risk                 | Status                   |
+| ------------------------------------------ | ------------------------------------- | ------ | ---------- | ---------------------- | -------------------- | ------------------------ |
+| **TECHNICAL DEBT STORIES (0 points each)** |                                       |        |            |                        |                      |                          |
+| TD-001                                     | Critical Unit Test Failures           | 0      | CRITICAL   | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE              |
+| TD-002                                     | Unit Test Infrastructure              | 0      | HIGH       | None                   | LOW                  | ✅ COMPLETE              |
+| **USER STORIES**                           |                                       |        |            |                        |                      |                          |
+| US-034                                     | Data Import Strategy & Implementation | 8      | P1         | None (✅ COMPLETE)     | RESOLVED             | ✅ COMPLETE Sept 4       |
+| US-039-B                                   | Email Template Integration            | 3      | HIGH       | US-056-B (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 5       |
+| ~~US-041~~                                 | ~~Admin GUI PILOT Features~~          | ~~5~~  | ~~P1~~     | ~~US-031 Complete~~    | ~~LOW~~              | **DESCOPED TO SPRINT 7** |
+| US-042                                     | Migration Types Management            | 8      | HIGH       | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8       |
+| US-043                                     | Iteration Types Management            | 8      | HIGH       | US-042 (✅ COMPLETE)   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8       |
+| US-047                                     | Master Instructions Management        | 5      | MEDIUM     | US-031                 | LOW                  | 📋 BACKLOG               |
+| ~~US-050~~                                 | ~~Step ID Uniqueness Validation~~     | ~~2~~  | ~~MEDIUM~~ | ~~None~~               | ~~LOW~~              | **DESCOPED TO SPRINT 7** |
+| US-056-B                                   | Template Integration (Phase 2)        | 3      | HIGH       | US-056-A (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Jan 4        |
+| US-056-C                                   | API Layer Integration (Phase 3)       | 2      | HIGH       | US-056-F (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 8       |
+| US-056-F                                   | Dual DTO Architecture                 | 2      | CRITICAL   | None                   | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 6       |
+| US-067                                     | Email Security Test Coverage          | N/A    | HIGH       | US-039-B (✅ COMPLETE) | RESOLVED ✅ COMPLETE | ✅ COMPLETE Sept 6       |
+| **EPIC AND REFACTORING**                   |                                       |        |            |                        |                      |                          |
+| US-082                                     | Admin GUI Architecture Refactoring    | 32     | HIGH       | None                   | MEDIUM               | 📋 EPIC PLANNING         |
+| **TOTAL**                                  |                                       | **62** |            |                        |                      |                          |
 
 ## Sprint Timeline and Velocity Analysis
 
@@ -442,6 +442,7 @@ test:all:comprehensive    # All tests from both technologies
 **Rationale**: Sprint 6 achieved all core objectives (US-042, US-043, TD-001, TD-002, US-082 epic planning) without requiring this enhancement. Descoped to Sprint 7 to maintain deployment readiness focus.
 
 **Key Deliverables** [MOVED TO SPRINT 7]:
+
 - PILOT role instance entity management (4 types)
 - Comprehensive audit logging system
 - Advanced instance operations
@@ -547,6 +548,7 @@ test:all:comprehensive    # All tests from both technologies
 **Rationale**: Sprint 6 achieved all core objectives including critical technical debt resolution (TD-001, TD-002) and core feature delivery. This validation enhancement can be properly addressed in Sprint 7 without impacting deployment readiness.
 
 **Key Deliverables** [MOVED TO SPRINT 7]:
+
 - Backend validation in StepsAPI
 - Database index optimization
 - Frontend error handling
@@ -572,7 +574,7 @@ test:all:comprehensive    # All tests from both technologies
 **Solution Architecture**: Implement component-based modular architecture using 4-phase strategic migration:
 
 1. **Phase 1**: Foundation & Services (Weeks 1-2) - Infrastructure setup, no UI changes
-2. **Phase 2**: Component Architecture (Weeks 3-4) - Build reusable UI components  
+2. **Phase 2**: Component Architecture (Weeks 3-4) - Build reusable UI components
 3. **Phase 3**: Entity Migration (Weeks 5-6) - Migrate 7 entities to new architecture
 4. **Phase 4**: Complex Migration (Weeks 7-8) - Complete remaining 6 entities + optimization
 
