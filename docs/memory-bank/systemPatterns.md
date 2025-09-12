@@ -27,7 +27,7 @@ class BaseEntityManager {
     // Apply security controls
     await this.securityControls.csrf.validate(entityData);
     await this.securityControls.inputValidator.sanitize(entityData);
-    
+
     // Use DatabaseUtil pattern
     return DatabaseUtil.withSql { sql ->
       const result = sql.insert(this.tableName, entityData);
@@ -51,7 +51,7 @@ class TeamsEntityManager extends BaseEntityManager {
   constructor() {
     super('Team', 'tbl_teams_master');
   }
-  
+
   async addMember(teamId, userId, role, userContext) {
     // Team-specific functionality with consistent patterns
     return DatabaseUtil.withSql { sql ->
@@ -75,8 +75,9 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 // JSDOM defensive initialization
-const container = global.document?.getElementById?.('container') || 
-                 global.document?.createElement?.('div');
+const container =
+  global.document?.getElementById?.("container") ||
+  global.document?.createElement?.("div");
 
 // Variable scoping pattern for test isolation
 let performanceResults = {};
@@ -84,10 +85,10 @@ let performanceResults = {};
 // UMIGServices mock implementation
 const UMIGServices = {
   performanceTracker: {
-    startTracking: jest.fn(() => 'tracking-id'),
+    startTracking: jest.fn(() => "tracking-id"),
     stopTracking: jest.fn(() => performanceResults),
-    getResults: jest.fn(() => performanceResults)
-  }
+    getResults: jest.fn(() => performanceResults),
+  },
 };
 ```
 
@@ -98,16 +99,19 @@ const UMIGServices = {
 **Pattern**: Systematic knowledge capture and reuse system providing ~40% implementation time reduction
 
 **ADR-056 Entity Migration Specification Pattern**:
+
 - Standardised entity migration specification pattern
 - Comprehensive framework for consistent entity migrations
 - Enterprise-grade migration standards across all entities
 
 **SERENA MCP Memory System (3 Files)**:
+
 1. **entity-migration-patterns-us082c**: Complete patterns and methodologies
-2. **component-orchestrator-security-patterns**: Security implementation guidance  
+2. **component-orchestrator-security-patterns**: Security implementation guidance
 3. **entity-migration-implementation-checklist**: Step-by-step implementation guide
 
 **Master Test Template + Entity-Specific Specifications**:
+
 - ENTITY_TEST_SPECIFICATION_TEMPLATE.md (master template)
 - 6 entity-specific specifications (Users, Environments, Applications, Labels, Migration Types, Iteration Types)
 - Standardised testing approach reducing implementation time by ~40%
@@ -302,7 +306,7 @@ expect(mockFn).toHaveBeenCalledWith(
 ## Performance & Quality Metrics (Current Status)
 
 - **Test Recovery Achievement**: Recovered from 0% → 78-80% pass rate through infrastructure fixes
-- **Foundation Services**: 239/239 tests passing (100% success rate)  
+- **Foundation Services**: 239/239 tests passing (100% success rate)
 - **Phase 1 Teams Migration**: 85% complete with APPROVED production status
 - **Security Rating Enhancement**: 8.5/10 → 8.8/10 (exceeds enterprise requirements)
 - **Knowledge Systems**: ~40% implementation time reduction validated
