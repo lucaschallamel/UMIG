@@ -52,7 +52,7 @@ class BaseEntityManager {
     this.tableName = tableName;
     this.securityControls = new SecurityControlSuite();
   }
-  
+
   async create(entityData, userContext) {
     await this.securityControls.validate(entityData);
     return DatabaseUtil.withSql { sql ->
@@ -80,8 +80,9 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 // JSDOM defensive initialization
-const container = global.document?.getElementById?.('container') || 
-                 global.document?.createElement?.('div');
+const container =
+  global.document?.getElementById?.("container") ||
+  global.document?.createElement?.("div");
 ```
 
 **Results**: 239/239 foundation tests passing (100%), JavaScript tests recovered to 78-80%
