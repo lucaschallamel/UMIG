@@ -23,92 +23,92 @@ users/
 
 ```javascript
 class UserBuilder {
-    constructor() {
-        this.data = this.getDefaultUserData();
-        this.authSettings = {};
-        this.permissions = [];
-        this.sessionConfig = {};
-    }
-    
-    getDefaultUserData() {
-        return {
-            userId: generateUUID(),
-            username: generateUniqueUsername(),
-            email: generateValidEmail(),
-            displayName: 'Test User',
-            isActive: true,
-            lastLogin: null,
-            failedLoginAttempts: 0,
-            accountLocked: false,
-            passwordExpiry: null,
-            mfaEnabled: false,
-            roles: ['confluence-users']
-        };
-    }
-    
-    // Authentication-specific builders
-    withRole(role) {
-        this.data.roles = [...this.data.roles, role];
-        return this;
-    }
-    
-    withAuthenticationMethod(method) {
-        this.authSettings.method = method;
-        this.authSettings.config = this.getAuthConfig(method);
-        return this;
-    }
-    
-    withExpiredSession() {
-        this.sessionConfig.expiry = Date.now() - 1000;
-        return this;
-    }
-    
-    withLockedAccount() {
-        this.data.accountLocked = true;
-        this.data.failedLoginAttempts = 5;
-        return this;
-    }
-    
-    withMfaEnabled(type = '2fa') {
-        this.data.mfaEnabled = true;
-        this.authSettings.mfaType = type;
-        return this;
-    }
-    
-    withExpiredPassword() {
-        this.data.passwordExpiry = Date.now() - 86400000; // 1 day ago
-        return this;
-    }
-    
-    withPermissions(permissions) {
-        this.permissions = Array.isArray(permissions) ? permissions : [permissions];
-        return this;
-    }
-    
-    withInvalidCredentials() {
-        this.data.password = 'invalid_password';
-        return this;
-    }
-    
-    asSystemAdmin() {
-        this.data.roles = ['confluence-administrators', 'system-admin'];
-        return this;
-    }
-    
-    asReadOnlyUser() {
-        this.data.roles = ['confluence-users'];
-        this.permissions = ['read'];
-        return this;
-    }
-    
-    build() {
-        return {
-            ...this.data,
-            authSettings: this.authSettings,
-            permissions: this.permissions,
-            sessionConfig: this.sessionConfig
-        };
-    }
+  constructor() {
+    this.data = this.getDefaultUserData();
+    this.authSettings = {};
+    this.permissions = [];
+    this.sessionConfig = {};
+  }
+
+  getDefaultUserData() {
+    return {
+      userId: generateUUID(),
+      username: generateUniqueUsername(),
+      email: generateValidEmail(),
+      displayName: "Test User",
+      isActive: true,
+      lastLogin: null,
+      failedLoginAttempts: 0,
+      accountLocked: false,
+      passwordExpiry: null,
+      mfaEnabled: false,
+      roles: ["confluence-users"],
+    };
+  }
+
+  // Authentication-specific builders
+  withRole(role) {
+    this.data.roles = [...this.data.roles, role];
+    return this;
+  }
+
+  withAuthenticationMethod(method) {
+    this.authSettings.method = method;
+    this.authSettings.config = this.getAuthConfig(method);
+    return this;
+  }
+
+  withExpiredSession() {
+    this.sessionConfig.expiry = Date.now() - 1000;
+    return this;
+  }
+
+  withLockedAccount() {
+    this.data.accountLocked = true;
+    this.data.failedLoginAttempts = 5;
+    return this;
+  }
+
+  withMfaEnabled(type = "2fa") {
+    this.data.mfaEnabled = true;
+    this.authSettings.mfaType = type;
+    return this;
+  }
+
+  withExpiredPassword() {
+    this.data.passwordExpiry = Date.now() - 86400000; // 1 day ago
+    return this;
+  }
+
+  withPermissions(permissions) {
+    this.permissions = Array.isArray(permissions) ? permissions : [permissions];
+    return this;
+  }
+
+  withInvalidCredentials() {
+    this.data.password = "invalid_password";
+    return this;
+  }
+
+  asSystemAdmin() {
+    this.data.roles = ["confluence-administrators", "system-admin"];
+    return this;
+  }
+
+  asReadOnlyUser() {
+    this.data.roles = ["confluence-users"];
+    this.permissions = ["read"];
+    return this;
+  }
+
+  build() {
+    return {
+      ...this.data,
+      authSettings: this.authSettings,
+      permissions: this.permissions,
+      sessionConfig: this.sessionConfig,
+    };
+  }
 }
 ```
 
@@ -117,162 +117,166 @@ class UserBuilder {
 ### 1. Authentication Security Tests (35+ scenarios)
 
 ```javascript
-describe('Users Security Tests', () => {
-    const securityTester = new SecurityTester();
-    const userBuilder = new UserBuilder();
-    
-    describe('Authentication Security', () => {
-        test('prevents brute force attacks', async () => {
-            const user = userBuilder.build();
-            
-            // Simulate multiple failed login attempts
-            for (let i = 0; i < 6; i++) {
-                await securityTester.attemptLogin(user.username, 'wrong_password');
-            }
-            
-            const lockResult = await securityTester.checkAccountLock(user.username);
-            expect(lockResult.isLocked).toBe(true);
-            expect(lockResult.lockDuration).toBeGreaterThan(300); // 5 minutes
-        });
-        
-        test('enforces session timeout', async () => {
-            const user = userBuilder.withExpiredSession().build();
-            
-            const sessionTest = await securityTester.testSessionSecurity(user);
-            expect(sessionTest.sessionValid).toBe(false);
-            expect(sessionTest.requiresReauth).toBe(true);
-        });
-        
-        test('validates MFA enforcement', async () => {
-            const user = userBuilder.withMfaEnabled().build();
-            
-            const mfaTest = await securityTester.testMfaBypass(user);
-            expect(mfaTest.bypassAttemptFailed).toBe(true);
-            expect(mfaTest.requiresMfaToken).toBe(true);
-        });
-        
-        test('prevents privilege escalation', async () => {
-            const user = userBuilder.asReadOnlyUser().build();
-            
-            const escalationTest = await securityTester.testPrivilegeEscalation(
-                user, 
-                'admin_action'
-            );
-            expect(escalationTest.actionBlocked).toBe(true);
-            expect(escalationTest.errorCode).toBe(403);
-        });
+describe("Users Security Tests", () => {
+  const securityTester = new SecurityTester();
+  const userBuilder = new UserBuilder();
+
+  describe("Authentication Security", () => {
+    test("prevents brute force attacks", async () => {
+      const user = userBuilder.build();
+
+      // Simulate multiple failed login attempts
+      for (let i = 0; i < 6; i++) {
+        await securityTester.attemptLogin(user.username, "wrong_password");
+      }
+
+      const lockResult = await securityTester.checkAccountLock(user.username);
+      expect(lockResult.isLocked).toBe(true);
+      expect(lockResult.lockDuration).toBeGreaterThan(300); // 5 minutes
     });
-    
-    describe('Authorization Matrix', () => {
-        const roles = ['read-only', 'user', 'team-lead', 'admin', 'system-admin'];
-        const actions = ['read', 'create', 'update', 'delete', 'admin'];
-        
-        roles.forEach(role => {
-            actions.forEach(action => {
-                test(`${role} role ${action} permission validation`, async () => {
-                    const user = userBuilder.withRole(role).build();
-                    const authTest = await securityTester.testAuthorization(user, action);
-                    
-                    const expected = getExpectedPermission(role, action);
-                    expect(authTest.hasPermission).toBe(expected);
-                });
-            });
-        });
+
+    test("enforces session timeout", async () => {
+      const user = userBuilder.withExpiredSession().build();
+
+      const sessionTest = await securityTester.testSessionSecurity(user);
+      expect(sessionTest.sessionValid).toBe(false);
+      expect(sessionTest.requiresReauth).toBe(true);
     });
+
+    test("validates MFA enforcement", async () => {
+      const user = userBuilder.withMfaEnabled().build();
+
+      const mfaTest = await securityTester.testMfaBypass(user);
+      expect(mfaTest.bypassAttemptFailed).toBe(true);
+      expect(mfaTest.requiresMfaToken).toBe(true);
+    });
+
+    test("prevents privilege escalation", async () => {
+      const user = userBuilder.asReadOnlyUser().build();
+
+      const escalationTest = await securityTester.testPrivilegeEscalation(
+        user,
+        "admin_action",
+      );
+      expect(escalationTest.actionBlocked).toBe(true);
+      expect(escalationTest.errorCode).toBe(403);
+    });
+  });
+
+  describe("Authorization Matrix", () => {
+    const roles = ["read-only", "user", "team-lead", "admin", "system-admin"];
+    const actions = ["read", "create", "update", "delete", "admin"];
+
+    roles.forEach((role) => {
+      actions.forEach((action) => {
+        test(`${role} role ${action} permission validation`, async () => {
+          const user = userBuilder.withRole(role).build();
+          const authTest = await securityTester.testAuthorization(user, action);
+
+          const expected = getExpectedPermission(role, action);
+          expect(authTest.hasPermission).toBe(expected);
+        });
+      });
+    });
+  });
 });
 ```
 
 ### 2. Performance Critical Paths
 
 ```javascript
-describe('Users Performance Tests', () => {
-    const performanceTracker = new PerformanceRegressionTracker();
-    
-    test('login performance under load', async () => {
-        const users = Array.from({ length: 50 }, () => 
-            new UserBuilder().withValidData().build()
-        );
-        
-        const benchmark = await performanceTracker.measureConcurrentLogins(users);
-        
-        expect(benchmark.averageLoginTime).toBeLessThan(200);
-        expect(benchmark.p95LoginTime).toBeLessThan(500);
-        expect(benchmark.successRate).toBeGreaterThan(0.99);
+describe("Users Performance Tests", () => {
+  const performanceTracker = new PerformanceRegressionTracker();
+
+  test("login performance under load", async () => {
+    const users = Array.from({ length: 50 }, () =>
+      new UserBuilder().withValidData().build(),
+    );
+
+    const benchmark = await performanceTracker.measureConcurrentLogins(users);
+
+    expect(benchmark.averageLoginTime).toBeLessThan(200);
+    expect(benchmark.p95LoginTime).toBeLessThan(500);
+    expect(benchmark.successRate).toBeGreaterThan(0.99);
+  });
+
+  test("session management performance", async () => {
+    const sessionTest = await performanceTracker.measureSessionOperations({
+      create: 1000,
+      validate: 5000,
+      refresh: 2000,
+      destroy: 1000,
     });
-    
-    test('session management performance', async () => {
-        const sessionTest = await performanceTracker.measureSessionOperations({
-            create: 1000,
-            validate: 5000,
-            refresh: 2000,
-            destroy: 1000
-        });
-        
-        expect(sessionTest.createSession).toBeLessThan(50);
-        expect(sessionTest.validateSession).toBeLessThan(10);
-        expect(sessionTest.refreshSession).toBeLessThan(100);
-    });
+
+    expect(sessionTest.createSession).toBeLessThan(50);
+    expect(sessionTest.validateSession).toBeLessThan(10);
+    expect(sessionTest.refreshSession).toBeLessThan(100);
+  });
 });
 ```
 
 ### 3. Integration with UMIG Authorization
 
 ```javascript
-describe('Users Integration Tests', () => {
-    let testDatabase;
-    let apiClient;
-    
-    beforeAll(async () => {
-        testDatabase = await TestDatabaseManager.createCleanInstance();
-        apiClient = new ApiTestClient();
+describe("Users Integration Tests", () => {
+  let testDatabase;
+  let apiClient;
+
+  beforeAll(async () => {
+    testDatabase = await TestDatabaseManager.createCleanInstance();
+    apiClient = new ApiTestClient();
+  });
+
+  test("integrates with team membership", async () => {
+    const user = new UserBuilder().build();
+    const team = new TeamBuilder().build();
+
+    // Create user and team
+    const userResponse = await apiClient.post("/users", user);
+    const teamResponse = await apiClient.post("/teams", team);
+
+    // Add user to team
+    const membershipResponse = await apiClient.post("/team-members", {
+      userId: userResponse.data.id,
+      teamId: teamResponse.data.id,
+      role: "member",
     });
-    
-    test('integrates with team membership', async () => {
-        const user = new UserBuilder().build();
-        const team = new TeamBuilder().build();
-        
-        // Create user and team
-        const userResponse = await apiClient.post('/users', user);
-        const teamResponse = await apiClient.post('/teams', team);
-        
-        // Add user to team
-        const membershipResponse = await apiClient.post('/team-members', {
-            userId: userResponse.data.id,
-            teamId: teamResponse.data.id,
-            role: 'member'
-        });
-        
-        expect(membershipResponse.status).toBe(201);
-        
-        // Validate user can access team resources
-        const accessTest = await apiClient.get(`/teams/${teamResponse.data.id}`, {
-            headers: { 'X-User-Id': userResponse.data.id }
-        });
-        
-        expect(accessTest.status).toBe(200);
+
+    expect(membershipResponse.status).toBe(201);
+
+    // Validate user can access team resources
+    const accessTest = await apiClient.get(`/teams/${teamResponse.data.id}`, {
+      headers: { "X-User-Id": userResponse.data.id },
     });
-    
-    test('cascades permissions through entity hierarchy', async () => {
-        const admin = new UserBuilder().asSystemAdmin().build();
-        const migration = new MigrationBuilder().build();
-        
-        const adminResponse = await apiClient.post('/users', admin);
-        const migrationResponse = await apiClient.post('/migrations', migration, {
-            headers: { 'X-User-Id': adminResponse.data.id }
-        });
-        
-        expect(migrationResponse.status).toBe(201);
-        
-        // Test cascade through Plans -> Sequences -> Phases -> Steps
-        const planResponse = await apiClient.post('/plans', {
-            migrationId: migrationResponse.data.id,
-            name: 'Test Plan'
-        }, {
-            headers: { 'X-User-Id': adminResponse.data.id }
-        });
-        
-        expect(planResponse.status).toBe(201);
+
+    expect(accessTest.status).toBe(200);
+  });
+
+  test("cascades permissions through entity hierarchy", async () => {
+    const admin = new UserBuilder().asSystemAdmin().build();
+    const migration = new MigrationBuilder().build();
+
+    const adminResponse = await apiClient.post("/users", admin);
+    const migrationResponse = await apiClient.post("/migrations", migration, {
+      headers: { "X-User-Id": adminResponse.data.id },
     });
+
+    expect(migrationResponse.status).toBe(201);
+
+    // Test cascade through Plans -> Sequences -> Phases -> Steps
+    const planResponse = await apiClient.post(
+      "/plans",
+      {
+        migrationId: migrationResponse.data.id,
+        name: "Test Plan",
+      },
+      {
+        headers: { "X-User-Id": adminResponse.data.id },
+      },
+    );
+
+    expect(planResponse.status).toBe(201);
+  });
 });
 ```
 
@@ -320,11 +324,12 @@ describe('Users Integration Tests', () => {
 - [ ] ✅ Defensive container creation pattern in all beforeEach hooks
 - [ ] ✅ Complete UMIGServices mock with all required service methods
 - [ ] ✅ Mock components include migrationMode, data, and emit properties
-- [ ] ✅ Jest testMatch patterns include entities/** directories
+- [ ] ✅ Jest testMatch patterns include entities/\*\* directories
 - [ ] ✅ Event handling uses manual emission pattern (not async waiting)
 - [ ] ✅ JSDOM environment configured in Jest configuration
 
 ### 1. Variable Scoping Pattern (CRITICAL)
+
 ```javascript
 // CORRECT - Module level declarations
 let userBuilder;
@@ -334,108 +339,113 @@ let container;
 let mockUserManager;
 let testData;
 
-describe('Users Entity Tests', () => {
-    // Tests can access all module-level variables
+describe("Users Entity Tests", () => {
+  // Tests can access all module-level variables
 });
 ```
 
 ### 2. Complete Service Mocking for Users (MANDATORY)
+
 ```javascript
 beforeEach(() => {
-    window.UMIGServices = {
-        notificationService: { 
-            show: jest.fn(),
-            showError: jest.fn(),
-            showSuccess: jest.fn()
-        },
-        featureFlagService: { 
-            isEnabled: jest.fn().mockReturnValue(true),
-            getVariant: jest.fn().mockReturnValue('default')
-        },
-        userService: { 
-            getCurrentUser: jest.fn().mockReturnValue({ 
-                id: 'test-user',
-                name: 'Test User',
-                roles: ['confluence-users']
-            }),
-            validateSession: jest.fn().mockReturnValue(true),
-            checkPermissions: jest.fn().mockReturnValue(true)
-        },
-        authenticationService: { // CRITICAL for Users entity
-            login: jest.fn().mockResolvedValue(true),
-            logout: jest.fn().mockResolvedValue(true),
-            validateToken: jest.fn().mockReturnValue(true),
-            checkMfa: jest.fn().mockReturnValue(false)
-        }
-    };
+  window.UMIGServices = {
+    notificationService: {
+      show: jest.fn(),
+      showError: jest.fn(),
+      showSuccess: jest.fn(),
+    },
+    featureFlagService: {
+      isEnabled: jest.fn().mockReturnValue(true),
+      getVariant: jest.fn().mockReturnValue("default"),
+    },
+    userService: {
+      getCurrentUser: jest.fn().mockReturnValue({
+        id: "test-user",
+        name: "Test User",
+        roles: ["confluence-users"],
+      }),
+      validateSession: jest.fn().mockReturnValue(true),
+      checkPermissions: jest.fn().mockReturnValue(true),
+    },
+    authenticationService: {
+      // CRITICAL for Users entity
+      login: jest.fn().mockResolvedValue(true),
+      logout: jest.fn().mockResolvedValue(true),
+      validateToken: jest.fn().mockReturnValue(true),
+      checkMfa: jest.fn().mockReturnValue(false),
+    },
+  };
 });
 ```
 
 ### 3. Users-Specific Mock Components (MANDATORY)
+
 ```javascript
 const createMockUserComponent = (type, additionalProps = {}) => ({
-    id: `mock-user-${type}`,
-    type: type,
-    migrationMode: true, // CRITICAL
-    data: [], // CRITICAL - initialize user data
-    currentUser: null,
-    isAuthenticated: false,
-    permissions: [],
-    initialize: jest.fn().mockResolvedValue(true),
-    mount: jest.fn(),
-    render: jest.fn(),
-    update: jest.fn(),
-    unmount: jest.fn(),
-    destroy: jest.fn(),
-    emit: jest.fn(), // CRITICAL for event system
-    on: jest.fn(),
-    off: jest.fn(),
-    // Users-specific methods
-    authenticateUser: jest.fn(),
-    validatePermissions: jest.fn(),
-    refreshSession: jest.fn(),
-    ...additionalProps
+  id: `mock-user-${type}`,
+  type: type,
+  migrationMode: true, // CRITICAL
+  data: [], // CRITICAL - initialize user data
+  currentUser: null,
+  isAuthenticated: false,
+  permissions: [],
+  initialize: jest.fn().mockResolvedValue(true),
+  mount: jest.fn(),
+  render: jest.fn(),
+  update: jest.fn(),
+  unmount: jest.fn(),
+  destroy: jest.fn(),
+  emit: jest.fn(), // CRITICAL for event system
+  on: jest.fn(),
+  off: jest.fn(),
+  // Users-specific methods
+  authenticateUser: jest.fn(),
+  validatePermissions: jest.fn(),
+  refreshSession: jest.fn(),
+  ...additionalProps,
 });
 ```
 
 ### 4. Authentication Event Handling Pattern (MANDATORY)
+
 ```javascript
 // REQUIRED - manual event emission for auth events
-test('user authentication event handling', async () => {
-    const userComponent = createMockUserComponent('auth');
-    orchestrator.registerComponent(userComponent);
-    
-    const authData = {
-        userId: 'test-user',
-        authenticated: true,
-        roles: ['confluence-users']
-    };
-    
-    // Manual emission - avoids async timing issues
-    userComponent.emit('userAuthenticated', authData);
-    
-    // Immediate verification
-    expect(orchestrator.handleEvent).toHaveBeenCalledWith(
-        'userAuthenticated', 
-        expect.objectContaining({ userId: 'test-user' })
-    );
+test("user authentication event handling", async () => {
+  const userComponent = createMockUserComponent("auth");
+  orchestrator.registerComponent(userComponent);
+
+  const authData = {
+    userId: "test-user",
+    authenticated: true,
+    roles: ["confluence-users"],
+  };
+
+  // Manual emission - avoids async timing issues
+  userComponent.emit("userAuthenticated", authData);
+
+  // Immediate verification
+  expect(orchestrator.handleEvent).toHaveBeenCalledWith(
+    "userAuthenticated",
+    expect.objectContaining({ userId: "test-user" }),
+  );
 });
 ```
 
 ### 5. Users Entity Test Discovery (MANDATORY)
+
 ```javascript
 // jest.config.unit.js - REQUIRED for Users entity tests
 module.exports = {
-    testMatch: [
-        '**/__tests__/**/*.(test|spec).js',
-        '**/*.(test|spec).js',
-        '**/__tests__/entities/users/**/*.(test|spec).js', // CRITICAL
-        '**/__tests__/entities/**/*.(test|spec).js', // CRITICAL
-        '**/__tests__/components/**/*.(test|spec).js',
-        '**/__tests__/security/**/*.(test|spec).js'
-    ],
-    testEnvironment: 'jsdom', // CRITICAL for DOM access
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.unit.js'] // CRITICAL for polyfills
+  testMatch: [
+    "**/__tests__/**/*.(test|spec).js",
+    "**/*.(test|spec).js",
+    "**/__tests__/entities/users/**/*.(test|spec).js", // CRITICAL
+    "**/__tests__/entities/**/*.(test|spec).js", // CRITICAL
+    "**/__tests__/components/**/*.(test|spec).js",
+    "**/__tests__/security/**/*.(test|spec).js",
+  ],
+  testEnvironment: "jsdom", // CRITICAL for DOM access
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"], // CRITICAL for polyfills
 };
 ```
 
@@ -454,7 +464,7 @@ module.exports = {
 **Additional Users entity validation steps:**
 
 - [ ] ✅ authenticationService mock includes all auth methods
-- [ ] ✅ userService mock includes session and permission methods  
+- [ ] ✅ userService mock includes session and permission methods
 - [ ] ✅ Mock components include authentication state properties
 - [ ] ✅ Event handlers for authentication events properly mocked
 - [ ] ✅ Test data includes realistic user authentication scenarios
