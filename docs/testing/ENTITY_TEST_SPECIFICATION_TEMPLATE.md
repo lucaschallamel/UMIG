@@ -2,7 +2,7 @@
 
 **Version**: 1.0  
 **Based on**: Teams entity testing success (A grade - 94/100)  
-**Target Coverage**: 95% functional, 85% integration, 88% accessibility, 85% cross-browser, 92% performance  
+**Target Coverage**: 95% functional, 85% integration, 88% accessibility, 85% cross-browser, 92% performance
 
 ## Template Overview
 
@@ -11,7 +11,7 @@ This specification template replicates the successful testing patterns from the 
 ### Testing Achievements to Replicate
 
 - **95% functional coverage** with comprehensive test suite
-- **8.8/10 security rating** with 28 security scenarios  
+- **8.8/10 security rating** with 28 security scenarios
 - **88% accessibility coverage** (WCAG 2.1 AA)
 - **85% integration coverage** with real API testing
 - **85% cross-browser coverage**
@@ -24,7 +24,7 @@ For each entity, create the following test file structure in `local-dev-setup/__
 ```
 {entity}/
 ├── {entity}.unit.test.js              # Core functionality tests
-├── {entity}.integration.test.js       # API integration tests  
+├── {entity}.integration.test.js       # API integration tests
 ├── {entity}.security.test.js          # Security scenarios (target: 8.8/10)
 ├── {entity}.performance.test.js       # Performance & regression tests
 ├── {entity}.accessibility.test.js     # WCAG 2.1 AA compliance
@@ -39,6 +39,7 @@ For each entity, create the following test file structure in `local-dev-setup/__
 ### 1. Functional Coverage (Target: 95%)
 
 **Core Test Categories:**
+
 - CRUD operations (Create, Read, Update, Delete)
 - Validation logic (business rules, constraints)
 - State management and transitions
@@ -47,20 +48,21 @@ For each entity, create the following test file structure in `local-dev-setup/__
 - Edge cases and boundary conditions
 
 **Test Structure Pattern:**
+
 ```javascript
 describe('{Entity} Functional Tests', () => {
     let {entity}Builder;
     let apiClient;
-    
+
     beforeEach(() => {
         {entity}Builder = new {Entity}Builder();
         apiClient = new ApiTestClient();
     });
-    
+
     afterEach(async () => {
         await apiClient.cleanup();
     });
-    
+
     // Test categories here...
 });
 ```
@@ -68,6 +70,7 @@ describe('{Entity} Functional Tests', () => {
 ### 2. Security Coverage (Target: 8.8/10, 28+ scenarios)
 
 **Security Test Categories:**
+
 - Authentication bypass attempts
 - Authorization privilege escalation
 - SQL injection protection
@@ -80,27 +83,28 @@ describe('{Entity} Functional Tests', () => {
 - API parameter tampering
 
 **Security Test Pattern:**
+
 ```javascript
-describe('{Entity} Security Tests', () => {
-    const securityTester = new SecurityTester();
-    
-    test('prevents SQL injection in search parameters', async () => {
-        const maliciousInput = "'; DROP TABLE {table}; --";
-        const result = await securityTester.testSqlInjection(
-            '{entity}Search', 
-            { query: maliciousInput }
-        );
-        expect(result.isVulnerable).toBe(false);
-        expect(result.sanitizedInput).not.toContain('DROP TABLE');
+describe("{Entity} Security Tests", () => {
+  const securityTester = new SecurityTester();
+
+  test("prevents SQL injection in search parameters", async () => {
+    const maliciousInput = "'; DROP TABLE {table}; --";
+    const result = await securityTester.testSqlInjection("{entity}Search", {
+      query: maliciousInput,
     });
-    
-    // Additional security tests...
+    expect(result.isVulnerable).toBe(false);
+    expect(result.sanitizedInput).not.toContain("DROP TABLE");
+  });
+
+  // Additional security tests...
 });
 ```
 
 ### 3. Performance Coverage (Target: 92%)
 
 **Performance Test Categories:**
+
 - Response time benchmarks
 - Memory usage monitoring
 - Database query optimization
@@ -111,27 +115,29 @@ describe('{Entity} Security Tests', () => {
 - Caching effectiveness
 
 **Performance Test Pattern:**
+
 ```javascript
-describe('{Entity} Performance Tests', () => {
-    const performanceTracker = new PerformanceRegressionTracker();
-    
-    test('API response time under load', async () => {
-        const benchmark = await performanceTracker.measureApiResponse(
-            '{entity}List',
-            { concurrency: 10, duration: 30000 }
-        );
-        
-        expect(benchmark.averageResponseTime).toBeLessThan(500);
-        expect(benchmark.p95ResponseTime).toBeLessThan(1000);
-        
-        await performanceTracker.recordBenchmark('{entity}', benchmark);
-    });
+describe("{Entity} Performance Tests", () => {
+  const performanceTracker = new PerformanceRegressionTracker();
+
+  test("API response time under load", async () => {
+    const benchmark = await performanceTracker.measureApiResponse(
+      "{entity}List",
+      { concurrency: 10, duration: 30000 },
+    );
+
+    expect(benchmark.averageResponseTime).toBeLessThan(500);
+    expect(benchmark.p95ResponseTime).toBeLessThan(1000);
+
+    await performanceTracker.recordBenchmark("{entity}", benchmark);
+  });
 });
 ```
 
 ### 4. Accessibility Coverage (Target: 88% WCAG 2.1 AA)
 
 **Accessibility Test Categories:**
+
 - Keyboard navigation
 - Screen reader compatibility
 - Color contrast validation
@@ -142,24 +148,26 @@ describe('{Entity} Performance Tests', () => {
 - Semantic HTML structure
 
 **Accessibility Test Pattern:**
+
 ```javascript
-describe('{Entity} Accessibility Tests', () => {
-    const accessibilityTester = new AccessibilityTester();
-    
-    test('keyboard navigation works correctly', async () => {
-        await accessibilityTester.loadComponent('{entity}Component');
-        const keyboardTest = await accessibilityTester.testKeyboardNavigation();
-        
-        expect(keyboardTest.canNavigateToAllElements).toBe(true);
-        expect(keyboardTest.trapsFocusInModals).toBe(true);
-        expect(keyboardTest.wcagLevel).toBe('AA');
-    });
+describe("{Entity} Accessibility Tests", () => {
+  const accessibilityTester = new AccessibilityTester();
+
+  test("keyboard navigation works correctly", async () => {
+    await accessibilityTester.loadComponent("{entity}Component");
+    const keyboardTest = await accessibilityTester.testKeyboardNavigation();
+
+    expect(keyboardTest.canNavigateToAllElements).toBe(true);
+    expect(keyboardTest.trapsFocusInModals).toBe(true);
+    expect(keyboardTest.wcagLevel).toBe("AA");
+  });
 });
 ```
 
 ### 5. Integration Coverage (Target: 85%)
 
 **Integration Test Categories:**
+
 - Real API endpoint testing
 - Database integration
 - External service integration
@@ -170,24 +178,25 @@ describe('{Entity} Accessibility Tests', () => {
 - State synchronization
 
 **Integration Test Pattern:**
+
 ```javascript
 describe('{Entity} Integration Tests', () => {
     let testDatabase;
-    
+
     beforeAll(async () => {
         testDatabase = await TestDatabaseManager.createCleanInstance();
     });
-    
+
     afterAll(async () => {
         await TestDatabaseManager.cleanup(testDatabase);
     });
-    
+
     test('creates entity with proper database constraints', async () => {
         const {entity}Data = {entity}Builder.withValidData().build();
-        
+
         const response = await apiClient.post('/{entity}s', {entity}Data);
         expect(response.status).toBe(201);
-        
+
         const dbRecord = await testDatabase.findById(response.data.id);
         expect(dbRecord).toMatchObject({entity}Data);
     });
@@ -204,36 +213,36 @@ class {Entity}Builder {
         this.data = this.getDefaultData();
         this.relationships = {};
     }
-    
+
     getDefaultData() {
         return {
             // Entity-specific default fields
         };
     }
-    
+
     // Fluent builder methods
     withValidData() {
         this.data = { ...this.data, ...this.getValidTestData() };
         return this;
     }
-    
+
     withInvalidData() {
         this.data = { ...this.data, ...this.getInvalidTestData() };
         return this;
     }
-    
+
     withRelationship(relationshipName, relatedEntity) {
         this.relationships[relationshipName] = relatedEntity;
         return this;
     }
-    
+
     build() {
         return {
             ...this.data,
             ...this.relationships
         };
     }
-    
+
     // Entity-specific builder methods
     // (See individual entity specifications below)
 }
@@ -244,6 +253,7 @@ class {Entity}Builder {
 ### 1. Users Entity
 
 **Unique Test Considerations:**
+
 - Authentication mechanisms
 - Password security
 - Session management
@@ -252,6 +262,7 @@ class {Entity}Builder {
 - Account lockout policies
 
 **Specialized Builder Methods:**
+
 ```javascript
 withRole(role) { /* role assignment */ }
 withAuthenticationMethod(method) { /* auth method */ }
@@ -263,6 +274,7 @@ withMfaEnabled() { /* multi-factor auth */ }
 ### 2. Environments Entity
 
 **Unique Test Considerations:**
+
 - Configuration validation
 - Deployment target verification
 - Environment isolation
@@ -271,6 +283,7 @@ withMfaEnabled() { /* multi-factor auth */ }
 - Security policies
 
 **Specialized Builder Methods:**
+
 ```javascript
 withConfiguration(config) { /* env config */ }
 withDeploymentTarget(target) { /* deployment */ }
@@ -282,6 +295,7 @@ withNetworkConfig(network) { /* networking */ }
 ### 3. Applications Entity
 
 **Unique Test Considerations:**
+
 - Dependency management
 - Version compatibility
 - Service discovery
@@ -290,6 +304,7 @@ withNetworkConfig(network) { /* networking */ }
 - Integration points
 
 **Specialized Builder Methods:**
+
 ```javascript
 withDependencies(deps) { /* dependencies */ }
 withVersion(version) { /* versioning */ }
@@ -301,6 +316,7 @@ withIntegrations(integrations) { /* service integration */ }
 ### 4. Labels Entity
 
 **Unique Test Considerations:**
+
 - Categorization logic
 - Search optimization
 - Bulk operations
@@ -309,6 +325,7 @@ withIntegrations(integrations) { /* service integration */ }
 - Performance with large datasets
 
 **Specialized Builder Methods:**
+
 ```javascript
 withCategory(category) { /* categorization */ }
 withHierarchy(parent, children) { /* hierarchy */ }
@@ -320,6 +337,7 @@ withColor(color) { /* visual organization */ }
 ### 5. Migration Types Entity
 
 **Unique Test Considerations:**
+
 - Workflow state validation
 - Transition rules
 - Approval processes
@@ -328,6 +346,7 @@ withColor(color) { /* visual organization */ }
 - Template management
 
 **Specialized Builder Methods:**
+
 ```javascript
 withWorkflowStates(states) { /* workflow */ }
 withTransitionRules(rules) { /* transitions */ }
@@ -339,6 +358,7 @@ withTemplate(template) { /* templates */ }
 ### 6. Iteration Types Entity
 
 **Unique Test Considerations:**
+
 - Template inheritance
 - Scheduling constraints
 - Resource allocation
@@ -347,6 +367,7 @@ withTemplate(template) { /* templates */ }
 - Execution patterns
 
 **Specialized Builder Methods:**
+
 ```javascript
 withTemplate(template) { /* template base */ }
 withSchedule(schedule) { /* timing constraints */ }
@@ -361,11 +382,11 @@ withExecutionPattern(pattern) { /* execution type */ }
 
 ```javascript
 // Leverage existing test utilities
-import { TestDatabaseManager } from '../infrastructure/TestDatabaseManager';
-import { ApiTestClient } from '../infrastructure/ApiTestClient';
-import { SecurityTester } from '../infrastructure/SecurityTester';
-import { PerformanceRegressionTracker } from '../infrastructure/PerformanceRegressionTracker';
-import { AccessibilityTester } from '../infrastructure/AccessibilityTester';
+import { TestDatabaseManager } from "../infrastructure/TestDatabaseManager";
+import { ApiTestClient } from "../infrastructure/ApiTestClient";
+import { SecurityTester } from "../infrastructure/SecurityTester";
+import { PerformanceRegressionTracker } from "../infrastructure/PerformanceRegressionTracker";
+import { AccessibilityTester } from "../infrastructure/AccessibilityTester";
 ```
 
 ### 2. Test Data Management
@@ -373,17 +394,17 @@ import { AccessibilityTester } from '../infrastructure/AccessibilityTester';
 ```javascript
 // Clean test data setup and teardown
 class EntityTestManager {
-    static async setupTestData(entityType) {
-        // Create clean test database state
-        // Setup required relationships
-        // Initialize test builders
-    }
-    
-    static async cleanupTestData(entityType) {
-        // Remove test data
-        // Reset database state
-        // Clear caches
-    }
+  static async setupTestData(entityType) {
+    // Create clean test database state
+    // Setup required relationships
+    // Initialize test builders
+  }
+
+  static async cleanupTestData(entityType) {
+    // Remove test data
+    // Reset database state
+    // Clear caches
+  }
 }
 ```
 
@@ -392,25 +413,20 @@ class EntityTestManager {
 ```javascript
 // Jest configuration for parallel execution
 module.exports = {
-    testEnvironment: 'node',
-    maxWorkers: 4,
-    testTimeout: 30000,
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-    testMatch: [
-        '**/__tests__/**/*.test.js'
-    ],
-    collectCoverageFrom: [
-        'src/**/*.js',
-        '!src/**/*.test.js'
-    ],
-    coverageThreshold: {
-        global: {
-            branches: 85,
-            functions: 90,
-            lines: 95,
-            statements: 95
-        }
-    }
+  testEnvironment: "node",
+  maxWorkers: 4,
+  testTimeout: 30000,
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  testMatch: ["**/__tests__/**/*.test.js"],
+  collectCoverageFrom: ["src/**/*.js", "!src/**/*.test.js"],
+  coverageThreshold: {
+    global: {
+      branches: 85,
+      functions: 90,
+      lines: 95,
+      statements: 95,
+    },
+  },
 };
 ```
 
@@ -421,24 +437,24 @@ module.exports = {
 ```javascript
 // Quality gate validation
 class TestQualityGate {
-    static validateCoverage(entityName, testResults) {
-        const requirements = {
-            functional: 95,
-            integration: 85,
-            accessibility: 88,
-            crossBrowser: 85,
-            performance: 92,
-            security: 8.8
-        };
-        
-        return this.checkRequirements(testResults, requirements);
-    }
-    
-    static generateReport(entityName, results) {
-        // Generate comprehensive test report
-        // Compare against Teams entity baseline
-        // Provide improvement recommendations
-    }
+  static validateCoverage(entityName, testResults) {
+    const requirements = {
+      functional: 95,
+      integration: 85,
+      accessibility: 88,
+      crossBrowser: 85,
+      performance: 92,
+      security: 8.8,
+    };
+
+    return this.checkRequirements(testResults, requirements);
+  }
+
+  static generateReport(entityName, results) {
+    // Generate comprehensive test report
+    // Compare against Teams entity baseline
+    // Provide improvement recommendations
+  }
 }
 ```
 
@@ -488,6 +504,7 @@ This template ensures consistent, high-quality testing across all UMIG entities 
 Before implementing any entity tests, ensure ALL infrastructure patterns are in place:
 
 #### 1. Variable Scoping Pattern (MANDATORY)
+
 ```javascript
 // CORRECT - declare at module level (outside describe blocks)
 let performanceResults;
@@ -497,15 +514,16 @@ let mockComponents;
 let testData;
 
 // WRONG - inside describe blocks causes scoping failures
-describe('Entity Tests', () => {
-    let performanceResults; // CAUSES TEST FAILURES
+describe("Entity Tests", () => {
+  let performanceResults; // CAUSES TEST FAILURES
 });
 ```
 
 #### 2. Node.js Polyfills Setup (MANDATORY)
+
 ```javascript
 // jest.setup.unit.js - REQUIRED for TextEncoder/TextDecoder
-import { TextEncoder, TextDecoder } from 'util';
+import { TextEncoder, TextDecoder } from "util";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
@@ -513,109 +531,118 @@ global.TextDecoder = TextDecoder;
 ```
 
 #### 3. JSDOM Container Pattern (MANDATORY)
+
 ```javascript
 // REQUIRED defensive container creation
 beforeEach(() => {
-    container = document.getElementById('test-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'test-container';
-        document.body.appendChild(container);
-    }
-    container.innerHTML = ''; // Clean state each test
+  container = document.getElementById("test-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "test-container";
+    document.body.appendChild(container);
+  }
+  container.innerHTML = ""; // Clean state each test
 });
 
 // Without this: "Cannot read properties of null (container)"
 ```
 
 #### 4. Complete Service Mocking (MANDATORY)
+
 ```javascript
 // REQUIRED - full UMIGServices mock setup
 beforeEach(() => {
-    window.UMIGServices = {
-        notificationService: { 
-            show: jest.fn().mockResolvedValue(true),
-            hide: jest.fn(),
-            showError: jest.fn(),
-            showSuccess: jest.fn()
-        },
-        featureFlagService: { 
-            isEnabled: jest.fn().mockReturnValue(true),
-            getVariant: jest.fn().mockReturnValue('default')
-        },
-        userService: { 
-            getCurrentUser: jest.fn().mockReturnValue({ 
-                id: 'test-user',
-                name: 'Test User' 
-            })
-        }
-    };
+  window.UMIGServices = {
+    notificationService: {
+      show: jest.fn().mockResolvedValue(true),
+      hide: jest.fn(),
+      showError: jest.fn(),
+      showSuccess: jest.fn(),
+    },
+    featureFlagService: {
+      isEnabled: jest.fn().mockReturnValue(true),
+      getVariant: jest.fn().mockReturnValue("default"),
+    },
+    userService: {
+      getCurrentUser: jest.fn().mockReturnValue({
+        id: "test-user",
+        name: "Test User",
+      }),
+    },
+  };
 });
 
 // Without this: "UMIGServices is not defined" crashes
 ```
 
 #### 5. Mock Component Integration (MANDATORY)
+
 ```javascript
 // REQUIRED - complete mock components with ALL properties
 const createMockComponent = (type, additionalProps = {}) => ({
-    id: `mock-${type}`,
-    type: type,
-    migrationMode: true, // CRITICAL - prevents migration check failures
-    data: [], // CRITICAL - prevents data access errors
-    isInitialized: false,
-    isMounted: false,
-    initialize: jest.fn().mockResolvedValue(true),
-    mount: jest.fn().mockImplementation(function() { this.isMounted = true; }),
-    render: jest.fn(),
-    update: jest.fn(),
-    unmount: jest.fn().mockImplementation(function() { this.isMounted = false; }),
-    destroy: jest.fn(),
-    emit: jest.fn(), // CRITICAL for event system
-    on: jest.fn(),
-    off: jest.fn(),
-    ...additionalProps
+  id: `mock-${type}`,
+  type: type,
+  migrationMode: true, // CRITICAL - prevents migration check failures
+  data: [], // CRITICAL - prevents data access errors
+  isInitialized: false,
+  isMounted: false,
+  initialize: jest.fn().mockResolvedValue(true),
+  mount: jest.fn().mockImplementation(function () {
+    this.isMounted = true;
+  }),
+  render: jest.fn(),
+  update: jest.fn(),
+  unmount: jest.fn().mockImplementation(function () {
+    this.isMounted = false;
+  }),
+  destroy: jest.fn(),
+  emit: jest.fn(), // CRITICAL for event system
+  on: jest.fn(),
+  off: jest.fn(),
+  ...additionalProps,
 });
 
 // Without migrationMode/data: Components fail initialization
 ```
 
 #### 6. Jest Configuration (MANDATORY)
+
 ```javascript
 // jest.config.unit.js - REQUIRED testMatch patterns
 module.exports = {
-    testMatch: [
-        '**/__tests__/**/*.(test|spec).js',
-        '**/*.(test|spec).js',
-        '**/__tests__/entities/**/*.(test|spec).js', // CRITICAL
-        '**/__tests__/components/**/*.(test|spec).js', // CRITICAL
-        '**/__tests__/security/**/*.(test|spec).js' // CRITICAL
-    ],
-    testEnvironment: 'jsdom', // CRITICAL for DOM access
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.unit.js'] // CRITICAL for polyfills
+  testMatch: [
+    "**/__tests__/**/*.(test|spec).js",
+    "**/*.(test|spec).js",
+    "**/__tests__/entities/**/*.(test|spec).js", // CRITICAL
+    "**/__tests__/components/**/*.(test|spec).js", // CRITICAL
+    "**/__tests__/security/**/*.(test|spec).js", // CRITICAL
+  ],
+  testEnvironment: "jsdom", // CRITICAL for DOM access
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"], // CRITICAL for polyfills
 };
 
 // Without entities/** pattern: Jest cannot find entity tests
 ```
 
 #### 7. Event Handling Pattern (MANDATORY)
+
 ```javascript
 // REQUIRED - manual event emission for reliable testing
-test('component event handling', async () => {
-    const component = createMockComponent('entity');
-    orchestrator.registerComponent(component);
-    
-    // Manual emission - avoids async timing issues
-    component.emit('dataLoaded', { 
-        entityType: 'test',
-        data: testData 
-    });
-    
-    // Immediate verification - no waiting for events
-    expect(orchestrator.handleEvent).toHaveBeenCalledWith(
-        'dataLoaded', 
-        expect.objectContaining({ data: testData })
-    );
+test("component event handling", async () => {
+  const component = createMockComponent("entity");
+  orchestrator.registerComponent(component);
+
+  // Manual emission - avoids async timing issues
+  component.emit("dataLoaded", {
+    entityType: "test",
+    data: testData,
+  });
+
+  // Immediate verification - no waiting for events
+  expect(orchestrator.handleEvent).toHaveBeenCalledWith(
+    "dataLoaded",
+    expect.objectContaining({ data: testData }),
+  );
 });
 
 // Async events often hang tests - use manual emission
@@ -624,7 +651,7 @@ test('component event handling', async () => {
 ### Infrastructure Failure Modes That Prevent Test Execution
 
 1. **Variable Scoping Issues**: Tests crash accessing undefined shared variables
-2. **Missing Node.js Polyfills**: TextEncoder errors prevent test startup completely  
+2. **Missing Node.js Polyfills**: TextEncoder errors prevent test startup completely
 3. **DOM Initialization Failures**: Null containers crash component mounting
 4. **Incomplete Service Mocks**: Undefined UMIGServices crashes test setup
 5. **Mock Component Problems**: Missing properties cause initialization failures
@@ -640,11 +667,12 @@ test('component event handling', async () => {
 - [ ] ✅ Defensive container creation pattern in all beforeEach hooks
 - [ ] ✅ Complete UMIGServices mock with all required service methods
 - [ ] ✅ Mock components include migrationMode, data, and emit properties
-- [ ] ✅ Jest testMatch patterns include entities/** directories
+- [ ] ✅ Jest testMatch patterns include entities/\*\* directories
 - [ ] ✅ Event handling uses manual emission pattern (not async waiting)
 - [ ] ✅ JSDOM environment configured in Jest configuration
 
 ### Results Achieved with Infrastructure Fixes
+
 - **Before**: 0% test execution (complete infrastructure failure)
 - **After**: 78-80% test pass rate (infrastructure functional)
 - **Critical**: Infrastructure patterns are prerequisites to ANY testing

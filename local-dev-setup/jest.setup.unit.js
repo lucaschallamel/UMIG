@@ -2,7 +2,7 @@
 console.log("🧪 Setting up Unit Test environment...");
 
 // TextEncoder/TextDecoder polyfills for Node.js environment
-const { TextEncoder, TextDecoder } = require('util');
+const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
@@ -171,7 +171,7 @@ global.fetch = jest.fn(() =>
 );
 
 // Additional polyfills for browser APIs
-global.URL.createObjectURL = jest.fn(() => 'mock-url');
+global.URL.createObjectURL = jest.fn(() => "mock-url");
 global.URL.revokeObjectURL = jest.fn();
 
 // Mock MutationObserver
