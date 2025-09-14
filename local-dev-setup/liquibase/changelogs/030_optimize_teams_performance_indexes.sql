@@ -15,11 +15,6 @@ ON teams_tms_x_users_usr(tms_id, created_at ASC);
 CREATE INDEX IF NOT EXISTS idx_teams_users_created_by 
 ON teams_tms_x_users_usr(created_by, usr_id, tms_id);
 
--- Index for team status filtering (archived teams)
-CREATE INDEX IF NOT EXISTS idx_teams_status 
-ON teams_tms(tms_status) 
-WHERE tms_status != 'archived';
-
 -- Index for active user filtering
 CREATE INDEX IF NOT EXISTS idx_users_active 
 ON users_usr(usr_active) 
@@ -38,6 +33,5 @@ ANALYZE teams_tms_x_users_usr;
 COMMENT ON INDEX idx_teams_users_usr_id_created IS 'Performance index for getTeamsForUser() - US-082-C optimization';
 COMMENT ON INDEX idx_teams_users_tms_id_created IS 'Performance index for getUsersForTeam() - US-082-C optimization';
 COMMENT ON INDEX idx_teams_users_created_by IS 'Performance index for role determination in bidirectional queries';
-COMMENT ON INDEX idx_teams_status IS 'Partial index for efficient archived team filtering';
 COMMENT ON INDEX idx_users_active IS 'Partial index for efficient active user filtering';
 COMMENT ON INDEX idx_teams_users_stats IS 'Performance index for team statistics aggregation';

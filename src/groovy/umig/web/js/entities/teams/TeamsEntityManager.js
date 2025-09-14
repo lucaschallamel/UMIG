@@ -183,7 +183,14 @@ export class TeamsEntityManager extends BaseEntityManager {
     // Role-based access control with transition management
     this.currentUserRole = null;
     this.accessControls = {
-      SUPERADMIN: ["create", "edit", "delete", "members", "bulk", "role_management"],
+      SUPERADMIN: [
+        "create",
+        "edit",
+        "delete",
+        "members",
+        "bulk",
+        "role_management",
+      ],
       ADMIN: ["view", "members", "edit"],
       USER: ["view"],
     };
@@ -192,14 +199,14 @@ export class TeamsEntityManager extends BaseEntityManager {
     this.roleHierarchy = {
       SUPERADMIN: 3,
       ADMIN: 2,
-      USER: 1
+      USER: 1,
     };
 
     // Role transition rules
     this.validTransitions = {
       USER: ["ADMIN"], // USER can only become ADMIN
       ADMIN: ["USER", "SUPERADMIN"], // ADMIN can go up or down
-      SUPERADMIN: ["ADMIN", "USER"] // SUPERADMIN can step down
+      SUPERADMIN: ["ADMIN", "USER"], // SUPERADMIN can step down
     };
 
     // Audit retention policy (90 days)
@@ -412,7 +419,9 @@ export class TeamsEntityManager extends BaseEntityManager {
    */
   validateRoleTransition(currentRole, newRole, userContext = {}) {
     try {
-      console.log(`[TeamsEntityManager] Validating role transition: ${currentRole} → ${newRole}`);
+      console.log(
+        `[TeamsEntityManager] Validating role transition: ${currentRole} → ${newRole}`,
+      );
 
       // Input validation
       const validRoles = Object.keys(this.roleHierarchy);
@@ -420,7 +429,7 @@ export class TeamsEntityManager extends BaseEntityManager {
         return {
           valid: false,
           reason: "Invalid role specified",
-          code: "INVALID_ROLE"
+          code: "INVALID_ROLE",
         };
       }
 
@@ -429,7 +438,7 @@ export class TeamsEntityManager extends BaseEntityManager {
         return {
           valid: false,
           reason: "Role is already assigned",
-          code: "NO_CHANGE_REQUIRED"
+          code: "NO_CHANGE_REQUIRED",
         };
       }
 
@@ -440,7 +449,7 @@ export class TeamsEntityManager extends BaseEntityManager {
           valid: false,
           reason: `Role transition from ${currentRole} to ${newRole} is not allowed`,
           code: "TRANSITION_NOT_ALLOWED",
-          allowedTransitions: allowedTransitions
+          allowedTransitions: allowedTransitions,
         };
       }
 
@@ -448,12 +457,15 @@ export class TeamsEntityManager extends BaseEntityManager {
       const requestingUserRole = userContext.role || this.currentUserRole?.role;
       const requestingUserLevel = this.roleHierarchy[requestingUserRole] || 0;
       const newRoleLevel = this.roleHierarchy[newRole];
-      
-      if (newRoleLevel >= requestingUserLevel && requestingUserRole !== "SUPERADMIN") {
+
+      if (
+        newRoleLevel >= requestingUserLevel &&
+        requestingUserRole !== "SUPERADMIN"
+      ) {
         return {
           valid: false,
           reason: "Cannot assign a role equal to or higher than your own",
-          code: "HIERARCHY_VIOLATION"
+          code: "HIERARCHY_VIOLATION",
         };
       }
 
@@ -462,23 +474,25 @@ export class TeamsEntityManager extends BaseEntityManager {
         return {
           valid: false,
           reason: "Insufficient permissions to assign this role",
-          code: "INSUFFICIENT_PERMISSIONS"
+          code: "INSUFFICIENT_PERMISSIONS",
         };
       }
 
       return {
         valid: true,
         reason: "Role transition is valid",
-        code: "VALID_TRANSITION"
+        code: "VALID_TRANSITION",
       };
-
     } catch (error) {
-      console.error("[TeamsEntityManager] Role transition validation error:", error);
+      console.error(
+        "[TeamsEntityManager] Role transition validation error:",
+        error,
+      );
       return {
         valid: false,
         reason: "Validation error occurred",
         code: "VALIDATION_ERROR",
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -496,20 +510,31 @@ export class TeamsEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      console.log(`[TeamsEntityManager] Changing role for user ${userId} to ${newRole}`);
+      console.log(
+        `[TeamsEntityManager] Changing role for user ${userId} to ${newRole}`,
+      );
 
       // Security validation
       SecurityUtils.validateInput({ teamId, userId, newRole, reason });
       this._checkPermission("role_management");
 
       // Get current user role
-      const currentMemberData = await this._getCurrentMemberRole(teamId, userId);
+      const currentMemberData = await this._getCurrentMemberRole(
+        teamId,
+        userId,
+      );
       const currentRole = currentMemberData?.role || "USER";
 
       // Validate the role transition
-      const validationResult = this.validateRoleTransition(currentRole, newRole, userContext);
+      const validationResult = this.validateRoleTransition(
+        currentRole,
+        newRole,
+        userContext,
+      );
       if (!validationResult.valid) {
-        throw new Error(`Role transition validation failed: ${validationResult.reason}`);
+        throw new Error(
+          `Role transition validation failed: ${validationResult.reason}`,
+        );
       }
 
       // Create audit entry before change
@@ -521,18 +546,23 @@ export class TeamsEntityManager extends BaseEntityManager {
         changedBy: userContext.userId || this.currentUserRole?.userId,
         reason: SecurityUtils.sanitizeInput(reason),
         timestamp: new Date().toISOString(),
-        validationResult
+        validationResult,
       };
 
       // Execute role change with transaction support
       let result;
       try {
-        result = await this._executeRoleChange(teamId, userId, newRole, auditData);
+        result = await this._executeRoleChange(
+          teamId,
+          userId,
+          newRole,
+          auditData,
+        );
       } catch (error) {
         // Log failed attempt
         this._auditLog("role_change_failed", userId, {
           ...auditData,
-          error: error.message
+          error: error.message,
         });
         throw error;
       }
@@ -542,7 +572,10 @@ export class TeamsEntityManager extends BaseEntityManager {
         try {
           await this.cascadePermissions(teamId, userId, newRole);
         } catch (cascadeError) {
-          console.warn("[TeamsEntityManager] Permission cascade failed:", cascadeError);
+          console.warn(
+            "[TeamsEntityManager] Permission cascade failed:",
+            cascadeError,
+          );
           // Don't fail the entire operation for cascade issues
           result.cascadeWarning = cascadeError.message;
         }
@@ -556,13 +589,15 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._auditLog("role_change_success", userId, {
         ...auditData,
         result,
-        operationTime
+        operationTime,
       });
 
       // Add to role history
       await this._addToRoleHistory(userId, auditData);
 
-      console.log(`[TeamsEntityManager] Role change completed successfully for user ${userId}`);
+      console.log(
+        `[TeamsEntityManager] Role change completed successfully for user ${userId}`,
+      );
 
       return {
         success: true,
@@ -571,19 +606,18 @@ export class TeamsEntityManager extends BaseEntityManager {
         userId,
         teamId,
         result,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
-
     } catch (error) {
       console.error("[TeamsEntityManager] Failed to change user role:", error);
       this._trackError("roleChange", error);
-      
+
       // Ensure error is audited
       this._auditLog("role_change_error", userId, {
         teamId,
         newRole,
         error: error.message,
-        stackTrace: error.stack
+        stackTrace: error.stack,
       });
 
       throw error;
@@ -599,31 +633,40 @@ export class TeamsEntityManager extends BaseEntityManager {
    */
   async cascadePermissions(teamId, userId, newRole) {
     try {
-      console.log(`[TeamsEntityManager] Cascading permissions for ${userId} with role ${newRole}`);
+      console.log(
+        `[TeamsEntityManager] Cascading permissions for ${userId} with role ${newRole}`,
+      );
 
       // Get user's related entities that need permission updates
-      const relatedEntities = await this._getUserRelatedEntities(teamId, userId);
-      
+      const relatedEntities = await this._getUserRelatedEntities(
+        teamId,
+        userId,
+      );
+
       const cascadeResults = [];
       const allowedActions = this.accessControls[newRole] || ["view"];
 
       // Update permissions for each related entity
       for (const entity of relatedEntities) {
         try {
-          const updateResult = await this._updateEntityPermissions(entity, userId, allowedActions);
+          const updateResult = await this._updateEntityPermissions(
+            entity,
+            userId,
+            allowedActions,
+          );
           cascadeResults.push({
             entityType: entity.type,
             entityId: entity.id,
             success: true,
             permissions: allowedActions,
-            updateResult
+            updateResult,
           });
         } catch (entityError) {
           cascadeResults.push({
             entityType: entity.type,
             entityId: entity.id,
             success: false,
-            error: entityError.message
+            error: entityError.message,
           });
         }
       }
@@ -633,26 +676,25 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       const cascadeResult = {
         success: true,
-        updatedEntities: cascadeResults.filter(r => r.success).length,
-        failedEntities: cascadeResults.filter(r => !r.success).length,
-        details: cascadeResults
+        updatedEntities: cascadeResults.filter((r) => r.success).length,
+        failedEntities: cascadeResults.filter((r) => !r.success).length,
+        details: cascadeResults,
       };
 
       // Audit cascade operation
       this._auditLog("permission_cascade", userId, {
         teamId,
         newRole,
-        cascadeResult
+        cascadeResult,
       });
 
       return cascadeResult;
-
     } catch (error) {
       console.error("[TeamsEntityManager] Permission cascade failed:", error);
       this._auditLog("permission_cascade_failed", userId, {
         teamId,
         newRole,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -666,7 +708,9 @@ export class TeamsEntityManager extends BaseEntityManager {
    */
   async getRoleHistory(userId, limit = 50) {
     try {
-      console.log(`[TeamsEntityManager] Fetching role history for user ${userId}`);
+      console.log(
+        `[TeamsEntityManager] Fetching role history for user ${userId}`,
+      );
 
       // Security validation
       SecurityUtils.validateInput({ userId });
@@ -677,7 +721,11 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       // Try audit service first
       if (window.UMIGServices?.auditService) {
-        historyEntries = await window.UMIGServices.auditService.getUserRoleHistory(userId, limit);
+        historyEntries =
+          await window.UMIGServices.auditService.getUserRoleHistory(
+            userId,
+            limit,
+          );
       } else {
         // Fallback to API call
         const response = await fetch(
@@ -687,7 +735,7 @@ export class TeamsEntityManager extends BaseEntityManager {
             headers: SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
-          }
+          },
         );
 
         if (response.ok) {
@@ -698,21 +746,29 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       // Clean up old entries according to retention policy
       const retentionCutoff = new Date();
-      retentionCutoff.setDate(retentionCutoff.getDate() - this.auditRetentionDays);
+      retentionCutoff.setDate(
+        retentionCutoff.getDate() - this.auditRetentionDays,
+      );
 
-      const filteredEntries = historyEntries.filter(entry => 
-        new Date(entry.timestamp) >= retentionCutoff
+      const filteredEntries = historyEntries.filter(
+        (entry) => new Date(entry.timestamp) >= retentionCutoff,
       );
 
       // Sort by timestamp descending (most recent first)
-      filteredEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      filteredEntries.sort(
+        (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+      );
 
-      console.log(`[TeamsEntityManager] Retrieved ${filteredEntries.length} role history entries for user ${userId}`);
+      console.log(
+        `[TeamsEntityManager] Retrieved ${filteredEntries.length} role history entries for user ${userId}`,
+      );
 
       return filteredEntries;
-
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to fetch role history:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to fetch role history:",
+        error,
+      );
       this._trackError("getRoleHistory", error);
       throw error;
     }
@@ -1404,12 +1460,12 @@ export class TeamsEntityManager extends BaseEntityManager {
   _canManageRole(userRole, targetRole) {
     const userLevel = this.roleHierarchy[userRole] || 0;
     const targetLevel = this.roleHierarchy[targetRole] || 0;
-    
+
     // SUPERADMIN can manage all roles
     if (userRole === "SUPERADMIN") {
       return true;
     }
-    
+
     // Users can only manage roles below their level
     return userLevel > targetLevel;
   }
@@ -1430,7 +1486,7 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1442,7 +1498,10 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       return await response.json();
     } catch (error) {
-      console.warn("[TeamsEntityManager] Failed to get current member role:", error);
+      console.warn(
+        "[TeamsEntityManager] Failed to get current member role:",
+        error,
+      );
       return { role: "USER" }; // Safe default
     }
   }
@@ -1464,8 +1523,8 @@ export class TeamsEntityManager extends BaseEntityManager {
       auditData: {
         changedBy: auditData.changedBy,
         reason: auditData.reason,
-        timestamp: auditData.timestamp
-      }
+        timestamp: auditData.timestamp,
+      },
     });
 
     const response = await fetch(`${this.membersApiUrl}/role`, {
@@ -1497,24 +1556,35 @@ export class TeamsEntityManager extends BaseEntityManager {
       const historyEntry = {
         ...auditData,
         entryType: "role_change",
-        retentionUntil: new Date(Date.now() + (this.auditRetentionDays * 24 * 60 * 60 * 1000)).toISOString()
+        retentionUntil: new Date(
+          Date.now() + this.auditRetentionDays * 24 * 60 * 60 * 1000,
+        ).toISOString(),
       };
 
       // Store in audit service if available
       if (window.UMIGServices?.auditService) {
-        await window.UMIGServices.auditService.addRoleHistoryEntry(userId, historyEntry);
+        await window.UMIGServices.auditService.addRoleHistoryEntry(
+          userId,
+          historyEntry,
+        );
       } else {
         // Fallback to API storage
-        await fetch(`/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/role-history`, {
-          method: "POST",
-          headers: SecurityUtils.addCSRFProtection({
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify(historyEntry),
-        });
+        await fetch(
+          `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/role-history`,
+          {
+            method: "POST",
+            headers: SecurityUtils.addCSRFProtection({
+              "Content-Type": "application/json",
+            }),
+            body: JSON.stringify(historyEntry),
+          },
+        );
       }
     } catch (error) {
-      console.warn("[TeamsEntityManager] Failed to add role history entry:", error);
+      console.warn(
+        "[TeamsEntityManager] Failed to add role history entry:",
+        error,
+      );
       // Don't fail the main operation for history logging issues
     }
   }
@@ -1535,7 +1605,7 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1546,7 +1616,10 @@ export class TeamsEntityManager extends BaseEntityManager {
       const data = await response.json();
       return data.entities || [];
     } catch (error) {
-      console.warn("[TeamsEntityManager] Failed to get related entities:", error);
+      console.warn(
+        "[TeamsEntityManager] Failed to get related entities:",
+        error,
+      );
       return [];
     }
   }
@@ -1566,19 +1639,24 @@ export class TeamsEntityManager extends BaseEntityManager {
       userId,
       permissions,
       updatedBy: this.currentUserRole?.userId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    const response = await fetch(`/rest/scriptrunner/latest/custom/permissions/update`, {
-      method: "PUT",
-      headers: SecurityUtils.addCSRFProtection({
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(requestBody),
-    });
+    const response = await fetch(
+      `/rest/scriptrunner/latest/custom/permissions/update`,
+      {
+        method: "PUT",
+        headers: SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(requestBody),
+      },
+    );
 
     if (!response.ok) {
-      throw new Error(`Permission update failed for ${entity.type}:${entity.id}`);
+      throw new Error(
+        `Permission update failed for ${entity.type}:${entity.id}`,
+      );
     }
 
     return await response.json();
@@ -1598,16 +1676,19 @@ export class TeamsEntityManager extends BaseEntityManager {
         teamId,
         userId,
         newRole,
-        validationLevel: "strict"
+        validationLevel: "strict",
       });
 
-      const response = await fetch("/rest/scriptrunner/latest/custom/permissions/validate-inheritance", {
-        method: "POST",
-        headers: SecurityUtils.addCSRFProtection({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify(requestBody),
-      });
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/permissions/validate-inheritance",
+        {
+          method: "POST",
+          headers: SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(requestBody),
+        },
+      );
 
       if (!response.ok) {
         const error = await response.text();
@@ -1616,16 +1697,20 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       const validationResult = await response.json();
       if (!validationResult.valid) {
-        throw new Error(`Permission inheritance issues detected: ${validationResult.issues?.join(", ")}`);
+        throw new Error(
+          `Permission inheritance issues detected: ${validationResult.issues?.join(", ")}`,
+        );
       }
-
     } catch (error) {
-      console.warn("[TeamsEntityManager] Child entity permission validation failed:", error);
+      console.warn(
+        "[TeamsEntityManager] Child entity permission validation failed:",
+        error,
+      );
       // Log but don't fail the main operation
       this._auditLog("permission_validation_warning", userId, {
         teamId,
         newRole,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -1650,7 +1735,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       // Build request URL with parameters
       const params = new URLSearchParams({
         userId: userId,
-        includeArchived: includeArchived.toString()
+        includeArchived: includeArchived.toString(),
       });
 
       const response = await fetch(
@@ -1660,7 +1745,7 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1674,12 +1759,15 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._trackPerformance("getTeamsForUser", operationTime);
 
       console.log(
-        `[TeamsEntityManager] Loaded ${teams.length} teams for user ${userId} in ${operationTime.toFixed(2)}ms`
+        `[TeamsEntityManager] Loaded ${teams.length} teams for user ${userId} in ${operationTime.toFixed(2)}ms`,
       );
 
       return teams;
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to load teams for user:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to load teams for user:",
+        error,
+      );
       this._trackError("getTeamsForUser", error);
       throw error;
     }
@@ -1703,7 +1791,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       // Build request URL with parameters
       const params = new URLSearchParams({
         teamId: teamId,
-        includeInactive: includeInactive.toString()
+        includeInactive: includeInactive.toString(),
       });
 
       const response = await fetch(
@@ -1713,7 +1801,7 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1727,12 +1815,15 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._trackPerformance("getUsersForTeam", operationTime);
 
       console.log(
-        `[TeamsEntityManager] Loaded ${users.length} users for team ${teamId} in ${operationTime.toFixed(2)}ms`
+        `[TeamsEntityManager] Loaded ${users.length} users for team ${teamId} in ${operationTime.toFixed(2)}ms`,
       );
 
       return users;
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to load users for team:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to load users for team:",
+        error,
+      );
       this._trackError("getUsersForTeam", error);
       throw error;
     }
@@ -1748,7 +1839,9 @@ export class TeamsEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      console.log(`[TeamsEntityManager] Validating relationship integrity for team ${teamId} and user ${userId}`);
+      console.log(
+        `[TeamsEntityManager] Validating relationship integrity for team ${teamId} and user ${userId}`,
+      );
 
       // Security validation
       SecurityUtils.validateInput({ teamId, userId });
@@ -1760,11 +1853,13 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to validate relationship integrity: ${response.status}`);
+        throw new Error(
+          `Failed to validate relationship integrity: ${response.status}`,
+        );
       }
 
       const validationResult = await response.json();
@@ -1777,16 +1872,19 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._auditLog("relationship_validation", teamId, {
         userId,
         validationResult,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
       console.log(
-        `[TeamsEntityManager] Relationship validation completed for team ${teamId} and user ${userId}: ${validationResult.isValid ? 'Valid' : 'Invalid'}`
+        `[TeamsEntityManager] Relationship validation completed for team ${teamId} and user ${userId}: ${validationResult.isValid ? "Valid" : "Invalid"}`,
       );
 
       return validationResult;
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to validate relationship integrity:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to validate relationship integrity:",
+        error,
+      );
       this._trackError("validateRelationshipIntegrity", error);
       throw error;
     }
@@ -1801,7 +1899,9 @@ export class TeamsEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      console.log(`[TeamsEntityManager] Checking cascade delete protection for team ${teamId}`);
+      console.log(
+        `[TeamsEntityManager] Checking cascade delete protection for team ${teamId}`,
+      );
 
       // Security validation
       SecurityUtils.validateInput({ teamId });
@@ -1814,11 +1914,13 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to check cascade delete protection: ${response.status}`);
+        throw new Error(
+          `Failed to check cascade delete protection: ${response.status}`,
+        );
       }
 
       const protectionResult = await response.json();
@@ -1830,16 +1932,19 @@ export class TeamsEntityManager extends BaseEntityManager {
       // Audit logging for protection check
       this._auditLog("cascade_delete_protection_check", teamId, {
         protectionResult,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
       console.log(
-        `[TeamsEntityManager] Cascade delete protection check completed for team ${teamId}: ${protectionResult.canDelete ? 'Can Delete' : 'Protected'} (${protectionResult.totalBlockingItems} blocking items)`
+        `[TeamsEntityManager] Cascade delete protection check completed for team ${teamId}: ${protectionResult.canDelete ? "Can Delete" : "Protected"} (${protectionResult.totalBlockingItems} blocking items)`,
       );
 
       return protectionResult;
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to check cascade delete protection:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to check cascade delete protection:",
+        error,
+      );
       this._trackError("protectCascadeDelete", error);
       throw error;
     }
@@ -1866,7 +1971,7 @@ export class TeamsEntityManager extends BaseEntityManager {
         teamId: teamId,
         archivedBy: userContext.userId || this.currentUserRole?.userId,
         reason: userContext.reason || "Soft delete via admin interface",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const response = await fetch(
@@ -1877,12 +1982,14 @@ export class TeamsEntityManager extends BaseEntityManager {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to soft delete team: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to soft delete team: ${response.status} - ${error}`,
+        );
       }
 
       const result = await response.json();
@@ -1891,7 +1998,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       await this.loadData(
         this.currentFilters,
         this.currentSort,
-        this.currentPage
+        this.currentPage,
       );
 
       // Track performance
@@ -1902,16 +2009,18 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._auditLog("team_soft_delete", teamId, {
         result,
         userContext,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
-      console.log(`[TeamsEntityManager] Team ${teamId} soft deleted successfully`);
+      console.log(
+        `[TeamsEntityManager] Team ${teamId} soft deleted successfully`,
+      );
 
       return {
         success: true,
         teamId,
         result,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
     } catch (error) {
       console.error("[TeamsEntityManager] Failed to soft delete team:", error);
@@ -1941,7 +2050,7 @@ export class TeamsEntityManager extends BaseEntityManager {
         teamId: teamId,
         restoredBy: userContext.userId || this.currentUserRole?.userId,
         reason: userContext.reason || "Restore via admin interface",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const response = await fetch(
@@ -1952,12 +2061,14 @@ export class TeamsEntityManager extends BaseEntityManager {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to restore team: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to restore team: ${response.status} - ${error}`,
+        );
       }
 
       const result = await response.json();
@@ -1966,7 +2077,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       await this.loadData(
         this.currentFilters,
         this.currentSort,
-        this.currentPage
+        this.currentPage,
       );
 
       // Track performance
@@ -1977,7 +2088,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._auditLog("team_restore", teamId, {
         result,
         userContext,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
       console.log(`[TeamsEntityManager] Team ${teamId} restored successfully`);
@@ -1986,7 +2097,7 @@ export class TeamsEntityManager extends BaseEntityManager {
         success: true,
         teamId,
         result,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
     } catch (error) {
       console.error("[TeamsEntityManager] Failed to restore team:", error);
@@ -2003,7 +2114,9 @@ export class TeamsEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      console.log(`[TeamsEntityManager] Starting cleanup of orphaned member relationships`);
+      console.log(
+        `[TeamsEntityManager] Starting cleanup of orphaned member relationships`,
+      );
 
       // Security validation - this is an admin-only operation
       this._checkPermission("bulk"); // Requires bulk operations permission
@@ -2017,14 +2130,16 @@ export class TeamsEntityManager extends BaseEntityManager {
           }),
           body: JSON.stringify({
             initiatedBy: this.currentUserRole?.userId,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           }),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to cleanup orphaned members: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to cleanup orphaned members: ${response.status} - ${error}`,
+        );
       }
 
       const cleanupResult = await response.json();
@@ -2033,7 +2148,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       await this.loadData(
         this.currentFilters,
         this.currentSort,
-        this.currentPage
+        this.currentPage,
       );
 
       // Track performance
@@ -2043,20 +2158,23 @@ export class TeamsEntityManager extends BaseEntityManager {
       // Comprehensive audit logging
       this._auditLog("orphaned_members_cleanup", null, {
         cleanupResult,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
       console.log(
-        `[TeamsEntityManager] Orphaned member cleanup completed: ${cleanupResult.totalCleaned} relationships cleaned in ${operationTime.toFixed(2)}ms`
+        `[TeamsEntityManager] Orphaned member cleanup completed: ${cleanupResult.totalCleaned} relationships cleaned in ${operationTime.toFixed(2)}ms`,
       );
 
       return {
         success: true,
         cleanupResult,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to cleanup orphaned members:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to cleanup orphaned members:",
+        error,
+      );
       this._trackError("cleanupOrphanedMembers", error);
       throw error;
     }
@@ -2082,11 +2200,13 @@ export class TeamsEntityManager extends BaseEntityManager {
           headers: SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to load team relationship statistics: ${response.status}`);
+        throw new Error(
+          `Failed to load team relationship statistics: ${response.status}`,
+        );
       }
 
       const statistics = await response.json();
@@ -2096,16 +2216,19 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._trackPerformance("getTeamRelationshipStatistics", operationTime);
 
       console.log(
-        `[TeamsEntityManager] Team relationship statistics loaded in ${operationTime.toFixed(2)}ms`
+        `[TeamsEntityManager] Team relationship statistics loaded in ${operationTime.toFixed(2)}ms`,
       );
 
       return {
         success: true,
         statistics,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to load team relationship statistics:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to load team relationship statistics:",
+        error,
+      );
       this._trackError("getTeamRelationshipStatistics", error);
       throw error;
     }
@@ -2120,7 +2243,9 @@ export class TeamsEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      console.log(`[TeamsEntityManager] Batch validating ${relationships.length} relationships`);
+      console.log(
+        `[TeamsEntityManager] Batch validating ${relationships.length} relationships`,
+      );
 
       // Security validation
       SecurityUtils.validateInput({ relationships });
@@ -2133,7 +2258,9 @@ export class TeamsEntityManager extends BaseEntityManager {
 
       relationships.forEach((rel, index) => {
         if (!rel.teamId || !rel.userId) {
-          throw new Error(`Invalid relationship at index ${index}: missing teamId or userId`);
+          throw new Error(
+            `Invalid relationship at index ${index}: missing teamId or userId`,
+          );
         }
       });
 
@@ -2141,7 +2268,7 @@ export class TeamsEntityManager extends BaseEntityManager {
       const requestBody = SecurityUtils.preventXSS({
         relationships: relationships,
         validateBy: this.currentUserRole?.userId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const response = await fetch(
@@ -2152,12 +2279,14 @@ export class TeamsEntityManager extends BaseEntityManager {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to batch validate relationships: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to batch validate relationships: ${response.status} - ${error}`,
+        );
       }
 
       const validationResults = await response.json();
@@ -2170,20 +2299,23 @@ export class TeamsEntityManager extends BaseEntityManager {
       this._auditLog("batch_relationship_validation", null, {
         relationshipCount: relationships.length,
         validationResults,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       });
 
       console.log(
-        `[TeamsEntityManager] Batch validation completed for ${relationships.length} relationships in ${operationTime.toFixed(2)}ms`
+        `[TeamsEntityManager] Batch validation completed for ${relationships.length} relationships in ${operationTime.toFixed(2)}ms`,
       );
 
       return {
         success: true,
         validationResults,
-        operationTime: Math.round(operationTime)
+        operationTime: Math.round(operationTime),
       };
     } catch (error) {
-      console.error("[TeamsEntityManager] Failed to batch validate relationships:", error);
+      console.error(
+        "[TeamsEntityManager] Failed to batch validate relationships:",
+        error,
+      );
       this._trackError("batchValidateRelationships", error);
       throw error;
     }
@@ -2198,25 +2330,27 @@ export class TeamsEntityManager extends BaseEntityManager {
       if (!this.performanceMetrics) {
         this.performanceMetrics = {};
       }
-      
+
       if (!this.performanceMetrics[operationType]) {
         this.performanceMetrics[operationType] = [];
       }
-      
+
       this.performanceMetrics[operationType].push({
         duration,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-      
+
       // Keep only last 100 entries per operation type
       if (this.performanceMetrics[operationType].length > 100) {
         this.performanceMetrics[operationType].shift();
       }
-      
+
       // Log if operation is slower than threshold
       const threshold = this.performanceThresholds?.[operationType] || 1000;
       if (duration > threshold) {
-        console.warn(`[TeamsEntityManager] Performance warning: ${operationType} took ${duration.toFixed(2)}ms (threshold: ${threshold}ms)`);
+        console.warn(
+          `[TeamsEntityManager] Performance warning: ${operationType} took ${duration.toFixed(2)}ms (threshold: ${threshold}ms)`,
+        );
       }
     } catch (error) {
       console.error(`[TeamsEntityManager] Failed to track performance:`, error);
@@ -2235,26 +2369,26 @@ export class TeamsEntityManager extends BaseEntityManager {
         data,
         timestamp: new Date().toISOString(),
         userId: this.currentUserRole?.userId,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       };
-      
+
       // Try to use the audit service if available
       if (window.UMIGServices?.auditService?.log) {
         window.UMIGServices.auditService.log(eventType, entityId, data);
       }
-      
+
       // Store locally in audit cache
       if (!this.auditCache) {
         this.auditCache = [];
       }
-      
+
       this.auditCache.push(auditEntry);
-      
+
       // Keep only last 1000 entries
       if (this.auditCache.length > 1000) {
         this.auditCache.shift();
       }
-      
+
       // Log to console in development
       if (this.debug) {
         console.log(`[TeamsEntityManager] Audit log: ${eventType}`, auditEntry);
@@ -2273,22 +2407,25 @@ export class TeamsEntityManager extends BaseEntityManager {
       if (!this.errorLog) {
         this.errorLog = [];
       }
-      
+
       this.errorLog.push({
         operation,
         error: error.message || error,
         stack: error.stack,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-      
+
       // Keep only last 100 errors
       if (this.errorLog.length > 100) {
         this.errorLog.shift();
       }
-      
+
       console.error(`[TeamsEntityManager] Error in ${operation}:`, error);
     } catch (trackingError) {
-      console.error(`[TeamsEntityManager] Failed to track error:`, trackingError);
+      console.error(
+        `[TeamsEntityManager] Failed to track error:`,
+        trackingError,
+      );
     }
   }
 }
