@@ -735,6 +735,5 @@ describe("Teams Performance and Caching Tests", () => {
   });
 });
 
-export default {
-  CachingTeamsEntityManager,
-};
+// Export for use in other test files
+export { CachingTeamsEntityManager };

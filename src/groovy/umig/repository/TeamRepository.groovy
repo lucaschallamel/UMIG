@@ -627,4 +627,588 @@ class TeamRepository {
             return sql.executeUpdate(deleteQuery, [teamId: teamId, applicationId: applicationId])
         }
     }
+
+    // BIDIRECTIONAL RELATIONSHIP MANAGEMENT METHODS
+
+    /**
+     * Get all teams for a specific user with membership details.
+     * Optimized for performance with CTEs and simplified role logic.
+     * @param userId The ID of the user.
+     * @param includeArchived Whether to include archived teams (default: false).
+     * @return List of teams with membership details.
+     */
+    def getTeamsForUser(int userId, boolean includeArchived = false) {
+        DatabaseUtil.withSql { sql ->
+            def whereClause = includeArchived ? "" : "AND t.tms_status != 'archived'"
+            return sql.rows("""
+                WITH team_stats AS (
+                    -- Pre-calculate team statistics once
+                    SELECT 
+                        tms_id,
+                        COUNT(*) as member_count,
+                        MIN(created_at) + INTERVAL '1 day' as admin_threshold
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ),
+                user_teams AS (
+                    -- Get user's team memberships with simplified role logic
+                    SELECT 
+                        j.tms_id,
+                        j.created_at as membership_created,
+                        j.created_by as membership_created_by,
+                        CASE 
+                            WHEN j.created_by = :userId THEN 'owner'
+                            WHEN j.created_at < ts.admin_threshold THEN 'admin'
+                            ELSE 'member'
+                        END as role,
+                        ts.member_count,
+                        ts.admin_threshold
+                    FROM teams_tms_x_users_usr j
+                    JOIN team_stats ts ON ts.tms_id = j.tms_id
+                    WHERE j.usr_id = :userId
+                )
+                SELECT 
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
+                    t.tms_email,
+                    t.tms_status,
+                    ut.membership_created,
+                    ut.membership_created_by,
+                    COALESCE(ut.member_count, 0) as total_members,
+                    ut.role
+                FROM teams_tms t
+                JOIN user_teams ut ON t.tms_id = ut.tms_id
+                WHERE 1=1
+                ${whereClause}
+                ORDER BY ut.membership_created DESC, t.tms_name
+            """, [userId: userId])
+        }
+    }
+
+    /**
+     * Get all users for a specific team with roles and status.
+     * Optimized for performance with CTEs and simplified role logic.
+     * @param teamId The ID of the team.
+     * @param includeInactive Whether to include inactive users (default: false).
+     * @return List of users with their roles and membership details.
+     */
+    def getUsersForTeam(int teamId, boolean includeInactive = false) {
+        DatabaseUtil.withSql { sql ->
+            def whereClause = includeInactive ? "" : "AND u.usr_active = true"
+            return sql.rows("""
+                WITH team_metadata AS (
+                    -- Calculate admin threshold once for the team
+                    SELECT 
+                        MIN(created_at) + INTERVAL '1 day' as admin_threshold
+                    FROM teams_tms_x_users_usr
+                    WHERE tms_id = :teamId
+                ),
+                team_members AS (
+                    -- Get all team members with role calculation
+                    SELECT 
+                        j.usr_id,
+                        j.created_at as membership_created,
+                        j.created_by as membership_created_by,
+                        CASE 
+                            WHEN j.created_by = j.usr_id THEN 'owner'
+                            WHEN j.created_at < tm.admin_threshold THEN 'admin'
+                            ELSE 'member'
+                        END as role,
+                        CASE 
+                            WHEN j.created_by = j.usr_id THEN 1
+                            WHEN j.created_at < tm.admin_threshold THEN 2
+                            ELSE 3
+                        END as role_priority,
+                        EXTRACT(DAYS FROM (NOW() - j.created_at)) as days_in_team
+                    FROM teams_tms_x_users_usr j
+                    CROSS JOIN team_metadata tm
+                    WHERE j.tms_id = :teamId
+                )
+                SELECT 
+                    u.usr_id,
+                    u.usr_first_name,
+                    u.usr_last_name,
+                    (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name,
+                    u.usr_email,
+                    u.usr_code,
+                    u.usr_active,
+                    u.rls_id,
+                    tm.membership_created,
+                    tm.membership_created_by,
+                    creator.usr_first_name || ' ' || creator.usr_last_name as created_by_name,
+                    tm.role,
+                    tm.days_in_team
+                FROM team_members tm
+                JOIN users_usr u ON u.usr_id = tm.usr_id
+                LEFT JOIN users_usr creator ON creator.usr_id = tm.membership_created_by
+                WHERE 1=1
+                ${whereClause}
+                ORDER BY 
+                    tm.role_priority,
+                    tm.membership_created ASC,
+                    u.usr_last_name, u.usr_first_name
+            """, [teamId: teamId])
+        }
+    }
+
+    /**
+     * Validate bidirectional relationship integrity between team and user.
+     * @param teamId The ID of the team.
+     * @param userId The ID of the user.
+     * @return Map with validation results and details.
+     */
+    def validateRelationshipIntegrity(int teamId, int userId) {
+        DatabaseUtil.withSql { sql ->
+            def result = [:]
+            
+            // Check if team exists
+            def team = sql.firstRow("SELECT tms_id, tms_name, tms_status FROM teams_tms WHERE tms_id = :teamId", [teamId: teamId])
+            result.teamExists = team != null
+            result.teamStatus = team?.tms_status
+            
+            // Check if user exists
+            def user = sql.firstRow("SELECT usr_id, usr_first_name, usr_last_name, usr_active FROM users_usr WHERE usr_id = :userId", [userId: userId])
+            result.userExists = user != null
+            result.userActive = user?.usr_active ?: false
+            
+            // Check if relationship exists
+            def relationship = sql.firstRow("""
+                SELECT created_at, created_by 
+                FROM teams_tms_x_users_usr 
+                WHERE tms_id = :teamId AND usr_id = :userId
+            """, [teamId: teamId, userId: userId])
+            result.relationshipExists = relationship != null
+            result.membershipDate = relationship?.created_at
+            
+            // Check for orphaned relationships
+            def orphanedFromTeam = sql.firstRow("""
+                SELECT COUNT(*) as count 
+                FROM teams_tms_x_users_usr j 
+                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id 
+                WHERE j.usr_id = :userId AND t.tms_id IS NULL
+            """, [userId: userId])?.count ?: 0
+            
+            def orphanedFromUser = sql.firstRow("""
+                SELECT COUNT(*) as count 
+                FROM teams_tms_x_users_usr j 
+                LEFT JOIN users_usr u ON u.usr_id = j.usr_id 
+                WHERE j.tms_id = :teamId AND u.usr_id IS NULL
+            """, [teamId: teamId])?.count ?: 0
+            
+            result.orphanedRelationships = [
+                fromTeam: orphanedFromTeam,
+                fromUser: orphanedFromUser
+            ]
+            
+            // Overall integrity check
+            result.isValid = result.teamExists && result.userExists && 
+                           (result.relationshipExists ? (result.teamStatus != 'deleted' && result.userActive) : true) &&
+                           orphanedFromTeam == 0 && orphanedFromUser == 0
+            
+            // Detailed validation messages
+            result.validationMessages = []
+            if (!result.teamExists) {
+                result.validationMessages << "Team with ID ${teamId} does not exist"
+            }
+            if (!result.userExists) {
+                result.validationMessages << "User with ID ${userId} does not exist"
+            }
+            if (result.relationshipExists && result.teamStatus == 'deleted') {
+                result.validationMessages << "Team is marked as deleted but relationship still exists"
+            }
+            if (result.relationshipExists && !result.userActive) {
+                result.validationMessages << "User is inactive but relationship still exists"
+            }
+            if (orphanedFromTeam > 0) {
+                result.validationMessages << "User has ${orphanedFromTeam} orphaned team relationships"
+            }
+            if (orphanedFromUser > 0) {
+                result.validationMessages << "Team has ${orphanedFromUser} orphaned user relationships"
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Protect against cascade delete by checking for active relationships.
+     * @param teamId The ID of the team to check.
+     * @return Map with protection status and blocking relationships.
+     */
+    def protectCascadeDelete(int teamId) {
+        DatabaseUtil.withSql { sql ->
+            def result = [
+                canDelete: true,
+                blockingRelationships: [:],
+                totalBlockingItems: 0
+            ]
+            
+            // Get active team members
+            def activeMembers = sql.rows("""
+                SELECT u.usr_id, (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name, u.usr_email
+                FROM teams_tms_x_users_usr j
+                JOIN users_usr u ON u.usr_id = j.usr_id
+                WHERE j.tms_id = :teamId AND u.usr_active = true
+            """, [teamId: teamId])
+            
+            if (activeMembers) {
+                result.blockingRelationships['active_members'] = activeMembers
+                result.totalBlockingItems += activeMembers.size()
+                result.canDelete = false
+            }
+            
+            // Get active applications
+            def activeApplications = sql.rows("""
+                SELECT a.app_id, a.app_name, a.app_code
+                FROM teams_tms_x_applications_app j
+                JOIN applications_app a ON a.app_id = j.app_id
+                WHERE j.tms_id = :teamId
+            """, [teamId: teamId])
+            
+            if (activeApplications) {
+                result.blockingRelationships['active_applications'] = activeApplications
+                result.totalBlockingItems += activeApplications.size()
+                result.canDelete = false
+            }
+            
+            // Get impacted steps
+            def impactedSteps = sql.rows("""
+                SELECT s.stm_id, s.stm_name, s.stm_description
+                FROM steps_master_stm_x_teams_tms_impacted i
+                JOIN steps_master_stm s ON s.stm_id = i.stm_id
+                WHERE i.tms_id = :teamId
+            """, [teamId: teamId])
+            
+            if (impactedSteps) {
+                result.blockingRelationships['impacted_steps'] = impactedSteps
+                result.totalBlockingItems += impactedSteps.size()
+                result.canDelete = false
+            }
+            
+            // Check for active migrations involving this team
+            def activeMigrations = sql.rows("""
+                SELECT DISTINCT i.mig_id, m.mig_name, m.mig_status
+                FROM iterations_ite i
+                JOIN migrations_mig m ON m.mig_id = i.mig_id
+                JOIN plans_master_plm pl ON pl.plm_id = i.plm_id
+                JOIN sequences_master_sqm sq ON sq.plm_id = pl.plm_id
+                JOIN phases_master_phm p ON p.sqm_id = sq.sqm_id
+                JOIN steps_master_stm s ON s.phm_id = p.phm_id
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON sti.stm_id = s.stm_id
+                WHERE sti.tms_id = :teamId 
+                AND m.mig_status IN ('planned', 'in_progress', 'pending')
+            """, [teamId: teamId])
+            
+            if (activeMigrations) {
+                result.blockingRelationships['active_migrations'] = activeMigrations
+                result.totalBlockingItems += activeMigrations.size()
+                result.canDelete = false
+            }
+            
+            result.protectionLevel = result.canDelete ? 'none' : 
+                                   (result.totalBlockingItems > 10 ? 'high' : 
+                                    result.totalBlockingItems > 5 ? 'medium' : 'low')
+            
+            return result
+        }
+    }
+
+    /**
+     * Soft delete a team by setting status to archived.
+     * @param teamId The ID of the team to archive.
+     * @param userContext Map containing user information for audit.
+     * @return Map with soft delete results.
+     */
+    def softDeleteTeam(int teamId, Map userContext = [:]) {
+        DatabaseUtil.withSql { sql ->
+            def result = [success: false, archivedAt: null, previousStatus: null]
+            
+            // Get current team status
+            def team = sql.firstRow("SELECT tms_status FROM teams_tms WHERE tms_id = :teamId", [teamId: teamId])
+            if (!team) {
+                result.error = "Team not found"
+                return result
+            }
+            
+            result.previousStatus = team.tms_status
+            
+            // Check if already archived
+            if (team.tms_status == 'archived') {
+                result.error = "Team is already archived"
+                return result
+            }
+            
+            // Update status to archived with timestamp
+            def now = new Date()
+            def updateQuery = """
+                UPDATE teams_tms 
+                SET tms_status = 'archived',
+                    tms_archived_at = :archivedAt,
+                    tms_archived_by = :archivedBy
+                WHERE tms_id = :teamId
+            """
+            
+            def rowsAffected = sql.executeUpdate(updateQuery, [
+                teamId: teamId,
+                archivedAt: now,
+                archivedBy: userContext.userId ?: null
+            ])
+            
+            if (rowsAffected > 0) {
+                result.success = true
+                result.archivedAt = now
+                
+                // Create audit log entry
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('team', :teamId, 'soft_delete', :oldStatus, 'archived', :changedBy, :changedAt)
+                """, [
+                    teamId: teamId,
+                    oldStatus: result.previousStatus,
+                    changedBy: userContext.userId ?: 'system',
+                    changedAt: now
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Restore an archived team.
+     * @param teamId The ID of the team to restore.
+     * @param userContext Map containing user information for audit.
+     * @return Map with restore results.
+     */
+    def restoreTeam(int teamId, Map userContext = [:]) {
+        DatabaseUtil.withSql { sql ->
+            def result = [success: false, restoredAt: null, newStatus: 'active']
+            
+            // Get current team status
+            def team = sql.firstRow("""
+                SELECT tms_status, tms_archived_at 
+                FROM teams_tms 
+                WHERE tms_id = :teamId
+            """, [teamId: teamId])
+            
+            if (!team) {
+                result.error = "Team not found"
+                return result
+            }
+            
+            if (team.tms_status != 'archived') {
+                result.error = "Team is not archived"
+                return result
+            }
+            
+            // Restore team to active status
+            def now = new Date()
+            def updateQuery = """
+                UPDATE teams_tms 
+                SET tms_status = 'active',
+                    tms_archived_at = NULL,
+                    tms_archived_by = NULL,
+                    tms_restored_at = :restoredAt,
+                    tms_restored_by = :restoredBy
+                WHERE tms_id = :teamId
+            """
+            
+            def rowsAffected = sql.executeUpdate(updateQuery, [
+                teamId: teamId,
+                restoredAt: now,
+                restoredBy: userContext.userId ?: null
+            ])
+            
+            if (rowsAffected > 0) {
+                result.success = true
+                result.restoredAt = now
+                
+                // Create audit log entry
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('team', :teamId, 'restore', 'archived', 'active', :changedBy, :changedAt)
+                """, [
+                    teamId: teamId,
+                    changedBy: userContext.userId ?: 'system',
+                    changedAt: now
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Clean up orphaned member relationships.
+     * @return Map with cleanup results and statistics.
+     */
+    def cleanupOrphanedMembers() {
+        DatabaseUtil.withSql { sql ->
+            def result = [
+                orphanedFromTeams: 0,
+                orphanedFromUsers: 0,
+                invalidRelationships: 0,
+                totalCleaned: 0,
+                details: []
+            ]
+            
+            // Find and remove relationships where team no longer exists
+            def orphanedFromTeams = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr 
+                WHERE tms_id NOT IN (SELECT tms_id FROM teams_tms)
+            """)
+            result.orphanedFromTeams = orphanedFromTeams
+            
+            if (orphanedFromTeams > 0) {
+                result.details << "Removed ${orphanedFromTeams} relationships with non-existent teams"
+            }
+            
+            // Find and remove relationships where user no longer exists
+            def orphanedFromUsers = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr 
+                WHERE usr_id NOT IN (SELECT usr_id FROM users_usr)
+            """)
+            result.orphanedFromUsers = orphanedFromUsers
+            
+            if (orphanedFromUsers > 0) {
+                result.details << "Removed ${orphanedFromUsers} relationships with non-existent users"
+            }
+            
+            // Find and remove relationships with archived teams and inactive users
+            def invalidRelationships = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr j
+                WHERE EXISTS (
+                    SELECT 1 FROM teams_tms t 
+                    WHERE t.tms_id = j.tms_id 
+                    AND t.tms_status = 'deleted'
+                ) OR EXISTS (
+                    SELECT 1 FROM users_usr u 
+                    WHERE u.usr_id = j.usr_id 
+                    AND u.usr_active = false
+                    AND j.created_at < (NOW() - INTERVAL '90 days')
+                )
+            """)
+            result.invalidRelationships = invalidRelationships
+            
+            if (invalidRelationships > 0) {
+                result.details << "Removed ${invalidRelationships} invalid relationships (deleted teams/inactive users)"
+            }
+            
+            // Find teams without any owners
+            def teamsWithoutOwners = sql.rows("""
+                SELECT t.tms_id, t.tms_name, COUNT(j.usr_id) as member_count
+                FROM teams_tms t
+                LEFT JOIN teams_tms_x_users_usr j ON t.tms_id = j.tms_id
+                WHERE t.tms_status = 'active'
+                GROUP BY t.tms_id, t.tms_name
+                HAVING COUNT(j.usr_id) = 0
+            """)
+            
+            if (teamsWithoutOwners) {
+                result.details << "Found ${teamsWithoutOwners.size()} teams without any members that may need attention"
+                result.teamsWithoutMembers = teamsWithoutOwners
+            }
+            
+            result.totalCleaned = result.orphanedFromTeams + result.orphanedFromUsers + result.invalidRelationships
+            
+            // Create audit log entry for cleanup
+            if (result.totalCleaned > 0) {
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('system', NULL, 'cleanup_orphaned_members', :oldCount, :newCount, 'system', :changedAt)
+                """, [
+                    oldCount: result.totalCleaned.toString(),
+                    newCount: '0',
+                    changedAt: new Date()
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Get comprehensive team statistics for relationship analysis.
+     * @return Map with team statistics and relationship health metrics.
+     */
+    def getTeamRelationshipStatistics() {
+        DatabaseUtil.withSql { sql ->
+            def stats = [:]
+            
+            // Basic team counts
+            def teamCounts = sql.firstRow("""
+                SELECT 
+                    COUNT(*) as total_teams,
+                    COUNT(CASE WHEN tms_status = 'active' THEN 1 END) as active_teams,
+                    COUNT(CASE WHEN tms_status = 'archived' THEN 1 END) as archived_teams,
+                    COUNT(CASE WHEN tms_status = 'deleted' THEN 1 END) as deleted_teams
+                FROM teams_tms
+            """)
+            stats.teams = teamCounts
+            
+            // Member statistics
+            def memberStats = sql.firstRow("""
+                SELECT 
+                    COUNT(*) as total_memberships,
+                    COUNT(DISTINCT usr_id) as unique_users,
+                    COUNT(DISTINCT tms_id) as teams_with_members,
+                    AVG(members_per_team) as avg_members_per_team,
+                    MAX(members_per_team) as max_members_per_team
+                FROM (
+                    SELECT tms_id, COUNT(usr_id) as members_per_team
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) team_counts
+            """)
+            stats.members = memberStats
+            
+            // Relationship health
+            def healthStats = sql.firstRow("""
+                SELECT 
+                    COUNT(CASE WHEN t.tms_id IS NULL THEN 1 END) as orphaned_from_teams,
+                    COUNT(CASE WHEN u.usr_id IS NULL THEN 1 END) as orphaned_from_users,
+                    COUNT(CASE WHEN t.tms_status = 'deleted' THEN 1 END) as relationships_with_deleted_teams,
+                    COUNT(CASE WHEN u.usr_active = false THEN 1 END) as relationships_with_inactive_users
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id
+                LEFT JOIN users_usr u ON u.usr_id = j.usr_id
+            """)
+            stats.health = healthStats
+            
+            // Team size distribution
+            def sizeDistribution = sql.rows("""
+                SELECT 
+                    CASE 
+                        WHEN member_count = 0 THEN '0 members'
+                        WHEN member_count = 1 THEN '1 member'
+                        WHEN member_count BETWEEN 2 AND 5 THEN '2-5 members'
+                        WHEN member_count BETWEEN 6 AND 10 THEN '6-10 members'
+                        WHEN member_count BETWEEN 11 AND 20 THEN '11-20 members'
+                        ELSE '20+ members'
+                    END as size_category,
+                    COUNT(*) as team_count
+                FROM (
+                    SELECT t.tms_id, COUNT(j.usr_id) as member_count
+                    FROM teams_tms t
+                    LEFT JOIN teams_tms_x_users_usr j ON t.tms_id = j.tms_id
+                    WHERE t.tms_status = 'active'
+                    GROUP BY t.tms_id
+                ) team_sizes
+                GROUP BY size_category
+                ORDER BY 
+                    CASE size_category
+                        WHEN '0 members' THEN 1
+                        WHEN '1 member' THEN 2
+                        WHEN '2-5 members' THEN 3
+                        WHEN '6-10 members' THEN 4
+                        WHEN '11-20 members' THEN 5
+                        ELSE 6
+                    END
+            """)
+            stats.sizeDistribution = sizeDistribution
+            
+            return stats
+        }
+    }
 }
