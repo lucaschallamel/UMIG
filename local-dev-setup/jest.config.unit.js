@@ -10,6 +10,7 @@ const config = {
     "**/__tests__/unit/**/*.test.js",
     "**/__tests__/entities/**/*.test.js",
     "**/__tests__/components/**/*.test.js",
+    "**/__tests__/infrastructure/**/*.test.js",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"],
   collectCoverage: true,

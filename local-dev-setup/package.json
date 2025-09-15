@@ -204,6 +204,7 @@
     "markdownlint-cli": "^0.45.0",
     "openapi-to-postmanv2": "5.0.2",
     "prettier": "^3.0.0",
+    "supertest": "^7.1.4",
     "swagger-ui-cli": "^0.0.11"
   }
 }

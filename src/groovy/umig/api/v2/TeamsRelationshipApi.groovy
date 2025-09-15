@@ -69,7 +69,7 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 
         try {
             // Parse query parameters
-            def includeArchived = queryParams.getFirst('includeArchived')?.toLowerCase() == 'true'
+            def includeArchived = (queryParams.getFirst('includeArchived') as String)?.toLowerCase() == 'true'
             
             def teams = teamRepository.getTeamsForUser(userId, includeArchived)
             
@@ -77,8 +77,8 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 userId: userId,
                 includeArchived: includeArchived,
                 teams: teams,
-                totalTeams: teams.size(),
-                timestamp: new Date().toISOString()
+                totalTeams: (teams as List).size(),
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -120,17 +120,17 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 
         try {
             // Parse query parameters
-            def includeInactive = queryParams.getFirst('includeInactive')?.toLowerCase() == 'true'
+            def includeInactive = (queryParams.getFirst('includeInactive') as String)?.toLowerCase() == 'true'
             
             def users = teamRepository.getUsersForTeam(teamId, includeInactive)
             
             return Response.ok(new JsonBuilder([
                 teamId: teamId,
-                teamName: team.tms_name,
+                teamName: (team as Map).tms_name,
                 includeInactive: includeInactive,
                 users: users,
-                totalUsers: users.size(),
-                timestamp: new Date().toISOString()
+                totalUsers: (users as List).size(),
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -159,7 +159,7 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 teamId: teamId,
                 userId: userId,
                 validation: validationResult,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -191,9 +191,9 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             
             return Response.ok(new JsonBuilder([
                 teamId: teamId,
-                teamName: team.tms_name,
+                teamName: (team as Map).tms_name,
                 protection: protectionResult,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -210,7 +210,7 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             
             return Response.ok(new JsonBuilder([
                 statistics: statistics,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -262,17 +262,17 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
 
             def result = teamRepository.softDeleteTeam(teamId, userContext)
-            
-            if (result.success) {
+
+            if ((result as Map).success) {
                 return Response.ok(new JsonBuilder([
                     teamId: teamId,
                     result: result,
                     message: "Team soft deleted successfully",
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to soft delete team"]).toString()).build()
+                    .entity(new JsonBuilder([error: (result as Map).error ?: "Failed to soft delete team"]).toString()).build()
             }
 
         } catch (Exception e) {
@@ -312,17 +312,17 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
 
             def result = teamRepository.restoreTeam(teamId, userContext)
-            
-            if (result.success) {
+
+            if ((result as Map).success) {
                 return Response.ok(new JsonBuilder([
                     teamId: teamId,
                     result: result,
                     message: "Team restored successfully",
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to restore team"]).toString()).build()
+                    .entity(new JsonBuilder([error: (result as Map).error ?: "Failed to restore team"]).toString()).build()
             }
 
         } catch (Exception e) {
@@ -352,7 +352,7 @@ teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             return Response.ok(new JsonBuilder([
                 cleanup: cleanupResult,
                 message: "Orphaned member cleanup completed",
-                timestamp: new Date().toISOString()
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {
@@ -385,17 +385,18 @@ teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             // Validate each relationship structure
             def validationResults = []
             relationships.each { rel ->
-                if (!rel.teamId || !rel.userId) {
+                Map relMap = rel as Map
+                if (!relMap.teamId || !relMap.userId) {
                     validationResults << [
-                        teamId: rel.teamId,
-                        userId: rel.userId,
+                        teamId: relMap.teamId,
+                        userId: relMap.userId,
                         valid: false,
                         error: "Missing teamId or userId"
                     ]
                 } else {
                     try {
-                        def teamId = rel.teamId as Integer
-                        def userId = rel.userId as Integer
+                        def teamId = relMap.teamId as Integer
+                        def userId = relMap.userId as Integer
                         def result = teamRepository.validateRelationshipIntegrity(teamId, userId)
                         
                         validationResults << [
@@ -405,8 +406,8 @@ teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                         ]
                     } catch (Exception e) {
                         validationResults << [
-                            teamId: rel.teamId,
-                            userId: rel.userId,
+                            teamId: relMap.teamId,
+                            userId: relMap.userId,
                             valid: false,
                             error: e.message
                         ]
@@ -416,12 +417,21 @@ teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             
             return Response.ok(new JsonBuilder([
                 batchValidation: [
-                    totalRelationships: relationships.size(),
+                    totalRelationships: (relationships as List).size(),
                     results: validationResults,
-                    validCount: validationResults.count { it.validation?.isValid == true },
-                    invalidCount: validationResults.count { it.validation?.isValid == false || it.valid == false }
+                    validCount: validationResults.count { it ->
+                        def validationMap = it as Map
+                        def validation = validationMap.validation as Map
+                        return validation?.isValid == true
+                    },
+                    invalidCount: validationResults.count { it ->
+                        def validationMap = it as Map
+                        def validation = validationMap.validation as Map
+                        def valid = validationMap.valid as Boolean
+                        return validation?.isValid == false || valid == false
+                    }
                 ],
-                timestamp: new Date().toISOString()
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone("UTC"))
             ]).toString()).build()
 
         } catch (Exception e) {

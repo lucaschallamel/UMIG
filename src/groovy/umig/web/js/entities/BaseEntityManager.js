@@ -907,3 +907,8 @@ export class BaseEntityManager {
 }
 
 export default BaseEntityManager;
+
+// CommonJS export for Jest compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = BaseEntityManager;
+}

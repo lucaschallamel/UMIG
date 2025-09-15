@@ -782,19 +782,19 @@ class TeamRepository {
             result.membershipDate = relationship?.created_at
             
             // Check for orphaned relationships
-            def orphanedFromTeam = sql.firstRow("""
-                SELECT COUNT(*) as count 
-                FROM teams_tms_x_users_usr j 
-                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id 
+            int orphanedFromTeam = (sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id
                 WHERE j.usr_id = :userId AND t.tms_id IS NULL
-            """, [userId: userId])?.count ?: 0
-            
-            def orphanedFromUser = sql.firstRow("""
-                SELECT COUNT(*) as count 
-                FROM teams_tms_x_users_usr j 
-                LEFT JOIN users_usr u ON u.usr_id = j.usr_id 
+            """, [userId: userId])?.count ?: 0) as Integer
+
+            int orphanedFromUser = (sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN users_usr u ON u.usr_id = j.usr_id
                 WHERE j.tms_id = :teamId AND u.usr_id IS NULL
-            """, [teamId: teamId])?.count ?: 0
+            """, [teamId: teamId])?.count ?: 0) as Integer
             
             result.orphanedRelationships = [
                 fromTeam: orphanedFromTeam,
@@ -807,24 +807,25 @@ class TeamRepository {
                            orphanedFromTeam == 0 && orphanedFromUser == 0
             
             // Detailed validation messages
-            result.validationMessages = []
+            List<String> validationMessages = []
+            result.validationMessages = validationMessages
             if (!result.teamExists) {
-                result.validationMessages << "Team with ID ${teamId} does not exist"
+                validationMessages << "Team with ID ${teamId} does not exist".toString()
             }
             if (!result.userExists) {
-                result.validationMessages << "User with ID ${userId} does not exist"
+                validationMessages << "User with ID ${userId} does not exist".toString()
             }
             if (result.relationshipExists && result.teamStatus == 'deleted') {
-                result.validationMessages << "Team is marked as deleted but relationship still exists"
+                validationMessages << "Team is marked as deleted but relationship still exists".toString()
             }
             if (result.relationshipExists && !result.userActive) {
-                result.validationMessages << "User is inactive but relationship still exists"
+                validationMessages << "User is inactive but relationship still exists".toString()
             }
             if (orphanedFromTeam > 0) {
-                result.validationMessages << "User has ${orphanedFromTeam} orphaned team relationships"
+                validationMessages << "User has ${orphanedFromTeam} orphaned team relationships".toString()
             }
             if (orphanedFromUser > 0) {
-                result.validationMessages << "Team has ${orphanedFromUser} orphaned user relationships"
+                validationMessages << "Team has ${orphanedFromUser} orphaned user relationships".toString()
             }
             
             return result
@@ -841,7 +842,7 @@ class TeamRepository {
             def result = [
                 canDelete: true,
                 blockingRelationships: [:],
-                totalBlockingItems: 0
+                totalBlockingItems: 0 as Integer
             ]
             
             // Get active team members
@@ -854,7 +855,7 @@ class TeamRepository {
             
             if (activeMembers) {
                 result.blockingRelationships['active_members'] = activeMembers
-                result.totalBlockingItems += activeMembers.size()
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (activeMembers.size() as Integer)
                 result.canDelete = false
             }
             
@@ -868,7 +869,7 @@ class TeamRepository {
             
             if (activeApplications) {
                 result.blockingRelationships['active_applications'] = activeApplications
-                result.totalBlockingItems += activeApplications.size()
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (activeApplications.size() as Integer)
                 result.canDelete = false
             }
             
@@ -882,7 +883,7 @@ class TeamRepository {
             
             if (impactedSteps) {
                 result.blockingRelationships['impacted_steps'] = impactedSteps
-                result.totalBlockingItems += impactedSteps.size()
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (impactedSteps.size() as Integer)
                 result.canDelete = false
             }
             
@@ -902,13 +903,13 @@ class TeamRepository {
             
             if (activeMigrations) {
                 result.blockingRelationships['active_migrations'] = activeMigrations
-                result.totalBlockingItems += activeMigrations.size()
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (activeMigrations.size() as Integer)
                 result.canDelete = false
             }
             
-            result.protectionLevel = result.canDelete ? 'none' : 
-                                   (result.totalBlockingItems > 10 ? 'high' : 
-                                    result.totalBlockingItems > 5 ? 'medium' : 'low')
+            result.protectionLevel = result.canDelete ? 'none' :
+                                   ((result.totalBlockingItems as Integer) > 10 ? 'high' :
+                                    (result.totalBlockingItems as Integer) > 5 ? 'medium' : 'low')
             
             return result
         }
@@ -1046,53 +1047,53 @@ class TeamRepository {
     def cleanupOrphanedMembers() {
         DatabaseUtil.withSql { sql ->
             def result = [
-                orphanedFromTeams: 0,
-                orphanedFromUsers: 0,
-                invalidRelationships: 0,
-                totalCleaned: 0,
-                details: []
+                orphanedFromTeams: 0 as Integer,
+                orphanedFromUsers: 0 as Integer,
+                invalidRelationships: 0 as Integer,
+                totalCleaned: 0 as Integer,
+                details: [] as List<String>
             ]
             
             // Find and remove relationships where team no longer exists
-            def orphanedFromTeams = sql.executeUpdate("""
-                DELETE FROM teams_tms_x_users_usr 
+            int orphanedFromTeams = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr
                 WHERE tms_id NOT IN (SELECT tms_id FROM teams_tms)
-            """)
+            """) as Integer
             result.orphanedFromTeams = orphanedFromTeams
-            
+
             if (orphanedFromTeams > 0) {
-                result.details << "Removed ${orphanedFromTeams} relationships with non-existent teams"
+                (result.details as List<String>) << "Removed ${orphanedFromTeams} relationships with non-existent teams".toString()
             }
-            
+
             // Find and remove relationships where user no longer exists
-            def orphanedFromUsers = sql.executeUpdate("""
-                DELETE FROM teams_tms_x_users_usr 
+            int orphanedFromUsers = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr
                 WHERE usr_id NOT IN (SELECT usr_id FROM users_usr)
-            """)
+            """) as Integer
             result.orphanedFromUsers = orphanedFromUsers
-            
+
             if (orphanedFromUsers > 0) {
-                result.details << "Removed ${orphanedFromUsers} relationships with non-existent users"
+                (result.details as List<String>) << "Removed ${orphanedFromUsers} relationships with non-existent users".toString()
             }
-            
+
             // Find and remove relationships with archived teams and inactive users
-            def invalidRelationships = sql.executeUpdate("""
+            int invalidRelationships = sql.executeUpdate("""
                 DELETE FROM teams_tms_x_users_usr j
                 WHERE EXISTS (
-                    SELECT 1 FROM teams_tms t 
-                    WHERE t.tms_id = j.tms_id 
+                    SELECT 1 FROM teams_tms t
+                    WHERE t.tms_id = j.tms_id
                     AND t.tms_status = 'deleted'
                 ) OR EXISTS (
-                    SELECT 1 FROM users_usr u 
-                    WHERE u.usr_id = j.usr_id 
+                    SELECT 1 FROM users_usr u
+                    WHERE u.usr_id = j.usr_id
                     AND u.usr_active = false
                     AND j.created_at < (NOW() - INTERVAL '90 days')
                 )
-            """)
+            """) as Integer
             result.invalidRelationships = invalidRelationships
-            
+
             if (invalidRelationships > 0) {
-                result.details << "Removed ${invalidRelationships} invalid relationships (deleted teams/inactive users)"
+                (result.details as List<String>) << "Removed ${invalidRelationships} invalid relationships (deleted teams/inactive users)".toString()
             }
             
             // Find teams without any owners
@@ -1106,14 +1107,14 @@ class TeamRepository {
             """)
             
             if (teamsWithoutOwners) {
-                result.details << "Found ${teamsWithoutOwners.size()} teams without any members that may need attention"
+                (result.details as List<String>) << "Found ${teamsWithoutOwners.size()} teams without any members that may need attention".toString()
                 result.teamsWithoutMembers = teamsWithoutOwners
             }
-            
-            result.totalCleaned = result.orphanedFromTeams + result.orphanedFromUsers + result.invalidRelationships
-            
+
+            result.totalCleaned = (result.orphanedFromTeams as Integer) + (result.orphanedFromUsers as Integer) + (result.invalidRelationships as Integer)
+
             // Create audit log entry for cleanup
-            if (result.totalCleaned > 0) {
+            if ((result.totalCleaned as Integer) > 0) {
                 sql.executeUpdate("""
                     INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
                     VALUES ('system', NULL, 'cleanup_orphaned_members', :oldCount, :newCount, 'system', :changedAt)
