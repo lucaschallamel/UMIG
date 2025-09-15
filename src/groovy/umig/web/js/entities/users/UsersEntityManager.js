@@ -17,7 +17,7 @@
 import BaseEntityManager from "../BaseEntityManager.js";
 // Handle both browser and Jest environments
 let SecurityUtils;
-if (typeof window !== 'undefined' && window.SecurityUtils) {
+if (typeof window !== "undefined" && window.SecurityUtils) {
   SecurityUtils = window.SecurityUtils;
 } else {
   try {
@@ -30,7 +30,7 @@ if (typeof window !== 'undefined' && window.SecurityUtils) {
       validateInput: () => true,
       sanitizeInput: (input) => input,
       escapeHtml: (input) => input,
-      preventXSS: (obj) => obj
+      preventXSS: (obj) => obj,
     };
   }
 }
@@ -136,7 +136,7 @@ class UsersEntityManager extends BaseEntityManager {
       teamAssignment: { limit: 10, windowMs: 60000 }, // 10 operations per minute
       profileUpdate: { limit: 10, windowMs: 60000 }, // 10 operations per minute
     };
-    
+
     // Rate limiting tracker
     this.rateLimitTracker = new Map();
 
@@ -153,23 +153,23 @@ class UsersEntityManager extends BaseEntityManager {
   _validateInputs(params, rules) {
     // Use SecurityUtils for comprehensive validation
     const validationResult = SecurityUtils.validateInput(params, rules);
-    
+
     if (!validationResult.isValid) {
-      const errors = validationResult.errors.map(e => e.message).join(', ');
+      const errors = validationResult.errors.map((e) => e.message).join(", ");
       throw new SecurityUtils.ValidationException(
         `Input validation failed: ${errors}`,
         validationResult.errors[0]?.field,
-        validationResult.errors[0]?.value
+        validationResult.errors[0]?.value,
       );
     }
-    
+
     // Additional XSS prevention for string inputs
-    Object.keys(params).forEach(key => {
-      if (typeof params[key] === 'string' && rules[key]?.type === 'string') {
+    Object.keys(params).forEach((key) => {
+      if (typeof params[key] === "string" && rules[key]?.type === "string") {
         params[key] = SecurityUtils.sanitizeInput(params[key]);
       }
     });
-    
+
     return params;
   }
 
@@ -185,47 +185,49 @@ class UsersEntityManager extends BaseEntityManager {
     if (!config) {
       return; // No rate limit configured for this operation
     }
-    
+
     const key = `${operation}:${identifier}`;
     const now = Date.now();
-    
+
     // Get or create rate limit entry
     let entry = this.rateLimitTracker.get(key);
     if (!entry) {
       entry = { count: 0, windowStart: now };
       this.rateLimitTracker.set(key, entry);
     }
-    
+
     // Check if window has expired
     if (now - entry.windowStart > config.windowMs) {
       // Reset window
       entry.count = 0;
       entry.windowStart = now;
     }
-    
+
     // Check rate limit
     if (entry.count >= config.limit) {
-      const retryAfter = Math.ceil((entry.windowStart + config.windowMs - now) / 1000);
-      
+      const retryAfter = Math.ceil(
+        (entry.windowStart + config.windowMs - now) / 1000,
+      );
+
       // Log rate limit violation
-      this._trackError('rate_limit_exceeded', {
+      this._trackError("rate_limit_exceeded", {
         operation,
         identifier,
         limit: config.limit,
         windowMs: config.windowMs,
-        retryAfter
+        retryAfter,
       });
-      
+
       throw new SecurityUtils.SecurityException(
         `Rate limit exceeded for ${operation}. Try again in ${retryAfter} seconds.`,
-        'RATE_LIMIT_EXCEEDED',
-        { operation, retryAfter }
+        "RATE_LIMIT_EXCEEDED",
+        { operation, retryAfter },
       );
     }
-    
+
     // Increment counter
     entry.count++;
-    
+
     // Clean up old entries periodically
     if (this.rateLimitTracker.size > 1000) {
       this._cleanupRateLimits();
@@ -238,8 +240,10 @@ class UsersEntityManager extends BaseEntityManager {
    */
   _cleanupRateLimits() {
     const now = Date.now();
-    const maxWindowMs = Math.max(...Object.values(this.rateLimits).map(r => r.windowMs));
-    
+    const maxWindowMs = Math.max(
+      ...Object.values(this.rateLimits).map((r) => r.windowMs),
+    );
+
     for (const [key, entry] of this.rateLimitTracker.entries()) {
       if (now - entry.windowStart > maxWindowMs) {
         this.rateLimitTracker.delete(key);
@@ -255,12 +259,12 @@ class UsersEntityManager extends BaseEntityManager {
     // Validate container parameter
     if (!container || !(container instanceof HTMLElement)) {
       throw new SecurityUtils.ValidationException(
-        'Container must be a valid HTML element',
-        'container',
-        container
+        "Container must be a valid HTML element",
+        "container",
+        container,
       );
     }
-    
+
     const startTime = performance.now();
 
     try {
@@ -307,15 +311,15 @@ class UsersEntityManager extends BaseEntityManager {
     // Validate filters
     if (filters && Object.keys(filters).length > 0) {
       this._validateInputs(filters, {
-        teamId: { type: 'string', required: false, maxLength: 50 },
-        roleId: { type: 'string', required: false, maxLength: 50 },
-        active: { type: 'boolean', required: false },
-        search: { type: 'string', required: false, maxLength: 100 },
-        page: { type: 'integer', required: false, min: 1 },
-        pageSize: { type: 'integer', required: false, min: 1, max: 1000 }
+        teamId: { type: "string", required: false, maxLength: 50 },
+        roleId: { type: "string", required: false, maxLength: 50 },
+        active: { type: "boolean", required: false },
+        search: { type: "string", required: false, maxLength: 100 },
+        page: { type: "integer", required: false, min: 1 },
+        pageSize: { type: "integer", required: false, min: 1, max: 1000 },
       });
     }
-    
+
     const startTime = performance.now();
     const cacheKey = JSON.stringify(filters);
 
@@ -383,11 +387,19 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async getTeamsForUser(userId, includeArchived = false) {
     // Validate inputs
-    this._validateInputs({ userId, includeArchived }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      includeArchived: { type: 'boolean', required: false }
-    });
-    
+    this._validateInputs(
+      { userId, includeArchived },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        includeArchived: { type: "boolean", required: false },
+      },
+    );
+
     const startTime = performance.now();
 
     try {
@@ -430,12 +442,29 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async assignToTeam(userId, teamId, role = "USER") {
     // Comprehensive input validation
-    this._validateInputs({ userId, teamId, role }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      teamId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      role: { type: 'string', required: true, enum: Object.keys(this.roleHierarchy) }
-    });
-    
+    this._validateInputs(
+      { userId, teamId, role },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        teamId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        role: {
+          type: "string",
+          required: true,
+          enum: Object.keys(this.roleHierarchy),
+        },
+      },
+    );
+
     const startTime = performance.now();
 
     try {
@@ -500,11 +529,24 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async removeFromTeam(userId, teamId) {
     // Validate inputs
-    this._validateInputs({ userId, teamId }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      teamId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ }
-    });
-    
+    this._validateInputs(
+      { userId, teamId },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        teamId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+      },
+    );
+
     const startTime = performance.now();
 
     try {
@@ -557,30 +599,48 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async updateProfile(userId, updates) {
     // Validate inputs
-    this._validateInputs({ userId }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ }
-    });
-    
+    this._validateInputs(
+      { userId },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+      },
+    );
+
     // Validate updates object
     if (!updates || typeof updates !== "object") {
-      throw new SecurityUtils.ValidationException("Invalid updates object", "updates", updates);
+      throw new SecurityUtils.ValidationException(
+        "Invalid updates object",
+        "updates",
+        updates,
+      );
     }
-    
+
     // Validate individual update fields
     if (updates.email) {
       SecurityUtils.validateEmail(updates.email);
     }
     if (updates.firstName) {
-      this._validateInputs({ firstName: updates.firstName }, {
-        firstName: { type: 'string', required: false, maxLength: 100 }
-      });
+      this._validateInputs(
+        { firstName: updates.firstName },
+        {
+          firstName: { type: "string", required: false, maxLength: 100 },
+        },
+      );
     }
     if (updates.lastName) {
-      this._validateInputs({ lastName: updates.lastName }, {
-        lastName: { type: 'string', required: false, maxLength: 100 }
-      });
+      this._validateInputs(
+        { lastName: updates.lastName },
+        {
+          lastName: { type: "string", required: false, maxLength: 100 },
+        },
+      );
     }
-    
+
     const startTime = performance.now();
 
     try {
@@ -638,11 +698,19 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async getUserActivity(userId, days = 30) {
     // Validate inputs
-    this._validateInputs({ userId, days }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      days: { type: 'integer', required: false, min: 1, max: 365 }
-    });
-    
+    this._validateInputs(
+      { userId, days },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        days: { type: "integer", required: false, min: 1, max: 365 },
+      },
+    );
+
     const startTime = performance.now();
 
     try {
@@ -682,13 +750,16 @@ class UsersEntityManager extends BaseEntityManager {
     const startTime = performance.now();
 
     try {
-      const response = await fetch(`${this.relationshipsApiUrl}/batch-validate`, {
-        method: "POST",
-        headers: SecurityUtils.addCSRFProtection({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify({ userIds }),
-      });
+      const response = await fetch(
+        `${this.relationshipsApiUrl}/batch-validate`,
+        {
+          method: "POST",
+          headers: SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify({ userIds }),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -725,11 +796,19 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async changeUserRole(userId, newRoleId, userContext = {}) {
     // Validate inputs
-    this._validateInputs({ userId, newRoleId }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ },
-      newRoleId: { type: 'string', required: true, maxLength: 50 }
-    });
-    
+    this._validateInputs(
+      { userId, newRoleId },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+        newRoleId: { type: "string", required: true, maxLength: 50 },
+      },
+    );
+
     const startTime = performance.now();
 
     try {
@@ -833,13 +912,21 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async softDeleteUser(userId, userContext = {}) {
     // Validate inputs - soft delete is a sensitive operation
-    this._validateInputs({ userId }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ }
-    });
-    
+    this._validateInputs(
+      { userId },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+      },
+    );
+
     // Rate limiting for soft delete - critical operation
-    this._checkRateLimit('softDelete', userContext.performedBy || 'system');
-    
+    this._checkRateLimit("softDelete", userContext.performedBy || "system");
+
     const startTime = performance.now();
 
     try {
@@ -892,13 +979,21 @@ class UsersEntityManager extends BaseEntityManager {
    */
   async restoreUser(userId, userContext = {}) {
     // Validate inputs - restore is a sensitive operation
-    this._validateInputs({ userId }, {
-      userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ }
-    });
-    
+    this._validateInputs(
+      { userId },
+      {
+        userId: {
+          type: "string",
+          required: true,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9-_]+$/,
+        },
+      },
+    );
+
     // Rate limiting for restore - critical operation
-    this._checkRateLimit('restore', userContext.performedBy || 'system');
-    
+    this._checkRateLimit("restore", userContext.performedBy || "system");
+
     const startTime = performance.now();
 
     try {
@@ -1122,26 +1217,46 @@ class UsersEntityManager extends BaseEntityManager {
   async bulkUpdateUsers(updates) {
     // Validate bulk updates array
     if (!Array.isArray(updates)) {
-      throw new SecurityUtils.ValidationException("Updates must be an array", "updates", updates);
+      throw new SecurityUtils.ValidationException(
+        "Updates must be an array",
+        "updates",
+        updates,
+      );
     }
-    
+
     if (updates.length > 50) {
-      throw new SecurityUtils.ValidationException("Cannot update more than 50 users at once", "updates", updates.length);
+      throw new SecurityUtils.ValidationException(
+        "Cannot update more than 50 users at once",
+        "updates",
+        updates.length,
+      );
     }
-    
+
     // Validate each update
     updates.forEach((update, index) => {
       if (!update.userId) {
-        throw new SecurityUtils.ValidationException(`Update at index ${index} missing userId`, "userId", null);
+        throw new SecurityUtils.ValidationException(
+          `Update at index ${index} missing userId`,
+          "userId",
+          null,
+        );
       }
-      this._validateInputs({ userId: update.userId }, {
-        userId: { type: 'string', required: true, maxLength: 50, pattern: /^[a-zA-Z0-9-_]+$/ }
-      });
+      this._validateInputs(
+        { userId: update.userId },
+        {
+          userId: {
+            type: "string",
+            required: true,
+            maxLength: 50,
+            pattern: /^[a-zA-Z0-9-_]+$/,
+          },
+        },
+      );
     });
-    
+
     // Rate limiting for bulk updates - critical operation
-    this._checkRateLimit('bulkUpdate', 'bulk_operation');
-    
+    this._checkRateLimit("bulkUpdate", "bulk_operation");
+
     const startTime = performance.now();
 
     try {
@@ -1276,7 +1391,8 @@ class UsersEntityManager extends BaseEntityManager {
         const durations = operationMetrics.map((m) => m.duration);
         metrics[operation] = {
           count: operationMetrics.length,
-          averageDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+          averageDuration:
+            durations.reduce((a, b) => a + b, 0) / durations.length,
           minDuration: Math.min(...durations),
           maxDuration: Math.max(...durations),
           threshold: this.performanceThresholds[operation] || 1000,
@@ -1292,7 +1408,8 @@ class UsersEntityManager extends BaseEntityManager {
       cacheStats: {
         size: this.cache.size,
         maxSize: this.cacheConfig.maxSize,
-        hitRate: this.cacheHitCount / (this.cacheHitCount + this.cacheMissCount) || 0,
+        hitRate:
+          this.cacheHitCount / (this.cacheHitCount + this.cacheMissCount) || 0,
       },
       errorStats: {
         totalErrors: this.errorLog.length,
@@ -1303,7 +1420,9 @@ class UsersEntityManager extends BaseEntityManager {
       auditStats: {
         totalAuditEntries: this.auditCache.length,
         recentAuditEntries: this.auditCache.filter(
-          (entry) => Date.now() - new Date(entry.timestamp).getTime() < 24 * 60 * 60 * 1000,
+          (entry) =>
+            Date.now() - new Date(entry.timestamp).getTime() <
+            24 * 60 * 60 * 1000,
         ).length,
       },
     };
@@ -1529,6 +1648,6 @@ class UsersEntityManager extends BaseEntityManager {
 export default UsersEntityManager;
 
 // CommonJS export for Jest compatibility
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = UsersEntityManager;
 }
