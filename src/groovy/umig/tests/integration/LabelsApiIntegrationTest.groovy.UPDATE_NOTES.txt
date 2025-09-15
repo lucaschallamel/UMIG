@@ -1,0 +1,36 @@
+
+AUTHENTICATION UPDATE NOTES for LabelsApiIntegrationTest.groovy
+===========================================
+
+AUTOMATIC UPDATES COMPLETED:
+✅ Added security comment to header
+✅ Added createAuthenticatedConnection() helper method  
+✅ Added authentication validation to main method
+
+MANUAL UPDATES STILL NEEDED:
+⚠️  Update HTTP connections to use authentication
+
+FIND AND REPLACE these patterns manually:
+
+1. Basic URL connections:
+   FIND:    def url = new URL("...")"
+            def connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "..."
+            connection.setRequestProperty("Content-Type", "...")
+            connection.doOutput = true
+   
+   REPLACE: def connection = createAuthenticatedConnection("...", "METHOD", "CONTENT_TYPE")
+
+2. Simple GET requests:
+   FIND:    def url = new URL("...")
+            def connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+   
+   REPLACE: def connection = createAuthenticatedConnection("...", "GET")
+
+TESTING:
+After manual updates, test the file by running:
+groovy LabelsApiIntegrationTest.groovy
+
+CLEANUP:
+Delete this .UPDATE_NOTES.txt file after completing manual updates.
