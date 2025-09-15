@@ -76,7 +76,7 @@ class MockDatabaseUtil {
 class TestableTeamRepository {
     
     def getTeamsForUser(int userId, boolean includeArchived = false) {
-        MockDatabaseUtil.withSql { sql ->
+        MockDatabaseUtil.withSql { MockSql sql ->
             return sql.rows("""
                 SELECT 
                     t.tms_id, t.tms_name, t.tms_description, t.tms_email, t.tms_status,
@@ -96,7 +96,7 @@ class TestableTeamRepository {
     }
     
     def getUsersForTeam(int teamId, boolean includeInactive = false) {
-        MockDatabaseUtil.withSql { sql ->
+        MockDatabaseUtil.withSql { MockSql sql ->
             return sql.rows("""
                 SELECT 
                     u.usr_id, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_status,
@@ -117,8 +117,8 @@ class TestableTeamRepository {
     }
     
     def validateRelationshipIntegrity(int teamId, int userId) {
-        MockDatabaseUtil.withSql { sql ->
-            def bidirectionalCheck = sql.firstRow("""
+        MockDatabaseUtil.withSql { MockSql sql ->
+            Map bidirectionalCheck = sql.firstRow("""
                 SELECT 
                     COUNT(DISTINCT t.tms_id) as team_exists,
                     COUNT(DISTINCT u.usr_id) as user_exists,
@@ -130,12 +130,12 @@ class TestableTeamRepository {
             """, [teamId: teamId, userId: userId])
             
             return [
-                isValid: bidirectionalCheck.team_exists == 1 && 
-                        bidirectionalCheck.user_exists == 1 && 
-                        bidirectionalCheck.relationship_exists == 1,
-                teamExists: bidirectionalCheck.team_exists == 1,
-                userExists: bidirectionalCheck.user_exists == 1,
-                relationshipExists: bidirectionalCheck.relationship_exists == 1,
+                isValid: (bidirectionalCheck.team_exists as Integer) == 1 &&
+                        (bidirectionalCheck.user_exists as Integer) == 1 &&
+                        (bidirectionalCheck.relationship_exists as Integer) == 1,
+                teamExists: (bidirectionalCheck.team_exists as Integer) == 1,
+                userExists: (bidirectionalCheck.user_exists as Integer) == 1,
+                relationshipExists: (bidirectionalCheck.relationship_exists as Integer) == 1,
                 validatedAt: new Date().toString()
             ]
         }
@@ -169,13 +169,13 @@ try {
     ])
     
     def startTime = System.currentTimeMillis()
-    def teams = repository.getTeamsForUser(123, false)
+    List<Map> teams = repository.getTeamsForUser(123, false) as List<Map>
     def duration = System.currentTimeMillis() - startTime
-    
+
     println "✓ getTeamsForUser returned ${teams.size()} teams in ${duration}ms"
     assert teams.size() == 2
-    assert teams[0].tms_name == 'Development Team'
-    assert teams[0].role == 'owner'
+    assert (teams[0] as Map).tms_name == 'Development Team'
+    assert (teams[0] as Map).role == 'owner'
     testsPassed++
     
 } catch (Exception e) {
@@ -196,13 +196,13 @@ try {
     ])
     
     def startTime = System.currentTimeMillis()
-    def users = repository.getUsersForTeam(1, false)
+    List<Map> users = repository.getUsersForTeam(1, false) as List<Map>
     def duration = System.currentTimeMillis() - startTime
-    
+
     println "✓ getUsersForTeam returned ${users.size()} users in ${duration}ms"
     assert users.size() == 2
-    assert users[0].usr_first_name == 'John'
-    assert users[0].role == 'owner'
+    assert (users[0] as Map).usr_first_name == 'John'
+    assert (users[0] as Map).role == 'owner'
     testsPassed++
     
 } catch (Exception e) {
@@ -218,14 +218,14 @@ try {
     ])
     
     def startTime = System.currentTimeMillis()
-    def validation = repository.validateRelationshipIntegrity(1, 123)
+    Map validation = repository.validateRelationshipIntegrity(1, 123) as Map
     def duration = System.currentTimeMillis() - startTime
-    
+
     println "✓ validateRelationshipIntegrity completed in ${duration}ms"
-    assert validation.isValid == true
-    assert validation.teamExists == true
-    assert validation.userExists == true
-    assert validation.relationshipExists == true
+    assert (validation.isValid as Boolean) == true
+    assert (validation.teamExists as Boolean) == true
+    assert (validation.userExists as Boolean) == true
+    assert (validation.relationshipExists as Boolean) == true
     testsPassed++
     
 } catch (Exception e) {

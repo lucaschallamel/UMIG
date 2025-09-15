@@ -340,4 +340,835 @@ class UserRepository {
             return blocking
         }
     }
+
+    // BIDIRECTIONAL RELATIONSHIP MANAGEMENT METHODS
+    // Following the proven patterns from TeamRepository implementation
+
+    /**
+     * Get all teams for a specific user with membership details.
+     * Optimized for performance with CTEs and simplified role logic.
+     * @param userId The ID of the user.
+     * @param includeArchived Whether to include archived teams (default: false).
+     * @return List of teams with membership details.
+     */
+    def getTeamsForUser(int userId, boolean includeArchived = false) {
+        DatabaseUtil.withSql { sql ->
+            def whereClause = includeArchived ? "" : "AND t.tms_status != 'archived'"
+            return sql.rows("""
+                WITH team_stats AS (
+                    -- Pre-calculate team statistics once
+                    SELECT 
+                        tms_id,
+                        COUNT(*) as member_count,
+                        MIN(created_at) + INTERVAL '1 day' as admin_threshold
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ),
+                user_teams AS (
+                    -- Get user's team memberships with simplified role logic
+                    SELECT 
+                        j.tms_id,
+                        j.created_at as membership_created,
+                        j.created_by as membership_created_by,
+                        CASE 
+                            WHEN j.created_by = :userId THEN 'owner'
+                            WHEN j.created_at < ts.admin_threshold THEN 'admin'
+                            ELSE 'member'
+                        END as role,
+                        ts.member_count,
+                        ts.admin_threshold
+                    FROM teams_tms_x_users_usr j
+                    JOIN team_stats ts ON ts.tms_id = j.tms_id
+                    WHERE j.usr_id = :userId
+                )
+                SELECT 
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
+                    t.tms_email,
+                    t.tms_status,
+                    ut.membership_created,
+                    ut.membership_created_by,
+                    COALESCE(ut.member_count, 0) as total_members,
+                    ut.role
+                FROM teams_tms t
+                JOIN user_teams ut ON t.tms_id = ut.tms_id
+                WHERE 1=1
+                ${whereClause}
+                ORDER BY ut.membership_created DESC, t.tms_name
+            """, [userId: userId])
+        }
+    }
+
+    /**
+     * Get all users for a specific team with roles and status.
+     * Optimized for performance with CTEs and simplified role logic.
+     * @param teamId The ID of the team.
+     * @param includeInactive Whether to include inactive users (default: false).
+     * @return List of users with their roles and membership details.
+     */
+    def getUsersForTeam(int teamId, boolean includeInactive = false) {
+        DatabaseUtil.withSql { sql ->
+            def whereClause = includeInactive ? "" : "AND u.usr_active = true"
+            return sql.rows("""
+                WITH team_metadata AS (
+                    -- Calculate admin threshold once for the team
+                    SELECT 
+                        MIN(created_at) + INTERVAL '1 day' as admin_threshold
+                    FROM teams_tms_x_users_usr
+                    WHERE tms_id = :teamId
+                ),
+                team_members AS (
+                    -- Get all team members with role calculation
+                    SELECT 
+                        j.usr_id,
+                        j.created_at as membership_created,
+                        j.created_by as membership_created_by,
+                        CASE 
+                            WHEN j.created_by = j.usr_id THEN 'owner'
+                            WHEN j.created_at < tm.admin_threshold THEN 'admin'
+                            ELSE 'member'
+                        END as role,
+                        CASE 
+                            WHEN j.created_by = j.usr_id THEN 1
+                            WHEN j.created_at < tm.admin_threshold THEN 2
+                            ELSE 3
+                        END as role_priority,
+                        EXTRACT(DAYS FROM (NOW() - j.created_at)) as days_in_team
+                    FROM teams_tms_x_users_usr j
+                    CROSS JOIN team_metadata tm
+                    WHERE j.tms_id = :teamId
+                )
+                SELECT 
+                    u.usr_id,
+                    u.usr_first_name,
+                    u.usr_last_name,
+                    (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name,
+                    u.usr_email,
+                    u.usr_code,
+                    u.usr_active,
+                    u.rls_id,
+                    tm.membership_created,
+                    tm.membership_created_by,
+                    creator.usr_first_name || ' ' || creator.usr_last_name as created_by_name,
+                    tm.role,
+                    tm.days_in_team
+                FROM team_members tm
+                JOIN users_usr u ON u.usr_id = tm.usr_id
+                LEFT JOIN users_usr creator ON creator.usr_id = tm.membership_created_by
+                WHERE 1=1
+                ${whereClause}
+                ORDER BY 
+                    tm.role_priority,
+                    tm.membership_created ASC,
+                    u.usr_last_name, u.usr_first_name
+            """, [teamId: teamId])
+        }
+    }
+
+    /**
+     * Validate bidirectional relationship integrity between user and team.
+     * @param userId The ID of the user.
+     * @param teamId The ID of the team.
+     * @return Map with validation results and details.
+     */
+    def validateRelationshipIntegrity(int userId, int teamId) {
+        DatabaseUtil.withSql { sql ->
+            def result = [:]
+            
+            // Check if user exists
+            def user = sql.firstRow("SELECT usr_id, usr_first_name, usr_last_name, usr_active FROM users_usr WHERE usr_id = :userId", [userId: userId])
+            result.userExists = user != null
+            result.userActive = user?.usr_active ?: false
+            result.userName = user ? "${user.usr_first_name} ${user.usr_last_name}".toString() : null
+            
+            // Check if team exists
+            def team = sql.firstRow("SELECT tms_id, tms_name, tms_status FROM teams_tms WHERE tms_id = :teamId", [teamId: teamId])
+            result.teamExists = team != null
+            result.teamStatus = team?.tms_status
+            result.teamName = team?.tms_name
+            
+            // Check if relationship exists
+            def relationship = sql.firstRow("""
+                SELECT created_at, created_by 
+                FROM teams_tms_x_users_usr 
+                WHERE usr_id = :userId AND tms_id = :teamId
+            """, [userId: userId, teamId: teamId])
+            result.relationshipExists = relationship != null
+            result.membershipDate = relationship?.created_at
+            
+            // Check for orphaned relationships
+            int orphanedFromUser = (sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN users_usr u ON u.usr_id = j.usr_id
+                WHERE j.tms_id = :teamId AND u.usr_id IS NULL
+            """, [teamId: teamId])?.count ?: 0) as Integer
+
+            int orphanedFromTeam = (sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id
+                WHERE j.usr_id = :userId AND t.tms_id IS NULL
+            """, [userId: userId])?.count ?: 0) as Integer
+            
+            result.orphanedRelationships = [
+                fromUser: orphanedFromUser,
+                fromTeam: orphanedFromTeam
+            ]
+            
+            // Overall integrity check
+            result.isValid = result.userExists && result.teamExists && 
+                           (result.relationshipExists ? (result.userActive && result.teamStatus != 'deleted') : true) &&
+                           orphanedFromUser == 0 && orphanedFromTeam == 0
+            
+            // Detailed validation messages
+            List<String> validationMessages = []
+            result.validationMessages = validationMessages
+            if (!result.userExists) {
+                validationMessages << "User with ID ${userId} does not exist".toString()
+            }
+            if (!result.teamExists) {
+                validationMessages << "Team with ID ${teamId} does not exist".toString()
+            }
+            if (result.relationshipExists && !result.userActive) {
+                validationMessages << "User is inactive but relationship still exists".toString()
+            }
+            if (result.relationshipExists && result.teamStatus == 'deleted') {
+                validationMessages << "Team is marked as deleted but relationship still exists".toString()
+            }
+            if (orphanedFromUser > 0) {
+                validationMessages << "Team has ${orphanedFromUser} orphaned user relationships".toString()
+            }
+            if (orphanedFromTeam > 0) {
+                validationMessages << "User has ${orphanedFromTeam} orphaned team relationships".toString()
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Protect against cascade delete by checking for active relationships.
+     * @param userId The ID of the user to check.
+     * @return Map with protection status and blocking relationships.
+     */
+    def protectCascadeDelete(int userId) {
+        DatabaseUtil.withSql { sql ->
+            def result = [
+                canDelete: true,
+                blockingRelationships: [:],
+                totalBlockingItems: 0 as Integer
+            ]
+            
+            // Get active team memberships
+            def activeTeams = sql.rows("""
+                SELECT t.tms_id, t.tms_name, t.tms_email
+                FROM teams_tms_x_users_usr j
+                JOIN teams_tms t ON t.tms_id = j.tms_id
+                WHERE j.usr_id = :userId AND t.tms_status = 'active'
+            """, [userId: userId])
+            
+            if (activeTeams) {
+                result.blockingRelationships['active_teams'] = activeTeams
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (activeTeams.size() as Integer)
+                result.canDelete = false
+            }
+            
+            // Get owned migrations
+            def ownedMigrations = sql.rows("""
+                SELECT mig_id, mig_name, mig_status
+                FROM migrations_mig
+                WHERE usr_id_owner = :userId AND mig_status IN ('planned', 'in_progress', 'pending')
+            """, [userId: userId])
+            
+            if (ownedMigrations) {
+                result.blockingRelationships['owned_migrations'] = ownedMigrations
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (ownedMigrations.size() as Integer)
+                result.canDelete = false
+            }
+            
+            // Get owned plan instances
+            def ownedPlans = sql.rows("""
+                SELECT pli.pli_id, i.ite_name, m.mig_name
+                FROM plans_instance_pli pli
+                JOIN iterations_ite i ON i.ite_id = pli.ite_id
+                JOIN migrations_mig m ON m.mig_id = i.mig_id
+                WHERE pli.usr_id_owner = :userId
+                AND i.ite_status IN ('planned', 'in_progress', 'pending')
+            """, [userId: userId])
+            
+            if (ownedPlans) {
+                result.blockingRelationships['owned_plans'] = ownedPlans
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (ownedPlans.size() as Integer)
+                result.canDelete = false
+            }
+            
+            // Get assigned step instances
+            def assignedSteps = sql.rows("""
+                SELECT sti.sti_id, sm.stm_name, i.ite_name
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm sm ON sm.stm_id = sti.stm_id
+                JOIN phases_instance_phi phi ON phi.phi_id = sti.phi_id
+                JOIN sequences_instance_sqi sqi ON sqi.sqi_id = phi.sqi_id
+                JOIN plans_instance_pli pli ON pli.pli_id = sqi.pli_id
+                JOIN iterations_ite i ON i.ite_id = pli.ite_id
+                WHERE (sti.usr_id_owner = :userId OR sti.usr_id_assignee = :userId)
+                AND sti.sti_status IN ('planned', 'in_progress', 'pending')
+            """, [userId: userId])
+            
+            if (assignedSteps) {
+                result.blockingRelationships['assigned_steps'] = assignedSteps
+                result.totalBlockingItems = (result.totalBlockingItems as Integer) + (assignedSteps.size() as Integer)
+                result.canDelete = false
+            }
+            
+            result.protectionLevel = result.canDelete ? 'none' :
+                                   ((result.totalBlockingItems as Integer) > 10 ? 'high' :
+                                    (result.totalBlockingItems as Integer) > 5 ? 'medium' : 'low')
+            
+            return result
+        }
+    }
+
+    /**
+     * Soft delete a user by setting status to inactive.
+     * @param userId The ID of the user to deactivate.
+     * @param userContext Map containing user information for audit.
+     * @return Map with soft delete results.
+     */
+    def softDeleteUser(int userId, Map userContext = [:]) {
+        DatabaseUtil.withSql { sql ->
+            def result = [success: false, deactivatedAt: null, previousStatus: null]
+            
+            // Get current user status
+            def user = sql.firstRow("SELECT usr_active FROM users_usr WHERE usr_id = :userId", [userId: userId])
+            if (!user) {
+                result.error = "User not found"
+                return result
+            }
+            
+            result.previousStatus = user.usr_active
+            
+            // Check if already inactive
+            if (!user.usr_active) {
+                result.error = "User is already inactive"
+                return result
+            }
+            
+            // Update status to inactive with timestamp
+            def now = new Date()
+            def updateQuery = """
+                UPDATE users_usr 
+                SET usr_active = false,
+                    usr_deactivated_at = :deactivatedAt,
+                    usr_deactivated_by = :deactivatedBy
+                WHERE usr_id = :userId
+            """
+            
+            def rowsAffected = sql.executeUpdate(updateQuery, [
+                userId: userId,
+                deactivatedAt: now,
+                deactivatedBy: userContext.userId ?: null
+            ])
+            
+            if (rowsAffected > 0) {
+                result.success = true
+                result.deactivatedAt = now
+                
+                // Create audit log entry
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('user', :userId, 'soft_delete', 'active', 'inactive', :changedBy, :changedAt)
+                """, [
+                    userId: userId,
+                    changedBy: userContext.userId ?: 'system',
+                    changedAt: now
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Restore an inactive user.
+     * @param userId The ID of the user to restore.
+     * @param userContext Map containing user information for audit.
+     * @return Map with restore results.
+     */
+    def restoreUser(int userId, Map userContext = [:]) {
+        DatabaseUtil.withSql { sql ->
+            def result = [success: false, restoredAt: null, newStatus: true]
+            
+            // Get current user status
+            def user = sql.firstRow("""
+                SELECT usr_active, usr_deactivated_at 
+                FROM users_usr 
+                WHERE usr_id = :userId
+            """, [userId: userId])
+            
+            if (!user) {
+                result.error = "User not found"
+                return result
+            }
+            
+            if (user.usr_active) {
+                result.error = "User is already active"
+                return result
+            }
+            
+            // Restore user to active status
+            def now = new Date()
+            def updateQuery = """
+                UPDATE users_usr 
+                SET usr_active = true,
+                    usr_deactivated_at = NULL,
+                    usr_deactivated_by = NULL,
+                    usr_restored_at = :restoredAt,
+                    usr_restored_by = :restoredBy
+                WHERE usr_id = :userId
+            """
+            
+            def rowsAffected = sql.executeUpdate(updateQuery, [
+                userId: userId,
+                restoredAt: now,
+                restoredBy: userContext.userId ?: null
+            ])
+            
+            if (rowsAffected > 0) {
+                result.success = true
+                result.restoredAt = now
+                
+                // Create audit log entry
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('user', :userId, 'restore', 'inactive', 'active', :changedBy, :changedAt)
+                """, [
+                    userId: userId,
+                    changedBy: userContext.userId ?: 'system',
+                    changedAt: now
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Clean up orphaned member relationships.
+     * @return Map with cleanup results and statistics.
+     */
+    def cleanupOrphanedMembers() {
+        DatabaseUtil.withSql { sql ->
+            def result = [
+                orphanedFromUsers: 0 as Integer,
+                orphanedFromTeams: 0 as Integer,
+                invalidRelationships: 0 as Integer,
+                totalCleaned: 0 as Integer,
+                details: [] as List<String>
+            ]
+            
+            // Find and remove relationships where user no longer exists
+            int orphanedFromUsers = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr
+                WHERE usr_id NOT IN (SELECT usr_id FROM users_usr)
+            """) as Integer
+            result.orphanedFromUsers = orphanedFromUsers
+
+            if (orphanedFromUsers > 0) {
+                (result.details as List<String>) << "Removed ${orphanedFromUsers} relationships with non-existent users".toString()
+            }
+
+            // Find and remove relationships where team no longer exists
+            int orphanedFromTeams = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr
+                WHERE tms_id NOT IN (SELECT tms_id FROM teams_tms)
+            """) as Integer
+            result.orphanedFromTeams = orphanedFromTeams
+
+            if (orphanedFromTeams > 0) {
+                (result.details as List<String>) << "Removed ${orphanedFromTeams} relationships with non-existent teams".toString()
+            }
+
+            // Find and remove relationships with deleted teams and inactive users
+            int invalidRelationships = sql.executeUpdate("""
+                DELETE FROM teams_tms_x_users_usr j
+                WHERE EXISTS (
+                    SELECT 1 FROM teams_tms t
+                    WHERE t.tms_id = j.tms_id
+                    AND t.tms_status = 'deleted'
+                ) OR EXISTS (
+                    SELECT 1 FROM users_usr u
+                    WHERE u.usr_id = j.usr_id
+                    AND u.usr_active = false
+                    AND j.created_at < (NOW() - INTERVAL '90 days')
+                )
+            """) as Integer
+            result.invalidRelationships = invalidRelationships
+
+            if (invalidRelationships > 0) {
+                (result.details as List<String>) << "Removed ${invalidRelationships} invalid relationships (deleted teams/inactive users)".toString()
+            }
+            
+            // Find users without any team memberships
+            def usersWithoutTeams = sql.rows("""
+                SELECT u.usr_id, u.usr_first_name, u.usr_last_name, u.usr_email
+                FROM users_usr u
+                LEFT JOIN teams_tms_x_users_usr j ON u.usr_id = j.usr_id
+                WHERE u.usr_active = true
+                AND j.usr_id IS NULL
+            """)
+            
+            if (usersWithoutTeams) {
+                (result.details as List<String>) << "Found ${usersWithoutTeams.size()} users without any team memberships that may need attention".toString()
+                result.usersWithoutTeams = usersWithoutTeams
+            }
+
+            result.totalCleaned = (result.orphanedFromUsers as Integer) + (result.orphanedFromTeams as Integer) + (result.invalidRelationships as Integer)
+
+            // Create audit log entry for cleanup
+            if ((result.totalCleaned as Integer) > 0) {
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('system', NULL, 'cleanup_orphaned_members', :oldCount, :newCount, 'system', :changedAt)
+                """, [
+                    oldCount: result.totalCleaned.toString(),
+                    newCount: '0',
+                    changedAt: new Date()
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Get comprehensive user statistics for relationship analysis.
+     * @return Map with user statistics and relationship health metrics.
+     */
+    def getUserRelationshipStatistics() {
+        DatabaseUtil.withSql { sql ->
+            def stats = [:]
+            
+            // Basic user counts
+            def userCounts = sql.firstRow("""
+                SELECT 
+                    COUNT(*) as total_users,
+                    COUNT(CASE WHEN usr_active = true THEN 1 END) as active_users,
+                    COUNT(CASE WHEN usr_active = false THEN 1 END) as inactive_users,
+                    COUNT(CASE WHEN usr_is_admin = true THEN 1 END) as admin_users
+                FROM users_usr
+            """)
+            stats.users = userCounts
+            
+            // Team membership statistics
+            def membershipStats = sql.firstRow("""
+                SELECT 
+                    COUNT(*) as total_memberships,
+                    COUNT(DISTINCT usr_id) as users_with_teams,
+                    COUNT(DISTINCT tms_id) as teams_with_users,
+                    AVG(teams_per_user) as avg_teams_per_user,
+                    MAX(teams_per_user) as max_teams_per_user
+                FROM (
+                    SELECT usr_id, COUNT(tms_id) as teams_per_user
+                    FROM teams_tms_x_users_usr
+                    GROUP BY usr_id
+                ) user_counts
+            """)
+            stats.memberships = membershipStats
+            
+            // Relationship health
+            def healthStats = sql.firstRow("""
+                SELECT 
+                    COUNT(CASE WHEN u.usr_id IS NULL THEN 1 END) as orphaned_from_users,
+                    COUNT(CASE WHEN t.tms_id IS NULL THEN 1 END) as orphaned_from_teams,
+                    COUNT(CASE WHEN u.usr_active = false THEN 1 END) as relationships_with_inactive_users,
+                    COUNT(CASE WHEN t.tms_status = 'deleted' THEN 1 END) as relationships_with_deleted_teams
+                FROM teams_tms_x_users_usr j
+                LEFT JOIN users_usr u ON u.usr_id = j.usr_id
+                LEFT JOIN teams_tms t ON t.tms_id = j.tms_id
+            """)
+            stats.health = healthStats
+            
+            // User team distribution
+            def teamDistribution = sql.rows("""
+                SELECT 
+                    CASE 
+                        WHEN team_count = 0 THEN '0 teams'
+                        WHEN team_count = 1 THEN '1 team'
+                        WHEN team_count BETWEEN 2 AND 3 THEN '2-3 teams'
+                        WHEN team_count BETWEEN 4 AND 5 THEN '4-5 teams'
+                        WHEN team_count BETWEEN 6 AND 10 THEN '6-10 teams'
+                        ELSE '10+ teams'
+                    END as team_category,
+                    COUNT(*) as user_count
+                FROM (
+                    SELECT u.usr_id, COUNT(j.tms_id) as team_count
+                    FROM users_usr u
+                    LEFT JOIN teams_tms_x_users_usr j ON u.usr_id = j.usr_id
+                    WHERE u.usr_active = true
+                    GROUP BY u.usr_id
+                ) user_teams
+                GROUP BY team_category
+                ORDER BY 
+                    CASE team_category
+                        WHEN '0 teams' THEN 1
+                        WHEN '1 team' THEN 2
+                        WHEN '2-3 teams' THEN 3
+                        WHEN '4-5 teams' THEN 4
+                        WHEN '6-10 teams' THEN 5
+                        ELSE 6
+                    END
+            """)
+            stats.teamDistribution = teamDistribution
+            
+            return stats
+        }
+    }
+
+    /**
+     * Role transition validation and management.
+     * @param userId The ID of the user.
+     * @param fromRole Current role ID.
+     * @param toRole Target role ID.
+     * @return Map with validation results.
+     */
+    def validateRoleTransition(int userId, Integer fromRole, Integer toRole) {
+        DatabaseUtil.withSql { sql ->
+            def result = [
+                valid: false,
+                reason: null,
+                fromRoleName: null,
+                toRoleName: null,
+                requiresApproval: false
+            ]
+            
+            // Get role information
+            if (fromRole) {
+                def fromRoleInfo = sql.firstRow("SELECT rls_code, rls_description FROM roles_rls WHERE rls_id = :roleId", [roleId: fromRole])
+                result.fromRoleName = fromRoleInfo?.rls_code
+            }
+            
+            if (toRole) {
+                def toRoleInfo = sql.firstRow("SELECT rls_code, rls_description FROM roles_rls WHERE rls_id = :roleId", [roleId: toRole])
+                result.toRoleName = toRoleInfo?.rls_code
+            }
+            
+            // Role hierarchy validation (following Teams pattern)
+            def roleHierarchy = [
+                'SUPERADMIN': 3,
+                'ADMIN': 2,
+                'USER': 1
+            ]
+            
+            def validTransitions = [
+                'USER': ['ADMIN'],
+                'ADMIN': ['USER', 'SUPERADMIN'],
+                'SUPERADMIN': ['ADMIN', 'USER']
+            ]
+            
+            if (result.fromRoleName && result.toRoleName) {
+                def allowedTransitions = validTransitions[result.fromRoleName] ?: []
+                if (allowedTransitions.contains(result.toRoleName)) {
+                    result.valid = true
+                    
+                    // Check if approval is required for elevation
+                    def fromLevel = roleHierarchy[result.fromRoleName] ?: 0
+                    def toLevel = roleHierarchy[result.toRoleName] ?: 0
+                    result.requiresApproval = toLevel > fromLevel
+                } else {
+                    result.reason = "Direct transition from ${result.fromRoleName} to ${result.toRoleName} is not allowed"
+                }
+            } else {
+                result.reason = "Invalid role IDs provided"
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Change user role with audit trail.
+     * @param userId The ID of the user.
+     * @param newRoleId The new role ID.
+     * @param userContext Map containing user information for audit.
+     * @return Map with role change results.
+     */
+    def changeUserRole(int userId, Integer newRoleId, Map userContext = [:]) {
+        DatabaseUtil.withSql { sql ->
+            def result = [success: false, changedAt: null, previousRole: null, newRole: null]
+            
+            // Get current user and role
+            def user = sql.firstRow("""
+                SELECT u.usr_id, u.rls_id, r.rls_code as current_role_code
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                WHERE u.usr_id = :userId
+            """, [userId: userId])
+            
+            if (!user) {
+                result.error = "User not found"
+                return result
+            }
+            
+            result.previousRole = user.current_role_code
+            
+            // Get new role information
+            def newRole = sql.firstRow("SELECT rls_code FROM roles_rls WHERE rls_id = :roleId", [roleId: newRoleId])
+            if (!newRole) {
+                result.error = "Invalid new role ID"
+                return result
+            }
+            
+            result.newRole = newRole.rls_code
+            
+            // Validate transition if there's a current role
+            if (user.rls_id) {
+                Map validation = validateRoleTransition(userId, user.rls_id as Integer, newRoleId) as Map
+                if (!(validation.valid as Boolean)) {
+                    result.error = validation.reason as String
+                    return result
+                }
+                result.requiresApproval = validation.requiresApproval as Boolean
+            }
+            
+            // Update user role
+            def now = new Date()
+            def updateQuery = """
+                UPDATE users_usr 
+                SET rls_id = :newRoleId,
+                    updated_at = :updatedAt
+                WHERE usr_id = :userId
+            """
+            
+            def rowsAffected = sql.executeUpdate(updateQuery, [
+                userId: userId,
+                newRoleId: newRoleId,
+                updatedAt: now
+            ])
+            
+            if (rowsAffected > 0) {
+                result.success = true
+                result.changedAt = now
+                
+                // Create audit log entry
+                sql.executeUpdate("""
+                    INSERT INTO audit_log (entity_type, entity_id, action, old_value, new_value, changed_by, changed_at)
+                    VALUES ('user', :userId, 'role_change', :oldRole, :newRole, :changedBy, :changedAt)
+                """, [
+                    userId: userId,
+                    oldRole: result.previousRole ?: 'none',
+                    newRole: result.newRole,
+                    changedBy: userContext.userId ?: 'system',
+                    changedAt: now
+                ])
+            }
+            
+            return result
+        }
+    }
+
+    /**
+     * Get user activity history for audit purposes.
+     * @param userId The ID of the user.
+     * @param days Number of days of history to retrieve.
+     * @return List of activity records.
+     */
+    def getUserActivity(int userId, int days = 30) {
+        // [SF] [SFT] Input validation and SQL injection prevention
+        if (userId <= 0) {
+            throw new IllegalArgumentException("User ID must be positive")
+        }
+        if (days <= 0 || days > 365) {
+            throw new IllegalArgumentException("Days must be between 1 and 365")
+        }
+        
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT 
+                    entity_type,
+                    entity_id,
+                    action,
+                    old_value,
+                    new_value,
+                    changed_at,
+                    changed_by
+                FROM audit_log
+                WHERE ((entity_type = 'user' AND entity_id = :userId)
+                   OR changed_by = :userId)
+                   AND changed_at >= (NOW() - INTERVAL '1 day' * :days)
+                ORDER BY changed_at DESC
+                LIMIT 1000
+            """, [userId: userId, days: days])
+        }
+    }
+
+    /**
+     * Security validation for user activity access.
+     * [SFT] Ensures users can only access their own activity or when properly authorized
+     * @param requestingUserId The user making the request
+     * @param targetUserId The user whose activity is being requested
+     * @param isAdmin Whether the requesting user is an administrator
+     * @return true if access is allowed, false otherwise
+     */
+    boolean canAccessUserActivity(int requestingUserId, int targetUserId, boolean isAdmin = false) {
+        // [SFT] Users can always access their own activity
+        if (requestingUserId == targetUserId) {
+            return true
+        }
+        
+        // [SFT] Administrators can access any user's activity
+        if (isAdmin) {
+            return true
+        }
+        
+        // [SFT] Regular users cannot access other users' activity
+        return false
+    }
+
+    /**
+     * Batch validate multiple users for team assignments.
+     * @param userIds List of user IDs to validate.
+     * @return Map with validation results for each user.
+     */
+    def batchValidateUsers(List<Integer> userIds) {
+        DatabaseUtil.withSql { sql ->
+            def results = [
+                valid: [] as List<Map>,
+                invalid: [] as List<Map>,
+                summary: [
+                    total: userIds.size(),
+                    validCount: 0,
+                    invalidCount: 0
+                ]
+            ]
+            
+            userIds.each { userId ->
+                def user = sql.firstRow("""
+                    SELECT usr_id, usr_first_name, usr_last_name, usr_email, usr_active, rls_id
+                    FROM users_usr
+                    WHERE usr_id = :userId
+                """, [userId: userId])
+                
+                if (user && user.usr_active) {
+                    (results.valid as List<Map>) << [
+                        userId: userId,
+                        name: "${user.usr_first_name} ${user.usr_last_name}".toString(),
+                        email: user.usr_email,
+                        roleId: user.rls_id
+                    ]
+                    (results.summary as Map).validCount = ((results.summary as Map).validCount as Integer) + 1
+                } else {
+                    (results.invalid as List<Map>) << [
+                        userId: userId,
+                        reason: user ? (user.usr_active ? 'Unknown error' : 'User is inactive') : 'User not found'
+                    ]
+                    (results.summary as Map).invalidCount = ((results.summary as Map).invalidCount as Integer) + 1
+                }
+            }
+            
+            return results
+        }
+    }
 }
