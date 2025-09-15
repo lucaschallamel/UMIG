@@ -8,35 +8,41 @@
  */
 
 // Mock SecurityUtils first (before any imports)
-jest.mock('../../../../src/groovy/umig/web/js/components/SecurityUtils.js', () => ({
-  addCSRFProtection: jest.fn((headers) => headers),
-  validateInput: jest.fn(() => true),
-  sanitizeInput: jest.fn((input) => input),
-}));
+jest.mock(
+  "../../../../src/groovy/umig/web/js/components/SecurityUtils.js",
+  () => ({
+    addCSRFProtection: jest.fn((headers) => headers),
+    validateInput: jest.fn(() => true),
+    sanitizeInput: jest.fn((input) => input),
+  }),
+);
 
 // Mock ComponentOrchestrator
 const mockOrchestrator = {
   emit: jest.fn(),
   on: jest.fn(),
   destroy: jest.fn(),
-  getCurrentUser: jest.fn(() => ({ userId: 'testUser', role: 'ADMIN' })),
+  getCurrentUser: jest.fn(() => ({ userId: "testUser", role: "ADMIN" })),
 };
 
-jest.mock('../../../../src/groovy/umig/web/js/components/ComponentOrchestrator.js', () => {
-  return jest.fn().mockImplementation(() => mockOrchestrator);
-});
+jest.mock(
+  "../../../../src/groovy/umig/web/js/components/ComponentOrchestrator.js",
+  () => {
+    return jest.fn().mockImplementation(() => mockOrchestrator);
+  },
+);
 
 // Import after mocking
-const UsersEntityManager = require('../../../../src/groovy/umig/web/js/entities/users/UsersEntityManager.js');
-const SecurityUtils = require('../../../../src/groovy/umig/web/js/components/SecurityUtils.js');
+const UsersEntityManager = require("../../../../src/groovy/umig/web/js/entities/users/UsersEntityManager.js");
+const SecurityUtils = require("../../../../src/groovy/umig/web/js/components/SecurityUtils.js");
 
 // Mock fetch
 global.fetch = jest.fn();
 
-describe('UsersEntityManager - Role Management', () => {
+describe("UsersEntityManager - Role Management", () => {
   let usersManager;
   const mockConfig = {
-    baseUrl: 'http://localhost:8090',
+    baseUrl: "http://localhost:8090",
     enableAudit: true,
     cacheEnabled: true,
   };
@@ -44,12 +50,12 @@ describe('UsersEntityManager - Role Management', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     fetch.mockClear();
-    
+
     // Reset SecurityUtils mock
     SecurityUtils.addCSRFProtection.mockClear();
     SecurityUtils.validateInput.mockClear();
     SecurityUtils.sanitizeInput.mockClear();
-    
+
     usersManager = new UsersEntityManager(mockConfig);
   });
 
@@ -59,7 +65,7 @@ describe('UsersEntityManager - Role Management', () => {
     }
   });
 
-  describe('Role Transition Validation', () => {
+  describe("Role Transition Validation", () => {
     const mockValidationResponse = {
       userId: 123,
       roleTransition: {
@@ -69,14 +75,14 @@ describe('UsersEntityManager - Role Management', () => {
       validation: {
         valid: true,
         reason: null,
-        fromRoleName: 'USER',
-        toRoleName: 'ADMIN',
+        fromRoleName: "USER",
+        toRoleName: "ADMIN",
         requiresApproval: true,
       },
-      timestamp: '2025-09-15T10:00:00.000Z',
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
-    test('should validate role transition successfully', async () => {
+    test("should validate role transition successfully", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockValidationResponse,
@@ -85,28 +91,30 @@ describe('UsersEntityManager - Role Management', () => {
       const result = await usersManager.validateRoleTransition(123, 1, 2);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/rest/scriptrunner/latest/custom/users/relationships/123/role/validate'),
+        expect.stringContaining(
+          "/rest/scriptrunner/latest/custom/users/relationships/123/role/validate",
+        ),
         expect.objectContaining({
-          method: 'PUT',
+          method: "PUT",
           headers: expect.any(Object),
           body: JSON.stringify({
             fromRoleId: 1,
             toRoleId: 2,
           }),
-        })
+        }),
       );
 
       expect(result).toEqual(mockValidationResponse);
     });
 
-    test('should handle invalid role transition', async () => {
+    test("should handle invalid role transition", async () => {
       const invalidResponse = {
         ...mockValidationResponse,
         validation: {
           valid: false,
-          reason: 'Direct transition from USER to SUPERADMIN is not allowed',
-          fromRoleName: 'USER',
-          toRoleName: 'SUPERADMIN',
+          reason: "Direct transition from USER to SUPERADMIN is not allowed",
+          fromRoleName: "USER",
+          toRoleName: "SUPERADMIN",
           requiresApproval: false,
         },
       };
@@ -119,17 +127,17 @@ describe('UsersEntityManager - Role Management', () => {
       const result = await usersManager.validateRoleTransition(123, 1, 3);
 
       expect(result.validation.valid).toBe(false);
-      expect(result.validation.reason).toContain('not allowed');
+      expect(result.validation.reason).toContain("not allowed");
     });
 
-    test('should handle role hierarchy validation', async () => {
+    test("should handle role hierarchy validation", async () => {
       const hierarchyResponse = {
         ...mockValidationResponse,
         validation: {
           valid: true,
           reason: null,
-          fromRoleName: 'ADMIN',
-          toRoleName: 'SUPERADMIN',
+          fromRoleName: "ADMIN",
+          toRoleName: "SUPERADMIN",
           requiresApproval: true,
         },
       };
@@ -142,104 +150,106 @@ describe('UsersEntityManager - Role Management', () => {
       const result = await usersManager.validateRoleTransition(123, 2, 3);
 
       expect(result.validation.requiresApproval).toBe(true);
-      expect(result.validation.fromRoleName).toBe('ADMIN');
-      expect(result.validation.toRoleName).toBe('SUPERADMIN');
+      expect(result.validation.fromRoleName).toBe("ADMIN");
+      expect(result.validation.toRoleName).toBe("SUPERADMIN");
     });
 
-    test('should handle network errors during validation', async () => {
-      fetch.mockRejectedValueOnce(new Error('Network error'));
+    test("should handle network errors during validation", async () => {
+      fetch.mockRejectedValueOnce(new Error("Network error"));
 
       await expect(
-        usersManager.validateRoleTransition(123, 1, 2)
-      ).rejects.toThrow('Network error');
+        usersManager.validateRoleTransition(123, 1, 2),
+      ).rejects.toThrow("Network error");
     });
 
-    test('should handle HTTP errors during validation', async () => {
+    test("should handle HTTP errors during validation", async () => {
       fetch.mockResolvedValueOnce({
         ok: false,
-        statusText: 'Bad Request',
+        statusText: "Bad Request",
       });
 
       await expect(
-        usersManager.validateRoleTransition(123, 1, 2)
-      ).rejects.toThrow('Failed to validate role transition: Bad Request');
+        usersManager.validateRoleTransition(123, 1, 2),
+      ).rejects.toThrow("Failed to validate role transition: Bad Request");
     });
   });
 
-  describe('Role Change Operations', () => {
+  describe("Role Change Operations", () => {
     const mockRoleChangeResponse = {
       userId: 123,
       result: {
         success: true,
-        changedAt: '2025-09-15T10:00:00.000Z',
-        previousRole: 'USER',
-        newRole: 'ADMIN',
+        changedAt: "2025-09-15T10:00:00.000Z",
+        previousRole: "USER",
+        newRole: "ADMIN",
         requiresApproval: true,
       },
-      message: 'User role changed successfully',
-      timestamp: '2025-09-15T10:00:00.000Z',
+      message: "User role changed successfully",
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
-    test('should change user role successfully', async () => {
+    test("should change user role successfully", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
       });
 
-      const userContext = { 
-        reason: 'Promotion to admin role',
-        approvedBy: 'manager123' 
+      const userContext = {
+        reason: "Promotion to admin role",
+        approvedBy: "manager123",
       };
 
       const result = await usersManager.changeUserRole(123, 2, userContext);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/rest/scriptrunner/latest/custom/users/relationships/123/role'),
+        expect.stringContaining(
+          "/rest/scriptrunner/latest/custom/users/relationships/123/role",
+        ),
         expect.objectContaining({
-          method: 'PUT',
+          method: "PUT",
           headers: expect.any(Object),
           body: expect.stringContaining('"roleId":2'),
-        })
+        }),
       );
 
       // Verify the body contains expected userContext data
       const fetchCall = fetch.mock.calls[0][1];
       const body = JSON.parse(fetchCall.body);
-      expect(body.userContext.reason).toBe('Promotion to admin role');
-      expect(body.userContext.approvedBy).toBe('manager123');
-      expect(typeof body.userContext.timestamp).toBe('string');
+      expect(body.userContext.reason).toBe("Promotion to admin role");
+      expect(body.userContext.approvedBy).toBe("manager123");
+      expect(typeof body.userContext.timestamp).toBe("string");
 
       expect(result).toEqual(mockRoleChangeResponse);
       expect(result.result.success).toBe(true);
     });
 
-    test('should handle role change failure', async () => {
+    test("should handle role change failure", async () => {
       const failureResponse = {
         userId: 123,
         result: {
           success: false,
-          error: 'User not found',
+          error: "User not found",
         },
       };
 
       fetch.mockResolvedValueOnce({
         ok: false,
         json: async () => failureResponse,
-        statusText: 'Bad Request',
+        statusText: "Bad Request",
       });
 
-      await expect(
-        usersManager.changeUserRole(123, 2, {})
-      ).rejects.toThrow('Failed to change user role: Bad Request');
+      await expect(usersManager.changeUserRole(123, 2, {})).rejects.toThrow(
+        "Failed to change user role: Bad Request",
+      );
     });
 
-    test('should handle approval required scenarios', async () => {
+    test("should handle approval required scenarios", async () => {
       const approvalResponse = {
         ...mockRoleChangeResponse,
         result: {
           ...mockRoleChangeResponse.result,
           requiresApproval: true,
-          approvalRequired: 'Role elevation requires manager approval',
+          approvalRequired: "Role elevation requires manager approval",
         },
       };
 
@@ -249,13 +259,13 @@ describe('UsersEntityManager - Role Management', () => {
       });
 
       const result = await usersManager.changeUserRole(123, 3, {
-        approvedBy: 'manager456',
+        approvedBy: "manager456",
       });
 
       expect(result.result.requiresApproval).toBe(true);
     });
 
-    test('should track performance metrics for role changes', async () => {
+    test("should track performance metrics for role changes", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
@@ -270,10 +280,10 @@ describe('UsersEntityManager - Role Management', () => {
       expect(metrics.metrics.roleChange.count).toBe(1);
     });
 
-    test('should invalidate cache after role change', async () => {
+    test("should invalidate cache after role change", async () => {
       // Mock cache with user data
-      usersManager.cache.set('user_123', {
-        data: { userId: 123, role: 'USER' },
+      usersManager.cache.set("user_123", {
+        data: { userId: 123, role: "USER" },
         timestamp: Date.now(),
       });
 
@@ -282,22 +292,22 @@ describe('UsersEntityManager - Role Management', () => {
         json: async () => mockRoleChangeResponse,
       });
 
-      expect(usersManager.cache.has('user_123')).toBe(true);
+      expect(usersManager.cache.has("user_123")).toBe(true);
 
       await usersManager.changeUserRole(123, 2, {});
 
       // Cache should be invalidated
-      expect(usersManager.cache.has('user_123')).toBe(false);
+      expect(usersManager.cache.has("user_123")).toBe(false);
     });
   });
 
-  describe('Role Hierarchy and Permissions', () => {
-    test('should validate role hierarchy correctly', async () => {
+  describe("Role Hierarchy and Permissions", () => {
+    test("should validate role hierarchy correctly", async () => {
       const hierarchyTests = [
-        { from: 'USER', to: 'ADMIN', valid: true, approval: true },
-        { from: 'ADMIN', to: 'USER', valid: true, approval: false },
-        { from: 'ADMIN', to: 'SUPERADMIN', valid: true, approval: true },
-        { from: 'USER', to: 'SUPERADMIN', valid: false, approval: false },
+        { from: "USER", to: "ADMIN", valid: true, approval: true },
+        { from: "ADMIN", to: "USER", valid: true, approval: false },
+        { from: "ADMIN", to: "SUPERADMIN", valid: true, approval: true },
+        { from: "USER", to: "SUPERADMIN", valid: false, approval: false },
       ];
 
       for (const test of hierarchyTests) {
@@ -321,9 +331,9 @@ describe('UsersEntityManager - Role Management', () => {
       }
     });
 
-    test('should handle role permission checks', async () => {
+    test("should handle role permission checks", async () => {
       const currentUser = mockOrchestrator.getCurrentUser();
-      expect(currentUser.role).toBe('ADMIN');
+      expect(currentUser.role).toBe("ADMIN");
 
       // Admin should be able to change user roles
       fetch.mockResolvedValueOnce({
@@ -338,42 +348,43 @@ describe('UsersEntityManager - Role Management', () => {
     });
   });
 
-  describe('Audit Trail for Role Changes', () => {
+  describe("Audit Trail for Role Changes", () => {
     const mockRoleChangeResponse = {
       userId: 123,
       result: {
         success: true,
-        changedAt: '2025-09-15T10:00:00.000Z',
-        previousRole: 'USER',
-        newRole: 'ADMIN',
+        changedAt: "2025-09-15T10:00:00.000Z",
+        previousRole: "USER",
+        newRole: "ADMIN",
         requiresApproval: true,
       },
-      message: 'User role changed successfully',
-      timestamp: '2025-09-15T10:00:00.000Z',
+      message: "User role changed successfully",
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
-    test('should create audit logs for role changes', async () => {
+    test("should create audit logs for role changes", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
       });
 
       await usersManager.changeUserRole(123, 2, {
-        reason: 'Promotion',
-        approvedBy: 'manager123',
+        reason: "Promotion",
+        approvedBy: "manager123",
       });
 
       // Verify audit log was created
       expect(usersManager.auditCache.length).toBeGreaterThan(0);
-      const auditEntry = usersManager.auditCache[usersManager.auditCache.length - 1];
-      
-      expect(auditEntry.eventType).toBe('role_change');
+      const auditEntry =
+        usersManager.auditCache[usersManager.auditCache.length - 1];
+
+      expect(auditEntry.eventType).toBe("role_change");
       expect(auditEntry.entityId).toBe(123);
       expect(auditEntry.data.newRoleId).toBe(2);
-      expect(auditEntry.data.userContext.reason).toBe('Promotion');
+      expect(auditEntry.data.userContext.reason).toBe("Promotion");
     });
 
-    test('should track 90-day audit retention requirement', async () => {
+    test("should track 90-day audit retention requirement", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
@@ -381,7 +392,8 @@ describe('UsersEntityManager - Role Management', () => {
 
       await usersManager.changeUserRole(123, 2, {});
 
-      const auditEntry = usersManager.auditCache[usersManager.auditCache.length - 1];
+      const auditEntry =
+        usersManager.auditCache[usersManager.auditCache.length - 1];
       const auditDate = new Date(auditEntry.timestamp);
       const retentionDate = new Date();
       retentionDate.setDate(retentionDate.getDate() + 90);
@@ -390,37 +402,38 @@ describe('UsersEntityManager - Role Management', () => {
     });
   });
 
-  describe('Error Handling and Edge Cases', () => {
-    test('should handle missing user ID', async () => {
+  describe("Error Handling and Edge Cases", () => {
+    test("should handle missing user ID", async () => {
       await expect(
-        usersManager.validateRoleTransition(null, 1, 2)
+        usersManager.validateRoleTransition(null, 1, 2),
       ).rejects.toThrow();
     });
 
-    test('should handle invalid role IDs', async () => {
+    test("should handle invalid role IDs", async () => {
       fetch.mockResolvedValueOnce({
         ok: false,
-        statusText: 'Bad Request',
+        statusText: "Bad Request",
       });
 
       await expect(
-        usersManager.validateRoleTransition(123, 999, 888)
-      ).rejects.toThrow('Failed to validate role transition: Bad Request');
+        usersManager.validateRoleTransition(123, 999, 888),
+      ).rejects.toThrow("Failed to validate role transition: Bad Request");
     });
 
-    test('should handle network timeouts', async () => {
-      fetch.mockImplementationOnce(() => 
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 100)
-        )
+    test("should handle network timeouts", async () => {
+      fetch.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout")), 100),
+          ),
       );
 
-      await expect(
-        usersManager.changeUserRole(123, 2, {})
-      ).rejects.toThrow('Timeout');
+      await expect(usersManager.changeUserRole(123, 2, {})).rejects.toThrow(
+        "Timeout",
+      );
     });
 
-    test('should handle malformed response', async () => {
+    test("should handle malformed response", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ invalidData: true }),
@@ -431,7 +444,7 @@ describe('UsersEntityManager - Role Management', () => {
     });
   });
 
-  describe('Performance Requirements', () => {
+  describe("Performance Requirements", () => {
     const mockValidationResponse = {
       userId: 123,
       roleTransition: {
@@ -441,27 +454,27 @@ describe('UsersEntityManager - Role Management', () => {
       validation: {
         valid: true,
         reason: null,
-        fromRoleName: 'USER',
-        toRoleName: 'ADMIN',
+        fromRoleName: "USER",
+        toRoleName: "ADMIN",
         requiresApproval: true,
       },
-      timestamp: '2025-09-15T10:00:00.000Z',
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
     const mockRoleChangeResponse = {
       userId: 123,
       result: {
         success: true,
-        changedAt: '2025-09-15T10:00:00.000Z',
-        previousRole: 'USER',
-        newRole: 'ADMIN',
+        changedAt: "2025-09-15T10:00:00.000Z",
+        previousRole: "USER",
+        newRole: "ADMIN",
         requiresApproval: true,
       },
-      message: 'User role changed successfully',
-      timestamp: '2025-09-15T10:00:00.000Z',
+      message: "User role changed successfully",
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
-    test('should complete role validation within 200ms', async () => {
+    test("should complete role validation within 200ms", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockValidationResponse,
@@ -475,7 +488,7 @@ describe('UsersEntityManager - Role Management', () => {
       expect(duration).toBeLessThan(500); // Relaxed for test environment
     });
 
-    test('should complete role change within 200ms', async () => {
+    test("should complete role change within 200ms", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
@@ -489,7 +502,7 @@ describe('UsersEntityManager - Role Management', () => {
       expect(duration).toBeLessThan(500);
     });
 
-    test('should track performance metrics correctly', async () => {
+    test("should track performance metrics correctly", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockValidationResponse,
@@ -500,25 +513,27 @@ describe('UsersEntityManager - Role Management', () => {
       const metrics = usersManager.getPerformanceMetrics();
       expect(metrics.metrics.roleValidation).toBeDefined();
       expect(metrics.metrics.roleValidation.count).toBe(1);
-      expect(typeof metrics.metrics.roleValidation.averageDuration).toBe('number');
+      expect(typeof metrics.metrics.roleValidation.averageDuration).toBe(
+        "number",
+      );
     });
   });
 
-  describe('Security Validation', () => {
+  describe("Security Validation", () => {
     const mockRoleChangeResponse = {
       userId: 123,
       result: {
         success: true,
-        changedAt: '2025-09-15T10:00:00.000Z',
-        previousRole: 'USER',
-        newRole: 'ADMIN',
+        changedAt: "2025-09-15T10:00:00.000Z",
+        previousRole: "USER",
+        newRole: "ADMIN",
         requiresApproval: true,
       },
-      message: 'User role changed successfully',
-      timestamp: '2025-09-15T10:00:00.000Z',
+      message: "User role changed successfully",
+      timestamp: "2025-09-15T10:00:00.000Z",
     };
 
-    test('should apply CSRF protection to role management requests', async () => {
+    test("should apply CSRF protection to role management requests", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
@@ -528,12 +543,18 @@ describe('UsersEntityManager - Role Management', () => {
 
       // Verify CSRF protection is applied by checking the headers
       const fetchCall = fetch.mock.calls[0][1];
-      expect(fetchCall.headers).toHaveProperty('Content-Type', 'application/json');
-      expect(fetchCall.headers).toHaveProperty('X-CSRF-Token');
-      expect(fetchCall.headers).toHaveProperty('X-Requested-With', 'XMLHttpRequest');
+      expect(fetchCall.headers).toHaveProperty(
+        "Content-Type",
+        "application/json",
+      );
+      expect(fetchCall.headers).toHaveProperty("X-CSRF-Token");
+      expect(fetchCall.headers).toHaveProperty(
+        "X-Requested-With",
+        "XMLHttpRequest",
+      );
     });
 
-    test('should sanitize user context inputs', async () => {
+    test("should sanitize user context inputs", async () => {
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockRoleChangeResponse,
@@ -541,7 +562,7 @@ describe('UsersEntityManager - Role Management', () => {
 
       const userContext = {
         reason: '<script>alert("xss")</script>Promotion',
-        approvedBy: 'manager123',
+        approvedBy: "manager123",
       };
 
       await usersManager.changeUserRole(123, 2, userContext);
@@ -550,26 +571,26 @@ describe('UsersEntityManager - Role Management', () => {
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: expect.stringContaining('Promotion'),
-        })
+          body: expect.stringContaining("Promotion"),
+        }),
       );
     });
 
-    test('should validate user permissions before role changes', async () => {
+    test("should validate user permissions before role changes", async () => {
       // Mock insufficient permissions
       mockOrchestrator.getCurrentUser.mockReturnValueOnce({
-        userId: 'testUser',
-        role: 'USER', // Insufficient role
+        userId: "testUser",
+        role: "USER", // Insufficient role
       });
 
       fetch.mockResolvedValueOnce({
         ok: false,
-        statusText: 'Forbidden',
+        statusText: "Forbidden",
       });
 
-      await expect(
-        usersManager.changeUserRole(123, 2, {})
-      ).rejects.toThrow('Failed to change user role: Forbidden');
+      await expect(usersManager.changeUserRole(123, 2, {})).rejects.toThrow(
+        "Failed to change user role: Forbidden",
+      );
     });
   });
 });

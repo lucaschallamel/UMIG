@@ -36,6 +36,7 @@ def connection = createAuthenticatedConnection("http://localhost:8090/rest/scrip
 #### Issue #2: Incomplete Authentication Security Implementation
 
 **Affected Files** (17 total):
+
 1. ApplicationsApiIntegrationTest.groovy
 2. ControlsApiIntegrationTest.groovy
 3. EmailTemplateIntegrationTest.groovy
@@ -55,6 +56,7 @@ def connection = createAuthenticatedConnection("http://localhost:8090/rest/scrip
 17. stepViewApiIntegrationTest.groovy
 
 **Status**: Each file has:
+
 - ✅ **Automatic updates completed**: Security comments, `createAuthenticatedConnection()` helper method, authentication validation
 - ⚠️ **Manual updates needed**: Converting HTTP connections to use authentication
 - 📋 **UPDATE_NOTES.txt**: Detailed find/replace patterns documented
@@ -127,6 +129,7 @@ def connection = createAuthenticatedConnection(
 **Then** all documented patterns are successfully implemented:
 
 **Pattern 1 - Basic URL Connections**:
+
 ```groovy
 // FIND:
 def url = new URL("...")
@@ -140,6 +143,7 @@ def connection = createAuthenticatedConnection("...", "METHOD", "CONTENT_TYPE")
 ```
 
 **Pattern 2 - Simple GET Requests**:
+
 ```groovy
 // FIND:
 def url = new URL("...")
@@ -163,6 +167,7 @@ def connection = createAuthenticatedConnection("...", "GET")
 - Technology-prefixed test commands work correctly
 
 **Validation Commands**:
+
 ```bash
 # Test individual files
 groovy ApplicationsApiIntegrationTest.groovy
@@ -188,6 +193,7 @@ npm run test:all:integration
 - Document completion in integration test README
 
 **Cleanup Verification**:
+
 ```bash
 # Verify no UPDATE_NOTES.txt files remain
 find src/groovy/umig/tests/integration/ -name "*.UPDATE_NOTES.txt"
@@ -246,25 +252,25 @@ npm run test:all:comprehensive   # Full test suite validation
 
 ### File-by-File Implementation Checklist
 
-| File Name | UPDATE_NOTES.txt | Find/Replace | Test Pass | Cleanup | Status |
-|-----------|------------------|--------------|-----------|---------|---------|
-| ApplicationsApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| ControlsApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| EmailTemplateIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| EnhancedEmailNotificationIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| EnvironmentsApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| ImportApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| ImportOrchestrationIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| ImportPerformanceIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| ImportProgressTrackingIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| InstructionsApiDeleteIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| InstructionsApiIntegrationSpec.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| PhasesApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| PlansApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| SequencesApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| StatusValidationIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| StepRepositoryDTOIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
-| stepViewApiIntegrationTest.groovy | ✅ | ⏳ | ⏳ | ⏳ | Pending |
+| File Name                                       | UPDATE_NOTES.txt | Find/Replace | Test Pass | Cleanup | Status  |
+| ----------------------------------------------- | ---------------- | ------------ | --------- | ------- | ------- |
+| ApplicationsApiIntegrationTest.groovy           | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| ControlsApiIntegrationTest.groovy               | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| EmailTemplateIntegrationTest.groovy             | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| EnhancedEmailNotificationIntegrationTest.groovy | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| EnvironmentsApiIntegrationTest.groovy           | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| ImportApiIntegrationTest.groovy                 | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| ImportOrchestrationIntegrationTest.groovy       | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| ImportPerformanceIntegrationTest.groovy         | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| ImportProgressTrackingIntegrationTest.groovy    | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| InstructionsApiDeleteIntegrationTest.groovy     | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| InstructionsApiIntegrationSpec.groovy           | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| PhasesApiIntegrationTest.groovy                 | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| PlansApiIntegrationTest.groovy                  | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| SequencesApiIntegrationTest.groovy              | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| StatusValidationIntegrationTest.groovy          | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| StepRepositoryDTOIntegrationTest.groovy         | ✅               | ⏳           | ⏳        | ⏳      | Pending |
+| stepViewApiIntegrationTest.groovy               | ✅               | ⏳           | ⏳        | ⏳      | Pending |
 
 ## Dependencies and Integration Points
 
@@ -404,8 +410,8 @@ npm run test:all:comprehensive   # Full test suite validation
 
 ## Change Log
 
-| Date       | Version | Changes                | Author |
-| ---------- | ------- | ---------------------- | ------ |
+| Date       | Version | Changes                                                                            | Author |
+| ---------- | ------- | ---------------------------------------------------------------------------------- | ------ |
 | 2025-01-15 | 1.0     | Initial story creation for integration test authentication security technical debt | System |
 
 ---
