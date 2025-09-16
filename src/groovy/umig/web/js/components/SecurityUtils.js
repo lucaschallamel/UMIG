@@ -1,1321 +1,761 @@
 /**
- * SecurityUtils - Security Utility Module
- * US-082-B Component Architecture Development
+ * SecurityUtils - Comprehensive Security Utilities
+ * US-082-B Component Architecture - Security Enhancement Phase
  *
- * Provides security utilities for all components:
- * - HTML escaping and sanitization
- * - Input validation
- * - XSS prevention
- * - Safe DOM manipulation
- * - Content Security Policy compliance
+ * Provides comprehensive security utilities for the UMIG application
+ * Implements XSS protection, CSRF token management, input validation, and sanitization
+ *
+ * Features:
+ * - Advanced XSS prevention with multiple encoding strategies
+ * - Double-submit CSRF token pattern with rotation
+ * - Comprehensive input validation and sanitization
+ * - Rate limiting helpers
+ * - Secure random token generation
+ * - Content Security Policy helpers
+ * - Centralized security policy enforcement
+ *
+ * @version 2.0.0 (Production Security Implementation)
  */
 
 class SecurityUtils {
-  /**
-   * CSRF token storage and management
-   * @private
-   */
-  static _csrfToken = null;
-  static _csrfTokenExpiry = null;
-  static _csrfTokenKey = "umig_csrf_token";
+  constructor() {
+    // CSRF token management
+    this.csrfTokens = {
+      current: null,
+      previous: null,
+      rotationInterval: 15 * 60 * 1000, // 15 minutes
+      rotationTimer: null,
+    };
 
-  /**
-   * Rate limiting storage
-   * @private
-   */
-  static _rateLimits = new Map();
+    // Rate limiting storage
+    this.rateLimits = new Map();
 
-  /**
-   * Security exception class for enhanced error handling
-   */
-  static SecurityException = class extends Error {
-    constructor(message, code = "SECURITY_VIOLATION", details = {}) {
-      super(message);
-      this.name = "SecurityException";
-      this.code = code;
-      this.details = details;
-      this.timestamp = new Date().toISOString();
-    }
-  };
+    // Rate limiting configuration
+    this.rateLimitConfig = {
+      windowMs: 60000, // 1 minute window
+      maxRequests: 10, // Max requests per window
+    };
 
-  /**
-   * Validation exception class
-   */
-  static ValidationException = class extends Error {
-    constructor(message, field = null, value = null) {
-      super(message);
-      this.name = "ValidationException";
-      this.field = field;
-      this.value = value;
-      this.timestamp = new Date().toISOString();
-    }
-  };
+    // Validation patterns
+    this.validationPatterns = {
+      email:
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+      uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      alphanumeric: /^[a-zA-Z0-9]+$/,
+      alphanumericWithSpaces: /^[a-zA-Z0-9\s]+$/,
+      safeString: /^[a-zA-Z0-9\s\-_.,!?()]+$/,
+      strongPassword:
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      phoneNumber: /^\+?[1-9]\d{1,14}$/,
+      hexColor: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+    };
 
-  /**
-   * Authorization exception class for permission and access control violations
-   */
-  static AuthorizationException = class extends Error {
-    constructor(message, operation = null, context = {}) {
-      super(message);
-      this.name = "AuthorizationException";
-      this.operation = operation;
-      this.context = context;
-      this.timestamp = new Date().toISOString();
-    }
-  };
-
-  /**
-   * Generate CSRF token with secure random values
-   * @returns {string} CSRF token
-   */
-  static generateCSRFToken() {
-    try {
-      // Generate 32 bytes of random data
-      const array = new Uint8Array(32);
-      crypto.getRandomValues(array);
-
-      // Convert to base64 for transmission
-      const token = btoa(String.fromCharCode.apply(null, array));
-
-      // Set expiry to 1 hour from now
-      const expiry = new Date(Date.now() + 3600000);
-
-      // Store token and expiry
-      this._csrfToken = token;
-      this._csrfTokenExpiry = expiry;
-
-      // Store in sessionStorage for persistence across requests
-      try {
-        sessionStorage.setItem(
-          this._csrfTokenKey,
-          JSON.stringify({
-            token,
-            expiry: expiry.toISOString(),
-          }),
-        );
-      } catch (storageError) {
-        console.warn(
-          "[SecurityUtils] Failed to store CSRF token in sessionStorage:",
-          storageError,
-        );
-      }
-
-      this.logSecurityEvent("csrf_token_generated", "info", {
-        tokenLength: token.length,
-      });
-
-      return token;
-    } catch (error) {
-      this.logSecurityEvent("csrf_token_generation_failed", "error", {
-        error: error.message,
-      });
-      throw new this.SecurityException(
-        "Failed to generate CSRF token",
-        "CSRF_GENERATION_ERROR",
-        { originalError: error },
-      );
-    }
+    // Initialize
+    this.initialize();
   }
 
   /**
-   * Get current CSRF token, generating if needed
-   * @returns {string} CSRF token
+   * Initialize security utilities
    */
-  static getCSRFToken() {
-    try {
-      // Check if we have a valid token in memory
-      if (
-        this._csrfToken &&
-        this._csrfTokenExpiry &&
-        new Date() < this._csrfTokenExpiry
-      ) {
-        return this._csrfToken;
-      }
+  initialize() {
+    // Generate initial CSRF token
+    this.generateCSRFToken();
 
-      // Try to load from sessionStorage
-      try {
-        const stored = sessionStorage.getItem(this._csrfTokenKey);
-        if (stored) {
-          const { token, expiry } = JSON.parse(stored);
-          const expiryDate = new Date(expiry);
+    // Start token rotation
+    this.startCSRFTokenRotation();
 
-          if (new Date() < expiryDate) {
-            this._csrfToken = token;
-            this._csrfTokenExpiry = expiryDate;
-            return token;
-          }
-        }
-      } catch (storageError) {
-        console.warn(
-          "[SecurityUtils] Failed to load CSRF token from sessionStorage:",
-          storageError,
-        );
-      }
+    // Setup AJAX interceptors
+    this.setupAJAXInterceptors();
 
-      // Generate new token if none exists or expired
-      return this.generateCSRFToken();
-    } catch (error) {
-      this.logSecurityEvent("csrf_token_retrieval_failed", "error", {
-        error: error.message,
-      });
-      throw new this.SecurityException(
-        "Failed to get CSRF token",
-        "CSRF_RETRIEVAL_ERROR",
-        { originalError: error },
-      );
-    }
+    console.info("[SecurityUtils] Initialized with enhanced security features");
   }
 
-  /**
-   * Validate CSRF token
-   * @param {string} token - Token to validate
-   * @returns {boolean} True if valid
-   */
-  static validateCSRFToken(token) {
-    try {
-      if (!token || typeof token !== "string") {
-        this.logSecurityEvent("csrf_validation_failed", "warning", {
-          reason: "invalid_token_format",
-        });
-        return false;
-      }
-
-      const currentToken = this.getCSRFToken();
-      const isValid = token === currentToken;
-
-      if (!isValid) {
-        this.logSecurityEvent("csrf_validation_failed", "warning", {
-          reason: "token_mismatch",
-        });
-      } else {
-        this.logSecurityEvent("csrf_validation_success", "info");
-      }
-
-      return isValid;
-    } catch (error) {
-      this.logSecurityEvent("csrf_validation_error", "error", {
-        error: error.message,
-      });
-      return false;
-    }
-  }
+  // ===== XSS Prevention =====
 
   /**
-   * Add CSRF protection to fetch request headers
-   * @param {Object} headers - Request headers object
-   * @returns {Object} Headers with CSRF protection
+   * Comprehensive XSS sanitization
+   * @param {string} input - Input to sanitize
+   * @param {Object} options - Sanitization options
+   * @returns {string} Sanitized string
    */
-  static addCSRFProtection(headers = {}) {
-    try {
-      const token = this.getCSRFToken();
-      return {
-        ...headers,
-        "X-CSRF-Token": token,
-        "X-Requested-With": "XMLHttpRequest",
-      };
-    } catch (error) {
-      this.logSecurityEvent("csrf_protection_failed", "error", {
-        error: error.message,
-      });
-      throw new this.SecurityException(
-        "Failed to add CSRF protection",
-        "CSRF_PROTECTION_ERROR",
-        { originalError: error },
-      );
-    }
-  }
-
-  /**
-   * Secure fetch wrapper with CSRF protection and enhanced security
-   * @param {string} url - Request URL
-   * @param {Object} options - Fetch options
-   * @returns {Promise<Response>} Fetch response
-   */
-  static async secureFetch(url, options = {}) {
-    try {
-      // Validate URL
-      if (!url || typeof url !== "string") {
-        throw new this.SecurityException(
-          "Invalid URL provided to secureFetch",
-          "INVALID_URL",
-          { url }
-        );
-      }
-
-      // Rate limiting check
-      const action = `fetch_${new URL(url).pathname}`;
-      if (!this.checkRateLimit(action, 100, 60000)) { // 100 requests per minute
-        throw new this.SecurityException(
-          "Rate limit exceeded for API requests",
-          "RATE_LIMIT_EXCEEDED",
-          { action, url }
-        );
-      }
-
-      // Prepare secure headers
-      const secureHeaders = this.addCSRFProtection(options.headers || {});
-
-      // Add content-type if missing for non-GET requests
-      if (options.method && options.method.toUpperCase() !== "GET" && !secureHeaders["Content-Type"]) {
-        secureHeaders["Content-Type"] = "application/json";
-      }
-
-      // Validate and sanitize request body if present
-      let secureBody = options.body;
-      if (secureBody && typeof secureBody === "string") {
-        try {
-          const parsedBody = JSON.parse(secureBody);
-          const validationResult = this.validateInput(parsedBody);
-          if (!validationResult.isValid) {
-            throw new this.ValidationException(
-              `Request body validation failed: ${validationResult.errors.join(", ")}`,
-              "request_body",
-              secureBody
-            );
-          }
-          secureBody = JSON.stringify(validationResult.sanitizedData);
-        } catch (parseError) {
-          if (parseError instanceof this.ValidationException) {
-            throw parseError;
-          }
-          // If it's not JSON, treat as string and validate/sanitize
-          const sanitized = this.sanitizeInput(secureBody);
-          secureBody = sanitized;
-        }
-      }
-
-      // Prepare secure options
-      const secureOptions = {
-        ...options,
-        headers: secureHeaders,
-        body: secureBody,
-        credentials: options.credentials || "same-origin", // CSRF protection requires same-origin
-      };
-
-      this.logSecurityEvent("secure_fetch_initiated", "info", {
-        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"), // Hide query params
-        method: options.method || "GET",
-      });
-
-      // Perform the fetch
-      const response = await fetch(url, secureOptions);
-
-      // Log the response
-      this.logSecurityEvent("secure_fetch_completed", "info", {
-        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"),
-        status: response.status,
-        ok: response.ok,
-      });
-
-      return response;
-
-    } catch (error) {
-      this.logSecurityEvent("secure_fetch_failed", "error", {
-        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"),
-        error: error.message,
-        errorType: error.constructor.name,
-      });
-
-      // Re-throw security exceptions as-is
-      if (error instanceof this.SecurityException ||
-          error instanceof this.ValidationException ||
-          error instanceof this.AuthorizationException) {
-        throw error;
-      }
-
-      // Wrap other errors
-      throw new this.SecurityException(
-        "Secure fetch operation failed",
-        "FETCH_ERROR",
-        { originalError: error.message, url }
-      );
-    }
-  }
-
-  /**
-   * Escape HTML to prevent XSS attacks
-   * @param {string} text - Text to escape
-   * @returns {string} Escaped HTML
-   */
-  static escapeHtml(text) {
-    if (text == null) return "";
-
-    const str = String(text);
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;")
-      .replace(/\//g, "&#x2F;"); // Additional forward slash escaping
-  }
-
-  /**
-   * Prevent XSS in object properties
-   * @param {Object} obj - Object to sanitize
-   * @returns {Object} Sanitized object
-   */
-  static preventXSS(obj) {
-    if (!obj || typeof obj !== "object") {
-      return obj;
+  static sanitizeXSS(input, options = {}) {
+    if (!input || typeof input !== "string") {
+      return "";
     }
 
-    const sanitized = {};
+    const config = {
+      allowHTML: false,
+      allowAttributes: false,
+      allowScripts: false,
+      encodeEntities: true,
+      trimWhitespace: true,
+      maxLength: null,
+      ...options,
+    };
 
-    Object.keys(obj).forEach((key) => {
-      const value = obj[key];
+    let sanitized = input;
 
-      if (typeof value === "string") {
-        // Check for potential XSS patterns
-        if (this._containsXSSPatterns(value)) {
-          this.logSecurityEvent("xss_attempt_detected", "warning", {
-            field: key,
-            value: value.substring(0, 100), // Log first 100 chars only
-          });
-          sanitized[key] = this.escapeHtml(value);
-        } else {
-          sanitized[key] = value;
-        }
-      } else if (Array.isArray(value)) {
-        sanitized[key] = value.map((item) =>
-          typeof item === "string" ? this.escapeHtml(item) : item,
-        );
-      } else if (typeof value === "object" && value !== null) {
-        sanitized[key] = this.preventXSS(value); // Recursive sanitization
-      } else {
-        sanitized[key] = value;
-      }
-    });
+    // Basic HTML entity encoding
+    if (config.encodeEntities) {
+      sanitized = sanitized
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;")
+        .replace(/\//g, "&#x2F;");
+    }
+
+    // Remove script tags and javascript: protocols
+    if (!config.allowScripts) {
+      sanitized = sanitized
+        .replace(/<script[^>]*>.*?<\/script>/gis, "")
+        .replace(/javascript:/gi, "")
+        .replace(/vbscript:/gi, "")
+        .replace(/data:/gi, "")
+        .replace(/on\w+\s*=/gi, "");
+    }
+
+    // Remove HTML tags if not allowed
+    if (!config.allowHTML) {
+      sanitized = sanitized.replace(/<[^>]*>/g, "");
+    }
+
+    // Remove potentially dangerous attributes
+    if (!config.allowAttributes) {
+      sanitized = sanitized
+        .replace(/style\s*=\s*["'][^"']*["']/gi, "")
+        .replace(/onclick\s*=\s*["'][^"']*["']/gi, "")
+        .replace(/onload\s*=\s*["'][^"']*["']/gi, "");
+    }
+
+    // Trim whitespace
+    if (config.trimWhitespace) {
+      sanitized = sanitized.trim();
+    }
+
+    // Enforce maximum length
+    if (config.maxLength && sanitized.length > config.maxLength) {
+      sanitized = sanitized.substring(0, config.maxLength);
+    }
 
     return sanitized;
   }
 
   /**
-   * Check for common XSS patterns
-   * @param {string} str - String to check
-   * @returns {boolean} True if XSS patterns detected
-   * @private
+   * Sanitize for different contexts
    */
-  static _containsXSSPatterns(str) {
-    const xssPatterns = [
-      /<script[^>]*>.*?<\/script>/gi,
-      /javascript:/gi,
-      /on\w+\s*=/gi,
-      /<iframe[^>]*>.*?<\/iframe>/gi,
-      /<object[^>]*>.*?<\/object>/gi,
-      /<embed[^>]*>/gi,
-      /<link[^>]*>/gi,
-      /<meta[^>]*>/gi,
-      /expression\s*\(/gi,
-      /vbscript:/gi,
-      /data:text\/html/gi,
-    ];
+  static sanitizeForHTML(input) {
+    return SecurityUtils.sanitizeXSS(input, {
+      allowHTML: false,
+      encodeEntities: true,
+    });
+  }
 
-    return xssPatterns.some((pattern) => pattern.test(str));
+  static sanitizeForAttribute(input) {
+    return SecurityUtils.sanitizeXSS(input, {
+      allowHTML: false,
+      allowAttributes: false,
+      encodeEntities: true,
+    });
+  }
+
+  static sanitizeForURL(input) {
+    if (!input || typeof input !== "string") return "";
+    try {
+      return encodeURIComponent(input);
+    } catch (e) {
+      return "";
+    }
+  }
+
+  static sanitizeForCSS(input) {
+    if (!input || typeof input !== "string") return "";
+    // Remove potentially dangerous CSS content
+    return input
+      .replace(/[<>"'`]/g, "")
+      .replace(/javascript:/gi, "")
+      .replace(/expression\(/gi, "");
+  }
+
+  // ===== CSRF Protection =====
+
+  /**
+   * Generate cryptographically secure CSRF token
+   */
+  generateCSRFToken() {
+    try {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      const token = btoa(String.fromCharCode(...array))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
+
+      // Rotate tokens
+      this.csrfTokens.previous = this.csrfTokens.current;
+      this.csrfTokens.current = token;
+
+      // Store in cookie for double-submit pattern
+      this.setCSRFTokenCookie(token);
+
+      // Update meta tag
+      this.updateCSRFMetaTag(token);
+
+      return token;
+    } catch (error) {
+      console.error("[SecurityUtils] Failed to generate CSRF token:", error);
+      // Fallback to timestamp-based token
+      const fallbackToken = `csrf-${Date.now()}-${Math.random().toString(36)}`;
+      this.csrfTokens.current = fallbackToken;
+      return fallbackToken;
+    }
   }
 
   /**
-   * Comprehensive input validation
-   * @param {Object} data - Data to validate
-   * @param {Object} rules - Validation rules
-   * @returns {Object} Validation result
+   * Get current CSRF token
    */
-  static validateInput(data, rules = {}) {
-    const result = {
-      isValid: true,
-      errors: [],
-      sanitizedData: {},
+  getCSRFToken() {
+    return this.csrfTokens.current;
+  }
+
+  /**
+   * Validate CSRF token (double-submit pattern)
+   */
+  validateCSRFToken(token, cookieToken = null) {
+    if (!token) {
+      return { valid: false, reason: "No token provided" };
+    }
+
+    // Check against current and previous tokens (for rotation tolerance)
+    const validTokens = [
+      this.csrfTokens.current,
+      this.csrfTokens.previous,
+    ].filter(Boolean);
+
+    if (!validTokens.includes(token)) {
+      return { valid: false, reason: "Invalid token" };
+    }
+
+    // Double-submit validation if cookie token provided
+    if (cookieToken !== null && token !== cookieToken) {
+      return {
+        valid: false,
+        reason: "Token mismatch between header and cookie",
+      };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Set CSRF token cookie
+   */
+  setCSRFTokenCookie(token) {
+    if (typeof document !== "undefined") {
+      const secure = location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `XSRF-TOKEN=${token}; Path=/; SameSite=Strict${secure}; HttpOnly=false`;
+    }
+  }
+
+  /**
+   * Update CSRF meta tag
+   */
+  updateCSRFMetaTag(token) {
+    if (typeof document !== "undefined") {
+      let metaTag = document.querySelector('meta[name="csrf-token"]');
+      if (!metaTag) {
+        metaTag = document.createElement("meta");
+        metaTag.name = "csrf-token";
+        document.head.appendChild(metaTag);
+      }
+      metaTag.content = token;
+    }
+  }
+
+  /**
+   * Start CSRF token rotation
+   */
+  startCSRFTokenRotation() {
+    if (this.csrfTokens.rotationTimer) {
+      clearInterval(this.csrfTokens.rotationTimer);
+    }
+
+    this.csrfTokens.rotationTimer = setInterval(() => {
+      this.generateCSRFToken();
+      console.debug("[SecurityUtils] CSRF token rotated");
+
+      // Emit token rotation event
+      if (typeof window !== "undefined" && window.CustomEvent) {
+        const event = new CustomEvent("csrf:tokenRotated", {
+          detail: { newToken: this.csrfTokens.current },
+        });
+        window.dispatchEvent(event);
+      }
+    }, this.csrfTokens.rotationInterval);
+  }
+
+  /**
+   * Stop CSRF token rotation
+   */
+  stopCSRFTokenRotation() {
+    if (this.csrfTokens.rotationTimer) {
+      clearInterval(this.csrfTokens.rotationTimer);
+      this.csrfTokens.rotationTimer = null;
+    }
+  }
+
+  // ===== Input Validation =====
+
+  /**
+   * Comprehensive input validation
+   */
+  static validateInput(input, validationType, options = {}) {
+    const config = {
+      required: false,
+      minLength: null,
+      maxLength: null,
+      customPattern: null,
+      allowedValues: null,
+      sanitize: true,
+      ...options,
     };
 
-    if (!data || typeof data !== "object") {
+    const result = {
+      isValid: true,
+      sanitizedData: input,
+      errors: [],
+      warnings: [],
+    };
+
+    // Check if required
+    if (config.required && (!input || input.toString().trim() === "")) {
       result.isValid = false;
-      result.errors.push("Invalid data format");
+      result.errors.push("Field is required");
       return result;
     }
 
-    // Default rules for common security checks
-    const defaultRules = {
-      preventXSS: true,
-      preventSQLInjection: true,
-      validateLength: true,
-      sanitizeStrings: true,
-    };
+    // Skip validation if input is empty and not required
+    if (!input && !config.required) {
+      return result;
+    }
 
-    const validationRules = { ...defaultRules, ...rules };
+    const inputStr = input.toString();
 
-    Object.keys(data).forEach((key) => {
-      const value = data[key];
+    // Length validation
+    if (config.minLength && inputStr.length < config.minLength) {
+      result.isValid = false;
+      result.errors.push(`Minimum length is ${config.minLength} characters`);
+    }
 
-      try {
-        // XSS prevention
-        if (validationRules.preventXSS && typeof value === "string") {
-          if (this._containsXSSPatterns(value)) {
-            result.errors.push(`XSS pattern detected in field: ${key}`);
-            result.isValid = false;
-          }
-        }
+    if (config.maxLength && inputStr.length > config.maxLength) {
+      result.isValid = false;
+      result.errors.push(`Maximum length is ${config.maxLength} characters`);
+    }
 
-        // SQL injection prevention
-        if (validationRules.preventSQLInjection && typeof value === "string") {
-          if (this._containsSQLInjectionPatterns(value)) {
-            result.errors.push(
-              `SQL injection pattern detected in field: ${key}`,
-            );
-            result.isValid = false;
-          }
-        }
+    // Pattern validation
+    const instance = new SecurityUtils();
+    let pattern = null;
 
-        // Length validation
-        if (validationRules.validateLength && typeof value === "string") {
-          if (value.length > 10000) {
-            // Reasonable max length
-            result.errors.push(`Field ${key} exceeds maximum length`);
-            result.isValid = false;
-          }
-        }
+    if (config.customPattern) {
+      pattern = config.customPattern;
+    } else if (instance.validationPatterns[validationType]) {
+      pattern = instance.validationPatterns[validationType];
+    }
 
-        // Sanitize and add to result
-        if (validationRules.sanitizeStrings && typeof value === "string") {
-          result.sanitizedData[key] = this.escapeHtml(value);
-        } else {
-          result.sanitizedData[key] = value;
-        }
-      } catch (error) {
-        result.errors.push(
-          `Validation error for field ${key}: ${error.message}`,
-        );
-        result.isValid = false;
-      }
-    });
+    if (pattern && !pattern.test(inputStr)) {
+      result.isValid = false;
+      result.errors.push(`Invalid ${validationType} format`);
+    }
 
-    if (!result.isValid) {
-      this.logSecurityEvent("input_validation_failed", "warning", {
-        errors: result.errors,
-        fieldCount: Object.keys(data).length,
-      });
+    // Allowed values validation
+    if (config.allowedValues && !config.allowedValues.includes(input)) {
+      result.isValid = false;
+      result.errors.push("Value not in allowed list");
+    }
+
+    // Sanitization
+    if (config.sanitize) {
+      result.sanitizedData = SecurityUtils.sanitizeXSS(inputStr);
     }
 
     return result;
   }
 
   /**
-   * Check for SQL injection patterns
-   * @param {string} str - String to check
-   * @returns {boolean} True if SQL injection patterns detected
-   * @private
+   * Validate multiple inputs
    */
-  static _containsSQLInjectionPatterns(str) {
-    const sqlPatterns = [
-      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\b)/gi,
-      /(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
-      /(--|#|\/\*|\*\/)/g,
-      /(\bxp_\w+\b)/gi,
-      /(\bsp_\w+\b)/gi,
-      /(;|\|\||&&)/g,
-    ];
+  static validateInputs(inputs) {
+    const results = {};
+    let allValid = true;
 
-    return sqlPatterns.some((pattern) => pattern.test(str));
+    for (const [fieldName, config] of Object.entries(inputs)) {
+      const { value, validationType, options } = config;
+      results[fieldName] = SecurityUtils.validateInput(
+        value,
+        validationType,
+        options,
+      );
+
+      if (!results[fieldName].isValid) {
+        allValid = false;
+      }
+    }
+
+    return {
+      allValid,
+      fieldResults: results,
+      sanitizedData: Object.fromEntries(
+        Object.entries(results).map(([key, result]) => [
+          key,
+          result.sanitizedData,
+        ]),
+      ),
+    };
+  }
+
+  // ===== Rate Limiting =====
+
+  /**
+   * Check rate limit for a given key
+   */
+  checkRateLimit(key, limit = 10, window = 60000) {
+    const now = Date.now();
+
+    if (!this.rateLimits.has(key)) {
+      this.rateLimits.set(key, { count: 1, windowStart: now });
+      return { allowed: true, remaining: limit - 1, resetTime: now + window };
+    }
+
+    const bucket = this.rateLimits.get(key);
+
+    // Reset window if expired
+    if (now - bucket.windowStart > window) {
+      bucket.count = 1;
+      bucket.windowStart = now;
+      return { allowed: true, remaining: limit - 1, resetTime: now + window };
+    }
+
+    // Check if limit exceeded
+    if (bucket.count >= limit) {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: bucket.windowStart + window,
+        retryAfter: bucket.windowStart + window - now,
+      };
+    }
+
+    // Increment counter
+    bucket.count++;
+    return {
+      allowed: true,
+      remaining: limit - bucket.count,
+      resetTime: bucket.windowStart + window,
+    };
   }
 
   /**
-   * Validate specific input types with enhanced security
-   * @param {*} value - Value to validate
-   * @param {string} type - Validation type
-   * @param {Object} constraints - Additional constraints
-   * @returns {*} Validated value or throws exception
+   * Clear rate limit for a key
    */
-  static validateInputType(value, type, constraints = {}) {
+  clearRateLimit(key) {
+    this.rateLimits.delete(key);
+  }
+
+  /**
+   * Clear all rate limits
+   */
+  clearAllRateLimits() {
+    this.rateLimits.clear();
+  }
+
+  // ===== Secure Token Generation =====
+
+  /**
+   * Generate cryptographically secure random token
+   */
+  static generateSecureToken(length = 32) {
     try {
-      switch (type) {
-        case "alphanumeric":
-          return this._validateAlphanumeric(value, constraints);
-        case "email":
-          return this._validateEmailSecure(value, constraints);
-        case "uuid":
-          return this._validateUUID(value, constraints);
-        case "integer":
-          return this._validateIntegerSecure(value, constraints);
-        case "string":
-          return this._validateStringSecure(value, constraints);
-        case "url":
-          return this._validateURLSecure(value, constraints);
-        default:
-          throw new this.ValidationException(
-            `Unknown validation type: ${type}`,
-          );
-      }
+      const array = new Uint8Array(length);
+      crypto.getRandomValues(array);
+      return btoa(String.fromCharCode(...array))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
     } catch (error) {
-      if (error instanceof this.ValidationException) {
-        throw error;
-      }
-      throw new this.ValidationException(
-        `Validation failed for type ${type}: ${error.message}`,
-        type,
-        value,
-      );
+      console.error("[SecurityUtils] Failed to generate secure token:", error);
+      // Fallback to timestamp + random
+      return `fallback-${Date.now()}-${Math.random().toString(36).substring(2)}`;
     }
   }
 
   /**
-   * Validate alphanumeric input
-   * @param {*} value - Value to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string} Validated value
-   * @private
+   * Generate UUID v4
    */
-  static _validateAlphanumeric(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull) return null;
-      throw new this.ValidationException("Alphanumeric value cannot be null");
-    }
-
-    const str = String(value);
-    const pattern = /^[a-zA-Z0-9\s\-_]+$/;
-
-    if (!pattern.test(str)) {
-      throw new this.ValidationException(
-        "Value must contain only letters, numbers, spaces, hyphens, and underscores",
-        "pattern",
-        value,
-      );
-    }
-
-    return this._validateStringLength(str, constraints);
-  }
-
-  /**
-   * Validate email with enhanced security
-   * @param {*} value - Email to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string} Validated email
-   * @private
-   */
-  static _validateEmailSecure(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull) return null;
-      throw new this.ValidationException("Email cannot be null");
-    }
-
-    const email = String(value).toLowerCase().trim();
-
-    // Enhanced email validation
-    if (!this.validateEmail(email)) {
-      throw new this.ValidationException(
-        "Invalid email format",
-        "email",
-        value,
-      );
-    }
-
-    // Additional security checks
-    if (email.includes("..") || email.startsWith(".") || email.endsWith(".")) {
-      throw new this.ValidationException(
-        "Email contains invalid characters",
-        "email",
-        value,
-      );
-    }
-
-    return email;
-  }
-
-  /**
-   * Validate UUID format
-   * @param {*} value - UUID to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string} Validated UUID
-   * @private
-   */
-  static _validateUUID(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull) return null;
-      throw new this.ValidationException("UUID cannot be null");
-    }
-
-    const str = String(value);
-    const uuidPattern =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-    if (!uuidPattern.test(str)) {
-      throw new this.ValidationException("Invalid UUID format", "uuid", value);
-    }
-
-    return str.toLowerCase();
-  }
-
-  /**
-   * Validate integer with enhanced security
-   * @param {*} value - Integer to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {number} Validated integer
-   * @private
-   */
-  static _validateIntegerSecure(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull) return null;
-      throw new this.ValidationException("Integer cannot be null");
-    }
-
-    const num = parseInt(value, 10);
-
-    if (isNaN(num)) {
-      throw new this.ValidationException(
-        "Value is not a valid integer",
-        "integer",
-        value,
-      );
-    }
-
-    // Check for extremely large numbers that could cause issues
-    if (num > Number.MAX_SAFE_INTEGER || num < Number.MIN_SAFE_INTEGER) {
-      throw new this.ValidationException(
-        "Integer value outside safe range",
-        "integer",
-        value,
-      );
-    }
-
-    if (constraints.min !== undefined && num < constraints.min) {
-      throw new this.ValidationException(
-        `Integer value ${num} below minimum ${constraints.min}`,
-        "min",
-        value,
-      );
-    }
-
-    if (constraints.max !== undefined && num > constraints.max) {
-      throw new this.ValidationException(
-        `Integer value ${num} above maximum ${constraints.max}`,
-        "max",
-        value,
-      );
-    }
-
-    return num;
-  }
-
-  /**
-   * Validate string with enhanced security
-   * @param {*} value - String to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string} Validated string
-   * @private
-   */
-  static _validateStringSecure(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull || constraints.allowEmpty)
-        return constraints.allowNull ? null : "";
-      throw new this.ValidationException("String cannot be null");
-    }
-
-    let str = String(value);
-
-    // XSS prevention
-    if (this._containsXSSPatterns(str)) {
-      this.logSecurityEvent("xss_in_string_validation", "warning", {
-        value: str.substring(0, 100),
-      });
-      if (constraints.preventXSS !== false) {
-        str = this.escapeHtml(str);
-      }
-    }
-
-    // SQL injection prevention
-    if (this._containsSQLInjectionPatterns(str)) {
-      this.logSecurityEvent("sql_injection_in_string_validation", "warning", {
-        value: str.substring(0, 100),
-      });
-      throw new this.ValidationException(
-        "String contains potentially dangerous SQL patterns",
-        "sql_injection",
-        value,
-      );
-    }
-
-    return this._validateStringLength(str, constraints);
-  }
-
-  /**
-   * Validate string length
-   * @param {string} str - String to validate
-   * @param {Object} constraints - Length constraints
-   * @returns {string} Validated string
-   * @private
-   */
-  static _validateStringLength(str, constraints) {
-    if (
-      constraints.minLength !== undefined &&
-      str.length < constraints.minLength
-    ) {
-      throw new this.ValidationException(
-        `String length ${str.length} below minimum ${constraints.minLength}`,
-        "minLength",
-        str,
-      );
-    }
-
-    if (
-      constraints.maxLength !== undefined &&
-      str.length > constraints.maxLength
-    ) {
-      if (constraints.truncate) {
-        return str.substring(0, constraints.maxLength);
-      }
-      throw new this.ValidationException(
-        `String length ${str.length} above maximum ${constraints.maxLength}`,
-        "maxLength",
-        str,
-      );
-    }
-
-    return str;
-  }
-
-  /**
-   * Validate URL with enhanced security
-   * @param {*} value - URL to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string} Validated URL
-   * @private
-   */
-  static _validateURLSecure(value, constraints) {
-    if (value == null) {
-      if (constraints.allowNull) return null;
-      throw new this.ValidationException("URL cannot be null");
-    }
-
-    const url = String(value).trim();
-
-    if (!this.validateUrl(url)) {
-      throw new this.ValidationException("Invalid URL format", "url", value);
-    }
-
-    // Additional security checks
+  static generateUUID() {
     try {
-      const urlObj = new URL(url);
+      const array = new Uint8Array(16);
+      crypto.getRandomValues(array);
 
-      // Block dangerous protocols
-      const allowedProtocols = constraints.allowedProtocols || [
-        "http:",
-        "https:",
-      ];
-      if (!allowedProtocols.includes(urlObj.protocol)) {
-        throw new this.ValidationException(
-          `URL protocol ${urlObj.protocol} not allowed`,
-          "protocol",
-          value,
-        );
-      }
+      // Set version (4) and variant bits
+      array[6] = (array[6] & 0x0f) | 0x40;
+      array[8] = (array[8] & 0x3f) | 0x80;
 
-      // Block localhost/private IPs in production
-      if (constraints.blockPrivateIPs && this._isPrivateIP(urlObj.hostname)) {
-        throw new this.ValidationException(
-          "Private IP addresses not allowed",
-          "private_ip",
-          value,
-        );
-      }
-
-      return url;
+      const hex = Array.from(array, (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
+      return [
+        hex.substring(0, 8),
+        hex.substring(8, 12),
+        hex.substring(12, 16),
+        hex.substring(16, 20),
+        hex.substring(20, 32),
+      ].join("-");
     } catch (error) {
-      if (error instanceof this.ValidationException) {
-        throw error;
-      }
-      throw new this.ValidationException(
-        `URL validation failed: ${error.message}`,
-        "url",
-        value,
-      );
+      console.error("[SecurityUtils] Failed to generate UUID:", error);
+      // Fallback UUID
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
     }
   }
 
-  /**
-   * Check if hostname is private IP
-   * @param {string} hostname - Hostname to check
-   * @returns {boolean} True if private IP
-   * @private
-   */
-  static _isPrivateIP(hostname) {
-    const privatePatterns = [
-      /^localhost$/i,
-      /^127\./,
-      /^192\.168\./,
-      /^10\./,
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
-      /^::1$/,
-      /^fc00:/,
-      /^fe80:/,
-    ];
-
-    return privatePatterns.some((pattern) => pattern.test(hostname));
-  }
+  // ===== AJAX Security =====
 
   /**
-   * Validate length constraint
-   * @param {string} value - Value to check
-   * @param {number} minLength - Minimum length
-   * @param {number} maxLength - Maximum length
-   * @returns {boolean} True if valid
+   * Setup AJAX interceptors for automatic CSRF protection
    */
-  static validateLength(value, minLength, maxLength) {
-    if (value == null) return minLength === 0;
+  setupAJAXInterceptors() {
+    if (typeof window === "undefined") return;
 
-    const len = String(value).length;
-    return len >= minLength && len <= maxLength;
-  }
+    // Intercept fetch requests
+    const originalFetch = window.fetch;
+    window.fetch = (url, options = {}) => {
+      // Add CSRF token for state-changing requests
+      if (this.isStateChangingRequest(options.method)) {
+        options.headers = {
+          ...options.headers,
+          "X-CSRF-Token": this.getCSRFToken(),
+          "X-Requested-With": "XMLHttpRequest",
+        };
+      }
 
-  /**
-   * Sanitize HTML content by removing dangerous elements and attributes
-   * @param {string} html - HTML to sanitize
-   * @param {Object} options - Sanitization options
-   * @returns {string} Sanitized HTML
-   */
-  static sanitizeHtml(html, options = {}) {
-    if (!html) return "";
-
-    const defaults = {
-      allowedTags: [
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "span",
-        "div",
-        "a",
-        "ul",
-        "ol",
-        "li",
-        "mark",
-        "button",
-      ],
-      allowedAttributes: {
-        a: ["href", "title"],
-        span: ["class"],
-        div: ["class"],
-        button: ["type", "class"],
-        mark: [],
-      },
-      allowedClasses: ["highlight", "error", "warning", "info", "success"],
+      return originalFetch.call(window, url, options);
     };
 
-    const config = { ...defaults, ...options };
+    // Intercept XMLHttpRequest
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
 
-    // Create a temporary container
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
+    XMLHttpRequest.prototype.open = function (
+      method,
+      url,
+      async,
+      user,
+      password,
+    ) {
+      this._securityUtils_method = method;
+      return originalOpen.call(this, method, url, async, user, password);
+    };
 
-    // Remove all script tags and event handlers
-    this.removeScripts(temp);
-    this.removeEventHandlers(temp);
-
-    // Clean all elements
-    this.cleanElement(temp, config);
-
-    return temp.innerHTML;
-  }
-
-  /**
-   * Sanitize input to remove/escape dangerous characters
-   * @param {string} input - Input to sanitize
-   * @returns {string} Sanitized input
-   */
-  static sanitizeInput(input) {
-    if (!input || typeof input !== "string") {
-      return input;
-    }
-
-    // Remove null bytes and control characters
-    let sanitized = input
-      .replace(/\0/g, "")
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-
-    // Escape HTML to prevent XSS
-    sanitized = this.escapeHtml(sanitized);
-
-    return sanitized;
-  }
-
-  /**
-   * Remove all script tags from element
-   */
-  static removeScripts(element) {
-    const scripts = element.querySelectorAll("script");
-    scripts.forEach((script) => script.remove());
-
-    // Also remove noscript tags
-    const noscripts = element.querySelectorAll("noscript");
-    noscripts.forEach((noscript) => noscript.remove());
-  }
-
-  /**
-   * Remove all inline event handlers
-   */
-  static removeEventHandlers(element) {
-    const allElements = element.querySelectorAll("*");
-    allElements.forEach((el) => {
-      // Remove all on* attributes
-      Array.from(el.attributes).forEach((attr) => {
-        if (attr.name.startsWith("on")) {
-          el.removeAttribute(attr.name);
-        }
-      });
-
-      // Remove javascript: URLs
-      if (el.hasAttribute("href")) {
-        const href = el.getAttribute("href");
-        if (href && href.trim().toLowerCase().startsWith("javascript:")) {
-          el.removeAttribute("href");
-        }
+    XMLHttpRequest.prototype.send = function (data) {
+      const instance = SecurityUtils.getInstance();
+      if (
+        instance &&
+        instance.isStateChangingRequest(this._securityUtils_method)
+      ) {
+        this.setRequestHeader("X-CSRF-Token", instance.getCSRFToken());
+        this.setRequestHeader("X-Requested-With", "XMLHttpRequest");
       }
-    });
+      return originalSend.call(this, data);
+    };
   }
 
   /**
-   * Clean element recursively based on whitelist
+   * Check if HTTP method is state-changing
    */
-  static cleanElement(element, config) {
-    const allElements = Array.from(element.querySelectorAll("*"));
+  isStateChangingRequest(method) {
+    const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+    return method && stateChangingMethods.includes(method.toUpperCase());
+  }
 
-    allElements.forEach((el) => {
-      const tagName = el.tagName.toLowerCase();
+  // ===== Centralized Input Sanitization =====
 
-      // Remove element if not in allowed tags
-      if (!config.allowedTags.includes(tagName)) {
-        el.remove();
-        return;
-      }
+  /**
+   * Sanitize form data
+   */
+  static sanitizeFormData(formData, fieldConfigs = {}) {
+    const sanitized = {};
+    const errors = {};
 
-      // Clean attributes
-      Array.from(el.attributes).forEach((attr) => {
-        const attrName = attr.name.toLowerCase();
-        const allowedAttrs = config.allowedAttributes[tagName] || [];
+    for (const [field, value] of Object.entries(formData)) {
+      const config = fieldConfigs[field] || { type: "safeString" };
 
-        if (!allowedAttrs.includes(attrName)) {
-          el.removeAttribute(attr.name);
-        } else if (attrName === "class") {
-          // Filter classes
-          const classes = attr.value
-            .split(" ")
-            .filter((cls) => config.allowedClasses.includes(cls));
-          if (classes.length === 0) {
-            el.removeAttribute("class");
-          } else {
-            el.className = classes.join(" ");
+      try {
+        // Apply field-specific sanitization
+        switch (config.type) {
+          case "email":
+            sanitized[field] = SecurityUtils.sanitizeXSS(value, {
+              maxLength: 254,
+            });
+            break;
+          case "password":
+            // Don't sanitize passwords, but validate strength
+            sanitized[field] = value;
+            break;
+          case "html":
+            sanitized[field] = config.allowHTML
+              ? SecurityUtils.sanitizeXSS(value, {
+                  allowHTML: true,
+                  allowScripts: false,
+                })
+              : SecurityUtils.sanitizeForHTML(value);
+            break;
+          case "url":
+            sanitized[field] = SecurityUtils.sanitizeForURL(value);
+            break;
+          case "number":
+            const num = parseFloat(value);
+            sanitized[field] = isNaN(num) ? null : num;
+            break;
+          case "integer":
+            const int = parseInt(value, 10);
+            sanitized[field] = isNaN(int) ? null : int;
+            break;
+          case "boolean":
+            sanitized[field] = Boolean(value);
+            break;
+          default:
+            sanitized[field] = SecurityUtils.sanitizeXSS(
+              value,
+              config.sanitizeOptions || {},
+            );
+        }
+
+        // Apply validation if configured
+        if (config.validation) {
+          const validation = SecurityUtils.validateInput(
+            sanitized[field],
+            config.validation.type,
+            config.validation.options,
+          );
+
+          if (!validation.isValid) {
+            errors[field] = validation.errors;
           }
         }
-      });
-    });
-  }
-
-  /**
-   * Safely set inner HTML with sanitization
-   * @param {HTMLElement} element - Target element
-   * @param {string} html - HTML content
-   * @param {Object} options - Sanitization options
-   */
-  static safeSetInnerHTML(element, html, options = {}) {
-    if (!element) return;
-
-    const sanitized = this.sanitizeHtml(html, options);
-    element.innerHTML = sanitized;
-  }
-
-  /**
-   * Safely create text node
-   * @param {string} text - Text content
-   * @returns {Text} Text node
-   */
-  static createTextNode(text) {
-    return document.createTextNode(String(text || ""));
-  }
-
-  /**
-   * Escape special regex characters to prevent ReDoS
-   * @param {string} str - String to escape
-   * @returns {string} Escaped string
-   */
-  static escapeRegex(str) {
-    if (!str) return "";
-    return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
-  /**
-   * Validate integer input (legacy method for compatibility)
-   * @param {*} value - Value to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {number|null} Validated integer or null
-   */
-  static validateInteger(value, constraints = {}) {
-    try {
-      return this._validateIntegerSecure(value, {
-        ...constraints,
-        allowNull: true,
-      });
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /**
-   * Validate string input (legacy method for compatibility)
-   * @param {*} value - Value to validate
-   * @param {Object} constraints - Validation constraints
-   * @returns {string|null} Validated string or null
-   */
-  static validateString(value, constraints = {}) {
-    try {
-      return this._validateStringSecure(value, {
-        ...constraints,
-        allowNull: true,
-      });
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /**
-   * Validate email address
-   * @param {string} email - Email to validate
-   * @returns {boolean} True if valid
-   */
-  static validateEmail(email) {
-    if (!email) return false;
-
-    // Additional checks first
-    if (email.length > 254) return false; // Max email length
-    if (email.startsWith(".") || email.endsWith(".")) return false;
-    if (email.includes("..")) return false;
-    if (!email.includes("@")) return false;
-
-    const parts = email.split("@");
-    if (parts.length !== 2) return false;
-
-    const [local, domain] = parts;
-    if (!local || !domain) return false;
-    if (local.startsWith(".") || local.endsWith(".")) return false;
-    if (domain.startsWith(".") || domain.endsWith(".")) return false;
-    if (!domain.includes(".")) return false; // Domain must have at least one dot
-
-    // RFC 5322 compliant regex (simplified)
-    const emailRegex =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    return emailRegex.test(email);
-  }
-
-  /**
-   * Validate URL
-   * @param {string} url - URL to validate
-   * @returns {boolean} True if valid
-   */
-  static validateUrl(url) {
-    if (!url) return false;
-
-    try {
-      const urlObj = new URL(url);
-      // Only allow http and https protocols
-      return ["http:", "https:"].includes(urlObj.protocol);
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Create safe element with text content
-   * @param {string} tag - HTML tag
-   * @param {string} text - Text content
-   * @param {Object} attributes - Element attributes
-   * @returns {HTMLElement} Created element
-   */
-  static createElement(tag, text = "", attributes = {}) {
-    const element = document.createElement(tag);
-
-    if (text) {
-      element.textContent = text;
-    }
-
-    // Safely set attributes
-    Object.keys(attributes).forEach((key) => {
-      if (key.startsWith("on")) {
-        // Skip event handlers
-        return;
+      } catch (error) {
+        console.error(
+          `[SecurityUtils] Error sanitizing field ${field}:`,
+          error,
+        );
+        errors[field] = ["Sanitization error"];
+        sanitized[field] = "";
       }
-
-      if (key === "href" || key === "src") {
-        // Validate URLs
-        if (!this.validateUrl(attributes[key])) {
-          return;
-        }
-      }
-
-      element.setAttribute(key, String(attributes[key]));
-    });
-
-    return element;
-  }
-
-  /**
-   * Safely highlight search terms in text
-   * @param {string} text - Text to highlight
-   * @param {string} term - Search term
-   * @returns {string} HTML with highlighted terms
-   */
-  static highlightSearchTerm(text, term) {
-    if (!text || !term) return this.escapeHtml(text);
-
-    const escapedText = this.escapeHtml(text);
-    const escapedTerm = this.escapeRegex(term);
-
-    // Create safe regex
-    try {
-      const regex = new RegExp(`(${escapedTerm})`, "gi");
-      return escapedText.replace(regex, "<mark>$1</mark>");
-    } catch {
-      // If regex fails, return escaped text
-      return escapedText;
-    }
-  }
-
-  /**
-   * Deep clone object to prevent reference mutations
-   * @param {*} obj - Object to clone
-   * @returns {*} Cloned object
-   */
-  static deepClone(obj) {
-    if (obj === null || typeof obj !== "object") {
-      return obj;
     }
 
-    if (obj instanceof Date) {
-      return new Date(obj.getTime());
-    }
-
-    if (obj instanceof Array) {
-      return obj.map((item) => this.deepClone(item));
-    }
-
-    if (obj instanceof Set) {
-      return new Set(Array.from(obj).map((item) => this.deepClone(item)));
-    }
-
-    if (obj instanceof Map) {
-      const cloned = new Map();
-      obj.forEach((value, key) => {
-        cloned.set(this.deepClone(key), this.deepClone(value));
-      });
-      return cloned;
-    }
-
-    // Handle regular objects
-    const cloned = {};
-    Object.keys(obj).forEach((key) => {
-      cloned[key] = this.deepClone(obj[key]);
-    });
-
-    return cloned;
-  }
-
-  /**
-   * Generate nonce for CSP
-   * @returns {string} Random nonce
-   */
-  static generateNonce() {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return btoa(String.fromCharCode.apply(null, array));
-  }
-
-  /**
-   * Check if value is safe primitive
-   * @param {*} value - Value to check
-   * @returns {boolean} True if safe
-   */
-  static isSafePrimitive(value) {
-    const type = typeof value;
-    return (
-      type === "string" ||
-      type === "number" ||
-      type === "boolean" ||
-      value === null ||
-      value === undefined
-    );
-  }
-
-  /**
-   * Rate limit check for actions
-   * @param {string} action - Action identifier
-   * @param {number} limit - Max attempts
-   * @param {number} window - Time window in ms
-   * @returns {boolean} True if allowed
-   */
-  static checkRateLimit(action, limit = 5, window = 60000) {
-    const now = Date.now();
-    const key = `rateLimit_${action}`;
-
-    // Get or create rate limit data
-    if (!this._rateLimits) {
-      this._rateLimits = new Map();
-    }
-
-    let data = this._rateLimits.get(key);
-    if (!data) {
-      data = { attempts: [], window };
-      this._rateLimits.set(key, data);
-    }
-
-    // Clean old attempts
-    data.attempts = data.attempts.filter((time) => now - time < window);
-
-    // Check limit
-    if (data.attempts.length >= limit) {
-      this.logSecurityEvent("rate_limit_exceeded", "warning", {
-        action,
-        attempts: data.attempts.length,
-        limit,
-      });
-      return false;
-    }
-
-    // Add current attempt
-    data.attempts.push(now);
-    return true;
-  }
-
-  /**
-   * Log security event
-   * @param {string} event - Event type
-   * @param {string} severity - Severity level
-   * @param {Object} details - Event details
-   */
-  static logSecurityEvent(event, severity = "info", details = {}) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      event,
-      severity,
-      details,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+    return {
+      sanitizedData: sanitized,
+      errors: errors,
+      hasErrors: Object.keys(errors).length > 0,
     };
+  }
 
-    // Log to console in development
-    if (console && console.warn) {
-      console.warn(`[SECURITY ${severity.toUpperCase()}] ${event}:`, logEntry);
-    }
+  /**
+   * Common sanitization patterns
+   */
+  static sanitizationPatterns = {
+    userInput: {
+      type: "safeString",
+      sanitizeOptions: { maxLength: 1000, trimWhitespace: true },
+    },
+    email: {
+      type: "email",
+      validation: { type: "email", options: { required: true } },
+    },
+    password: {
+      type: "password",
+      validation: { type: "strongPassword", options: { required: true } },
+    },
+    name: {
+      type: "safeString",
+      sanitizeOptions: { maxLength: 100, allowHTML: false },
+    },
+    description: {
+      type: "html",
+      allowHTML: false,
+      sanitizeOptions: { maxLength: 5000 },
+    },
+    url: {
+      type: "url",
+      validation: { type: "url", options: { required: false } },
+    },
+    phoneNumber: {
+      type: "safeString",
+      validation: { type: "phoneNumber", options: { required: false } },
+    },
+  };
 
-    // In production, send to security monitoring service
-    if (window.UMIGServices?.securityService) {
-      window.UMIGServices.securityService.logEvent(logEntry);
+  // ===== Singleton Pattern =====
+
+  static instance = null;
+
+  static getInstance() {
+    if (!SecurityUtils.instance) {
+      SecurityUtils.instance = new SecurityUtils();
     }
+    return SecurityUtils.instance;
+  }
+
+  // ===== Legacy Support =====
+
+  /**
+   * Legacy sanitizeString method for backward compatibility
+   */
+  static sanitizeString(str) {
+    return SecurityUtils.sanitizeXSS(str);
+  }
+
+  /**
+   * Legacy validateInput method for backward compatibility
+   */
+  static validateInput(data) {
+    if (typeof data === "string") {
+      return {
+        isValid: true,
+        sanitizedData: SecurityUtils.sanitizeXSS(data),
+        errors: [],
+      };
+    }
+    return {
+      isValid: true,
+      sanitizedData: data,
+      errors: [],
+    };
+  }
+
+  /**
+   * Legacy generateToken method for backward compatibility
+   */
+  static generateToken() {
+    return SecurityUtils.generateSecureToken();
+  }
+
+  /**
+   * Cleanup resources
+   */
+  destroy() {
+    this.stopCSRFTokenRotation();
+    this.clearAllRateLimits();
+    SecurityUtils.instance = null;
   }
 }
 
-// Export for use
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = SecurityUtils;
-}
+// Initialize singleton instance
+SecurityUtils.getInstance();
 
-if (typeof window !== "undefined") {
-  window.SecurityUtils = SecurityUtils;
-}
+// Export both class and default
+export { SecurityUtils };
+export default SecurityUtils;

@@ -67,8 +67,11 @@ class ComponentOrchestrator {
       maxStateUpdatesPerMinute: 100, // Per path
       maxTotalEventsPerMinute: 5000, // Global limit
       suspendedComponents: new Set(),
-      suspensionTimestamps: new Map(), // track when components were suspended
+      suspensionTimestamps: new WeakMap(), // Memory-efficient: GC collectable references
     };
+
+    // Memory-efficient component metadata cache using WeakMap
+    this.componentMetadata = new WeakMap();
 
     // Race condition protection: Initialize state lock
     this.stateLock = {
@@ -86,6 +89,18 @@ class ComponentOrchestrator {
       isDevelopment: this.detectDevelopmentEnvironment(),
       debugMode: config.debug || false,
       logSanitization: config.logSanitization !== false, // Default to true
+    };
+
+    // Session timeout management
+    this.sessionTimeout = {
+      enabled: config.sessionTimeout !== false, // Default enabled
+      timeoutDuration: config.sessionTimeoutDuration || 30 * 60 * 1000, // 30 minutes
+      warningDuration: config.sessionWarningDuration || 5 * 60 * 1000, // 5 minutes before timeout
+      lastActivityTime: Date.now(),
+      timeoutTimer: null,
+      warningTimer: null,
+      warningShown: false,
+      activityEvents: ["click", "keydown", "scroll", "mousemove", "touchstart"],
     };
 
     // Initialize
@@ -114,6 +129,11 @@ class ComponentOrchestrator {
     // Setup performance monitoring
     if (this.config.performanceMonitoring) {
       this.setupPerformanceMonitoring();
+    }
+
+    // Setup session timeout management
+    if (this.sessionTimeout.enabled) {
+      this.setupSessionTimeoutManagement();
     }
 
     // Setup debug mode - SECURITY HARDENED
@@ -157,6 +177,24 @@ class ComponentOrchestrator {
   }
 
   /**
+   * Set metadata for a component using WeakMap for memory efficiency
+   * @param {object} component - Component instance
+   * @param {object} metadata - Metadata to store
+   */
+  setComponentMetadata(component, metadata) {
+    this.componentMetadata.set(component, metadata);
+  }
+
+  /**
+   * Get metadata for a component from WeakMap
+   * @param {object} component - Component instance
+   * @returns {object|undefined} Stored metadata
+   */
+  getComponentMetadata(component) {
+    return this.componentMetadata.get(component);
+  }
+
+  /**
    * Register a component with the orchestrator
    */
   registerComponent(componentId, component, dependencies = []) {
@@ -178,11 +216,23 @@ class ComponentOrchestrator {
     }
 
     // Store component and its dependencies
-    this.components.set(componentId, {
+    const componentRecord = {
       id: componentId,
       instance: component,
       status: "registered",
       registeredAt: Date.now(),
+    };
+
+    this.components.set(componentId, componentRecord);
+
+    // Store metadata in WeakMap for memory efficiency
+    this.componentMetadata.set(component, {
+      id: componentId,
+      registrationTime: Date.now(),
+      lastActivity: Date.now(),
+      eventCount: 0,
+      errorCount: 0,
+      dependencies: dependencies,
     });
 
     this.componentDependencies.set(componentId, dependencies);
@@ -309,6 +359,11 @@ class ComponentOrchestrator {
         ),
       );
       throw new Error(this.sanitizeErrorMessage(error.message, "rate_limit"));
+    }
+
+    // Track component activity efficiently using WeakMap
+    if (source !== "orchestrator" && source !== "orchestrator-internal") {
+      this.trackComponentActivity(source, "event");
     }
 
     // Security: Check memory limits
@@ -1609,6 +1664,9 @@ class ComponentOrchestrator {
   handleComponentError(componentId, error) {
     this.failedComponents.add(componentId);
 
+    // Track error activity efficiently using WeakMap
+    this.trackComponentActivity(componentId, "error");
+
     // Sanitize error message for logging
     const sanitizedError = this.sanitizeErrorMessage(
       error.message,
@@ -2273,6 +2331,663 @@ class ComponentOrchestrator {
           }
         : {}),
     }));
+  }
+
+  // ===== Session Timeout Management Methods =====
+
+  /**
+   * Setup session timeout management
+   * Tracks user activity and manages session expiration with warnings
+   */
+  setupSessionTimeoutManagement() {
+    if (typeof window === "undefined") {
+      this.logWarning(
+        "Session timeout management not available in non-browser environment",
+      );
+      return;
+    }
+
+    // Setup activity tracking for all configured events
+    this.sessionTimeout.activityHandler = (event) => {
+      this.recordUserActivity();
+    };
+
+    // Add activity listeners
+    this.sessionTimeout.activityEvents.forEach((eventType) => {
+      window.addEventListener(eventType, this.sessionTimeout.activityHandler, {
+        passive: true,
+      });
+    });
+
+    // Start timeout monitoring
+    this.resetSessionTimeout();
+
+    this.logInfo("Session timeout management initialized", {
+      timeoutDuration: this.sessionTimeout.timeoutDuration,
+      warningDuration: this.sessionTimeout.warningDuration,
+    });
+  }
+
+  /**
+   * Record user activity and reset timeout timers
+   */
+  recordUserActivity() {
+    const now = Date.now();
+    const timeSinceLastActivity = now - this.sessionTimeout.lastActivityTime;
+
+    // Only reset if enough time has passed to avoid excessive timer resets
+    if (timeSinceLastActivity > 5000) {
+      // 5 seconds minimum between resets
+      this.sessionTimeout.lastActivityTime = now;
+      this.resetSessionTimeout();
+
+      // Hide warning if currently shown
+      if (this.sessionTimeout.warningShown) {
+        this.hideSessionWarning();
+      }
+    }
+  }
+
+  /**
+   * Reset session timeout timers
+   */
+  resetSessionTimeout() {
+    // Clear existing timers
+    if (this.sessionTimeout.timeoutTimer) {
+      clearTimeout(this.sessionTimeout.timeoutTimer);
+    }
+    if (this.sessionTimeout.warningTimer) {
+      clearTimeout(this.sessionTimeout.warningTimer);
+    }
+
+    // Reset warning state
+    this.sessionTimeout.warningShown = false;
+
+    const warningTime =
+      this.sessionTimeout.timeoutDuration - this.sessionTimeout.warningDuration;
+
+    // Set warning timer
+    this.sessionTimeout.warningTimer = setTimeout(() => {
+      this.showSessionWarning();
+    }, warningTime);
+
+    // Set timeout timer
+    this.sessionTimeout.timeoutTimer = setTimeout(() => {
+      this.handleSessionTimeout();
+    }, this.sessionTimeout.timeoutDuration);
+  }
+
+  /**
+   * Show session timeout warning
+   */
+  showSessionWarning() {
+    if (this.sessionTimeout.warningShown) {
+      return; // Warning already shown
+    }
+
+    this.sessionTimeout.warningShown = true;
+    const remainingTime = Math.ceil(this.sessionTimeout.warningDuration / 1000);
+
+    // Emit warning event for components to handle
+    this.emitInternal("session:warning", {
+      remainingTime,
+      totalWarningDuration: this.sessionTimeout.warningDuration,
+      timestamp: Date.now(),
+    });
+
+    // Create and show warning dialog
+    this.createSessionWarningDialog(remainingTime);
+
+    this.logWarning(
+      `Session timeout warning shown - ${remainingTime} seconds remaining`,
+    );
+  }
+
+  /**
+   * Hide session timeout warning
+   */
+  hideSessionWarning() {
+    if (!this.sessionTimeout.warningShown) {
+      return;
+    }
+
+    this.sessionTimeout.warningShown = false;
+
+    // Remove warning dialog if it exists
+    const warningDialog = document.getElementById("session-warning-dialog");
+    if (warningDialog) {
+      warningDialog.remove();
+    }
+
+    // Emit warning dismissed event
+    this.emitInternal("session:warningDismissed", {
+      timestamp: Date.now(),
+    });
+
+    this.logDebug("Session timeout warning hidden due to user activity");
+  }
+
+  /**
+   * Create session warning dialog
+   */
+  createSessionWarningDialog(remainingTime) {
+    // Remove existing dialog if present
+    const existingDialog = document.getElementById("session-warning-dialog");
+    if (existingDialog) {
+      existingDialog.remove();
+    }
+
+    // Create dialog container
+    const dialog = document.createElement("div");
+    dialog.id = "session-warning-dialog";
+    dialog.className = "session-warning-dialog";
+    dialog.setAttribute("role", "alertdialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "session-warning-title");
+    dialog.setAttribute("aria-describedby", "session-warning-message");
+
+    // Create overlay
+    const overlay = document.createElement("div");
+    overlay.className = "session-warning-overlay";
+
+    // Create dialog content
+    const content = document.createElement("div");
+    content.className = "session-warning-content";
+
+    // Title
+    const title = document.createElement("h3");
+    title.id = "session-warning-title";
+    title.textContent = "Session Timeout Warning";
+    content.appendChild(title);
+
+    // Message
+    const message = document.createElement("p");
+    message.id = "session-warning-message";
+    message.textContent = `Your session will expire in ${remainingTime} seconds due to inactivity. Click "Stay Active" to continue your session.`;
+    content.appendChild(message);
+
+    // Countdown display
+    const countdown = document.createElement("div");
+    countdown.className = "session-warning-countdown";
+    countdown.textContent = remainingTime;
+    content.appendChild(countdown);
+
+    // Button container
+    const buttonContainer = document.createElement("div");
+    buttonContainer.className = "session-warning-buttons";
+
+    // Stay active button
+    const stayActiveButton = document.createElement("button");
+    stayActiveButton.className =
+      "session-warning-button session-warning-button-primary";
+    stayActiveButton.textContent = "Stay Active";
+    stayActiveButton.addEventListener("click", () => {
+      this.recordUserActivity();
+    });
+
+    // Logout button
+    const logoutButton = document.createElement("button");
+    logoutButton.className =
+      "session-warning-button session-warning-button-secondary";
+    logoutButton.textContent = "Logout Now";
+    logoutButton.addEventListener("click", () => {
+      this.handleSessionTimeout();
+    });
+
+    buttonContainer.appendChild(stayActiveButton);
+    buttonContainer.appendChild(logoutButton);
+    content.appendChild(buttonContainer);
+
+    // Assemble dialog
+    dialog.appendChild(overlay);
+    dialog.appendChild(content);
+
+    // Add styles
+    this.addSessionWarningStyles();
+
+    // Add to DOM
+    document.body.appendChild(dialog);
+
+    // Focus management
+    stayActiveButton.focus();
+
+    // Update countdown every second
+    let timeLeft = remainingTime;
+    const countdownInterval = setInterval(() => {
+      timeLeft--;
+      countdown.textContent = timeLeft;
+      message.textContent = `Your session will expire in ${timeLeft} seconds due to inactivity. Click "Stay Active" to continue your session.`;
+
+      if (timeLeft <= 0 || !this.sessionTimeout.warningShown) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+
+    // Store interval for cleanup
+    dialog._countdownInterval = countdownInterval;
+  }
+
+  /**
+   * Add CSS styles for session warning dialog
+   */
+  addSessionWarningStyles() {
+    // Check if styles already added
+    if (document.getElementById("session-warning-styles")) {
+      return;
+    }
+
+    const styles = `
+      .session-warning-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .session-warning-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      
+      .session-warning-content {
+        position: relative;
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        max-width: 400px;
+        margin: 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        text-align: center;
+      }
+      
+      .session-warning-content h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #d73027;
+      }
+      
+      .session-warning-content p {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        color: #333;
+        line-height: 1.5;
+      }
+      
+      .session-warning-countdown {
+        font-size: 48px;
+        font-weight: bold;
+        color: #d73027;
+        margin: 16px 0;
+      }
+      
+      .session-warning-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      
+      .session-warning-button {
+        padding: 8px 16px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+      
+      .session-warning-button-primary {
+        background-color: #0066cc;
+        color: white;
+        border-color: #0066cc;
+      }
+      
+      .session-warning-button-primary:hover {
+        background-color: #0052a3;
+        border-color: #0052a3;
+      }
+      
+      .session-warning-button-secondary {
+        background-color: white;
+        color: #666;
+        border-color: #ccc;
+      }
+      
+      .session-warning-button-secondary:hover {
+        background-color: #f5f5f5;
+        border-color: #999;
+      }
+      
+      .session-warning-button:focus {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+    `;
+
+    const styleSheet = document.createElement("style");
+    styleSheet.id = "session-warning-styles";
+    styleSheet.textContent = styles;
+    document.head.appendChild(styleSheet);
+  }
+
+  /**
+   * Handle session timeout
+   */
+  handleSessionTimeout() {
+    this.logWarning("Session timeout occurred - initiating logout");
+
+    // Clear all timers
+    if (this.sessionTimeout.timeoutTimer) {
+      clearTimeout(this.sessionTimeout.timeoutTimer);
+    }
+    if (this.sessionTimeout.warningTimer) {
+      clearTimeout(this.sessionTimeout.warningTimer);
+    }
+
+    // Remove warning dialog if present
+    const warningDialog = document.getElementById("session-warning-dialog");
+    if (warningDialog) {
+      if (warningDialog._countdownInterval) {
+        clearInterval(warningDialog._countdownInterval);
+      }
+      warningDialog.remove();
+    }
+
+    // Clear session data
+    this.clearSessionData();
+
+    // Emit timeout event
+    this.emitInternal("session:timeout", {
+      timestamp: Date.now(),
+      lastActivityTime: this.sessionTimeout.lastActivityTime,
+    });
+
+    // Redirect to login or show logout message
+    this.performSessionCleanupAndRedirect();
+  }
+
+  /**
+   * Clear session data
+   */
+  clearSessionData() {
+    try {
+      // Clear local storage session data
+      if (typeof localStorage !== "undefined") {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (
+            key &&
+            (key.startsWith("session") ||
+              key.startsWith("auth") ||
+              key.startsWith("user"))
+          ) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      }
+
+      // Clear session storage
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.clear();
+      }
+
+      // Reset component state
+      this.setState("user", null);
+      this.setState("session", null);
+      this.setState("authentication", { authenticated: false });
+
+      this.logDebug("Session data cleared");
+    } catch (error) {
+      this.logError("Error clearing session data", { error: error.message });
+    }
+  }
+
+  /**
+   * Perform session cleanup and redirect
+   */
+  performSessionCleanupAndRedirect() {
+    // Show logout message
+    this.showLogoutMessage();
+
+    // Redirect after short delay
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        // Try different redirect strategies
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login?reason=timeout";
+        } else {
+          // Already on login page, just reload
+          window.location.reload();
+        }
+      }
+    }, 3000); // 3 second delay to show message
+  }
+
+  /**
+   * Show logout message
+   */
+  showLogoutMessage() {
+    const message = document.createElement("div");
+    message.className = "session-logout-message";
+    message.innerHTML = `
+      <h3>Session Expired</h3>
+      <p>Your session has expired due to inactivity. You will be redirected to the login page shortly.</p>
+    `;
+
+    // Add styles
+    message.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      z-index: 10001;
+      text-align: center;
+      max-width: 400px;
+      margin: 20px;
+    `;
+
+    document.body.appendChild(message);
+  }
+
+  /**
+   * Get session timeout status
+   */
+  getSessionTimeoutStatus() {
+    if (!this.sessionTimeout.enabled) {
+      return { enabled: false };
+    }
+
+    const now = Date.now();
+    const timeRemaining =
+      this.sessionTimeout.timeoutDuration -
+      (now - this.sessionTimeout.lastActivityTime);
+    const warningTimeRemaining =
+      this.sessionTimeout.warningDuration -
+      (now -
+        this.sessionTimeout.lastActivityTime -
+        (this.sessionTimeout.timeoutDuration -
+          this.sessionTimeout.warningDuration));
+
+    return {
+      enabled: true,
+      lastActivityTime: this.sessionTimeout.lastActivityTime,
+      timeRemaining: Math.max(0, timeRemaining),
+      warningShown: this.sessionTimeout.warningShown,
+      warningTimeRemaining: this.sessionTimeout.warningShown
+        ? Math.max(0, warningTimeRemaining)
+        : null,
+      timeoutDuration: this.sessionTimeout.timeoutDuration,
+      warningDuration: this.sessionTimeout.warningDuration,
+    };
+  }
+
+  /**
+   * Extend session timeout
+   */
+  extendSession(additionalTime = null) {
+    if (!this.sessionTimeout.enabled) {
+      return false;
+    }
+
+    this.recordUserActivity();
+
+    if (additionalTime) {
+      this.sessionTimeout.lastActivityTime = Date.now() + additionalTime;
+    }
+
+    this.logDebug("Session extended", {
+      newActivityTime: this.sessionTimeout.lastActivityTime,
+    });
+    return true;
+  }
+
+  /**
+   * Disable session timeout
+   */
+  disableSessionTimeout() {
+    if (this.sessionTimeout.timeoutTimer) {
+      clearTimeout(this.sessionTimeout.timeoutTimer);
+    }
+    if (this.sessionTimeout.warningTimer) {
+      clearTimeout(this.sessionTimeout.warningTimer);
+    }
+
+    // Remove activity listeners
+    if (this.sessionTimeout.activityHandler && typeof window !== "undefined") {
+      this.sessionTimeout.activityEvents.forEach((eventType) => {
+        window.removeEventListener(
+          eventType,
+          this.sessionTimeout.activityHandler,
+        );
+      });
+    }
+
+    this.sessionTimeout.enabled = false;
+    this.logInfo("Session timeout disabled");
+  }
+
+  // ===== Memory-Efficient Component Management Methods =====
+
+  /**
+   * Update component metadata efficiently using WeakMap
+   * @param {Object} component - Component instance
+   * @param {Object} updates - Metadata updates
+   */
+  updateComponentMetadata(component, updates) {
+    if (!component || typeof component !== "object") {
+      return false;
+    }
+
+    const existingMetadata = this.componentMetadata.get(component);
+    if (existingMetadata) {
+      const updatedMetadata = {
+        ...existingMetadata,
+        ...updates,
+        lastActivity: Date.now(),
+      };
+      this.componentMetadata.set(component, updatedMetadata);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get component metadata efficiently from WeakMap
+   * @param {Object} component - Component instance
+   * @returns {Object|null} Component metadata
+   */
+  getComponentMetadata(component) {
+    if (!component || typeof component !== "object") {
+      return null;
+    }
+    return this.componentMetadata.get(component) || null;
+  }
+
+  /**
+   * Track component activity in metadata
+   * @param {string} componentId - Component ID
+   * @param {string} activityType - Type of activity
+   */
+  trackComponentActivity(componentId, activityType = "event") {
+    const component = this.components.get(componentId);
+    if (!component || !component.instance) {
+      return false;
+    }
+
+    const metadata = this.componentMetadata.get(component.instance);
+    if (metadata) {
+      // Update activity counters
+      switch (activityType) {
+        case "event":
+          metadata.eventCount = (metadata.eventCount || 0) + 1;
+          break;
+        case "error":
+          metadata.errorCount = (metadata.errorCount || 0) + 1;
+          break;
+      }
+      metadata.lastActivity = Date.now();
+
+      // WeakMap automatically updates in place
+      this.componentMetadata.set(component.instance, metadata);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Clean up memory-efficient structures
+   * WeakMap entries are automatically garbage collected when components are removed
+   */
+  cleanupMemoryEfficientStructures() {
+    // WeakMap entries will be automatically garbage collected
+    // when component references are no longer held elsewhere
+
+    // Clean up suspension timestamps for removed components
+    const activeComponentIds = new Set(this.components.keys());
+
+    // Note: We can't iterate over WeakMap, but suspension cleanup
+    // is handled in resetRateLimitingCounters() method
+
+    this.logDebug("Memory-efficient cleanup completed");
+  }
+
+  /**
+   * Get memory usage statistics
+   * @returns {Object} Memory usage information
+   */
+  getMemoryUsageStats() {
+    return {
+      componentsCount: this.components.size,
+      eventSubscriptionsCount: this.eventSubscriptions.size,
+      stateSubscribersCount: this.stateSubscribers.size,
+      eventQueueSize: this.eventQueue.length,
+      eventHistorySize: this.eventHistory.length,
+      stateHistorySize: this.stateHistory.length,
+      errorLogSize: this.errorLog.length,
+      rateLimitingEntriesCount:
+        this.rateLimiting.eventCounts.size +
+        this.rateLimiting.stateUpdateCounts.size,
+      // WeakMap size cannot be determined (by design for memory efficiency)
+      componentMetadataNote:
+        "WeakMap size not available (memory-efficient by design)",
+      suspensionTimestampsNote: "WeakMap entries auto-cleaned by GC",
+    };
   }
 }
 

@@ -3,7 +3,7 @@
  * Comprehensive unit testing for Migration Types entity management frontend component
  *
  * Tests cover:
- * - Component initialization and configuration  
+ * - Component initialization and configuration
  * - CRUD operations and UI interactions
  * - Status management (draft, active, archived, deprecated)
  * - Validation rules and error handling
@@ -99,23 +99,23 @@ const BaseEntityManager = class {
   createEntity() {
     return Promise.resolve({ mit_id: "test-mt-1" });
   }
-  
+
   updateEntity() {
     return Promise.resolve({ mit_id: "test-mt-1" });
   }
-  
+
   deleteEntity() {
     return Promise.resolve(true);
   }
-  
+
   loadData() {
     return Promise.resolve([]);
   }
-  
+
   refresh() {
     return Promise.resolve();
   }
-  
+
   setState(newState) {
     this.state = { ...this.state, ...newState };
   }
@@ -137,7 +137,7 @@ global.window = {
     Promise.resolve({
       ok: true,
       json: () => Promise.resolve([]),
-    })
+    }),
   ),
   performance: {
     now: jest.fn(() => Date.now()),
@@ -176,7 +176,7 @@ global.fetch = jest.fn(() =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve([]),
-  })
+  }),
 );
 
 // Mock performance API
@@ -227,7 +227,7 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
   async initialize() {
     this.performanceStart = performance.now();
-    
+
     try {
       // Initialize security
       SecurityUtils.logSecurityEvent("migration_types_access", {
@@ -240,20 +240,20 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
       // Initialize components
       await this.initializeComponents();
-      
+
       // Setup event handlers
       this.setupEventHandlers();
-      
+
       // Load initial data
       await this.loadData();
-      
+
       const performanceEnd = performance.now();
       this.performanceMetrics = {
         initializationTime: performanceEnd - this.performanceStart,
       };
 
       this.emit("initialized", { metrics: this.performanceMetrics });
-      
+
       return true;
     } catch (error) {
       SecurityUtils.logSecurityEvent("migration_types_error", {
@@ -310,7 +310,7 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
   async createMigrationType(data) {
     const startTime = performance.now();
-    
+
     try {
       // Security validation
       if (!window.UMIGServices.userService.isSuperAdmin()) {
@@ -406,14 +406,14 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       newStatus,
       user: window.currentUser,
     });
-    
+
     this.approvalWorkflow.set(migrationTypeId, {
       status: newStatus,
       approved: true,
       approver: "test-approver",
       timestamp: new Date().toISOString(),
     });
-    
+
     return { approved: true, approver: "test-approver" };
   }
 
@@ -460,21 +460,39 @@ class MigrationTypesEntityManager extends BaseEntityManager {
     }
 
     // Length validation
-    if (data.mit_name && data.mit_name.length > this.config.validation.maxLength.mit_name) {
-      errors.push(`mit_name exceeds maximum length of ${this.config.validation.maxLength.mit_name}`);
+    if (
+      data.mit_name &&
+      data.mit_name.length > this.config.validation.maxLength.mit_name
+    ) {
+      errors.push(
+        `mit_name exceeds maximum length of ${this.config.validation.maxLength.mit_name}`,
+      );
     }
 
-    if (data.mit_code && data.mit_code.length > this.config.validation.maxLength.mit_code) {
-      errors.push(`mit_code exceeds maximum length of ${this.config.validation.maxLength.mit_code}`);
+    if (
+      data.mit_code &&
+      data.mit_code.length > this.config.validation.maxLength.mit_code
+    ) {
+      errors.push(
+        `mit_code exceeds maximum length of ${this.config.validation.maxLength.mit_code}`,
+      );
     }
 
-    if (data.mit_description && data.mit_description.length > this.config.validation.maxLength.mit_description) {
-      errors.push(`mit_description exceeds maximum length of ${this.config.validation.maxLength.mit_description}`);
+    if (
+      data.mit_description &&
+      data.mit_description.length >
+        this.config.validation.maxLength.mit_description
+    ) {
+      errors.push(
+        `mit_description exceeds maximum length of ${this.config.validation.maxLength.mit_description}`,
+      );
     }
 
     // Code format validation
     if (data.mit_code && !/^[A-Z_]+$/.test(data.mit_code)) {
-      errors.push("Migration type code must contain only uppercase letters and underscores");
+      errors.push(
+        "Migration type code must contain only uppercase letters and underscores",
+      );
     }
 
     return {
@@ -503,7 +521,10 @@ class MigrationTypesEntityManager extends BaseEntityManager {
         user: window.currentUser,
       });
     } catch (error) {
-      console.error("Error during MigrationTypesEntityManager destruction:", error);
+      console.error(
+        "Error during MigrationTypesEntityManager destruction:",
+        error,
+      );
     }
   }
 }
@@ -519,14 +540,14 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock performance with incrementing values
     let performanceCallCount = 0;
     const mockPerformanceNow = jest.fn(() => {
       performanceCallCount++;
       return performanceCallCount * 10; // Returns 10, 20, 30, etc.
     });
-    
+
     // Ensure window mocks are properly reset and available
     global.window = {
       currentUser: "test-user",
@@ -543,24 +564,24 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve([]),
-        })
+        }),
       ),
       performance: {
         now: mockPerformanceNow,
       },
     };
-    
+
     // Ensure global performance is available and shares the same mock
     global.performance = {
       now: mockPerformanceNow,
     };
-    
+
     // Set up global aliases
     global.window.window = global.window;
     global.currentUser = "test-user";
-    
+
     manager = new MigrationTypesEntityManager("test-container");
-    
+
     // Reset test results
     testResults = {
       componentsValidated: [],
@@ -579,9 +600,13 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
   afterAll(() => {
     console.log("\n📊 MIGRATION TYPES ENTITY MANAGER TEST RESULTS SUMMARY");
     console.log("============================================================");
-    console.log(`Components Validated: ${testResults.componentsValidated.length}`);
+    console.log(
+      `Components Validated: ${testResults.componentsValidated.length}`,
+    );
     console.log(`Security Checks: ${testResults.securityChecks}`);
-    console.log(`Performance Validations: ${testResults.performanceValidations}`);
+    console.log(
+      `Performance Validations: ${testResults.performanceValidations}`,
+    );
     console.log(`Functional Tests: ${testResults.functionalTests}`);
     console.log("Component Coverage:");
     testResults.componentsValidated.forEach((component) => {
@@ -593,9 +618,16 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
   describe("Initialization", () => {
     it("should initialize with correct configuration", () => {
       expect(manager.config.entityName).toBe("migration-types");
-      expect(manager.config.apiEndpoint).toBe("/rest/scriptrunner/latest/custom/migrationTypes");
+      expect(manager.config.apiEndpoint).toBe(
+        "/rest/scriptrunner/latest/custom/migrationTypes",
+      );
       expect(manager.config.permissions.create).toContain("SUPERADMIN");
-      expect(manager.statusOptions).toEqual(["draft", "active", "archived", "deprecated"]);
+      expect(manager.statusOptions).toEqual([
+        "draft",
+        "active",
+        "archived",
+        "deprecated",
+      ]);
 
       testResults.componentsValidated.push("Configuration validation");
       testResults.functionalTests++;
@@ -606,10 +638,12 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
       expect(ComponentOrchestrator.registerComponent).toHaveBeenCalledWith(
         "migration-types-manager",
-        manager
+        manager,
       );
 
-      testResults.componentsValidated.push("ComponentOrchestrator registration");
+      testResults.componentsValidated.push(
+        "ComponentOrchestrator registration",
+      );
       testResults.functionalTests++;
     });
 
@@ -638,7 +672,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         expect.objectContaining({
           user: "test-user",
           action: "initialize",
-        })
+        }),
       );
 
       testResults.componentsValidated.push("Security event logging");
@@ -684,10 +718,12 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       const result = await manager.createMigrationType(migrationTypeData);
 
       expect(result.mit_id).toBe("test-mt-1");
-      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith("Test Migration Type");
+      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith(
+        "Test Migration Type",
+      );
       expect(SecurityUtils.logSecurityEvent).toHaveBeenCalledWith(
         "migration_type_created",
-        expect.any(Object)
+        expect.any(Object),
       );
 
       testResults.componentsValidated.push("Migration type creation");
@@ -703,9 +739,9 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         mit_code: "TEST_TYPE",
       };
 
-      await expect(manager.createMigrationType(migrationTypeData)).rejects.toThrow(
-        "SUPERADMIN permissions required"
-      );
+      await expect(
+        manager.createMigrationType(migrationTypeData),
+      ).rejects.toThrow("SUPERADMIN permissions required");
 
       testResults.componentsValidated.push("Permission validation");
       testResults.securityChecks++;
@@ -720,14 +756,14 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         mit_code: "TEST_TYPE",
       };
 
-      await expect(manager.createMigrationType(migrationTypeData)).rejects.toThrow(
-        "Rate limit exceeded"
-      );
+      await expect(
+        manager.createMigrationType(migrationTypeData),
+      ).rejects.toThrow("Rate limit exceeded");
 
       expect(SecurityUtils.enforceRateLimit).toHaveBeenCalledWith(
         "create_migration_type",
         5,
-        60000
+        60000,
       );
 
       testResults.componentsValidated.push("Rate limiting");
@@ -746,8 +782,12 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
       await manager.createMigrationType(migrationTypeData);
 
-      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith("<script>alert('xss')</script>Test");
-      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith("<b>Description</b>");
+      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith(
+        "<script>alert('xss')</script>Test",
+      );
+      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith(
+        "<b>Description</b>",
+      );
 
       testResults.componentsValidated.push("Input sanitization");
       testResults.securityChecks++;
@@ -760,12 +800,15 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
     });
 
     it("should update migration type status with valid transitions", async () => {
-      const result = await manager.updateMigrationTypeStatus("test-mt-1", "active");
+      const result = await manager.updateMigrationTypeStatus(
+        "test-mt-1",
+        "active",
+      );
 
       expect(result.mit_id).toBe("test-mt-1");
       expect(SecurityUtils.logSecurityEvent).not.toHaveBeenCalledWith(
         "status_change_failed",
-        expect.any(Object)
+        expect.any(Object),
       );
 
       testResults.componentsValidated.push("Status transition");
@@ -774,7 +817,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
     it("should reject invalid status values", async () => {
       await expect(
-        manager.updateMigrationTypeStatus("test-mt-1", "invalid_status")
+        manager.updateMigrationTypeStatus("test-mt-1", "invalid_status"),
       ).rejects.toThrow("Invalid status: invalid_status");
 
       testResults.componentsValidated.push("Status validation");
@@ -784,7 +827,10 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
     it("should require approval for active status", async () => {
       manager.config.approval.required = true;
 
-      const result = await manager.updateMigrationTypeStatus("test-mt-1", "active");
+      const result = await manager.updateMigrationTypeStatus(
+        "test-mt-1",
+        "active",
+      );
 
       // Should complete successfully with mock approval
       expect(result.mit_id).toBe("test-mt-1");
@@ -817,16 +863,21 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
     it("should associate templates when enabled", async () => {
       manager.config.templates.enabled = true;
 
-      const result = await manager.associateTemplate("test-mt-1", "template-123");
+      const result = await manager.associateTemplate(
+        "test-mt-1",
+        "template-123",
+      );
 
       expect(result).toBe(true);
-      expect(manager.templateAssociations.get("test-mt-1")).toBe("template-123");
+      expect(manager.templateAssociations.get("test-mt-1")).toBe(
+        "template-123",
+      );
       expect(SecurityUtils.logSecurityEvent).toHaveBeenCalledWith(
         "template_associated",
         expect.objectContaining({
           migrationTypeId: "test-mt-1",
           templateId: "template-123",
-        })
+        }),
       );
 
       testResults.componentsValidated.push("Template association");
@@ -838,7 +889,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       manager.config.templates.enabled = false;
 
       await expect(
-        manager.associateTemplate("test-mt-1", "template-123")
+        manager.associateTemplate("test-mt-1", "template-123"),
       ).rejects.toThrow("Template association not enabled");
 
       testResults.componentsValidated.push("Template association validation");
@@ -883,7 +934,9 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       });
 
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain("mit_name exceeds maximum length of 100");
+      expect(validation.errors).toContain(
+        "mit_name exceeds maximum length of 100",
+      );
 
       testResults.componentsValidated.push("Length validation");
       testResults.functionalTests++;
@@ -897,7 +950,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain(
-        "Migration type code must contain only uppercase letters and underscores"
+        "Migration type code must contain only uppercase letters and underscores",
       );
 
       testResults.componentsValidated.push("Code format validation");
@@ -929,11 +982,11 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
           isSuperAdmin: jest.fn(() => true),
         },
       };
-      
+
       await manager.initialize();
-      
+
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
-      
+
       // Mock slow creation by manipulating performance.now
       let callCount = 0;
       global.performance.now.mockImplementation(() => {
@@ -954,7 +1007,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        "Migration type creation exceeded 200ms target"
+        "Migration type creation exceeded 200ms target",
       );
 
       consoleSpy.mockRestore();
@@ -972,9 +1025,9 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
           isSuperAdmin: jest.fn(() => true),
         },
       };
-      
+
       await manager.initialize();
-      
+
       window.UMIGServices.userService.isSuperAdmin.mockReturnValue(true);
       SecurityUtils.enforceRateLimit.mockReturnValue(true);
 
@@ -987,7 +1040,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         "migration_type_created",
         expect.objectContaining({
           performanceMs: expect.any(Number),
-        })
+        }),
       );
 
       testResults.componentsValidated.push("Performance metrics logging");
@@ -1002,12 +1055,15 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       const tableSpy = jest.spyOn(manager.components.table, "destroy");
       const modalSpy = jest.spyOn(manager.components.modal, "destroy");
       const filterSpy = jest.spyOn(manager.components.filter, "destroy");
-      const paginationSpy = jest.spyOn(manager.components.pagination, "destroy");
+      const paginationSpy = jest.spyOn(
+        manager.components.pagination,
+        "destroy",
+      );
 
       manager.destroy();
 
       expect(ComponentOrchestrator.unregisterComponent).toHaveBeenCalledWith(
-        "migration-types-manager"
+        "migration-types-manager",
       );
       expect(tableSpy).toHaveBeenCalled();
       expect(modalSpy).toHaveBeenCalled();
@@ -1033,7 +1089,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       expect(() => manager.destroy()).not.toThrow();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error during MigrationTypesEntityManager destruction:",
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleSpy.mockRestore();
@@ -1095,9 +1151,9 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
           isSuperAdmin: jest.fn(() => true),
         },
       };
-      
+
       await manager.initialize();
-      
+
       const eventSpy = jest.fn();
       manager.on("migrationTypeCreated", eventSpy);
 
@@ -1112,7 +1168,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           mit_id: "test-mt-1",
-        })
+        }),
       );
 
       testResults.componentsValidated.push("Creation event emission");
@@ -1134,21 +1190,21 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
     it("should handle concurrent user modifications", async () => {
       const concurrentPromises = [];
-      
+
       for (let i = 0; i < 3; i++) {
         concurrentPromises.push(
           manager.createMigrationType({
             mit_name: `Concurrent Type ${i}`,
             mit_code: `CONCURRENT_${i}`,
-          })
+          }),
         );
       }
 
       const results = await Promise.all(concurrentPromises);
-      
+
       expect(results).toHaveLength(3);
-      results.forEach(result => {
-        expect(result).toHaveProperty('mit_id');
+      results.forEach((result) => {
+        expect(result).toHaveProperty("mit_id");
       });
 
       testResults.componentsValidated.push("Concurrent operations");
@@ -1168,7 +1224,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       });
 
       await manager.createMigrationType({
-        mit_name: "Rate Test 2", 
+        mit_name: "Rate Test 2",
         mit_code: "RATE_2",
       });
 
@@ -1177,7 +1233,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
         manager.createMigrationType({
           mit_name: "Rate Test 3",
           mit_code: "RATE_3",
-        })
+        }),
       ).rejects.toThrow("Rate limit exceeded");
 
       testResults.componentsValidated.push("Rate limiting exhaustion");
@@ -1188,13 +1244,16 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       // Test all valid status transitions
       const validTransitions = [
         { from: "draft", to: "active" },
-        { from: "active", to: "archived" }, 
+        { from: "active", to: "archived" },
         { from: "archived", to: "deprecated" },
         { from: "deprecated", to: "draft" }, // Reactivation scenario
       ];
 
       for (const transition of validTransitions) {
-        const result = await manager.updateMigrationTypeStatus("test-mt-1", transition.to);
+        const result = await manager.updateMigrationTypeStatus(
+          "test-mt-1",
+          transition.to,
+        );
         expect(result.mit_id).toBe("test-mt-1");
       }
 
@@ -1204,7 +1263,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
     it("should handle template association cascades", async () => {
       manager.config.templates.enabled = true;
-      
+
       // Associate multiple templates
       const templateIds = ["template-1", "template-2", "template-3"];
       const associations = [];
@@ -1223,18 +1282,24 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
 
     it("should handle initialization failure gracefully", async () => {
       // Create a new manager that will fail during initialization
-      const failingManager = new MigrationTypesEntityManager("failing-container");
-      
+      const failingManager = new MigrationTypesEntityManager(
+        "failing-container",
+      );
+
       // Mock SecurityUtils to fail during initialization
       const originalLogSecurityEvent = SecurityUtils.logSecurityEvent;
       SecurityUtils.logSecurityEvent.mockImplementationOnce(() => {
         throw new Error("Security logging failed");
       });
 
-      await expect(failingManager.initialize()).rejects.toThrow("Security logging failed");
+      await expect(failingManager.initialize()).rejects.toThrow(
+        "Security logging failed",
+      );
 
       // Restore original mock
-      SecurityUtils.logSecurityEvent.mockImplementation(originalLogSecurityEvent);
+      SecurityUtils.logSecurityEvent.mockImplementation(
+        originalLogSecurityEvent,
+      );
 
       testResults.componentsValidated.push("Initialization failure handling");
       testResults.functionalTests++;
@@ -1244,7 +1309,7 @@ describe("MigrationTypesEntityManager Unit Tests", () => {
       // Simple validation test without recursion issues
       const emptyData = {};
       const validation = manager.validateMigrationType(emptyData);
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors.length).toBeGreaterThan(0);
 
