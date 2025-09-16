@@ -6,6 +6,9 @@ import com.atlassian.spring.container.ContainerManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Role-Based Access Control Utility for UMIG
@@ -18,6 +21,7 @@ class RBACUtil {
     private static final Logger log = LoggerFactory.getLogger(RBACUtil.class)
     private static RBACUtil instance
     private final UserAccessor userAccessor
+    private final ScheduledExecutorService cacheCleanupExecutor
     
     // Role definitions - in production, these would be database-driven
     private static final Map<String, Set<String>> ROLE_PERMISSIONS = [
@@ -42,6 +46,13 @@ class RBACUtil {
     
     private RBACUtil() {
         this.userAccessor = ContainerManager.getComponent("userAccessor") as UserAccessor
+        // Initialize with single daemon thread for cache cleanup
+        this.cacheCleanupExecutor = Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread thread = new Thread(runnable, "RBAC-Cache-Cleanup")
+            thread.setDaemon(true) // Daemon thread for proper shutdown
+            return thread
+        }
+        log.info("RBACUtil initialized with scheduled cache cleanup executor")
     }
     
     static synchronized RBACUtil getInstance() {
@@ -163,12 +174,20 @@ class RBACUtil {
     }
     
     /**
-     * Schedule cache cleanup after TTL
+     * Schedule cache cleanup after TTL using ScheduledExecutorService
+     * Production-ready implementation with proper thread management
+     * @param username The username to clean from cache
      */
     private void scheduleCacheCleanup(String username) {
-        // Simple TTL implementation - in production use ScheduledExecutorService
-        Thread.start {
-            Thread.sleep(5 * 60 * 1000) // 5 minutes
+        try {
+            cacheCleanupExecutor.schedule({
+                userRoles.remove(username)
+                log.debug("Cache entry removed for user: ${username}")
+            }, 5, TimeUnit.MINUTES)
+            log.debug("Cache cleanup scheduled for user: ${username}")
+        } catch (Exception e) {
+            log.error("Failed to schedule cache cleanup for user ${username}: ${e.message}", e)
+            // Fallback: remove immediately if scheduling fails
             userRoles.remove(username)
         }
     }
@@ -182,6 +201,35 @@ class RBACUtil {
             log.info(message)
         } else {
             log.warn(message)
+        }
+    }
+    
+    /**
+     * Graceful shutdown of cache cleanup executor
+     * Should be called during application shutdown to ensure proper cleanup
+     */
+    void shutdown() {
+        if (cacheCleanupExecutor != null && !cacheCleanupExecutor.isShutdown()) {
+            log.info("Shutting down RBAC cache cleanup executor...")
+            cacheCleanupExecutor.shutdown()
+            
+            try {
+                // Wait for existing tasks to complete
+                if (!cacheCleanupExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    log.warn("Cache cleanup executor did not terminate gracefully, forcing shutdown")
+                    cacheCleanupExecutor.shutdownNow()
+                    
+                    // Wait again for forced termination
+                    if (!cacheCleanupExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        log.error("Cache cleanup executor did not terminate after forced shutdown")
+                    }
+                }
+                log.info("RBAC cache cleanup executor shutdown completed")
+            } catch (InterruptedException e) {
+                log.warn("Interrupted while waiting for cache cleanup executor shutdown")
+                cacheCleanupExecutor.shutdownNow()
+                Thread.currentThread().interrupt() // Restore interrupt status
+            }
         }
     }
 }
