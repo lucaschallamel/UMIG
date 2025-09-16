@@ -33,16 +33,17 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 
 ## Acceptance Criteria
 
-### AC1: Method Complexity Reduction
+### AC1: Method Complexity Reduction with Integration Points
 
-**Given** the current 235+ line sendStepStatusChangedNotificationWithUrl method  
-**When** implementing method decomposition  
+**Given** the current 235+ line sendStepStatusChangedNotificationWithUrl method
+**When** implementing method decomposition
 **Then** we must achieve:
 
 - [ ] Break down 235-line method into focused, single-responsibility methods (max 50 lines each)
 - [ ] Extract URL construction logic into separate utility methods
 - [ ] Separate template processing concerns from email sending logic
 - [ ] Create dedicated audit logging methods
+- [ ] Establish clear integration points for US-049 (StepView) and US-035 (IterationView)
 - [ ] Maintain 100% functional equivalence during refactoring
 - [ ] All existing tests continue to pass without modification
 
@@ -101,8 +102,8 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 
 ### AC6: Foundation Architecture for Future Enhancements
 
-**Given** the need to support future performance and caching improvements  
-**When** implementing refactored architecture  
+**Given** the need to support future performance and caching improvements
+**When** implementing refactored architecture
 **Then** we must establish:
 
 - [ ] Clean separation between email composition, processing, and sending
@@ -111,6 +112,21 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 - [ ] Performance measurement points for future optimization
 - [ ] Configuration-driven behavior enabling future feature toggles
 - [ ] Documentation of extension points for async processing integration
+
+### AC7: Integration Support for StepView and IterationView
+
+**Given** the requirement to support US-049 (StepView Email Integration) and US-035 (IterationView API Migration)
+**When** refactoring EmailService architecture
+**Then** we must provide:
+
+- [ ] **Step Status Change Email Notifications**: Dedicated methods for step status transitions (pending → in-progress → completed → failed)
+- [ ] **Instruction Completion Email Notifications**: Specific notification handlers for instruction completion/uncompletion events
+- [ ] **Direct UUID Link Integration**: Support for UUID-based step links in email notifications (US-049 requirement)
+- [ ] **Bulk Operation Support**: Email notification capabilities for multiple steps processed from IterationView (US-035 requirement)
+- [ ] **Template System Integration**: Email templates for all step-related notification types with hierarchy context
+- [ ] **Audit Trail Integration**: Complete email notification logging with step context and user attribution
+- [ ] **Performance Optimization**: Asynchronous email processing to avoid blocking UI operations
+- [ ] **Integration APIs**: Clear service interfaces for StepView and IterationView email integration
 
 ## Technical Requirements
 
@@ -135,6 +151,104 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 - Test coverage: ≥85% for all refactored code
 - UMIG coding standards compliance (ADR-026, ADR-031, ADR-043)
 
+## Technical Implementation for Integration Support
+
+### EmailService Integration Architecture
+
+```groovy
+// Enhanced EmailService with integration support
+class EmailServiceIntegrationLayer {
+
+    // Step status change notifications with UUID link support
+    def sendStepStatusChangeNotification(Map stepContext, String newStatus, def user) {
+        def templateData = buildStepStatusTemplateData(stepContext, newStatus, user)
+
+        // Include UUID-based direct link for US-049 integration
+        templateData.directLink = buildUUIDStepLink(stepContext.stepInstanceId)
+
+        return sendNotificationWithTemplate('step-status-change', templateData,
+            determineStepNotificationRecipients(stepContext))
+    }
+
+    // Instruction completion notifications
+    def sendInstructionCompletionNotification(Map instructionContext, boolean completed, def user) {
+        def templateData = [
+            instructionId: instructionContext.instructionId,
+            instructionText: instructionContext.instructionText,
+            completed: completed,
+            user: user,
+            timestamp: new Date(),
+            stepDirectLink: buildUUIDStepLink(instructionContext.stepInstanceId)
+        ]
+
+        return sendNotificationWithTemplate('instruction-completion', templateData,
+            determineInstructionNotificationRecipients(instructionContext))
+    }
+
+    // Bulk operation support for IterationView integration
+    def sendBulkStepStatusNotifications(List<Map> stepContexts, String operation, def user) {
+        // Process multiple steps with consolidated or individual notifications
+        def notifications = stepContexts.collect { stepContext ->
+            sendStepStatusChangeNotification(stepContext, stepContext.newStatus, user)
+        }
+
+        // Optional: Send consolidated summary notification
+        if (stepContexts.size() > 5) {
+            sendBulkOperationSummary(stepContexts, operation, user)
+        }
+
+        return notifications
+    }
+
+    // Template integration with hierarchy context
+    private def buildStepStatusTemplateData(Map stepContext, String newStatus, def user) {
+        return [
+            stepId: stepContext.stepId,
+            stepName: stepContext.stepName,
+            oldStatus: stepContext.oldStatus,
+            newStatus: newStatus,
+            user: user,
+            timestamp: new Date(),
+            hierarchy: [
+                migrationName: stepContext.migrationName,
+                iterationName: stepContext.iterationName,
+                planName: stepContext.planName,
+                sequenceName: stepContext.sequenceName,
+                phaseName: stepContext.phaseName
+            ],
+            directLink: buildUUIDStepLink(stepContext.stepInstanceId)
+        ]
+    }
+
+    // UUID link construction for direct step access
+    private String buildUUIDStepLink(UUID stepInstanceId) {
+        def baseUrl = UrlConstructionService.getBaseUrl()
+        return "${baseUrl}/stepview-uuid?uuid=${stepInstanceId.toString()}"
+    }
+}
+```
+
+### Integration API Design
+
+```groovy
+// EmailService API for external integration
+interface EmailNotificationService {
+
+    // Core notification methods for StepView integration (US-049)
+    NotificationResult sendStepStatusNotification(UUID stepInstanceId, String newStatus, String userId)
+    NotificationResult sendInstructionCompletionNotification(UUID instructionId, boolean completed, String userId)
+
+    // Bulk methods for IterationView integration (US-035)
+    List<NotificationResult> sendBulkStepNotifications(List<UUID> stepInstanceIds, String operation, String userId)
+    NotificationResult sendIterationSummaryNotification(UUID iterationId, Map operationSummary, String userId)
+
+    // Audit and monitoring support
+    List<NotificationHistory> getStepNotificationHistory(UUID stepInstanceId)
+    NotificationPreferences getStepNotificationPreferences(UUID stepInstanceId)
+    void updateNotificationPreferences(UUID stepInstanceId, NotificationPreferences preferences)
+}
+```
+
 ## Dependencies and Constraints
 
 ### Dependencies
@@ -142,6 +256,8 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 - Must maintain compatibility with existing StepsApi and EnhancedStepsApi
 - Requires coordination with ongoing US-056B template integration work
 - Depends on UrlConstructionService and EmailTemplateRepository stability
+- **New**: Establishes foundation for US-049 (StepView Email Integration)
+- **New**: Provides bulk notification support for US-035 (IterationView API Migration)
 
 ### Constraints
 
@@ -149,6 +265,8 @@ As a **Development Team**, I want to **refactor and secure the EmailService and 
 - All existing email notification functionality must be preserved
 - Must maintain integration with Confluence mail APIs
 - Cannot impact current email template rendering behavior
+- **New**: Must support asynchronous processing for bulk operations without UI blocking
+- **New**: Email templates must support UUID-based direct links for step access
 
 ## Definition of Done
 

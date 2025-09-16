@@ -45818,14 +45818,12 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                     ),
                   };
                 if (q === 0) {
-                  var ee = l
-                      .slice(m + 1, f)
-                      .concat(
-                        Hl({
-                          children: [M],
-                          className: A.properties.className,
-                        }),
-                      ),
+                  var ee = l.slice(m + 1, f).concat(
+                      Hl({
+                        children: [M],
+                        className: A.properties.className,
+                      }),
+                    ),
                     ne = v(ee, F);
                   p.push(ne);
                 } else if (q === C.length - 1) {
@@ -65714,16 +65712,14 @@ ${v.join(`,
               { title: w, expanded: i <= s, collapsedContent: "[...]" },
               "[",
               m.size
-                ? m
-                    .entrySeq()
-                    .map(([E, A]) =>
-                      d.default.createElement(b, {
-                        key: `${E}-${A}`,
-                        propKey: E,
-                        propVal: A,
-                        propClass: "property",
-                      }),
-                    )
+                ? m.entrySeq().map(([E, A]) =>
+                    d.default.createElement(b, {
+                      key: `${E}-${A}`,
+                      propKey: E,
+                      propVal: A,
+                      propClass: "property",
+                    }),
+                  )
                 : null,
               u
                 ? d.default.createElement(g, { source: u })
@@ -65839,16 +65835,14 @@ ${v.join(`,
                     ")",
                   ),
                 v.size
-                  ? v
-                      .entrySeq()
-                      .map(([$, q]) =>
-                        d.default.createElement(E, {
-                          key: `${$}-${q}`,
-                          propKey: $,
-                          propVal: q,
-                          propClass: jl,
-                        }),
-                      )
+                  ? v.entrySeq().map(([$, q]) =>
+                      d.default.createElement(E, {
+                        key: `${$}-${q}`,
+                        propKey: $,
+                        propVal: q,
+                        propClass: jl,
+                      }),
+                    )
                   : null,
                 c && g.size > 0
                   ? d.default.createElement(N, {
@@ -68835,20 +68829,18 @@ ${v.join(`,
                   d.default.createElement(
                     "div",
                     { className: "modal-ux-content" },
-                    c
-                      .valueSeq()
-                      .map((p, m) =>
-                        d.default.createElement(u, {
-                          key: m,
-                          AST: o,
-                          definitions: p,
-                          getComponent: i,
-                          errSelectors: s,
-                          authSelectors: n,
-                          authActions: r,
-                          specSelectors: a,
-                        }),
-                      ),
+                    c.valueSeq().map((p, m) =>
+                      d.default.createElement(u, {
+                        key: m,
+                        AST: o,
+                        definitions: p,
+                        getComponent: i,
+                        errSelectors: s,
+                        authSelectors: n,
+                        authActions: r,
+                        specSelectors: a,
+                      }),
+                    ),
                   ),
                 ),
               ),
@@ -71249,15 +71241,13 @@ ${v.join(`,
                 d.default.createElement(
                   "tbody",
                   null,
-                  e
-                    .entrySeq()
-                    .map(([r, i]) =>
-                      d.default.createElement(n, {
-                        key: `${r}-${i}`,
-                        xKey: r,
-                        xVal: i,
-                      }),
-                    ),
+                  e.entrySeq().map(([r, i]) =>
+                    d.default.createElement(n, {
+                      key: `${r}-${i}`,
+                      xKey: r,
+                      xVal: i,
+                    }),
+                  ),
                 ),
               ),
             ),
@@ -72699,15 +72689,13 @@ ${v.join(`,
                   })
                 : null,
               g && z.size
-                ? z
-                    .entrySeq()
-                    .map(([Pe, Fe]) =>
-                      d.default.createElement(A, {
-                        key: `${Pe}-${Fe}`,
-                        xKey: Pe,
-                        xVal: Fe,
-                      }),
-                    )
+                ? z.entrySeq().map(([Pe, Fe]) =>
+                    d.default.createElement(A, {
+                      key: `${Pe}-${Fe}`,
+                      xKey: Pe,
+                      xVal: Fe,
+                    }),
+                  )
                 : null,
               y && W.size
                 ? W.entrySeq().map(([Pe, Fe]) =>
@@ -75190,19 +75178,17 @@ ${v.join(`,
                             ? d.default.createElement(
                                 "select",
                                 { "data-variable": l, onChange: u },
-                                p
-                                  .get("enum")
-                                  .map((m) =>
-                                    d.default.createElement(
-                                      "option",
-                                      {
-                                        selected: m === i(t, l),
-                                        key: m,
-                                        value: m,
-                                      },
-                                      m,
-                                    ),
+                                p.get("enum").map((m) =>
+                                  d.default.createElement(
+                                    "option",
+                                    {
+                                      selected: m === i(t, l),
+                                      key: m,
+                                      value: m,
+                                    },
+                                    m,
                                   ),
+                                ),
                               )
                             : d.default.createElement("input", {
                                 type: "text",

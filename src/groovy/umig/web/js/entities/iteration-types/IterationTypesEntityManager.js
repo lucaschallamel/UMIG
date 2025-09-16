@@ -94,7 +94,7 @@ export class IterationTypesEntityManager extends BaseEntityManager {
     // Error boundary cleanup configuration
     this.MAX_ERROR_BOUNDARY_SIZE = 1000; // Maximum entries before cleanup
     this.ERROR_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
-    
+
     // Initialize periodic error boundary cleanup
     this._initializeErrorBoundaryCleanup();
 
@@ -142,16 +142,17 @@ export class IterationTypesEntityManager extends BaseEntityManager {
    */
   _cleanupErrorBoundary() {
     const currentSize = this.errorBoundary.size;
-    
+
     if (currentSize > this.MAX_ERROR_BOUNDARY_SIZE) {
-      const entriesToRemove = currentSize - Math.floor(this.MAX_ERROR_BOUNDARY_SIZE * 0.8); // Keep 80% of max
+      const entriesToRemove =
+        currentSize - Math.floor(this.MAX_ERROR_BOUNDARY_SIZE * 0.8); // Keep 80% of max
       const entries = Array.from(this.errorBoundary.keys());
-      
+
       // Remove oldest entries (first inserted)
       for (let i = 0; i < entriesToRemove && i < entries.length; i++) {
         this.errorBoundary.delete(entries[i]);
       }
-      
+
       console.log(
         `[IterationTypesEntityManager] Error boundary cleanup: removed ${entriesToRemove} entries (${currentSize} -> ${this.errorBoundary.size})`,
       );
@@ -167,9 +168,11 @@ export class IterationTypesEntityManager extends BaseEntityManager {
     if (this.errorCleanupTimer) {
       clearInterval(this.errorCleanupTimer);
       this.errorCleanupTimer = null;
-      console.log("[IterationTypesEntityManager] Error boundary cleanup timer cleared");
+      console.log(
+        "[IterationTypesEntityManager] Error boundary cleanup timer cleared",
+      );
     }
-    
+
     // Clear maps to free memory
     this.errorBoundary.clear();
     this.circuitBreaker.clear();
@@ -1170,7 +1173,7 @@ export class IterationTypesEntityManager extends BaseEntityManager {
     if (this.errorBoundary.size >= this.MAX_ERROR_BOUNDARY_SIZE) {
       this._cleanupErrorBoundary();
     }
-    
+
     const errorCount = this.errorBoundary.get(operation) || 0;
     this.errorBoundary.set(operation, errorCount + 1);
     console.error(
