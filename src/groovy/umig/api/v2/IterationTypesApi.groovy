@@ -3,6 +3,8 @@ package umig.api.v2
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.IterationTypeRepository
 import umig.service.UserService
+import umig.utils.RateLimiter
+import umig.utils.RBACUtil
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
@@ -56,8 +58,24 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
+    // Rate limiting check
+    def rateLimiter = RateLimiter.getInstance()
+    def userContext = userService.getCurrentUserContext()
+    def userKey = (userContext.userCode ?: userContext.userId?.toString() ?: request.remoteAddr) as String
+    
+    if (!rateLimiter.checkRateLimit(userKey, 'read', 200)) {
+        log.warn("Rate limit exceeded for user: ${userKey}")
+        return Response.status(429)
+            .entity(new JsonBuilder([error: 'Rate limit exceeded. Please try again later.']).toString())
+            .header('X-RateLimit-Limit', '200')
+            .header('X-RateLimit-Remaining', '0')
+            .header('X-RateLimit-Reset', rateLimiter.getResetTimeSeconds(userKey, 'read').toString())
+            .header('Retry-After', '60')
+            .build()
+    }
+
     try {
-        log.info("GET /iterationTypes - Fetching iteration types")
+        log.info("GET /iterationTypes - Fetching iteration types for user: ${userKey}")
 
         // GET /iterationTypes/{code} - Get specific iteration type
         if (pathParts.size() == 1) {
@@ -71,7 +89,13 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
             }
             
             log.info("GET /iterationTypes/${ittCode} - Found iteration type")
-            return Response.ok(new JsonBuilder(iterationType).toString()).build()
+            return Response.ok(new JsonBuilder(iterationType).toString())
+                .header('X-Content-Type-Options', 'nosniff')
+                .header('X-Frame-Options', 'DENY')
+                .header('X-XSS-Protection', '1; mode=block')
+                .header('X-RateLimit-Limit', '200')
+                .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'read').toString())
+                .build()
         }
 
         // Parse query parameters
@@ -149,7 +173,13 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
             
             log.info("GET /iterationTypes - Paginated response: ${dataList.size()} iteration types (page ${pageNumber} of ${totalPages})")
             
-            return Response.ok(new JsonBuilder(result).toString()).build()
+            return Response.ok(new JsonBuilder(result).toString())
+                .header('X-Content-Type-Options', 'nosniff')
+                .header('X-Frame-Options', 'DENY')
+                .header('X-XSS-Protection', '1; mode=block')
+                .header('X-RateLimit-Limit', '200')
+                .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'read').toString())
+                .build()
         } else {
             // Legacy non-paginated request
             def iterationTypes
@@ -161,7 +191,13 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
                 log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types (includeInactive: ${includeInactive})")
             }
             
-            return Response.ok(new JsonBuilder(iterationTypes).toString()).build()
+            return Response.ok(new JsonBuilder(iterationTypes).toString())
+                .header('X-Content-Type-Options', 'nosniff')
+                .header('X-Frame-Options', 'DENY')
+                .header('X-XSS-Protection', '1; mode=block')
+                .header('X-RateLimit-Limit', '200')
+                .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'read').toString())
+                .build()
         }
         
     } catch (SQLException e) {
@@ -183,33 +219,73 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
  */
 iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
-        log.info("POST /iterationTypes - Creating new iteration type")
+        // Extract user context
+        def userContext = userService.getCurrentUserContext()
+        def userKey = (userContext.userCode ?: userContext.userId?.toString() ?: request.remoteAddr) as String
+        def auditUser = (userContext.userCode ?: userContext.userId?.toString() ?: 'system') as String
+        
+        // Rate limiting check
+        def rateLimiter = RateLimiter.getInstance()
+        if (!rateLimiter.checkRateLimit(userKey, 'write', 50)) {
+            log.warn("Rate limit exceeded for user: ${userKey}")
+            return Response.status(429)
+                .entity(new JsonBuilder([error: 'Rate limit exceeded. Please try again later.']).toString())
+                .header('X-RateLimit-Limit', '50')
+                .header('X-RateLimit-Remaining', '0')
+                .header('X-RateLimit-Reset', rateLimiter.getResetTimeSeconds(userKey, 'write').toString())
+                .header('Retry-After', '60')
+                .build()
+        }
+        
+        // RBAC check
+        def rbacUtil = RBACUtil.getInstance()
+        if (!rbacUtil.hasRole(userKey, 'ITERATION_TYPE_ADMIN')) {
+            rbacUtil.auditSecurityEvent(userKey, 'CREATE', 'ITERATION_TYPE', false)
+            log.warn("Unauthorized access attempt for user: ${userKey} on POST /iterationTypes")
+            return Response.status(403)
+                .entity(new JsonBuilder([error: 'Insufficient permissions to create iteration types']).toString())
+                .build()
+        }
+        
+        log.info("POST /iterationTypes - Creating new iteration type by user: ${userKey}")
         
         Map iterationTypeData = new JsonSlurper().parseText(body) as Map
         
-        // Extract user context for audit fields
-        def userContext = userService.getCurrentUserContext()
-        def auditUser = userContext.userCode ?: userContext.userId?.toString() ?: 'system'
+        // Mass assignment protection - whitelist allowed fields
+        def allowedFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active']
+        def sanitizedData = [:]
+        allowedFields.each { field ->
+            if (iterationTypeData.containsKey(field)) {
+                sanitizedData[field] = iterationTypeData[field]
+            }
+        }
         
-        // Add audit fields
-        iterationTypeData.created_by = auditUser
-        iterationTypeData.updated_by = auditUser
+        // Prevent injection of system fields
+        ['created_at', 'updated_at', 'created_by', 'updated_by'].each { systemField ->
+            if (iterationTypeData.containsKey(systemField)) {
+                log.warn("Attempted to set system field ${systemField} by user ${userKey}")
+            }
+        }
+        
+        // Add audit fields (using sanitized data)
+        sanitizedData.created_by = auditUser
+        sanitizedData.updated_by = auditUser
         
         // Validate required fields
-        if (!iterationTypeData.itt_code) {
+        if (!sanitizedData.itt_code) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([error: "itt_code is required"]).toString())
                 .build()
         }
         
-        if (!iterationTypeData.itt_name) {
+        if (!sanitizedData.itt_name) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([error: "itt_name is required"]).toString())
                 .build()
         }
         
         // Validate itt_code format (alphanumeric, underscore, dash)
-        def ittCode = iterationTypeData.itt_code as String
+        def ittCode = sanitizedData.itt_code as String
         if (!Pattern.matches(/^[a-zA-Z0-9_-]+$/, ittCode)) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([error: "itt_code must contain only alphanumeric characters, underscores, and dashes"]).toString())
@@ -217,24 +293,24 @@ iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMa
         }
         
         // Validate optional color field
-        if (iterationTypeData.itt_color && !isValidHexColor(iterationTypeData.itt_color as String)) {
+        if (sanitizedData.itt_color && !isValidHexColor(sanitizedData.itt_color as String)) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([error: "itt_color must be a valid hex color code (e.g., #6B73FF)"]).toString())
                 .build()
         }
         
         // Validate optional icon field
-        if (iterationTypeData.itt_icon && !isValidIconName(iterationTypeData.itt_icon as String)) {
+        if (sanitizedData.itt_icon && !isValidIconName(sanitizedData.itt_icon as String)) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([error: "itt_icon must contain only alphanumeric characters, underscores, and dashes"]).toString())
                 .build()
         }
         
         // Validate display_order if provided
-        if (iterationTypeData.itt_display_order != null) {
+        if (sanitizedData.itt_display_order != null) {
             try {
-                def displayOrder = Integer.parseInt(iterationTypeData.itt_display_order as String)
-                iterationTypeData.itt_display_order = displayOrder
+                def displayOrder = Integer.parseInt(sanitizedData.itt_display_order as String)
+                sanitizedData.itt_display_order = displayOrder
             } catch (NumberFormatException e) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "itt_display_order must be a valid integer"]).toString())
@@ -249,13 +325,19 @@ iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMa
                 .build()
         }
         
-        def newIterationType = iterationTypeRepository.createIterationType(iterationTypeData)
+        def newIterationType = iterationTypeRepository.createIterationType(sanitizedData)
         
         if (newIterationType) {
             def iterationType = newIterationType as Map
+            rbacUtil.auditSecurityEvent(userKey, 'CREATE', ("ITERATION_TYPE:${iterationType.itt_code}" as String), true)
             log.info("POST /iterationTypes - Created iteration type with code: ${iterationType.itt_code}")
             return Response.status(Response.Status.CREATED)
                 .entity(new JsonBuilder(newIterationType).toString())
+                .header('X-Content-Type-Options', 'nosniff')
+                .header('X-Frame-Options', 'DENY')
+                .header('X-XSS-Protection', '1; mode=block')
+                .header('X-RateLimit-Limit', '50')
+                .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'write').toString())
                 .build()
         } else {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -303,16 +385,57 @@ iterationTypes(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
     if (pathParts.size() == 1) {
         try {
             def ittCode = pathParts[0] as String
-            log.info("PUT /iterationTypes/${ittCode} - Updating iteration type")
+            
+            // Extract user context
+            def userContext = userService.getCurrentUserContext()
+            def userKey = (userContext.userCode ?: userContext.userId?.toString() ?: request.remoteAddr) as String
+            def auditUser = (userContext.userCode ?: userContext.userId?.toString() ?: 'system') as String
+            
+            // Rate limiting check
+            def rateLimiter = RateLimiter.getInstance()
+            if (!rateLimiter.checkRateLimit(userKey, 'write', 50)) {
+                log.warn("Rate limit exceeded for user: ${userKey}")
+                return Response.status(429)
+                    .entity(new JsonBuilder([error: 'Rate limit exceeded. Please try again later.']).toString())
+                    .header('X-RateLimit-Limit', '50')
+                    .header('X-RateLimit-Remaining', '0')
+                    .header('X-RateLimit-Reset', rateLimiter.getResetTimeSeconds(userKey, 'write').toString())
+                    .header('Retry-After', '60')
+                    .build()
+            }
+            
+            // RBAC check
+            def rbacUtil = RBACUtil.getInstance()
+            if (!rbacUtil.hasRole(userKey, 'ITERATION_TYPE_ADMIN')) {
+                rbacUtil.auditSecurityEvent(userKey, 'UPDATE', "ITERATION_TYPE:${ittCode}", false)
+                log.warn("Unauthorized access attempt for user: ${userKey} on PUT /iterationTypes/${ittCode}")
+                return Response.status(403)
+                    .entity(new JsonBuilder([error: 'Insufficient permissions to update iteration types']).toString())
+                    .build()
+            }
+            
+            log.info("PUT /iterationTypes/${ittCode} - Updating iteration type by user: ${userKey}")
             
             Map iterationTypeData = new JsonSlurper().parseText(body) as Map
             
-            // Extract user context for audit fields
-            def userContext = userService.getCurrentUserContext()
-            def auditUser = userContext.userCode ?: userContext.userId?.toString() ?: 'system'
+            // Mass assignment protection - whitelist allowed fields
+            def allowedUpdateFields = ['itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active']
+            def sanitizedData = [:]
+            allowedUpdateFields.each { field ->
+                if (iterationTypeData.containsKey(field)) {
+                    sanitizedData[field] = iterationTypeData[field]
+                }
+            }
             
-            // Add audit fields
-            iterationTypeData.updated_by = auditUser
+            // Prevent modification of system fields
+            ['itt_code', 'created_by', 'created_at', 'updated_at'].each { protectedField ->
+                if (iterationTypeData.containsKey(protectedField)) {
+                    log.warn("Attempted to modify protected field ${protectedField} by user ${userKey}")
+                }
+            }
+            
+            // Add audit fields (using sanitized data)
+            sanitizedData.updated_by = auditUser
             
             // Check if iteration type exists
             def existingIterationType = iterationTypeRepository.findIterationTypeByCode(ittCode)
@@ -323,24 +446,24 @@ iterationTypes(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
             }
             
             // Validate optional color field
-            if (iterationTypeData.itt_color && !isValidHexColor(iterationTypeData.itt_color as String)) {
+            if (sanitizedData.itt_color && !isValidHexColor(sanitizedData.itt_color as String)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "itt_color must be a valid hex color code (e.g., #6B73FF)"]).toString())
                     .build()
             }
             
             // Validate optional icon field
-            if (iterationTypeData.itt_icon && !isValidIconName(iterationTypeData.itt_icon as String)) {
+            if (sanitizedData.itt_icon && !isValidIconName(sanitizedData.itt_icon as String)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "itt_icon must contain only alphanumeric characters, underscores, and dashes"]).toString())
                     .build()
             }
             
             // Validate display_order if provided
-            if (iterationTypeData.itt_display_order != null) {
+            if (sanitizedData.itt_display_order != null) {
                 try {
-                    def displayOrder = Integer.parseInt(iterationTypeData.itt_display_order as String)
-                    iterationTypeData.itt_display_order = displayOrder
+                    def displayOrder = Integer.parseInt(sanitizedData.itt_display_order as String)
+                    sanitizedData.itt_display_order = displayOrder
                 } catch (NumberFormatException e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "itt_display_order must be a valid integer"]).toString())
@@ -349,21 +472,28 @@ iterationTypes(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
             }
             
             // Validate itt_active if provided
-            if (iterationTypeData.itt_active != null) {
-                if (iterationTypeData.itt_active instanceof String) {
-                    iterationTypeData.itt_active = Boolean.parseBoolean(iterationTypeData.itt_active as String)
-                } else if (!(iterationTypeData.itt_active instanceof Boolean)) {
+            if (sanitizedData.itt_active != null) {
+                if (sanitizedData.itt_active instanceof String) {
+                    sanitizedData.itt_active = Boolean.parseBoolean(sanitizedData.itt_active as String)
+                } else if (!(sanitizedData.itt_active instanceof Boolean)) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "itt_active must be a boolean value"]).toString())
                         .build()
                 }
             }
             
-            def updatedIterationType = iterationTypeRepository.updateIterationType(ittCode, iterationTypeData)
+            def updatedIterationType = iterationTypeRepository.updateIterationType(ittCode, sanitizedData)
             
             if (updatedIterationType) {
-                log.info("PUT /iterationTypes/${ittCode} - Updated iteration type successfully")
-                return Response.ok(new JsonBuilder(updatedIterationType).toString()).build()
+                rbacUtil.auditSecurityEvent(userKey, 'UPDATE', "ITERATION_TYPE:${ittCode}", true)
+                log.info("PUT /iterationTypes/${ittCode} - Updated iteration type successfully by user: ${userKey}")
+                return Response.ok(new JsonBuilder(updatedIterationType).toString())
+                    .header('X-Content-Type-Options', 'nosniff')
+                    .header('X-Frame-Options', 'DENY')
+                    .header('X-XSS-Protection', '1; mode=block')
+                    .header('X-RateLimit-Limit', '50')
+                    .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'write').toString())
+                    .build()
             } else {
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity(new JsonBuilder([error: "Iteration type with code '${ittCode}' not found for update"]).toString())
@@ -406,7 +536,35 @@ iterationTypes(httpMethod: "DELETE", groups: ["confluence-users"]) { Multivalued
     if (pathParts.size() == 1) {
         try {
             def ittCode = pathParts[0] as String
-            log.info("DELETE /iterationTypes/${ittCode} - Attempting to delete iteration type")
+            
+            // Extract user context
+            def userContext = userService.getCurrentUserContext()
+            def userKey = (userContext.userCode ?: userContext.userId?.toString() ?: request.remoteAddr) as String
+            
+            // Rate limiting check
+            def rateLimiter = RateLimiter.getInstance()
+            if (!rateLimiter.checkRateLimit(userKey, 'write', 50)) {
+                log.warn("Rate limit exceeded for user: ${userKey}")
+                return Response.status(429)
+                    .entity(new JsonBuilder([error: 'Rate limit exceeded. Please try again later.']).toString())
+                    .header('X-RateLimit-Limit', '50')
+                    .header('X-RateLimit-Remaining', '0')
+                    .header('X-RateLimit-Reset', rateLimiter.getResetTimeSeconds(userKey, 'write').toString())
+                    .header('Retry-After', '60')
+                    .build()
+            }
+            
+            // RBAC check
+            def rbacUtil = RBACUtil.getInstance()
+            if (!rbacUtil.hasRole(userKey, 'ITERATION_TYPE_ADMIN')) {
+                rbacUtil.auditSecurityEvent(userKey, 'DELETE', "ITERATION_TYPE:${ittCode}", false)
+                log.warn("Unauthorized access attempt for user: ${userKey} on DELETE /iterationTypes/${ittCode}")
+                return Response.status(403)
+                    .entity(new JsonBuilder([error: 'Insufficient permissions to delete iteration types']).toString())
+                    .build()
+            }
+            
+            log.info("DELETE /iterationTypes/${ittCode} - Attempting to delete iteration type by user: ${userKey}")
             
             // Check if iteration type exists
             def existingIterationType = iterationTypeRepository.findIterationTypeByCode(ittCode)
@@ -444,12 +602,14 @@ iterationTypes(httpMethod: "DELETE", groups: ["confluence-users"]) { Multivalued
                         details: details,
                         blocking_relationships: blockingRelationships
                     ]).toString())
+                    .header('X-Content-Type-Options', 'nosniff')
+                    .header('X-Frame-Options', 'DENY')
+                    .header('X-XSS-Protection', '1; mode=block')
                     .build()
             }
             
-            // Extract user context for audit fields
-            def userContext = userService.getCurrentUserContext()
-            def auditUser = userContext.userCode ?: userContext.userId?.toString() ?: 'system'
+            // Audit field is set from the earlier extracted userKey
+            def auditUser = userKey
             
             // Perform soft delete by setting itt_active = false
             def updateData = [
@@ -460,8 +620,15 @@ iterationTypes(httpMethod: "DELETE", groups: ["confluence-users"]) { Multivalued
             def updatedIterationType = iterationTypeRepository.updateIterationType(ittCode, updateData)
             
             if (updatedIterationType) {
-                log.info("DELETE /iterationTypes/${ittCode} - Soft deleted iteration type successfully")
-                return Response.noContent().build()
+                rbacUtil.auditSecurityEvent(userKey, 'DELETE', "ITERATION_TYPE:${ittCode}", true)
+                log.info("DELETE /iterationTypes/${ittCode} - Soft deleted iteration type successfully by user: ${userKey}")
+                return Response.noContent()
+                    .header('X-Content-Type-Options', 'nosniff')
+                    .header('X-Frame-Options', 'DENY')
+                    .header('X-XSS-Protection', '1; mode=block')
+                    .header('X-RateLimit-Limit', '50')
+                    .header('X-RateLimit-Remaining', rateLimiter.getRemainingRequests(userKey, 'write').toString())
+                    .build()
             } else {
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity(new JsonBuilder([error: "Iteration type with code '${ittCode}' not found for deletion"]).toString())
