@@ -52,6 +52,19 @@ class SecurityUtils {
   };
 
   /**
+   * Authorization exception class for permission and access control violations
+   */
+  static AuthorizationException = class extends Error {
+    constructor(message, operation = null, context = {}) {
+      super(message);
+      this.name = "AuthorizationException";
+      this.operation = operation;
+      this.context = context;
+      this.timestamp = new Date().toISOString();
+    }
+  };
+
+  /**
    * Generate CSRF token with secure random values
    * @returns {string} CSRF token
    */
@@ -208,6 +221,113 @@ class SecurityUtils {
         "Failed to add CSRF protection",
         "CSRF_PROTECTION_ERROR",
         { originalError: error },
+      );
+    }
+  }
+
+  /**
+   * Secure fetch wrapper with CSRF protection and enhanced security
+   * @param {string} url - Request URL
+   * @param {Object} options - Fetch options
+   * @returns {Promise<Response>} Fetch response
+   */
+  static async secureFetch(url, options = {}) {
+    try {
+      // Validate URL
+      if (!url || typeof url !== "string") {
+        throw new this.SecurityException(
+          "Invalid URL provided to secureFetch",
+          "INVALID_URL",
+          { url }
+        );
+      }
+
+      // Rate limiting check
+      const action = `fetch_${new URL(url).pathname}`;
+      if (!this.checkRateLimit(action, 100, 60000)) { // 100 requests per minute
+        throw new this.SecurityException(
+          "Rate limit exceeded for API requests",
+          "RATE_LIMIT_EXCEEDED",
+          { action, url }
+        );
+      }
+
+      // Prepare secure headers
+      const secureHeaders = this.addCSRFProtection(options.headers || {});
+
+      // Add content-type if missing for non-GET requests
+      if (options.method && options.method.toUpperCase() !== "GET" && !secureHeaders["Content-Type"]) {
+        secureHeaders["Content-Type"] = "application/json";
+      }
+
+      // Validate and sanitize request body if present
+      let secureBody = options.body;
+      if (secureBody && typeof secureBody === "string") {
+        try {
+          const parsedBody = JSON.parse(secureBody);
+          const validationResult = this.validateInput(parsedBody);
+          if (!validationResult.isValid) {
+            throw new this.ValidationException(
+              `Request body validation failed: ${validationResult.errors.join(", ")}`,
+              "request_body",
+              secureBody
+            );
+          }
+          secureBody = JSON.stringify(validationResult.sanitizedData);
+        } catch (parseError) {
+          if (parseError instanceof this.ValidationException) {
+            throw parseError;
+          }
+          // If it's not JSON, treat as string and validate/sanitize
+          const sanitized = this.sanitizeInput(secureBody);
+          secureBody = sanitized;
+        }
+      }
+
+      // Prepare secure options
+      const secureOptions = {
+        ...options,
+        headers: secureHeaders,
+        body: secureBody,
+        credentials: options.credentials || "same-origin", // CSRF protection requires same-origin
+      };
+
+      this.logSecurityEvent("secure_fetch_initiated", "info", {
+        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"), // Hide query params
+        method: options.method || "GET",
+      });
+
+      // Perform the fetch
+      const response = await fetch(url, secureOptions);
+
+      // Log the response
+      this.logSecurityEvent("secure_fetch_completed", "info", {
+        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"),
+        status: response.status,
+        ok: response.ok,
+      });
+
+      return response;
+
+    } catch (error) {
+      this.logSecurityEvent("secure_fetch_failed", "error", {
+        url: url.replace(/([?&])(.*?)(=)([^&]*)/g, "$1$2$3[REDACTED]"),
+        error: error.message,
+        errorType: error.constructor.name,
+      });
+
+      // Re-throw security exceptions as-is
+      if (error instanceof this.SecurityException ||
+          error instanceof this.ValidationException ||
+          error instanceof this.AuthorizationException) {
+        throw error;
+      }
+
+      // Wrap other errors
+      throw new this.SecurityException(
+        "Secure fetch operation failed",
+        "FETCH_ERROR",
+        { originalError: error.message, url }
       );
     }
   }

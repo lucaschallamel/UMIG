@@ -11,6 +11,7 @@ const config = {
     "**/__tests__/entities/**/*.test.js",
     "**/__tests__/components/**/*.test.js",
     "**/__tests__/infrastructure/**/*.test.js",
+    "**/__tests__/repositories/**/*.test.js",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"],
   collectCoverage: true,
@@ -20,6 +21,8 @@ const config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@components/(.*)$": "<rootDir>/src/groovy/umig/web/js/components/$1",
+    "^../../scripts/lib/db.js$": "<rootDir>/__tests__/__mocks__/db.js",
+    "^../scripts/lib/db.js$": "<rootDir>/__tests__/__mocks__/db.js",
   },
   transform: {
     "^.+\\.js$": "babel-jest",
