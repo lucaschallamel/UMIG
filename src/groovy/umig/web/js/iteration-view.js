@@ -3468,7 +3468,7 @@ class IterationView {
           credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             body: commentText,
-            userId: 1, // TODO: Get actual user ID
+            userId: this.userContext?.userId || null, // Use actual user context with fallback
           }),
         },
       );
@@ -3574,7 +3574,7 @@ class IterationView {
           credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             body: newText,
-            userId: 1, // TODO: Get actual user ID
+            userId: this.userContext?.userId || null, // Use actual user context with fallback
           }),
         },
       );

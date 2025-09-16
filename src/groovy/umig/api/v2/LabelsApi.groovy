@@ -2,618 +2,648 @@ package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.LabelRepository
-import umig.utils.DatabaseUtil
+import umig.service.UserService
+import umig.utils.security.RateLimitManager
+import umig.utils.security.ErrorSanitizer
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
+import groovy.transform.Field
 
 import javax.servlet.http.HttpServletRequest
-import groovy.json.JsonException
-import java.sql.SQLException
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
+import java.sql.SQLException
+import java.util.UUID
+import groovy.json.JsonException
+import java.util.concurrent.TimeUnit
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @BaseScript CustomEndpointDelegate delegate
 
+@Field
 final LabelRepository labelRepository = new LabelRepository()
 
-/**
- * Handles GET requests for Labels.
- * - GET /labels -> returns all labels with pagination
- * - GET /labels/{id} -> returns a single label with full details
- * - GET /labels?migrationId={uuid} -> returns labels involved in migration
- * - GET /labels?iterationId={uuid} -> returns labels involved in iteration
- * - GET /labels?planId={uuid} -> returns labels involved in plan
- * - GET /labels?sequenceId={uuid} -> returns labels involved in sequence
- * - GET /labels?phaseId={uuid} -> returns labels involved in phase
- */
-labels(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+@Field
+final UserService userService = new UserService()
+
+@Field
+final RateLimitManager rateLimitManager = RateLimitManager.getInstance()
+
+@Field
+final ErrorSanitizer errorSanitizer = ErrorSanitizer.getInstance()
+
+@Field
+final Logger log = LoggerFactory.getLogger('LabelsApi')
+
+// Rate limiting configuration per endpoint (requests per minute)
+@Field
+final Map<String, Map<String, Integer>> RATE_LIMITS = [
+    'GET': ['limit': 150, 'windowMs': 60000],      // 150 per minute for read operations
+    'POST': ['limit': 15, 'windowMs': 60000],      // 15 per minute for create operations
+    'PUT': ['limit': 25, 'windowMs': 60000],       // 25 per minute for update operations
+    'DELETE': ['limit': 10, 'windowMs': 60000]     // 10 per minute for delete operations
+]
+
+private Integer getLabelIdFromPath(HttpServletRequest request) {
     def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-
-    try {
-        // GET /labels/{id}
-        if (pathParts.size() == 1) {
+    if (extraPath) {
+        def pathParts = extraPath.split('/').findAll { it }
+        if (pathParts.size() >= 1) {
             try {
-                def labelId = Integer.parseInt(pathParts[0])
-                def label = labelRepository.findLabelById(labelId)
-                if (!label) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new JsonBuilder([error: "Label not found"]).toString())
-                        .build()
-                }
-                return Response.ok(new JsonBuilder(label).toString()).build()
+                return pathParts[0].toInteger()
             } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid label ID format"]).toString())
-                    .build()
+                return null
             }
         }
-
-        // GET /labels/{id}/steps
-        if (pathParts.size() == 2 && pathParts[1] == 'steps') {
-            try {
-                def labelId = Integer.parseInt(pathParts[0])
-                
-                // First check if label exists
-                def label = labelRepository.findLabelById(labelId)
-                if (!label) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new JsonBuilder([error: "Label not found"]).toString())
-                        .build()
-                }
-                
-                // Get steps associated with this label
-                def steps = DatabaseUtil.withSql { sql ->
-                    sql.rows("""
-                        SELECT 
-                            s.stm_id,
-                            s.stm_number as stm_step_number,
-                            s.stm_name as stm_title,
-                            s.stm_description,
-                            s.stt_code,
-                            st.stt_name
-                        FROM steps_master_stm s
-                        JOIN step_types_stt st ON s.stt_code = st.stt_code
-                        JOIN labels_lbl_x_steps_master_stm lxs ON s.stm_id = lxs.stm_id
-                        WHERE lxs.lbl_id = :labelId
-                        ORDER BY s.stm_number
-                    """, [labelId: labelId])
-                }
-                
-                // Transform to frontend-friendly format
-                def formattedSteps = steps.collect { step ->
-                    [
-                        stm_id: step.stm_id,
-                        step_number: step.stm_step_number,
-                        step_title: step.stm_title,
-                        step_description: step.stm_description,
-                        step_type: step.stt_code,
-                        step_type_name: step.stt_name
-                    ]
-                }
-                
-                return Response.ok(new JsonBuilder(formattedSteps).toString()).build()
-            } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid label ID format"]).toString())
-                    .build()
-            }
-        }
-
-            // GET /labels with query parameters for hierarchical filtering
-            if (pathParts.empty) {
-                def labels
-                
-                // Check for hierarchical filtering query parameters
-                if (queryParams.getFirst('migrationId')) {
-                    try {
-                        def migrationId = UUID.fromString(queryParams.getFirst('migrationId') as String)
-                        labels = labelRepository.findLabelsByMigrationId(migrationId)
-                    } catch (IllegalArgumentException e) {
-                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid migration ID format"]).toString()).build()
-                    }
-                } else if (queryParams.getFirst('iterationId')) {
-                    try {
-                        def iterationId = UUID.fromString(queryParams.getFirst('iterationId') as String)
-                        labels = labelRepository.findLabelsByIterationId(iterationId)
-                    } catch (IllegalArgumentException e) {
-                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid iteration ID format"]).toString()).build()
-                    }
-                } else if (queryParams.getFirst('planId')) {
-                    try {
-                        def planId = UUID.fromString(queryParams.getFirst('planId') as String)
-                        labels = labelRepository.findLabelsByPlanId(planId)
-                    } catch (IllegalArgumentException e) {
-                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid plan ID format"]).toString()).build()
-                    }
-                } else if (queryParams.getFirst('sequenceId')) {
-                    try {
-                        def sequenceId = UUID.fromString(queryParams.getFirst('sequenceId') as String)
-                        labels = labelRepository.findLabelsBySequenceId(sequenceId)
-                    } catch (IllegalArgumentException e) {
-                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid sequence ID format"]).toString()).build()
-                    }
-                } else if (queryParams.getFirst('phaseId')) {
-                    try {
-                        def phaseId = UUID.fromString(queryParams.getFirst('phaseId') as String)
-                        labels = labelRepository.findLabelsByPhaseId(phaseId)
-                    } catch (IllegalArgumentException e) {
-                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid phase ID format"]).toString()).build()
-                    }
-                } else {
-                    // Check for pagination parameters
-                    def page = queryParams.getFirst('page')
-                    def size = queryParams.getFirst('size')
-                    def search = queryParams.getFirst('search')
-                    def sort = queryParams.getFirst('sort')
-                    def direction = queryParams.getFirst('direction')
-                    
-                    // If pagination parameters exist, use paginated endpoint
-                    if (page || size || search || sort || direction) {
-                        // Parse pagination parameters with defaults
-                        int pageNumber = 1
-                        int pageSize = 50
-                        
-                        if (page) {
-                            try {
-                                pageNumber = Integer.parseInt(page as String)
-                                if (pageNumber < 1) pageNumber = 1
-                            } catch (NumberFormatException e) {
-                                return Response.status(Response.Status.BAD_REQUEST)
-                                    .entity(new JsonBuilder([error: "Invalid page number format"]).toString())
-                                    .build()
-                            }
-                        }
-                        
-                        if (size) {
-                            try {
-                                pageSize = Integer.parseInt(size as String)
-                                if (pageSize < 1) pageSize = 50
-                                if (pageSize > 200) pageSize = 200  // Maximum page size
-                            } catch (NumberFormatException e) {
-                                return Response.status(Response.Status.BAD_REQUEST)
-                                    .entity(new JsonBuilder([error: "Invalid page size format"]).toString())
-                                    .build()
-                            }
-                        }
-                        
-                        // Parse sort parameters
-                        String sortField = 'lbl_id'  // Default sort field
-                        String sortDirection = 'asc'
-                        
-                        if (sort && ['lbl_id', 'lbl_name', 'lbl_description', 'lbl_color', 'mig_name', 'application_count', 'step_count', 'created_at'].contains(sort as String)) {
-                            sortField = sort as String
-                        }
-                        
-                        if (direction && ['asc', 'desc'].contains((direction as String).toLowerCase())) {
-                            sortDirection = (direction as String).toLowerCase()
-                        }
-                        
-                        // Validate search term
-                        String searchTerm = search as String
-                        if (searchTerm && searchTerm.trim().length() < 2) {
-                            searchTerm = null  // Ignore very short search terms
-                        }
-                        
-                        // Get paginated labels
-                        def result = labelRepository.findAllLabelsWithPagination(pageNumber, pageSize, searchTerm, sortField, sortDirection)
-                        return Response.ok(new JsonBuilder(result).toString()).build()
-                    } else {
-                        // Default: return all labels without pagination
-                        labels = labelRepository.findAllLabels()
-                        return Response.ok(new JsonBuilder(labels).toString()).build()
-                    }
-                }
-                
-                return Response.ok(new JsonBuilder(labels).toString()).build()
-            }
-
-            // Fallback for invalid paths
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path."]).toString()).build()
-
-    } catch (SQLException e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString())
-            .build()
-    } catch (Exception e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred: ${e.message}"]).toString())
-            .build()
     }
+    return null
 }
 
 /**
- * Handles POST requests for Labels.
- * - POST /labels -> creates a new label
- * - POST /labels/{id}/applications/{appId} -> add application association
- * - POST /labels/{id}/steps/{stepId} -> add step association
+ * Enhanced rate limiting and security validation wrapper
+ * @param httpMethod HTTP method for the request
+ * @param request HTTP servlet request
+ * @param operation Operation name for rate limiting
+ * @return Response or null if validation passes
  */
-labels(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-
+private Response validateSecurityAndRateLimit(String httpMethod, HttpServletRequest request, String operation) {
     try {
-        // POST /labels/{id}/applications/{appId}
-        if (pathParts.size() == 3 && pathParts[1] == 'applications') {
-            def labelId
-            def applicationId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-                applicationId = Integer.parseInt(pathParts[2])
-            } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
-                    .build()
-            }
-
-            // Check if label exists
-            def label = labelRepository.findLabelById(labelId)
-            if (!label) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Label not found"]).toString())
-                    .build()
-            }
-
-            // Add association
-            try {
-                DatabaseUtil.withSql { sql ->
-                    sql.executeInsert("""
-                        INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id)
-                        VALUES (:labelId, :applicationId)
-                    """, [labelId: labelId, applicationId: applicationId])
-                }
-                
-                return Response.ok(new JsonBuilder([message: "Application associated successfully"]).toString()).build()
-            } catch (SQLException e) {
-                if (e.getSQLState() == "23505") { // Unique constraint violation
-                    return Response.status(Response.Status.CONFLICT)
-                        .entity(new JsonBuilder([error: "Application already associated with this label"]).toString())
-                        .build()
-                } else if (e.getSQLState() == "23503") { // Foreign key violation
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid application ID"]).toString())
-                        .build()
-                }
-                throw e
-            }
-        }
+        // Get client identifier for rate limiting
+        String clientId = getClientIdentifier(request)
         
-        // POST /labels/{id}/steps/{stepId}
-        if (pathParts.size() == 3 && pathParts[1] == 'steps') {
-            def labelId
-            def stepId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-                stepId = UUID.fromString(pathParts[2])
-            } catch (Exception e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
-                    .build()
-            }
-
-            // Check if label exists
-            def label = labelRepository.findLabelById(labelId)
-            if (!label) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Label not found"]).toString())
-                    .build()
-            }
-
-            // Add association
-            try {
-                DatabaseUtil.withSql { sql ->
-                    sql.executeInsert("""
-                        INSERT INTO labels_lbl_x_steps_master_stm (lbl_id, stm_id)
-                        VALUES (:labelId, :stepId)
-                    """, [labelId: labelId, stepId: stepId])
-                }
-                
-                return Response.ok(new JsonBuilder([message: "Step associated successfully"]).toString()).build()
-            } catch (SQLException e) {
-                if (e.getSQLState() == "23505") { // Unique constraint violation
-                    return Response.status(Response.Status.CONFLICT)
-                        .entity(new JsonBuilder([error: "Step already associated with this label"]).toString())
-                        .build()
-                } else if (e.getSQLState() == "23503") { // Foreign key violation
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid step ID"]).toString())
-                        .build()
-                }
-                throw e
-            }
-        }
-
-        // POST /labels - create new label
-        if (pathParts.empty) {
-            def payload
-            try {
-                payload = new JsonSlurper().parseText(body) as Map
-            } catch (JsonException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid JSON payload"]).toString())
-                    .build()
-            }
-
-            // Validate required fields
-            if (!payload.lbl_name || !payload.lbl_color || !payload.mig_id) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing required fields: lbl_name, lbl_color, and mig_id are required"]).toString())
-                    .build()
-            }
-
-            // Validate mig_id format
-            UUID migrationId
-            try {
-                migrationId = UUID.fromString(payload.mig_id as String)
-            } catch (IllegalArgumentException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid migration ID format"]).toString())
-                    .build()
-            }
-
-            // Get current user ID (in a real implementation, this would come from the session)
-            // For now, we'll use a placeholder
-            def currentUserId = 1 // TODO: Get from session/authentication context
-
-            def labelData = [
-                lbl_name: payload.lbl_name,
-                lbl_description: payload.lbl_description ?: '',
-                lbl_color: payload.lbl_color,
-                mig_id: migrationId,
-                created_by: currentUserId
-            ]
-
-            try {
-                def createdLabel = labelRepository.createLabel(labelData)
-                return Response.status(Response.Status.CREATED)
-                    .entity(new JsonBuilder(createdLabel).toString())
-                    .build()
-            } catch (SQLException e) {
-                if (e.getSQLState() == "23505") {
-                    return Response.status(Response.Status.CONFLICT)
-                        .entity(new JsonBuilder([error: "A label with this name already exists in this migration"]).toString())
-                        .build()
-                }
-                if (e.getSQLState() == "23503") {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid migration ID: migration does not exist"]).toString())
-                        .build()
-                }
-                throw e
-            }
-        }
-
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: "Invalid path"]).toString())
-            .build()
-
-    } catch (SQLException e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString())
-            .build()
-    } catch (Exception e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred: ${e.message}"]).toString())
-            .build()
-    }
-}
-
-/**
- * Handles PUT requests for Labels.
- * - PUT /labels/{id} -> updates an existing label
- */
-labels(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-
-    try {
-        // PUT /labels/{id}
-        if (pathParts.size() == 1) {
-            def labelId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-            } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid label ID format"]).toString())
-                    .build()
-            }
-
-            def payload
-            try {
-                payload = new JsonSlurper().parseText(body) as Map
-            } catch (JsonException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid JSON payload"]).toString())
-                    .build()
-            }
-
-            // Validate required fields
-            if (!payload.lbl_name || !payload.lbl_color) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing required fields: lbl_name and lbl_color are required"]).toString())
-                    .build()
-            }
-
-            // Check if label exists
-            def existingLabel = labelRepository.findLabelById(labelId)
-            if (!existingLabel) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Label not found"]).toString())
-                    .build()
-            }
-
-            def updates = [
-                lbl_name: payload.lbl_name,
-                lbl_description: payload.lbl_description ?: '',
-                lbl_color: payload.lbl_color
-            ]
+        // Check rate limits
+        def rateLimitConfig = RATE_LIMITS[httpMethod]
+        if (rateLimitConfig) {
+            boolean allowed = rateLimitManager.isAllowed(
+                clientId, 
+                "labels_${httpMethod.toLowerCase()}",
+                rateLimitConfig.limit,
+                rateLimitConfig.windowMs
+            )
             
-            // Add migration ID if provided and different from current
-            if (payload.mig_id && payload.mig_id != existingLabel.mig_id.toString()) {
-                try {
-                    updates.mig_id = UUID.fromString(payload.mig_id as String)
-                } catch (IllegalArgumentException e) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid migration ID format"]).toString())
-                        .build()
-                }
+            if (!allowed) {
+                log.warn("Rate limit exceeded for client ${clientId} on ${httpMethod} ${operation}")
+                return Response.status(429)
+                    .entity(errorSanitizer.sanitizeError([
+                        error: "Rate limit exceeded",
+                        message: "Too many requests. Please wait before trying again.",
+                        retryAfter: rateLimitConfig.windowMs / 1000
+                    ]))
+                    .header("Retry-After", String.valueOf(rateLimitConfig.windowMs / 1000))
+                    .header("X-RateLimit-Limit", String.valueOf(rateLimitConfig.limit))
+                    .header("X-RateLimit-Remaining", "0")
+                    .build()
             }
-
-            try {
-                def updatedLabel = labelRepository.updateLabel(labelId, updates)
-                return Response.ok(new JsonBuilder(updatedLabel).toString()).build()
-            } catch (SQLException e) {
-                if (e.getSQLState() == "23505") {
-                    return Response.status(Response.Status.CONFLICT)
-                        .entity(new JsonBuilder([error: "A label with this name already exists in this migration"]).toString())
-                        .build()
-                }
-                throw e
-            }
+            
+            // Add rate limit headers to successful requests
+            int remaining = rateLimitManager.getRemaining(clientId, "labels_${httpMethod.toLowerCase()}")
+            // Headers will be added to response in calling method
         }
-
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: "Invalid path"]).toString())
-            .build()
-
-    } catch (SQLException e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString())
-            .build()
+        
+        return null // Validation passed
     } catch (Exception e) {
+        log.error("Security validation failed for ${httpMethod} ${operation}", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred: ${e.message}"]).toString())
+            .entity(errorSanitizer.sanitizeError([error: "Security validation failed"]))
             .build()
     }
 }
 
 /**
- * Handles DELETE requests for Labels.
- * - DELETE /labels/{id} -> deletes a label
- * - DELETE /labels/{id}/applications/{appId} -> remove application association
- * - DELETE /labels/{id}/steps/{stepId} -> remove step association
+ * Get client identifier for rate limiting
+ * @param request HTTP servlet request
+ * @return Client identifier string
  */
-labels(httpMethod: "DELETE", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+private String getClientIdentifier(HttpServletRequest request) {
+    // Use multiple factors for client identification
+    String remoteAddr = request.getRemoteAddr()
+    String userAgent = request.getHeader("User-Agent") ?: "unknown"
+    String sessionId = request.getSession(false)?.getId() ?: "no-session"
+    
+    // Create composite identifier
+    return "${remoteAddr}:${sessionId}:${userAgent.hashCode()}"
+}
 
+/**
+ * Get current user with proper error handling and audit logging
+ * @param request HTTP servlet request (unused, kept for compatibility)
+ * @return User identifier string
+ */
+private String getCurrentUser(HttpServletRequest request = null) {
     try {
-        // DELETE /labels/{id}/applications/{appId}
-        if (pathParts.size() == 3 && pathParts[1] == 'applications') {
-            def labelId
-            def applicationId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-                applicationId = Integer.parseInt(pathParts[2])
-            } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
-                    .build()
-            }
+        def userContext = userService.getCurrentUserContext()
+        def auditUser = userContext.userCode ?: userContext.userId?.toString() ?: 'system'
+        log.debug("Using user context for labels operation: ${auditUser}")
+        return auditUser
+    } catch (Exception e) {
+        log.warn("Failed to get current user context, falling back to system", e)
+        return 'system'
+    }
+}
 
-            // Remove association
-            def rowsDeleted = DatabaseUtil.withSql { sql ->
-                sql.executeUpdate("""
-                    DELETE FROM labels_lbl_x_applications_app
-                    WHERE lbl_id = :labelId AND app_id = :applicationId
-                """, [labelId: labelId, applicationId: applicationId])
-            }
-
-            if (rowsDeleted > 0) {
-                return Response.ok(new JsonBuilder([message: "Application association removed successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Association not found"]).toString())
-                    .build()
-            }
+// GET /labels, /labels/{id}, /labels/{id}/blocking-relationships
+labels(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // Security and rate limiting validation
+    def securityValidation = validateSecurityAndRateLimit("GET", request, "labels")
+    if (securityValidation) {
+        return securityValidation
+    }
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /labels/{id}/blocking-relationships
+    if (pathParts.size() == 2 && pathParts[1] == 'blocking-relationships') {
+        Integer labelId = getLabelIdFromPath(request)
+        
+        if (labelId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Label ID format."]).toString()).build()
         }
         
-        // DELETE /labels/{id}/steps/{stepId}
-        if (pathParts.size() == 3 && pathParts[1] == 'steps') {
-            def labelId
-            def stepId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-                stepId = UUID.fromString(pathParts[2])
-            } catch (Exception e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
-                    .build()
+        try {
+            def label = labelRepository.findLabelById(labelId)
+            if (!label) {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Label with ID ${labelId} not found."]).toString()).build()
             }
-
-            // Remove association
-            def rowsDeleted = DatabaseUtil.withSql { sql ->
-                sql.executeUpdate("""
-                    DELETE FROM labels_lbl_x_steps_master_stm
-                    WHERE lbl_id = :labelId AND stm_id = :stepId
-                """, [labelId: labelId, stepId: stepId])
-            }
-
-            if (rowsDeleted > 0) {
-                return Response.ok(new JsonBuilder([message: "Step association removed successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Association not found"]).toString())
-                    .build()
-            }
-        }
-
-        // DELETE /labels/{id}
-        if (pathParts.size() == 1) {
-            def labelId
-            try {
-                labelId = Integer.parseInt(pathParts[0])
-            } catch (NumberFormatException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid label ID format"]).toString())
-                    .build()
-            }
-
-            // Check for blocking relationships
+            
             def blockingRelationships = labelRepository.getLabelBlockingRelationships(labelId)
-            if (!blockingRelationships.isEmpty()) {
-                def message = "Cannot delete label. It has existing relationships: "
-                def parts = []
-                if (blockingRelationships.containsKey('applications')) {
-                    def appList = blockingRelationships.applications as List
-                    parts.add("${appList.size()} application(s)")
-                }
-                if (blockingRelationships.containsKey('steps')) {
-                    def stepInfo = blockingRelationships.steps as Map
-                    parts.add("${stepInfo.count} step(s)")
-                }
-                message += parts.join(", ")
-                
-                return Response.status(Response.Status.CONFLICT)
-                    .entity(new JsonBuilder([
-                        error: message,
-                        relationships: blockingRelationships
-                    ]).toString())
-                    .build()
-            }
-
-            def deleted = labelRepository.deleteLabel(labelId)
-            if (deleted) {
-                return Response.noContent().build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Label not found"]).toString())
-                    .build()
-            }
+            return Response.ok(new JsonBuilder(blockingRelationships).toString()).build()
+            
+        } catch (SQLException e) {
+            log.error("Database error in GET /labels/{id}/blocking-relationships", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Database operation failed",
+                    message: "Unable to retrieve label relationships. Please try again later.",
+                    requestId: UUID.randomUUID().toString()
+                ]))
+                .build()
+        } catch (Exception e) {
+            log.error("Unexpected error in GET /labels/{id}/blocking-relationships", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Internal server error",
+                    message: "An unexpected error occurred. Please try again later.",
+                    requestId: UUID.randomUUID().toString()
+                ]))
+                .build()
         }
+    }
+    
+    // Handle /labels/{id}
+    Integer labelId = getLabelIdFromPath(request)
 
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: "Invalid path"]).toString())
-            .build()
+    // Handle case where path is /labels/{invalid_id}
+    if (getAdditionalPath(request) && labelId == null && pathParts.size() == 1) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Label ID format."]).toString()).build()
+    }
 
+    try {
+        if (labelId != null && pathParts.size() == 1) {
+            def label = labelRepository.findLabelById(labelId)
+            if (!label) {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Label with ID ${labelId} not found."]).toString()).build()
+            }
+            return Response.ok(new JsonBuilder(label).toString()).build()
+        } else if (!extraPath || pathParts.size() == 0) {
+            // Handle /labels (list with hierarchical filtering and pagination)
+            def labels
+            
+            // Extract hierarchical filtering parameters
+            def migrationId = queryParams.getFirst('migrationId')
+            def iterationId = queryParams.getFirst('iterationId')
+            def planId = queryParams.getFirst('planId')
+            def sequenceId = queryParams.getFirst('sequenceId')
+            def phaseId = queryParams.getFirst('phaseId')
+            
+            // Extract pagination parameters
+            def page = queryParams.getFirst('page')
+            def size = queryParams.getFirst('size')
+            def search = queryParams.getFirst('search')
+            def sort = queryParams.getFirst('sort')
+            def direction = queryParams.getFirst('direction')
+            
+            // Admin GUI compatibility - handle parameterless calls
+            if (!migrationId && !iterationId && !planId && !sequenceId && !phaseId && 
+                !page && !size && !search && !sort && !direction) {
+                return Response.ok(new JsonBuilder([]).toString()).build()
+            }
+            
+            // Check for hierarchical filtering query parameters first
+            if (migrationId) {
+                try {
+                    def migId = UUID.fromString(migrationId as String)
+                    labels = labelRepository.findLabelsByMigrationId(migId)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid migration ID format"]).toString()).build()
+                }
+            } else if (iterationId) {
+                try {
+                    def iteId = UUID.fromString(iterationId as String)
+                    labels = labelRepository.findLabelsByIterationId(iteId)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid iteration ID format"]).toString()).build()
+                }
+            } else if (planId) {
+                try {
+                    def planInstanceId = UUID.fromString(planId as String)
+                    labels = labelRepository.findLabelsByPlanId(planInstanceId)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid plan ID format"]).toString()).build()
+                }
+            } else if (sequenceId) {
+                try {
+                    def sequenceInstanceId = UUID.fromString(sequenceId as String)
+                    labels = labelRepository.findLabelsBySequenceId(sequenceInstanceId)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid sequence ID format"]).toString()).build()
+                }
+            } else if (phaseId) {
+                try {
+                    def phaseInstanceId = UUID.fromString(phaseId as String)
+                    labels = labelRepository.findLabelsByPhaseId(phaseInstanceId)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid phase ID format"]).toString()).build()
+                }
+            } else {
+                // Handle pagination/search for main labels list
+                // Parse pagination parameters with defaults
+                int pageNumber = 1
+                int pageSize = 50
+                
+                if (page) {
+                    try {
+                        pageNumber = Integer.parseInt(page as String)
+                        if (pageNumber < 1) pageNumber = 1
+                    } catch (NumberFormatException e) {
+                        pageNumber = 1
+                    }
+                }
+                
+                if (size) {
+                    try {
+                        pageSize = Integer.parseInt(size as String)
+                        if (pageSize < 1) pageSize = 50
+                        if (pageSize > 500) pageSize = 500 // Maximum limit
+                    } catch (NumberFormatException e) {
+                        pageSize = 50
+                    }
+                }
+                
+                // Parse sort parameters
+                String sortField = null
+                String sortDirection = 'asc'
+                
+                if (sort) {
+                    // Validate sort field against allowed columns
+                    def allowedSortFields = ['lbl_id', 'lbl_name', 'lbl_description', 'lbl_color', 'mig_name', 'application_count', 'step_count', 'created_at']
+                    if (allowedSortFields.contains(sort as String)) {
+                        sortField = sort as String
+                    }
+                }
+                
+                if (direction && ['asc', 'desc'].contains((direction as String).toLowerCase())) {
+                    sortDirection = (direction as String).toLowerCase()
+                }
+                
+                // Validate search term
+                String searchTerm = search as String
+                if (searchTerm && searchTerm.trim().length() < 2) {
+                    searchTerm = null  // Ignore very short search terms (less than 2 characters)
+                }
+                
+                // Get paginated labels
+                def result = labelRepository.findAllLabelsWithPagination(pageNumber, pageSize, searchTerm, sortField, sortDirection)
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            }
+            
+            // Return simple list for hierarchical filtering
+            return Response.ok(new JsonBuilder(labels).toString()).build()
+            
+        } else {
+            // Unknown path
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
+        }
     } catch (SQLException e) {
+        log.error("Database error in GET /labels", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString())
+            .entity(errorSanitizer.sanitizeError([
+                error: "Database operation failed",
+                message: "Unable to retrieve labels. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
             .build()
     } catch (Exception e) {
+        log.error("Unexpected error in GET /labels", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred: ${e.message}"]).toString())
+            .entity(errorSanitizer.sanitizeError([
+                error: "Internal server error",
+                message: "An unexpected error occurred. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    }
+}
+
+// POST /labels
+labels(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // Security and rate limiting validation
+    def securityValidation = validateSecurityAndRateLimit("POST", request, "labels")
+    if (securityValidation) {
+        return securityValidation
+    }
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Request body is required"]).toString()).build()
+        }
+
+        def jsonSlurper = new JsonSlurper()
+        Map labelData = jsonSlurper.parseText(body) as Map
+
+        // Basic validation - required fields
+        if (!labelData['lbl_name'] || labelData['lbl_name'].toString().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name is required"]).toString()).build()
+        }
+
+        if (!labelData['lbl_color'] || labelData['lbl_color'].toString().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color is required"]).toString()).build()
+        }
+
+        if (!labelData['mig_id']) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "mig_id is required"]).toString()).build()
+        }
+
+        // Validate field lengths
+        if (labelData['lbl_name'].toString().length() > 100) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name must be 100 characters or less"]).toString()).build()
+        }
+
+        if (labelData['lbl_description'] && labelData['lbl_description'].toString().length() > 500) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_description must be 500 characters or less"]).toString()).build()
+        }
+
+        if (labelData['lbl_color'].toString().length() > 7) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color must be 7 characters or less (hex color format)"]).toString()).build()
+        }
+
+        // Type safety - explicit casting per ADR-031
+        def processedLabelData = [:]
+        processedLabelData['lbl_name'] = labelData['lbl_name'].toString().trim()
+        processedLabelData['lbl_color'] = labelData['lbl_color'].toString().trim()
+        
+        if (labelData['lbl_description']) {
+            processedLabelData['lbl_description'] = labelData['lbl_description'].toString().trim()
+        }
+        
+        try {
+            processedLabelData['mig_id'] = UUID.fromString(labelData['mig_id'] as String)
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid mig_id format. Must be a valid UUID."]).toString()).build()
+        }
+
+        // Add audit fields with proper user context
+        String currentUser = getCurrentUser(request)
+        processedLabelData['created_by'] = currentUser
+
+        // Create label
+        def newLabel = labelRepository.createLabel(processedLabelData as Map)
+        return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newLabel).toString()).build()
+
+    } catch (JsonException e) {
+        log.error("JSON parsing error in POST /labels", e)
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid JSON in request body"]).toString()).build()
+    } catch (SQLException e) {
+        log.error("Database error in POST /labels", e)
+        // Handle specific SQL errors with sanitized responses
+        if (e.getSQLState() == "23505") { // Unique constraint violation
+            return Response.status(Response.Status.CONFLICT)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Conflict",
+                    message: "Label with this name already exists in the migration",
+                    field: "lbl_name"
+                ]))
+                .build()
+        } else if (e.getSQLState() == "23503") { // Foreign key constraint violation
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Invalid reference",
+                    message: "Referenced migration does not exist",
+                    field: "mig_id"
+                ]))
+                .build()
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Database operation failed",
+                message: "Unable to create label. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    } catch (Exception e) {
+        log.error("Unexpected error in POST /labels", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Internal server error",
+                message: "An unexpected error occurred. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    }
+}
+
+// PUT /labels/{id}
+labels(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // Security and rate limiting validation
+    def securityValidation = validateSecurityAndRateLimit("PUT", request, "labels")
+    if (securityValidation) {
+        return securityValidation
+    }
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /labels/{id}
+    Integer labelId = getLabelIdFromPath(request)
+
+    if (labelId == null || pathParts.size() != 1) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Label ID format."]).toString()).build()
+    }
+
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Request body is required"]).toString()).build()
+        }
+
+        def jsonSlurper = new JsonSlurper()
+        Map labelData = jsonSlurper.parseText(body) as Map
+
+        // Build update map with type safety
+        def updates = [:]
+        
+        if (labelData.containsKey('lbl_name')) {
+            def name = labelData['lbl_name']?.toString()?.trim()
+            if (!name || name.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name cannot be empty"]).toString()).build()
+            }
+            if (name.length() > 100) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name must be 100 characters or less"]).toString()).build()
+            }
+            updates['lbl_name'] = name
+        }
+
+        if (labelData.containsKey('lbl_description')) {
+            def description = labelData['lbl_description']?.toString()?.trim()
+            if (description && description.length() > 500) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_description must be 500 characters or less"]).toString()).build()
+            }
+            updates['lbl_description'] = description
+        }
+
+        if (labelData.containsKey('lbl_color')) {
+            def color = labelData['lbl_color']?.toString()?.trim()
+            if (!color || color.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color cannot be empty"]).toString()).build()
+            }
+            if (color.length() > 7) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color must be 7 characters or less (hex color format)"]).toString()).build()
+            }
+            updates['lbl_color'] = color
+        }
+
+        if (labelData.containsKey('mig_id')) {
+            try {
+                updates['mig_id'] = UUID.fromString(labelData['mig_id'] as String)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid mig_id format. Must be a valid UUID."]).toString()).build()
+            }
+        }
+
+        if (updates.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "At least one field must be provided for update"]).toString()).build()
+        }
+
+        // Add audit fields with proper user context for update
+        String currentUser = getCurrentUser(request)
+        updates['updated_by'] = currentUser
+        updates['updated_at'] = new Date()
+        
+        // Update label
+        def updatedLabel = labelRepository.updateLabel(labelId as Integer, updates as Map)
+        if (!updatedLabel) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Label with ID ${labelId} not found."]).toString()).build()
+        }
+
+        return Response.ok(new JsonBuilder(updatedLabel).toString()).build()
+
+    } catch (JsonException e) {
+        log.error("JSON parsing error in PUT /labels/{id}", e)
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid JSON in request body"]).toString()).build()
+    } catch (SQLException e) {
+        log.error("Database error in PUT /labels/{id}", e)
+        if (e.getSQLState() == "23505") { // Unique constraint violation
+            return Response.status(Response.Status.CONFLICT)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Conflict",
+                    message: "Label with this name already exists in the migration",
+                    field: "lbl_name"
+                ]))
+                .build()
+        } else if (e.getSQLState() == "23503") { // Foreign key constraint violation
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Invalid reference",
+                    message: "Referenced migration does not exist",
+                    field: "mig_id"
+                ]))
+                .build()
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Database operation failed",
+                message: "Unable to update label. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    } catch (Exception e) {
+        log.error("Unexpected error in PUT /labels/{id}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Internal server error",
+                message: "An unexpected error occurred. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    }
+}
+
+// DELETE /labels/{id}
+labels(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // Security and rate limiting validation
+    def securityValidation = validateSecurityAndRateLimit("DELETE", request, "labels")
+    if (securityValidation) {
+        return securityValidation
+    }
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /labels/{id}
+    Integer labelId = getLabelIdFromPath(request)
+
+    if (labelId == null || pathParts.size() != 1) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Label ID format."]).toString()).build()
+    }
+
+    try {
+        // Check if label exists
+        def label = labelRepository.findLabelById(labelId)
+        if (!label) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Label with ID ${labelId} not found."]).toString()).build()
+        }
+
+        // Check for blocking relationships
+        def blockingRelationships = labelRepository.getLabelBlockingRelationships(labelId)
+        if (blockingRelationships && !blockingRelationships.isEmpty()) {
+            return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([
+                error: "Cannot delete label. It has existing relationships.",
+                details: "This label is still associated with applications or steps. Remove these associations first.",
+                relationships: blockingRelationships
+            ]).toString()).build()
+        }
+
+        // Delete label
+        def deleted = labelRepository.deleteLabel(labelId)
+        if (deleted) {
+            return Response.ok(new JsonBuilder([message: "Label deleted successfully"]).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to delete label"]).toString()).build()
+        }
+
+    } catch (SQLException e) {
+        log.error("Database error in DELETE /labels/{id}", e)
+        if (e.getSQLState() == "23503") { // Foreign key constraint violation
+            return Response.status(Response.Status.CONFLICT)
+                .entity(errorSanitizer.sanitizeError([
+                    error: "Cannot delete label",
+                    message: "This label is still associated with applications or steps. Remove these associations first.",
+                    details: "Label has existing relationships that prevent deletion"
+                ]))
+                .build()
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Database operation failed",
+                message: "Unable to delete label. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
+            .build()
+    } catch (Exception e) {
+        log.error("Unexpected error in DELETE /labels/{id}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(errorSanitizer.sanitizeError([
+                error: "Internal server error",
+                message: "An unexpected error occurred. Please try again later.",
+                requestId: UUID.randomUUID().toString()
+            ]))
             .build()
     }
 }

@@ -1,6 +1,17 @@
 // Unit Test Setup - No external dependencies
 console.log("🧪 Setting up Unit Test environment...");
 
+// TextEncoder/TextDecoder polyfills for Node.js environment
+const { TextEncoder, TextDecoder } = require("util");
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Also set on window object if it exists (jsdom environment)
+if (typeof window !== "undefined") {
+  window.TextEncoder = TextEncoder;
+  window.TextDecoder = TextDecoder;
+}
+
 // Performance API polyfill for components using performance.mark() and performance.measure()
 const mockPerformance = {
   mark: jest.fn(),
@@ -158,6 +169,26 @@ global.fetch = jest.fn(() =>
     text: () => Promise.resolve(""),
   }),
 );
+
+// Additional polyfills for browser APIs
+global.URL.createObjectURL = jest.fn(() => "mock-url");
+global.URL.revokeObjectURL = jest.fn();
+
+// Mock MutationObserver
+global.MutationObserver = class MutationObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {
+    // Mock implementation
+  }
+  disconnect() {
+    // Mock implementation
+  }
+  takeRecords() {
+    return [];
+  }
+};
 
 // Global test utilities for unit tests
 global.testUtils = {

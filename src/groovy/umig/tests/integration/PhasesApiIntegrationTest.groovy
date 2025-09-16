@@ -6,6 +6,7 @@
  * Updated: 2025-08-27 (US-037 Framework Migration)
  * Framework: BaseIntegrationTest (Zero external dependencies, ADR-036 compliant)
  * Coverage: Phases CRUD, master/instance operations, control points, ordering, error handling
+ * Security: Secure authentication using environment variables
  */
 
 package umig.tests.integration
