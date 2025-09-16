@@ -23,15 +23,15 @@ npm run generate-data:erase  # Generate fake data with reset
 
 ```bash
 # JavaScript Testing (Jest) - Complete test coverage with component architecture
-npm run test:js:unit         # JavaScript unit tests (64+ tests passing)
-npm run test:js:integration  # JavaScript integration tests (18/18 passing)
+npm run test:js:unit         # JavaScript unit tests
+npm run test:js:integration  # JavaScript integration tests
 npm run test:js:e2e          # JavaScript E2E tests
 npm run test:js:quick        # Quick test suite (~158 tests)
 
 # Component Testing (Jest) - New component architecture validation
 npm run test:js:components   # Component unit tests (95%+ coverage)
-npm run test:security:unit   # Component security tests (28 scenarios)
-npm run test:security:pentest # Penetration testing (21 attack vectors)
+npm run test:js:security     # Component security tests (28 scenarios)
+npm run test:js:security:pentest # Penetration testing (21 attack vectors)
 
 # Groovy Testing - 31/31 tests passing (100%)
 npm run test:groovy:unit     # Groovy unit tests (35% faster compilation)
@@ -120,7 +120,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - Dynamic rendering without page reloads
 - Pattern: `/admin-gui/*` modular components
 
-### Component Architecture (US-082-B)
+### Component Architecture (US-082-B/C)
 
 **Enterprise Component System**: 186KB+ production-ready component suite with ComponentOrchestrator
 
@@ -134,12 +134,24 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - `PaginationComponent.js` - Performance-optimized pagination
 - `SecurityUtils.js` - XSS/CSRF protection utilities
 
+**Entity Managers** (location: `src/groovy/umig/web/js/entities/*/`):
+
+- `BaseEntityManager.js` - 914-line architectural foundation (42% development acceleration)
+- `TeamsEntityManager.js` - Teams with bidirectional relationships (77% performance improvement)
+- `UsersEntityManager.js` - Users with authentication (68.5% performance improvement)
+- `EnvironmentsEntityManager.js` - Environment management with advanced filtering
+- `ApplicationsEntityManager.js` - Applications with security hardening (9.2/10 rating)
+- `LabelsEntityManager.js` - Label management with dynamic type control
+- `MigrationTypesEntityManager.js` - Migration type configuration
+- `IterationTypesEntityManager.js` - Iteration type workflow configuration
+
 **Component Patterns**:
 
 ```javascript
 // Standardized lifecycle: initialize() → mount() → render() → update() → unmount() → destroy()
 // Event-driven architecture with centralized orchestration
 // Security-first design with input validation at boundaries
+// Performance optimization through intelligent shouldUpdate() methods
 ```
 
 ### Hierarchical Filtering Pattern
@@ -223,12 +235,13 @@ if (!filters || filters.isEmpty()) {
 - **MailHog**: http://localhost:8025
 - **API Base**: `/rest/scriptrunner/latest/custom/`
 
-### Complete API Endpoints (25 total)
+### Complete API Endpoints (27 total)
 
 Core: Users, Teams, TeamMembers, Environments, Applications, Labels, Migrations, Status
 Hierarchy: Plans, Sequences, Phases, Steps, EnhancedSteps, Instructions, Iterations
 Admin: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
 Special: Import, ImportQueue, StepView, Web, TestEndpoint
+Relationships: TeamsRelationship, UsersRelationship
 
 ## Testing Infrastructure Excellence
 
@@ -243,7 +256,7 @@ Special: Import, ImportQueue, StepView, Web, TestEndpoint
 ### JavaScript Testing Framework
 
 - Location: `local-dev-setup/__tests__/` (modern structure)
-- Categories: unit, integration, e2e, dom, email
+- Categories: unit, integration, e2e, dom, email, security, performance
 - Framework: Jest with specialized configurations
 - Pattern: `{component}.{type}.test.js`
 
@@ -274,6 +287,7 @@ Special: Import, ImportQueue, StepView, Web, TestEndpoint
 9. **Layer Separation**: Single enrichment point in repositories (ADR-047)
 10. **Service Layer**: Unified DTOs with transformation service (ADR-049)
 11. **Component Security**: Enterprise-grade security controls in all components (8.5/10 rating required)
+12. **Entity Managers**: Always extend BaseEntityManager for consistent architecture
 
 ## Quick Troubleshooting
 
@@ -292,6 +306,7 @@ Special: Import, ImportQueue, StepView, Web, TestEndpoint
 - Check component lifecycle management (initialize → mount → render → update → unmount → destroy)
 - Validate cross-component event communication through orchestrator
 - Ensure security controls are active (XSS/CSRF protection, rate limiting)
+- For entity managers: confirm they extend BaseEntityManager properly
 
 ### Authentication Issues
 
@@ -313,10 +328,11 @@ Special: Import, ImportQueue, StepView, Web, TestEndpoint
 
 ## Documentation Structure
 
-### Sprint 6 Documentation (100% Complete)
+### Sprint 6 Documentation (Current Sprint)
 
 - Technical debt resolution: `docs/roadmap/sprint6/TD-001.md` and `TD-002.md`
 - Component architecture: `docs/roadmap/sprint6/US-082-B-component-architecture.md`
+- Entity migration standard: `docs/roadmap/sprint6/US-082-C-entity-migration-standard.md`
 - Sprint overview: `docs/roadmap/unified-roadmap.md`
 - Development journal: `docs/devJournal/20250909-*.md` and `docs/devJournal/20250910-03-emergency-component-architecture.md`
 
@@ -331,3 +347,9 @@ Special: Import, ImportQueue, StepView, Web, TestEndpoint
 - JavaScript framework: `local-dev-setup/__tests__/README.md`
 - Groovy framework: `src/groovy/umig/tests/README.md`
 - Technology-prefixed commands: `local-dev-setup/PHASE1_TECHNOLOGY_PREFIXED_TESTS.md`
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

@@ -91,6 +91,13 @@ export class IterationTypesEntityManager extends BaseEntityManager {
       circuitBreakerThreshold: 5,
     };
 
+    // Error boundary cleanup configuration
+    this.MAX_ERROR_BOUNDARY_SIZE = 1000; // Maximum entries before cleanup
+    this.ERROR_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    
+    // Initialize periodic error boundary cleanup
+    this._initializeErrorBoundaryCleanup();
+
     // Color and icon validation patterns
     this.validationPatterns = {
       color: /^#[0-9A-Fa-f]{6}$/,
@@ -110,6 +117,62 @@ export class IterationTypesEntityManager extends BaseEntityManager {
     console.log(
       "[IterationTypesEntityManager] Initialized with enterprise security and validation",
     );
+  }
+
+  /**
+   * Initialize periodic error boundary cleanup mechanism
+   * Prevents memory leaks from unbounded error tracking
+   * @private
+   */
+  _initializeErrorBoundaryCleanup() {
+    // Set up periodic cleanup to prevent memory leaks
+    this.errorCleanupTimer = setInterval(() => {
+      this._cleanupErrorBoundary();
+    }, this.ERROR_CLEANUP_INTERVAL);
+
+    console.log(
+      `[IterationTypesEntityManager] Error boundary cleanup initialized (interval: ${this.ERROR_CLEANUP_INTERVAL}ms, max size: ${this.MAX_ERROR_BOUNDARY_SIZE})`,
+    );
+  }
+
+  /**
+   * Clean up old error boundary entries to prevent memory leaks
+   * Removes oldest entries when exceeding maximum size
+   * @private
+   */
+  _cleanupErrorBoundary() {
+    const currentSize = this.errorBoundary.size;
+    
+    if (currentSize > this.MAX_ERROR_BOUNDARY_SIZE) {
+      const entriesToRemove = currentSize - Math.floor(this.MAX_ERROR_BOUNDARY_SIZE * 0.8); // Keep 80% of max
+      const entries = Array.from(this.errorBoundary.keys());
+      
+      // Remove oldest entries (first inserted)
+      for (let i = 0; i < entriesToRemove && i < entries.length; i++) {
+        this.errorBoundary.delete(entries[i]);
+      }
+      
+      console.log(
+        `[IterationTypesEntityManager] Error boundary cleanup: removed ${entriesToRemove} entries (${currentSize} -> ${this.errorBoundary.size})`,
+      );
+    }
+  }
+
+  /**
+   * Clean up resources including error boundary cleanup timer
+   * Should be called when the entity manager is destroyed
+   * @public
+   */
+  cleanup() {
+    if (this.errorCleanupTimer) {
+      clearInterval(this.errorCleanupTimer);
+      this.errorCleanupTimer = null;
+      console.log("[IterationTypesEntityManager] Error boundary cleanup timer cleared");
+    }
+    
+    // Clear maps to free memory
+    this.errorBoundary.clear();
+    this.circuitBreaker.clear();
   }
 
   /**
@@ -1097,12 +1160,17 @@ export class IterationTypesEntityManager extends BaseEntityManager {
   }
 
   /**
-   * Track errors
+   * Track errors with bounded memory usage
    * @param {string} operation - Operation name
    * @param {Error} error - Error object
    * @private
    */
   _trackError(operation, error) {
+    // Check size before adding new entries to prevent unbounded growth
+    if (this.errorBoundary.size >= this.MAX_ERROR_BOUNDARY_SIZE) {
+      this._cleanupErrorBoundary();
+    }
+    
     const errorCount = this.errorBoundary.get(operation) || 0;
     this.errorBoundary.set(operation, errorCount + 1);
     console.error(
