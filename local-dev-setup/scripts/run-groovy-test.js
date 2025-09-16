@@ -23,7 +23,6 @@ class GroovyTestRunner {
     this.projectRoot = path.resolve(__dirname, "../../");
     this.jdbcDir = path.join(__dirname, "../jdbc-drivers");
     this.postgresqlJar = path.join(this.jdbcDir, "postgresql-42.7.3.jar");
-    this.groovyWrapper = path.join(this.jdbcDir, "groovy-with-jdbc");
   }
 
   /**
@@ -39,11 +38,6 @@ class GroovyTestRunner {
 
     if (!fs.existsSync(this.postgresqlJar)) {
       console.log("❌ PostgreSQL JDBC driver not found");
-      return false;
-    }
-
-    if (!fs.existsSync(this.groovyWrapper)) {
-      console.log("❌ Groovy wrapper script not found");
       return false;
     }
 
@@ -110,7 +104,8 @@ class GroovyTestRunner {
     console.log(`🧪 Running Groovy test: ${path.basename(testFile)}`);
 
     return new Promise((resolve, reject) => {
-      const child = spawn(this.groovyWrapper, [absoluteTestPath], {
+      // Run groovy directly with classpath instead of using shell wrapper
+      const child = spawn("groovy", ["-cp", this.postgresqlJar, absoluteTestPath], {
         stdio: "inherit",
         cwd: this.projectRoot,
       });

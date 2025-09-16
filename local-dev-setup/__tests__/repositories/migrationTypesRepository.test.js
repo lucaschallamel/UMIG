@@ -665,11 +665,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
     it("should handle database connection errors", async () => {
       mockSql.rows.mockRejectedValueOnce(new Error("Connection timeout"));
 
-      try {
-        repository.findAllMigrationTypes();
-      } catch (error) {
-        expect(error.message).toBe("Connection timeout");
-      }
+      await expect(repository.findAllMigrationTypes()).rejects.toThrow("Connection timeout");
 
       testResults.repositoryMethodsValidated.push(
         "Error handling (connection timeout)",
@@ -683,14 +679,10 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       mockSql.firstRow.mockRejectedValueOnce(constraintError);
 
-      try {
-        repository.createMigrationType({
-          mit_code: "INFRASTRUCTURE",
-          mit_name: "Duplicate Migration",
-        });
-      } catch (error) {
-        expect(error.sqlState).toBe("23505");
-      }
+      await expect(repository.createMigrationType({
+        mit_code: "INFRASTRUCTURE",
+        mit_name: "Duplicate Migration",
+      })).rejects.toThrow("Duplicate key violation");
 
       testResults.repositoryMethodsValidated.push(
         "Error handling (constraint violation)",
