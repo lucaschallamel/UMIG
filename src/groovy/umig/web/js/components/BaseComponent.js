@@ -469,9 +469,118 @@ class BaseComponent {
   }
 
   shouldUpdate(previousState, currentState) {
-    // Default: always update on state change
-    // Components can override for optimization
-    return JSON.stringify(previousState) !== JSON.stringify(currentState);
+    // Optimized shallow comparison to replace expensive JSON.stringify
+    return this.hasStateChanges(previousState, currentState);
+  }
+
+  /**
+   * Efficient state comparison without JSON serialization
+   * Handles nested objects intelligently while maintaining performance
+   */
+  hasStateChanges(prevState, currentState) {
+    // Handle null/undefined cases
+    if (prevState === currentState) return false;
+    if (!prevState || !currentState) return true;
+
+    // Get keys from both objects
+    const prevKeys = Object.keys(prevState);
+    const currentKeys = Object.keys(currentState);
+
+    // Quick check for different number of keys
+    if (prevKeys.length !== currentKeys.length) return true;
+
+    // Compare each key-value pair
+    for (const key of prevKeys) {
+      if (!currentKeys.includes(key)) return true;
+
+      const prevValue = prevState[key];
+      const currentValue = currentState[key];
+
+      // Direct comparison for primitives
+      if (prevValue === currentValue) continue;
+
+      // Handle different types
+      if (typeof prevValue !== typeof currentValue) return true;
+
+      // For arrays, compare efficiently
+      if (Array.isArray(prevValue)) {
+        if (
+          !Array.isArray(currentValue) ||
+          prevValue.length !== currentValue.length
+        ) {
+          return true;
+        }
+        // Shallow array comparison
+        for (let i = 0; i < prevValue.length; i++) {
+          if (this.compareValues(prevValue[i], currentValue[i]) !== 0) {
+            return true;
+          }
+        }
+        continue;
+      }
+
+      // For objects, do shallow comparison
+      if (prevValue !== null && typeof prevValue === "object") {
+        if (currentValue === null || typeof currentValue !== "object") {
+          return true;
+        }
+        // Recursive comparison for one level deep (prevents infinite recursion)
+        if (this.shallowObjectCompare(prevValue, currentValue)) {
+          return true;
+        }
+        continue;
+      }
+
+      // If we get here, values are different
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Shallow object comparison for one level deep
+   */
+  shallowObjectCompare(obj1, obj2) {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) return true;
+
+    for (const key of keys1) {
+      if (!keys2.includes(key)) return true;
+      if (this.compareValues(obj1[key], obj2[key]) !== 0) return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Compare two values efficiently
+   * Returns: 0 for equal, 1 for different, -1 for complex objects
+   */
+  compareValues(val1, val2) {
+    // Direct equality
+    if (val1 === val2) return 0;
+
+    // Handle null/undefined
+    if (val1 == null || val2 == null) return val1 === val2 ? 0 : 1;
+
+    // Different types
+    if (typeof val1 !== typeof val2) return 1;
+
+    // For complex objects, return -1 to indicate need for deeper comparison
+    if (typeof val1 === "object") {
+      // Handle dates
+      if (val1 instanceof Date && val2 instanceof Date) {
+        return val1.getTime() === val2.getTime() ? 0 : 1;
+      }
+      // For other objects, indicate complex comparison needed
+      return -1;
+    }
+
+    // Primitive values that aren't equal
+    return 1;
   }
 
   logDebug(...args) {

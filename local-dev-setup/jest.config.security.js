@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   displayName: "Security Tests",
-  testEnvironment: "node", // Use node environment to avoid jsdom/tough-cookie stack overflow
+  testEnvironment: "jsdom", // Use jsdom environment for DOM testing
   testEnvironmentOptions: {
     // Minimal environment options for security tests
   },
@@ -10,6 +10,8 @@ const config = {
     "**/__tests__/unit/**/*.security.test.js",
     "**/__tests__/unit/**/*.pentest.test.js",
     "**/__tests__/security/**/*.test.js",
+    "**/__tests__/performance/**/*.test.js",
+    "**/__tests__/regression/**/*.test.js",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.security.js"],
   collectCoverage: true,

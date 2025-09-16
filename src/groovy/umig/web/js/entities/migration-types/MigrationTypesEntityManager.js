@@ -54,7 +54,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       filterConfig: this._getFilterConfig(),
       paginationConfig: this._getPaginationConfig(),
       // Merge with any additional config
-      ...config
+      ...config,
     };
 
     super(migrationTypesConfig);
@@ -64,7 +64,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     this.permissionLevel = null;
     this.approvalWorkflowEnabled = true;
     this.templateVersioning = true;
-    
+
     // Caching for performance optimization
     this.teamCache = new Map();
     this.templateCache = new Map();
@@ -80,10 +80,12 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     this.retryConfig = {
       maxRetries: 3,
       retryDelay: 1000,
-      circuitBreakerThreshold: 5
+      circuitBreakerThreshold: 5,
     };
 
-    console.log("[MigrationTypesEntityManager] Initialized with enterprise security and batch optimization");
+    console.log(
+      "[MigrationTypesEntityManager] Initialized with enterprise security and batch optimization",
+    );
   }
 
   /**
@@ -94,7 +96,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async initialize(container, options = {}) {
     try {
-      console.log("[MigrationTypesEntityManager] Initializing with permission validation");
+      console.log(
+        "[MigrationTypesEntityManager] Initializing with permission validation",
+      );
 
       // Initialize base entity manager
       await super.initialize(container, options);
@@ -111,9 +115,14 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       // Load related data for caching
       await this._loadRelatedDataCache();
 
-      console.log("[MigrationTypesEntityManager] Initialization complete with security validation");
+      console.log(
+        "[MigrationTypesEntityManager] Initialization complete with security validation",
+      );
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to initialize:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to initialize:",
+        error,
+      );
       throw error;
     }
   }
@@ -130,16 +139,24 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     try {
       // Apply security filtering based on permissions
       const securityFilters = await this._applySecurityFilters(filters);
-      
+
       // Load data with performance tracking
-      const result = await super.loadData(securityFilters, sort, page, pageSize);
-      
+      const result = await super.loadData(
+        securityFilters,
+        sort,
+        page,
+        pageSize,
+      );
+
       // Enrich data with related information
       result.data = await this._enrichMigrationTypeData(result.data);
-      
+
       return result;
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to load data:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to load data:",
+        error,
+      );
       throw error;
     }
   }
@@ -151,14 +168,16 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async createEntity(data) {
     try {
-      console.log("[MigrationTypesEntityManager] Creating migration type with validation");
+      console.log(
+        "[MigrationTypesEntityManager] Creating migration type with validation",
+      );
 
       // SUPERADMIN permission check
       if (!this._isSuperAdmin()) {
         throw new SecurityUtils.AuthorizationException(
           "Only SUPERADMIN users can create migration types",
           "create_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role }
+          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
         );
       }
 
@@ -179,10 +198,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       // Clear related caches
       this._clearRelatedCaches();
 
-      console.log("[MigrationTypesEntityManager] Migration type created successfully");
+      console.log(
+        "[MigrationTypesEntityManager] Migration type created successfully",
+      );
       return result;
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to create migration type:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to create migration type:",
+        error,
+      );
       throw error;
     }
   }
@@ -195,20 +219,22 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async updateEntity(id, data) {
     try {
-      console.log("[MigrationTypesEntityManager] Updating migration type with workflow");
+      console.log(
+        "[MigrationTypesEntityManager] Updating migration type with workflow",
+      );
 
       // SUPERADMIN permission check
       if (!this._isSuperAdmin()) {
         throw new SecurityUtils.AuthorizationException(
           "Only SUPERADMIN users can modify migration types",
           "update_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role }
+          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
         );
       }
 
       // Get current data for status transition validation
       const currentData = await this._fetchCurrentMigrationTypeData(id);
-      
+
       // Validate status transitions and approval workflow
       await this._validateStatusTransition(currentData, data);
 
@@ -219,7 +245,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       data = await this._processMigrationTypeConfiguration(data);
 
       // Handle version control for templates if changed
-      if (this.templateVersioning && this._hasTemplateChanged(currentData, data)) {
+      if (
+        this.templateVersioning &&
+        this._hasTemplateChanged(currentData, data)
+      ) {
         data = await this._versionControlTemplate(currentData, data);
       }
 
@@ -234,10 +263,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       // Clear related caches
       this._clearRelatedCaches();
 
-      console.log("[MigrationTypesEntityManager] Migration type updated successfully");
+      console.log(
+        "[MigrationTypesEntityManager] Migration type updated successfully",
+      );
       return result;
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to update migration type:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to update migration type:",
+        error,
+      );
       throw error;
     }
   }
@@ -249,20 +283,22 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async deleteEntity(id) {
     try {
-      console.log("[MigrationTypesEntityManager] Deleting migration type with validation");
+      console.log(
+        "[MigrationTypesEntityManager] Deleting migration type with validation",
+      );
 
       // SUPERADMIN permission check
       if (!this._isSuperAdmin()) {
         throw new SecurityUtils.AuthorizationException(
           "Only SUPERADMIN users can delete migration types",
           "delete_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role }
+          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
         );
       }
 
       // Get current data for deletion validation
       const currentData = await this._fetchCurrentMigrationTypeData(id);
-      
+
       // Validate deletion eligibility
       await this._validateDeletion(currentData);
 
@@ -275,10 +311,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       // Clear related caches
       this._clearRelatedCaches();
 
-      console.log("[MigrationTypesEntityManager] Migration type deleted successfully");
+      console.log(
+        "[MigrationTypesEntityManager] Migration type deleted successfully",
+      );
       return result;
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to delete migration type:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to delete migration type:",
+        error,
+      );
       throw error;
     }
   }
@@ -301,7 +342,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
         if (Array.isArray(value)) {
-          value.forEach(v => params.append(key, v));
+          value.forEach((v) => params.append(key, v));
         } else {
           params.append(key, value);
         }
@@ -318,16 +359,21 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     params.append("page", page);
     params.append("pageSize", pageSize);
 
-    const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}?${params}`, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
-    });
+    const response = await SecurityUtils.secureFetch(
+      `${this.apiEndpoint}?${params}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch migration types: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch migration types: ${response.status} ${response.statusText}`,
+      );
     }
 
     return await response.json();
@@ -343,15 +389,18 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     const response = await SecurityUtils.secureFetch(this.apiEndpoint, {
       method: "POST",
       headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to create migration type: ${response.status} ${response.statusText}`);
+      throw new Error(
+        errorData.message ||
+          `Failed to create migration type: ${response.status} ${response.statusText}`,
+      );
     }
 
     return await response.json();
@@ -365,18 +414,24 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @protected
    */
   async _updateEntityData(id, data) {
-    const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
+    const response = await SecurityUtils.secureFetch(
+      `${this.apiEndpoint}/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       },
-      body: JSON.stringify(data)
-    });
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to update migration type: ${response.status} ${response.statusText}`);
+      throw new Error(
+        errorData.message ||
+          `Failed to update migration type: ${response.status} ${response.statusText}`,
+      );
     }
 
     return await response.json();
@@ -389,16 +444,22 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @protected
    */
   async _deleteEntityData(id) {
-    const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Accept": "application/json"
-      }
-    });
+    const response = await SecurityUtils.secureFetch(
+      `${this.apiEndpoint}/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+        },
+      },
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to delete migration type: ${response.status} ${response.statusText}`);
+      throw new Error(
+        errorData.message ||
+          `Failed to delete migration type: ${response.status} ${response.statusText}`,
+      );
     }
   }
 
@@ -425,7 +486,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
                       <strong>${SecurityUtils.escapeHtml(value)}</strong>
                       ${statusBadge}
                     </div>`;
-          }
+          },
         },
         {
           key: "mgt_description",
@@ -435,9 +496,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           maxLength: 2000,
           renderCell: (value) => {
             if (!value) return '<em class="text-muted">No description</em>';
-            const truncated = value.length > 100 ? value.substring(0, 100) + "..." : value;
+            const truncated =
+              value.length > 100 ? value.substring(0, 100) + "..." : value;
             return `<span title="${SecurityUtils.escapeHtml(value)}">${SecurityUtils.escapeHtml(truncated)}</span>`;
-          }
+          },
         },
         {
           key: "mgt_status",
@@ -446,7 +508,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           searchable: true,
           required: true,
           enum: ["draft", "active", "archived", "deprecated"],
-          renderCell: (value) => this._renderStatusBadge(value)
+          renderCell: (value) => this._renderStatusBadge(value),
         },
         {
           key: "template_count",
@@ -455,8 +517,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           searchable: false,
           renderCell: (value) => {
             const count = parseInt(value) || 0;
-            return `<span class="badge badge-info">${count} template${count !== 1 ? 's' : ''}</span>`;
-          }
+            return `<span class="badge badge-info">${count} template${count !== 1 ? "s" : ""}</span>`;
+          },
         },
         {
           key: "migration_count",
@@ -466,8 +528,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           renderCell: (value) => {
             const count = parseInt(value) || 0;
             const variant = count > 0 ? "success" : "secondary";
-            return `<span class="badge badge-${variant}">${count} migration${count !== 1 ? 's' : ''}</span>`;
-          }
+            return `<span class="badge badge-${variant}">${count} migration${count !== 1 ? "s" : ""}</span>`;
+          },
         },
         {
           key: "mgt_created_at",
@@ -477,15 +539,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           renderCell: (value) => {
             if (!value) return "";
             return new Date(value).toLocaleDateString();
-          }
+          },
         },
         {
           key: "created_by_name",
           label: "Created By",
           sortable: true,
           searchable: true,
-          renderCell: (value) => SecurityUtils.escapeHtml(value || "System")
-        }
+          renderCell: (value) => SecurityUtils.escapeHtml(value || "System"),
+        },
       ],
       actions: {
         view: true,
@@ -497,21 +559,23 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
             label: "Manage Templates",
             icon: "aui-icon-document",
             condition: (row) => ["draft", "active"].includes(row.mgt_status),
-            handler: (row) => this._manageTemplates(row)
+            handler: (row) => this._manageTemplates(row),
           },
           {
             key: "approve",
             label: "Approve",
             icon: "aui-icon-approve",
-            condition: (row) => row.mgt_status === "draft" && this._canApprove(),
-            handler: (row) => this._approveForActive(row)
+            condition: (row) =>
+              row.mgt_status === "draft" && this._canApprove(),
+            handler: (row) => this._approveForActive(row),
           },
           {
             key: "archive",
             label: "Archive",
             icon: "aui-icon-archive",
-            condition: (row) => row.mgt_status === "active" && row.migration_count === 0,
-            handler: (row) => this._archiveMigrationType(row)
+            condition: (row) =>
+              row.mgt_status === "active" && row.migration_count === 0,
+            handler: (row) => this._archiveMigrationType(row),
           },
           {
             key: "delete",
@@ -519,13 +583,13 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
             icon: "aui-icon-delete",
             variant: "danger",
             condition: (row) => this._canDelete(row),
-            handler: (row) => this._confirmDeleteEntity(row)
-          }
-        ]
+            handler: (row) => this._confirmDeleteEntity(row),
+          },
+        ],
       },
       sortable: true,
       searchable: true,
-      defaultSort: { column: "mgt_name", direction: "asc" }
+      defaultSort: { column: "mgt_name", direction: "asc" },
     };
   }
 
@@ -543,11 +607,13 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           type: "text",
           required: true,
           maxLength: 255,
-          placeholder: "e.g., Database Migration, Application Deployment, Infrastructure Update",
+          placeholder:
+            "e.g., Database Migration, Application Deployment, Infrastructure Update",
           validation: {
             pattern: "^[a-zA-Z0-9\\s\\-_()]+$",
-            message: "Name can only contain letters, numbers, spaces, hyphens, underscores, and parentheses"
-          }
+            message:
+              "Name can only contain letters, numbers, spaces, hyphens, underscores, and parentheses",
+          },
         },
         {
           key: "mgt_description",
@@ -556,7 +622,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           required: false,
           maxLength: 2000,
           rows: 4,
-          placeholder: "Detailed description of this migration type and its purpose..."
+          placeholder:
+            "Detailed description of this migration type and its purpose...",
         },
         {
           key: "mgt_status",
@@ -568,12 +635,12 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
             { value: "draft", label: "Draft - Under Development" },
             { value: "active", label: "Active - Ready for Use" },
             { value: "archived", label: "Archived - No Longer Used" },
-            { value: "deprecated", label: "Deprecated - Being Phased Out" }
+            { value: "deprecated", label: "Deprecated - Being Phased Out" },
           ],
           disabled: (mode, data) => {
             // Only allow status changes through approval workflow
             return mode === "edit" && data?.mgt_status === "active";
-          }
+          },
         },
         {
           key: "mgt_validation_rules",
@@ -581,11 +648,12 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           type: "textarea",
           required: false,
           rows: 6,
-          placeholder: '{\n  "required_fields": ["environment", "application"],\n  "approval_required": true,\n  "max_duration_hours": 24\n}',
+          placeholder:
+            '{\n  "required_fields": ["environment", "application"],\n  "approval_required": true,\n  "max_duration_hours": 24\n}',
           validation: {
             format: "json",
-            message: "Must be valid JSON format"
-          }
+            message: "Must be valid JSON format",
+          },
         },
         {
           key: "mgt_template",
@@ -593,11 +661,12 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           type: "textarea",
           required: false,
           rows: 8,
-          placeholder: '{\n  "phases": [\n    {\n      "name": "Pre-Migration",\n      "steps": [...]\n    }\n  ]\n}',
+          placeholder:
+            '{\n  "phases": [\n    {\n      "name": "Pre-Migration",\n      "steps": [...]\n    }\n  ]\n}',
           validation: {
             format: "json",
-            message: "Must be valid JSON format"
-          }
+            message: "Must be valid JSON format",
+          },
         },
         {
           key: "team_permissions",
@@ -607,29 +676,29 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           placeholder: "Select teams that can use this migration type",
           dataSource: "/rest/scriptrunner/latest/custom/teams",
           displayField: "tms_name",
-          valueField: "tms_id"
-        }
+          valueField: "tms_id",
+        },
       ],
       validation: true,
       size: "large",
       sections: [
         {
           title: "Basic Information",
-          fields: ["mgt_name", "mgt_description", "mgt_status"]
+          fields: ["mgt_name", "mgt_description", "mgt_status"],
         },
         {
           title: "Configuration",
           fields: ["mgt_validation_rules", "mgt_template"],
           collapsible: true,
-          collapsed: true
+          collapsed: true,
         },
         {
           title: "Permissions",
           fields: ["team_permissions"],
           collapsible: true,
-          collapsed: true
-        }
-      ]
+          collapsed: true,
+        },
+      ],
     };
   }
 
@@ -652,8 +721,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
             { value: "draft", label: "Draft" },
             { value: "active", label: "Active" },
             { value: "archived", label: "Archived" },
-            { value: "deprecated", label: "Deprecated" }
-          ]
+            { value: "deprecated", label: "Deprecated" },
+          ],
         },
         {
           key: "has_migrations",
@@ -661,21 +730,21 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           type: "select",
           options: [
             { value: "yes", label: "Has Migrations" },
-            { value: "no", label: "No Migrations" }
-          ]
+            { value: "no", label: "No Migrations" },
+          ],
         },
         {
           key: "created_by",
           label: "Created By",
           type: "user-select",
-          dataSource: "/rest/scriptrunner/latest/custom/users"
+          dataSource: "/rest/scriptrunner/latest/custom/users",
         },
         {
           key: "date_range",
           label: "Created Date",
-          type: "date-range"
-        }
-      ]
+          type: "date-range",
+        },
+      ],
     };
   }
 
@@ -688,7 +757,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     return {
       pageSize: 20,
       showPageSizer: true,
-      pageSizes: [10, 20, 50, 100]
+      pageSizes: [10, 20, 50, 100],
     };
   }
 
@@ -700,20 +769,31 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _loadUserPermissions() {
     try {
-      const response = await SecurityUtils.secureFetch("/rest/scriptrunner/latest/custom/users/current", {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        "/rest/scriptrunner/latest/custom/users/current",
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         this.userPermissions = await response.json();
-        console.log("[MigrationTypesEntityManager] User permissions loaded:", this.userPermissions?.role);
+        console.log(
+          "[MigrationTypesEntityManager] User permissions loaded:",
+          this.userPermissions?.role,
+        );
       } else {
-        console.warn("[MigrationTypesEntityManager] Failed to load user permissions");
+        console.warn(
+          "[MigrationTypesEntityManager] Failed to load user permissions",
+        );
         this.userPermissions = { role: "USER" }; // Default to restricted access
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Error loading user permissions:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Error loading user permissions:",
+        error,
+      );
       this.userPermissions = { role: "USER" }; // Default to restricted access
     }
   }
@@ -724,8 +804,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   _isSuperAdmin() {
-    return this.userPermissions?.role === "SUPERADMIN" || 
-           this.userPermissions?.permissions?.includes("MIGRATION_TYPE_ADMIN");
+    return (
+      this.userPermissions?.role === "SUPERADMIN" ||
+      this.userPermissions?.permissions?.includes("MIGRATION_TYPE_ADMIN")
+    );
   }
 
   /**
@@ -734,8 +816,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   _canApprove() {
-    return this._isSuperAdmin() || 
-           this.userPermissions?.permissions?.includes("MIGRATION_TYPE_APPROVE");
+    return (
+      this._isSuperAdmin() ||
+      this.userPermissions?.permissions?.includes("MIGRATION_TYPE_APPROVE")
+    );
   }
 
   /**
@@ -746,12 +830,14 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   _canDelete(migrationTypeData) {
     if (!this._isSuperAdmin()) return false;
-    
+
     // Cannot delete if migrations exist
     if (parseInt(migrationTypeData.migration_count) > 0) return false;
-    
+
     // Can only delete draft, archived, or deprecated
-    return ["draft", "archived", "deprecated"].includes(migrationTypeData.mgt_status);
+    return ["draft", "archived", "deprecated"].includes(
+      migrationTypeData.mgt_status,
+    );
   }
 
   /**
@@ -765,10 +851,13 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       draft: { label: "Draft", variant: "secondary" },
       active: { label: "Active", variant: "success" },
       archived: { label: "Archived", variant: "warning" },
-      deprecated: { label: "Deprecated", variant: "danger" }
+      deprecated: { label: "Deprecated", variant: "danger" },
     };
 
-    const config = statusConfig[status] || { label: status, variant: "secondary" };
+    const config = statusConfig[status] || {
+      label: status,
+      variant: "secondary",
+    };
     return `<span class="badge badge-${config.variant}">${config.label}</span>`;
   }
 
@@ -799,26 +888,38 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     if (!Array.isArray(data) || data.length === 0) return data;
 
     try {
-      console.log(`[MigrationTypesEntityManager] Enriching ${data.length} migration types with batch operations`);
+      console.log(
+        `[MigrationTypesEntityManager] Enriching ${data.length} migration types with batch operations`,
+      );
 
       // First try batch enrichment for performance
-      const enrichedData = await this._withErrorBoundary('batch_enrichment', () =>
-        this._batchEnrichMigrationTypeData(data)
+      const enrichedData = await this._withErrorBoundary(
+        "batch_enrichment",
+        () => this._batchEnrichMigrationTypeData(data),
       );
 
       if (enrichedData) {
-        console.log("[MigrationTypesEntityManager] Batch enrichment successful");
+        console.log(
+          "[MigrationTypesEntityManager] Batch enrichment successful",
+        );
         return enrichedData;
       }
 
       // Fallback to individual enrichment with improved error handling
-      console.log("[MigrationTypesEntityManager] Falling back to individual enrichment");
+      console.log(
+        "[MigrationTypesEntityManager] Falling back to individual enrichment",
+      );
       return await this._individualEnrichMigrationTypeData(data);
-
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to enrich migration type data:", error);
-      this._notifyUser('error', 'Data Enrichment Failed',
-        'Unable to load complete migration type information. Some data may be missing.');
+      console.error(
+        "[MigrationTypesEntityManager] Failed to enrich migration type data:",
+        error,
+      );
+      this._notifyUser(
+        "error",
+        "Data Enrichment Failed",
+        "Unable to load complete migration type information. Some data may be missing.",
+      );
       return data; // Return original data if all enrichment fails
     }
   }
@@ -835,35 +936,45 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     // Check cache first
     if (this.batchCache.has(cacheKey)) {
       const cached = this.batchCache.get(cacheKey);
-      if (Date.now() - cached.timestamp < 300000) { // 5 minute cache
-        console.log("[MigrationTypesEntityManager] Using cached batch enrichment data");
+      if (Date.now() - cached.timestamp < 300000) {
+        // 5 minute cache
+        console.log(
+          "[MigrationTypesEntityManager] Using cached batch enrichment data",
+        );
         return this._mergeBatchDataWithOriginal(data, cached.data);
       }
     }
 
     try {
-      const migrationTypeIds = data.map(item => item.mgt_id);
-      const userIds = [...new Set(data.map(item => item.mgt_created_by).filter(Boolean))];
+      const migrationTypeIds = data.map((item) => item.mgt_id);
+      const userIds = [
+        ...new Set(data.map((item) => item.mgt_created_by).filter(Boolean)),
+      ];
 
       const batchRequest = {
         migrationTypeIds,
         userIds,
         includeTemplateCounts: true,
         includeMigrationCounts: true,
-        includeUserNames: true
+        includeUserNames: true,
       };
 
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/batch-enrichment`, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/batch-enrichment`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(batchRequest),
         },
-        body: JSON.stringify(batchRequest)
-      });
+      );
 
       if (!response.ok) {
-        throw new Error(`Batch enrichment failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Batch enrichment failed: ${response.status} ${response.statusText}`,
+        );
       }
 
       const batchData = await response.json();
@@ -871,13 +982,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       // Cache the result
       this.batchCache.set(cacheKey, {
         data: batchData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       return this._mergeBatchDataWithOriginal(data, batchData);
-
     } catch (error) {
-      console.warn("[MigrationTypesEntityManager] Batch enrichment failed:", error);
+      console.warn(
+        "[MigrationTypesEntityManager] Batch enrichment failed:",
+        error,
+      );
       throw error; // Let caller handle fallback
     }
   }
@@ -894,24 +1007,34 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       const enrichmentResults = await Promise.allSettled([
         this._getTemplateCountWithFallback(item.mgt_id),
         this._getMigrationCountWithFallback(item.mgt_id),
-        item.mgt_created_by ? this._getUserNameWithFallback(item.mgt_created_by) : Promise.resolve("System")
+        item.mgt_created_by
+          ? this._getUserNameWithFallback(item.mgt_created_by)
+          : Promise.resolve("System"),
       ]);
 
       // Apply successful enrichments, use defaults for failures
-      if (enrichmentResults[0].status === 'fulfilled' && !item.template_count) {
+      if (enrichmentResults[0].status === "fulfilled" && !item.template_count) {
         item.template_count = enrichmentResults[0].value;
       }
-      if (enrichmentResults[1].status === 'fulfilled' && !item.migration_count) {
+      if (
+        enrichmentResults[1].status === "fulfilled" &&
+        !item.migration_count
+      ) {
         item.migration_count = enrichmentResults[1].value;
       }
-      if (enrichmentResults[2].status === 'fulfilled' && !item.created_by_name) {
+      if (
+        enrichmentResults[2].status === "fulfilled" &&
+        !item.created_by_name
+      ) {
         item.created_by_name = enrichmentResults[2].value;
       }
 
       // Count and report failures
-      const failures = enrichmentResults.filter(r => r.status === 'rejected');
+      const failures = enrichmentResults.filter((r) => r.status === "rejected");
       if (failures.length > 0) {
-        console.warn(`[MigrationTypesEntityManager] ${failures.length} enrichment operations failed for ${item.mgt_id}`);
+        console.warn(
+          `[MigrationTypesEntityManager] ${failures.length} enrichment operations failed for ${item.mgt_id}`,
+        );
         this._trackEnrichmentFailures(item.mgt_id, failures.length);
       }
 
@@ -933,10 +1056,13 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     }
 
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${migrationTypeId}/templates/count`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/${migrationTypeId}/templates/count`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -945,7 +1071,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         return count;
       }
     } catch (error) {
-      console.warn(`[MigrationTypesEntityManager] Failed to get template count for ${migrationTypeId}:`, error);
+      console.warn(
+        `[MigrationTypesEntityManager] Failed to get template count for ${migrationTypeId}:`,
+        error,
+      );
     }
 
     return 0;
@@ -959,17 +1088,23 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _getMigrationCount(migrationTypeId) {
     try {
-      const response = await SecurityUtils.secureFetch(`/rest/scriptrunner/latest/custom/migrations?migrationTypeId=${migrationTypeId}&countOnly=true`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `/rest/scriptrunner/latest/custom/migrations?migrationTypeId=${migrationTypeId}&countOnly=true`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         const result = await response.json();
         return parseInt(result.count) || 0;
       }
     } catch (error) {
-      console.warn(`[MigrationTypesEntityManager] Failed to get migration count for ${migrationTypeId}:`, error);
+      console.warn(
+        `[MigrationTypesEntityManager] Failed to get migration count for ${migrationTypeId}:`,
+        error,
+      );
     }
 
     return 0;
@@ -988,19 +1123,26 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     }
 
     try {
-      const response = await SecurityUtils.secureFetch(`/rest/scriptrunner/latest/custom/users/${userId}`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `/rest/scriptrunner/latest/custom/users/${userId}`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         const result = await response.json();
-        const name = result.usr_display_name || result.usr_username || "Unknown";
+        const name =
+          result.usr_display_name || result.usr_username || "Unknown";
         this.teamCache.set(cacheKey, name);
         return name;
       }
     } catch (error) {
-      console.warn(`[MigrationTypesEntityManager] Failed to get user name for ${userId}:`, error);
+      console.warn(
+        `[MigrationTypesEntityManager] Failed to get user name for ${userId}:`,
+        error,
+      );
     }
 
     return "Unknown";
@@ -1018,7 +1160,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
   async _withErrorBoundary(operation, fn) {
     // Check circuit breaker
     if (this._isCircuitBreakerOpen(operation)) {
-      console.warn(`[MigrationTypesEntityManager] Circuit breaker open for ${operation}`);
+      console.warn(
+        `[MigrationTypesEntityManager] Circuit breaker open for ${operation}`,
+      );
       return null;
     }
 
@@ -1045,8 +1189,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _getTemplateCountWithFallback(migrationTypeId) {
-    return await this._withRetry('template_count', () =>
-      this._getTemplateCount(migrationTypeId)
+    return await this._withRetry("template_count", () =>
+      this._getTemplateCount(migrationTypeId),
     );
   }
 
@@ -1057,8 +1201,8 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _getMigrationCountWithFallback(migrationTypeId) {
-    return await this._withRetry('migration_count', () =>
-      this._getMigrationCount(migrationTypeId)
+    return await this._withRetry("migration_count", () =>
+      this._getMigrationCount(migrationTypeId),
     );
   }
 
@@ -1069,9 +1213,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _getUserNameWithFallback(userId) {
-    return await this._withRetry('user_name', () =>
-      this._getUserName(userId)
-    );
+    return await this._withRetry("user_name", () => this._getUserName(userId));
   }
 
   /**
@@ -1091,13 +1233,19 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         lastError = error;
 
         // Don't retry on non-retryable errors
-        if (!this._isRetryableError(error) || attempt === this.retryConfig.maxRetries) {
+        if (
+          !this._isRetryableError(error) ||
+          attempt === this.retryConfig.maxRetries
+        ) {
           break;
         }
 
         // Exponential backoff
         const delay = this.retryConfig.retryDelay * Math.pow(2, attempt - 1);
-        console.warn(`[MigrationTypesEntityManager] ${operation} attempt ${attempt} failed, retrying in ${delay}ms:`, error.message);
+        console.warn(
+          `[MigrationTypesEntityManager] ${operation} attempt ${attempt} failed, retrying in ${delay}ms:`,
+          error.message,
+        );
         await this._sleep(delay);
       }
     }
@@ -1112,7 +1260,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   _generateBatchCacheKey(data) {
-    const ids = data.map(item => item.mgt_id).sort().join(',');
+    const ids = data
+      .map((item) => item.mgt_id)
+      .sort()
+      .join(",");
     return `batch_${this._hashString(ids)}`;
   }
 
@@ -1124,18 +1275,28 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   _mergeBatchDataWithOriginal(originalData, batchData) {
-    return originalData.map(item => {
+    return originalData.map((item) => {
       const enriched = { ...item };
 
-      if (batchData.templateCounts && batchData.templateCounts[item.mgt_id] !== undefined) {
+      if (
+        batchData.templateCounts &&
+        batchData.templateCounts[item.mgt_id] !== undefined
+      ) {
         enriched.template_count = batchData.templateCounts[item.mgt_id];
       }
 
-      if (batchData.migrationCounts && batchData.migrationCounts[item.mgt_id] !== undefined) {
+      if (
+        batchData.migrationCounts &&
+        batchData.migrationCounts[item.mgt_id] !== undefined
+      ) {
         enriched.migration_count = batchData.migrationCounts[item.mgt_id];
       }
 
-      if (batchData.userNames && item.mgt_created_by && batchData.userNames[item.mgt_created_by]) {
+      if (
+        batchData.userNames &&
+        item.mgt_created_by &&
+        batchData.userNames[item.mgt_created_by]
+      ) {
         enriched.created_by_name = batchData.userNames[item.mgt_created_by];
       }
 
@@ -1161,8 +1322,11 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
 
     // If failures exceed threshold, notify user
     if (current + failureCount >= 3) {
-      this._notifyUser('warning', 'Data Loading Issues',
-        `Multiple failures loading data for migration type ${entityId}. Some information may be incomplete.`);
+      this._notifyUser(
+        "warning",
+        "Data Loading Issues",
+        `Multiple failures loading data for migration type ${entityId}. Some information may be incomplete.`,
+      );
     }
   }
 
@@ -1180,13 +1344,16 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           type: type,
           title: title,
           body: message,
-          close: type === 'info' ? 'auto' : 'manual'
+          close: type === "info" ? "auto" : "manual",
         });
       } else {
         console.warn(`[${type.toUpperCase()}] ${title}: ${message}`);
       }
     } catch (error) {
-      console.warn("[MigrationTypesEntityManager] Failed to notify user:", error);
+      console.warn(
+        "[MigrationTypesEntityManager] Failed to notify user:",
+        error,
+      );
     }
   }
 
@@ -1198,11 +1365,12 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   _isCircuitBreakerOpen(operation) {
     const state = this.circuitBreaker.get(operation);
-    if (!state || state.status !== 'open') return false;
+    if (!state || state.status !== "open") return false;
 
     // Check if enough time has passed to try again (half-open state)
-    if (Date.now() - state.openedAt > 60000) { // 1 minute
-      this.circuitBreaker.set(operation, { ...state, status: 'half-open' });
+    if (Date.now() - state.openedAt > 60000) {
+      // 1 minute
+      this.circuitBreaker.set(operation, { ...state, status: "half-open" });
       return false;
     }
 
@@ -1236,12 +1404,14 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     // Open circuit breaker if too many failures
     if (errors.length >= this.retryConfig.circuitBreakerThreshold) {
       this.circuitBreaker.set(operation, {
-        status: 'open',
+        status: "open",
         openedAt: Date.now(),
-        failureCount: errors.length
+        failureCount: errors.length,
       });
 
-      console.warn(`[MigrationTypesEntityManager] Circuit breaker opened for ${operation} due to ${errors.length} failures`);
+      console.warn(
+        `[MigrationTypesEntityManager] Circuit breaker opened for ${operation} due to ${errors.length} failures`,
+      );
     }
   }
 
@@ -1256,10 +1426,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       /authentication/i,
       /authorization/i,
       /network/i,
-      /fetch.*failed/i
+      /fetch.*failed/i,
     ];
 
-    return criticalPatterns.some(pattern => pattern.test(error.message));
+    return criticalPatterns.some((pattern) => pattern.test(error.message));
   }
 
   /**
@@ -1275,10 +1445,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       /502/,
       /500/,
       /network/i,
-      /temporary/i
+      /temporary/i,
     ];
 
-    return retryablePatterns.some(pattern => pattern.test(error.message));
+    return retryablePatterns.some((pattern) => pattern.test(error.message));
   }
 
   /**
@@ -1288,7 +1458,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -1301,7 +1471,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36);
@@ -1330,7 +1500,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     // Validate status
     const validStatuses = ["draft", "active", "archived", "deprecated"];
     if (data.mgt_status && !validStatuses.includes(data.mgt_status)) {
-      throw new Error(`Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`);
+      throw new Error(
+        `Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`,
+      );
     }
 
     // Validate JSON fields
@@ -1351,7 +1523,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     }
 
     // Check for name uniqueness
-    if (operation === "create" || (operation === "update" && currentData?.mgt_name !== data.mgt_name)) {
+    if (
+      operation === "create" ||
+      (operation === "update" && currentData?.mgt_name !== data.mgt_name)
+    ) {
       await this._validateNameUniqueness(data.mgt_name, currentData?.mgt_id);
     }
   }
@@ -1364,7 +1539,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _validateNameUniqueness(name, excludeId = null) {
     const cacheKey = `name_check_${name.toLowerCase()}`;
-    
+
     if (this.validationCache.has(cacheKey)) {
       const cached = this.validationCache.get(cacheKey);
       if (cached.id !== excludeId) {
@@ -1374,19 +1549,24 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     }
 
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}?name=${encodeURIComponent(name)}`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}?name=${encodeURIComponent(name)}`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         const result = await response.json();
         if (result.data && result.data.length > 0) {
           const existing = result.data[0];
           this.validationCache.set(cacheKey, { id: existing.mgt_id });
-          
+
           if (existing.mgt_id !== excludeId) {
-            throw new Error(`Migration type with name "${name}" already exists`);
+            throw new Error(
+              `Migration type with name "${name}" already exists`,
+            );
           }
         }
       }
@@ -1394,7 +1574,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       if (error.message.includes("already exists")) {
         throw error;
       }
-      console.warn("[MigrationTypesEntityManager] Failed to validate name uniqueness:", error);
+      console.warn(
+        "[MigrationTypesEntityManager] Failed to validate name uniqueness:",
+        error,
+      );
     }
   }
 
@@ -1417,11 +1600,13 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
       draft: ["active", "archived"],
       active: ["archived", "deprecated"],
       archived: ["active"], // Can reactivate archived
-      deprecated: [] // Cannot change from deprecated
+      deprecated: [], // Cannot change from deprecated
     };
 
     if (!validTransitions[current]?.includes(target)) {
-      throw new Error(`Invalid status transition from "${current}" to "${target}"`);
+      throw new Error(
+        `Invalid status transition from "${current}" to "${target}"`,
+      );
     }
 
     // Special validation for transitioning to active
@@ -1430,7 +1615,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         throw new SecurityUtils.AuthorizationException(
           "Approval permission required to activate migration types",
           "approve_migration_type",
-          { currentStatus: current, targetStatus: target }
+          { currentStatus: current, targetStatus: target },
         );
       }
     }
@@ -1439,7 +1624,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     if (["archived", "deprecated"].includes(target)) {
       const migrationCount = await this._getMigrationCount(currentData.mgt_id);
       if (migrationCount > 0) {
-        throw new Error(`Cannot ${target === "archived" ? "archive" : "deprecate"} migration type with ${migrationCount} existing migrations`);
+        throw new Error(
+          `Cannot ${target === "archived" ? "archive" : "deprecate"} migration type with ${migrationCount} existing migrations`,
+        );
       }
     }
   }
@@ -1451,14 +1638,20 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _validateDeletion(migrationTypeData) {
     // Check if migrations exist
-    const migrationCount = await this._getMigrationCount(migrationTypeData.mgt_id);
+    const migrationCount = await this._getMigrationCount(
+      migrationTypeData.mgt_id,
+    );
     if (migrationCount > 0) {
-      throw new Error(`Cannot delete migration type with ${migrationCount} existing migrations. Archive it instead.`);
+      throw new Error(
+        `Cannot delete migration type with ${migrationCount} existing migrations. Archive it instead.`,
+      );
     }
 
     // Check status restrictions
     if (migrationTypeData.mgt_status === "active") {
-      throw new Error("Cannot delete active migration type. Archive or deprecate it first.");
+      throw new Error(
+        "Cannot delete active migration type. Archive or deprecate it first.",
+      );
     }
   }
 
@@ -1478,7 +1671,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         const rules = JSON.parse(processedData.mgt_validation_rules);
         processedData.mgt_validation_rules = JSON.stringify(rules, null, 2);
       } catch (error) {
-        console.warn("[MigrationTypesEntityManager] Invalid validation rules JSON:", error);
+        console.warn(
+          "[MigrationTypesEntityManager] Invalid validation rules JSON:",
+          error,
+        );
       }
     }
 
@@ -1489,7 +1685,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         const template = JSON.parse(processedData.mgt_template);
         processedData.mgt_template = JSON.stringify(template, null, 2);
       } catch (error) {
-        console.warn("[MigrationTypesEntityManager] Invalid template JSON:", error);
+        console.warn(
+          "[MigrationTypesEntityManager] Invalid template JSON:",
+          error,
+        );
       }
     }
 
@@ -1526,15 +1725,20 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         version_number: await this._getNextVersionNumber(currentData.mgt_id),
         template_data: currentData.mgt_template,
         created_at: new Date().toISOString(),
-        created_by: this.userPermissions?.id
+        created_by: this.userPermissions?.id,
       };
 
       // Save version to history
       await this._saveTemplateVersion(versionData);
 
-      console.log(`[MigrationTypesEntityManager] Template version ${versionData.version_number} saved`);
+      console.log(
+        `[MigrationTypesEntityManager] Template version ${versionData.version_number} saved`,
+      );
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to save template version:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Failed to save template version:",
+        error,
+      );
       // Don't fail the update if version control fails
     }
 
@@ -1549,17 +1753,23 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _getNextVersionNumber(migrationTypeId) {
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${migrationTypeId}/template-versions/next`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/${migrationTypeId}/template-versions/next`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (response.ok) {
         const result = await response.json();
         return result.nextVersion || 1;
       }
     } catch (error) {
-      console.warn("[MigrationTypesEntityManager] Failed to get next version number:", error);
+      console.warn(
+        "[MigrationTypesEntityManager] Failed to get next version number:",
+        error,
+      );
     }
 
     return 1; // Default to version 1
@@ -1571,14 +1781,17 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _saveTemplateVersion(versionData) {
-    const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/template-versions`, {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
+    const response = await SecurityUtils.secureFetch(
+      `${this.apiEndpoint}/template-versions`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(versionData),
       },
-      body: JSON.stringify(versionData)
-    });
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to save template version: ${response.status}`);
@@ -1595,20 +1808,28 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     if (!Array.isArray(teamIds) || teamIds.length === 0) return;
 
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${migrationTypeId}/team-permissions`, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ teamIds }),
         },
-        body: JSON.stringify({ teamIds })
-      });
+      );
 
       if (!response.ok) {
-        console.warn("[MigrationTypesEntityManager] Failed to setup team permissions");
+        console.warn(
+          "[MigrationTypesEntityManager] Failed to setup team permissions",
+        );
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Error setting up team permissions:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Error setting up team permissions:",
+        error,
+      );
     }
   }
 
@@ -1620,20 +1841,28 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _updateTeamPermissions(migrationTypeId, teamIds) {
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${migrationTypeId}/team-permissions`, {
-        method: "PUT",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
+        {
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ teamIds: teamIds || [] }),
         },
-        body: JSON.stringify({ teamIds: teamIds || [] })
-      });
+      );
 
       if (!response.ok) {
-        console.warn("[MigrationTypesEntityManager] Failed to update team permissions");
+        console.warn(
+          "[MigrationTypesEntityManager] Failed to update team permissions",
+        );
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Error updating team permissions:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Error updating team permissions:",
+        error,
+      );
     }
   }
 
@@ -1644,16 +1873,24 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _removeAllTeamPermissions(migrationTypeId) {
     try {
-      const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${migrationTypeId}/team-permissions`, {
-        method: "DELETE",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await SecurityUtils.secureFetch(
+        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
+        {
+          method: "DELETE",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (!response.ok) {
-        console.warn("[MigrationTypesEntityManager] Failed to remove team permissions");
+        console.warn(
+          "[MigrationTypesEntityManager] Failed to remove team permissions",
+        );
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Error removing team permissions:", error);
+      console.error(
+        "[MigrationTypesEntityManager] Error removing team permissions:",
+        error,
+      );
     }
   }
 
@@ -1664,13 +1901,18 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _fetchCurrentMigrationTypeData(id) {
-    const response = await SecurityUtils.secureFetch(`${this.apiEndpoint}/${id}`, {
-      method: "GET",
-      headers: { "Accept": "application/json" }
-    });
+    const response = await SecurityUtils.secureFetch(
+      `${this.apiEndpoint}/${id}`,
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch migration type ${id}: ${response.status}`);
+      throw new Error(
+        `Failed to fetch migration type ${id}: ${response.status}`,
+      );
     }
 
     return await response.json();
@@ -1684,7 +1926,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
     // Initialize template management component if needed
     if (this.orchestrator) {
       // Add custom components for migration type management
-      console.log("[MigrationTypesEntityManager] Migration-specific components initialized");
+      console.log(
+        "[MigrationTypesEntityManager] Migration-specific components initialized",
+      );
     }
   }
 
@@ -1707,7 +1951,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         this._archiveMigrationType(event.data);
       });
 
-      console.log("[MigrationTypesEntityManager] Migration-specific event handlers setup");
+      console.log(
+        "[MigrationTypesEntityManager] Migration-specific event handlers setup",
+      );
     }
   }
 
@@ -1718,15 +1964,18 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
   async _loadRelatedDataCache() {
     try {
       // Pre-load teams for permission management
-      const teamsResponse = await SecurityUtils.secureFetch("/rest/scriptrunner/latest/custom/teams", {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
+      const teamsResponse = await SecurityUtils.secureFetch(
+        "/rest/scriptrunner/latest/custom/teams",
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        },
+      );
 
       if (teamsResponse.ok) {
         const teams = await teamsResponse.json();
         if (teams.data) {
-          teams.data.forEach(team => {
+          teams.data.forEach((team) => {
             this.teamCache.set(`team_${team.tms_id}`, team.tms_name);
           });
         }
@@ -1734,7 +1983,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
 
       console.log("[MigrationTypesEntityManager] Related data cache loaded");
     } catch (error) {
-      console.warn("[MigrationTypesEntityManager] Failed to load related data cache:", error);
+      console.warn(
+        "[MigrationTypesEntityManager] Failed to load related data cache:",
+        error,
+      );
     }
   }
 
@@ -1755,15 +2007,18 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * @private
    */
   async _manageTemplates(migrationTypeData) {
-    console.log("[MigrationTypesEntityManager] Managing templates for:", migrationTypeData.mgt_name);
-    
+    console.log(
+      "[MigrationTypesEntityManager] Managing templates for:",
+      migrationTypeData.mgt_name,
+    );
+
     // Open template management modal or navigate to template page
     if (this.modalComponent) {
       await this.modalComponent.show({
         mode: "custom",
         title: `Manage Templates - ${migrationTypeData.mgt_name}`,
         size: "large",
-        content: this._renderTemplateManagementContent(migrationTypeData)
+        content: this._renderTemplateManagementContent(migrationTypeData),
       });
     }
   }
@@ -1775,16 +2030,21 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _approveForActive(migrationTypeData) {
     try {
-      console.log("[MigrationTypesEntityManager] Approving for active status:", migrationTypeData.mgt_name);
-      
+      console.log(
+        "[MigrationTypesEntityManager] Approving for active status:",
+        migrationTypeData.mgt_name,
+      );
+
       if (!this._canApprove()) {
-        throw new Error("You do not have permission to approve migration types");
+        throw new Error(
+          "You do not have permission to approve migration types",
+        );
       }
 
       // Update status to active
       await this.updateEntity(migrationTypeData.mgt_id, {
         ...migrationTypeData,
-        mgt_status: "active"
+        mgt_status: "active",
       });
 
       // Show success message
@@ -1792,17 +2052,20 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         window.AJS.flag({
           type: "success",
           title: "Migration Type Approved",
-          body: `${migrationTypeData.mgt_name} has been approved and is now active.`
+          body: `${migrationTypeData.mgt_name} has been approved and is now active.`,
         });
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to approve migration type:", error);
-      
+      console.error(
+        "[MigrationTypesEntityManager] Failed to approve migration type:",
+        error,
+      );
+
       if (window.AJS?.flag) {
         window.AJS.flag({
           type: "error",
           title: "Approval Failed",
-          body: error.message
+          body: error.message,
         });
       }
     }
@@ -1815,12 +2078,15 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    */
   async _archiveMigrationType(migrationTypeData) {
     try {
-      console.log("[MigrationTypesEntityManager] Archiving migration type:", migrationTypeData.mgt_name);
-      
+      console.log(
+        "[MigrationTypesEntityManager] Archiving migration type:",
+        migrationTypeData.mgt_name,
+      );
+
       // Update status to archived
       await this.updateEntity(migrationTypeData.mgt_id, {
         ...migrationTypeData,
-        mgt_status: "archived"
+        mgt_status: "archived",
       });
 
       // Show success message
@@ -1828,17 +2094,20 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         window.AJS.flag({
           type: "success",
           title: "Migration Type Archived",
-          body: `${migrationTypeData.mgt_name} has been archived.`
+          body: `${migrationTypeData.mgt_name} has been archived.`,
         });
       }
     } catch (error) {
-      console.error("[MigrationTypesEntityManager] Failed to archive migration type:", error);
-      
+      console.error(
+        "[MigrationTypesEntityManager] Failed to archive migration type:",
+        error,
+      );
+
       if (window.AJS?.flag) {
         window.AJS.flag({
           type: "error",
           title: "Archive Failed",
-          body: error.message
+          body: error.message,
         });
       }
     }
@@ -1868,12 +2137,16 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
           </button>
         </div>
         
-        ${migrationTypeData.mgt_template ? `
+        ${
+          migrationTypeData.mgt_template
+            ? `
           <div class="current-template">
             <h5>Current Template Preview:</h5>
             <pre class="template-preview">${SecurityUtils.escapeHtml(JSON.stringify(JSON.parse(migrationTypeData.mgt_template), null, 2))}</pre>
           </div>
-        ` : '<p><em>No template defined yet.</em></p>'}
+        `
+            : "<p><em>No template defined yet.</em></p>"
+        }
       </div>
     `;
   }
@@ -1888,25 +2161,31 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
 
     try {
       // Basic validation checks
-      if (!data || typeof data !== 'object') {
-        errors.push('Data must be a valid object');
+      if (!data || typeof data !== "object") {
+        errors.push("Data must be a valid object");
         return { isValid: false, errors };
       }
 
       // Required field validation
-      if (!data.mgt_name || typeof data.mgt_name !== 'string' || data.mgt_name.trim().length === 0) {
-        errors.push('Migration type name is required');
+      if (
+        !data.mgt_name ||
+        typeof data.mgt_name !== "string" ||
+        data.mgt_name.trim().length === 0
+      ) {
+        errors.push("Migration type name is required");
       }
 
       if (data.mgt_name && data.mgt_name.length > 255) {
-        errors.push('Migration type name cannot exceed 255 characters');
+        errors.push("Migration type name cannot exceed 255 characters");
       }
 
       // Status validation
       if (data.mgt_status) {
         const validStatuses = ["draft", "active", "archived", "deprecated"];
         if (!validStatuses.includes(data.mgt_status)) {
-          errors.push(`Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`);
+          errors.push(
+            `Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`,
+          );
         }
       }
 
@@ -1915,7 +2194,7 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         try {
           JSON.parse(data.mgt_validation_rules);
         } catch (error) {
-          errors.push('Validation rules must be valid JSON');
+          errors.push("Validation rules must be valid JSON");
         }
       }
 
@@ -1923,20 +2202,19 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
         try {
           JSON.parse(data.mgt_template);
         } catch (error) {
-          errors.push('Template must be valid JSON');
+          errors.push("Template must be valid JSON");
         }
       }
 
       return {
         isValid: errors.length === 0,
-        errors: errors
+        errors: errors,
       };
-
     } catch (error) {
-      console.error('[MigrationTypesEntityManager] Validation error:', error);
+      console.error("[MigrationTypesEntityManager] Validation error:", error);
       return {
         isValid: false,
-        errors: ['Validation failed due to internal error']
+        errors: ["Validation failed due to internal error"],
       };
     }
   }
@@ -1958,7 +2236,9 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
    * Cleanup migration type specific resources
    */
   destroy() {
-    console.log("[MigrationTypesEntityManager] Destroying migration types entity manager");
+    console.log(
+      "[MigrationTypesEntityManager] Destroying migration types entity manager",
+    );
 
     // Clear caches
     this.teamCache.clear();

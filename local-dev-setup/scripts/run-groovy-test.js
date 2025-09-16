@@ -105,10 +105,14 @@ class GroovyTestRunner {
 
     return new Promise((resolve, reject) => {
       // Run groovy directly with classpath instead of using shell wrapper
-      const child = spawn("groovy", ["-cp", this.postgresqlJar, absoluteTestPath], {
-        stdio: "inherit",
-        cwd: this.projectRoot,
-      });
+      const child = spawn(
+        "groovy",
+        ["-cp", this.postgresqlJar, absoluteTestPath],
+        {
+          stdio: "inherit",
+          cwd: this.projectRoot,
+        },
+      );
 
       child.on("close", (code) => {
         if (code === 0) {
