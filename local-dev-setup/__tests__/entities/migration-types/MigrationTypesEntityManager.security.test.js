@@ -5,7 +5,7 @@
  * Security Focus Areas:
  * - Authentication and authorization controls
  * - Input validation and sanitization
- * - XSS and CSRF protection  
+ * - XSS and CSRF protection
  * - Rate limiting and abuse prevention
  * - Data access control and permissions
  * - Audit logging and compliance
@@ -26,21 +26,24 @@
 // Mock SecurityUtils with comprehensive security methods
 const SecurityUtils = {
   sanitizeHtml: jest.fn((input) => {
-    if (typeof input !== 'string') return input;
-    return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    if (typeof input !== "string") return input;
+    return input.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      "",
+    );
   }),
   escapeHtml: jest.fn((input) => {
-    if (typeof input !== 'string') return input;
+    if (typeof input !== "string") return input;
     return input
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;");
   }),
   validateInput: jest.fn((data) => {
     const errors = [];
-    
+
     // Check for common attack patterns
     const dangerousPatterns = [
       /<script.*?>.*?<\/script>/gi,
@@ -48,14 +51,14 @@ const SecurityUtils = {
       /on\w+\s*=/gi,
       /\b(union|select|insert|update|delete|drop|create|alter)\b/gi,
     ];
-    
+
     const inputString = JSON.stringify(data);
-    dangerousPatterns.forEach(pattern => {
+    dangerousPatterns.forEach((pattern) => {
       if (pattern.test(inputString)) {
-        errors.push('Potentially malicious input detected');
+        errors.push("Potentially malicious input detected");
       }
     });
-    
+
     return {
       isValid: errors.length === 0,
       sanitizedData: data,
@@ -63,16 +66,16 @@ const SecurityUtils = {
     };
   }),
   validatePermissions: jest.fn((user, action, resource) => ({
-    hasPermission: user === 'superadmin',
-    denialReason: user !== 'superadmin' ? 'Insufficient privileges' : null,
+    hasPermission: user === "superadmin",
+    denialReason: user !== "superadmin" ? "Insufficient privileges" : null,
   })),
   logSecurityEvent: jest.fn(),
   enforceRateLimit: jest.fn(() => true),
   validateCSRFToken: jest.fn(() => true),
-  generateSecureToken: jest.fn(() => 'secure-token-123'),
+  generateSecureToken: jest.fn(() => "secure-token-123"),
   hashSensitiveData: jest.fn((data) => `hashed:${data}`),
   checkPasswordStrength: jest.fn(() => ({ score: 4, feedback: [] })),
-  validateSessionToken: jest.fn(() => ({ valid: true, user: 'test-user' })),
+  validateSessionToken: jest.fn(() => ({ valid: true, user: "test-user" })),
   encryptSensitiveField: jest.fn((data) => `encrypted:${data}`),
   auditDataAccess: jest.fn(),
 };
@@ -84,7 +87,10 @@ const ComponentOrchestrator = {
   unregisterComponent: jest.fn(),
   emit: jest.fn(),
   on: jest.fn(),
-  validateComponentSecurity: jest.fn(() => ({ score: 8.9, vulnerabilities: [] })),
+  validateComponentSecurity: jest.fn(() => ({
+    score: 8.9,
+    vulnerabilities: [],
+  })),
   enforceSecurityPolicy: jest.fn(() => true),
 };
 
@@ -130,17 +136,17 @@ const BaseEntityManager = class {
 
   createEntity(data) {
     // Security validation before creation
-    SecurityUtils.auditDataAccess('create', 'migration_type', data);
+    SecurityUtils.auditDataAccess("create", "migration_type", data);
     return Promise.resolve({ mit_id: "test-mt-1", ...data });
   }
-  
+
   updateEntity(id, data) {
-    SecurityUtils.auditDataAccess('update', 'migration_type', { id, ...data });
+    SecurityUtils.auditDataAccess("update", "migration_type", { id, ...data });
     return Promise.resolve({ mit_id: id, ...data });
   }
-  
+
   deleteEntity(id) {
-    SecurityUtils.auditDataAccess('delete', 'migration_type', { id });
+    SecurityUtils.auditDataAccess("delete", "migration_type", { id });
     return Promise.resolve(true);
   }
 };
@@ -166,8 +172,8 @@ global.window = {
     },
   },
   location: {
-    protocol: 'https:',
-    host: 'localhost:8090',
+    protocol: "https:",
+    host: "localhost:8090",
   },
 };
 
@@ -204,11 +210,11 @@ global.fetch = jest.fn(() =>
     ok: true,
     json: () => Promise.resolve([]),
     headers: new Map([
-      ['X-Content-Type-Options', 'nosniff'],
-      ['X-Frame-Options', 'DENY'],
-      ['X-XSS-Protection', '1; mode=block'],
+      ["X-Content-Type-Options", "nosniff"],
+      ["X-Frame-Options", "DENY"],
+      ["X-XSS-Protection", "1; mode=block"],
     ]),
-  })
+  }),
 );
 
 // Import the class under test (simplified for security testing)
@@ -253,12 +259,18 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       }
 
       // Check HTTPS requirement
-      if (window.location.protocol !== 'https:' && window.location.host !== 'localhost:8090') {
+      if (
+        window.location.protocol !== "https:" &&
+        window.location.host !== "localhost:8090"
+      ) {
         throw new Error("HTTPS required for security");
       }
 
       // Validate CSRF token
-      if (this.config.security.requireCSRF && !SecurityUtils.validateCSRFToken()) {
+      if (
+        this.config.security.requireCSRF &&
+        !SecurityUtils.validateCSRFToken()
+      ) {
         throw new Error("Invalid CSRF token");
       }
 
@@ -287,7 +299,7 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       const permissions = SecurityUtils.validatePermissions(
         window.currentUser,
         "create",
-        "migration_type"
+        "migration_type",
       );
       if (!permissions.hasPermission) {
         this.securityMetrics.blocked++;
@@ -296,7 +308,13 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
       // Rate limiting
       const rateLimit = this.config.security.rateLimit.create;
-      if (!SecurityUtils.enforceRateLimit("create_migration_type", rateLimit.limit, rateLimit.window)) {
+      if (
+        !SecurityUtils.enforceRateLimit(
+          "create_migration_type",
+          rateLimit.limit,
+          rateLimit.window,
+        )
+      ) {
         this.securityMetrics.blocked++;
         throw new Error("Rate limit exceeded");
       }
@@ -305,7 +323,9 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       const validation = SecurityUtils.validateInput(data);
       if (!validation.isValid) {
         this.securityMetrics.failures++;
-        throw new Error(`Security validation failed: ${validation.errors.join(", ")}`);
+        throw new Error(
+          `Security validation failed: ${validation.errors.join(", ")}`,
+        );
       }
 
       // Sanitize all string inputs
@@ -313,9 +333,11 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
       // Encrypt sensitive fields
       if (this.config.security.encryptSensitiveFields) {
-        this.config.security.encryptSensitiveFields.forEach(field => {
+        this.config.security.encryptSensitiveFields.forEach((field) => {
           if (sanitizedData[field]) {
-            sanitizedData[field] = SecurityUtils.encryptSensitiveField(sanitizedData[field]);
+            sanitizedData[field] = SecurityUtils.encryptSensitiveField(
+              sanitizedData[field],
+            );
           }
         });
       }
@@ -343,9 +365,9 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
   sanitizeInputData(data) {
     const sanitized = {};
-    
-    Object.keys(data).forEach(key => {
-      if (typeof data[key] === 'string') {
+
+    Object.keys(data).forEach((key) => {
+      if (typeof data[key] === "string") {
         sanitized[key] = SecurityUtils.sanitizeHtml(data[key]);
       } else {
         sanitized[key] = data[key];
@@ -361,7 +383,7 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       const permissions = SecurityUtils.validatePermissions(
         window.currentUser,
         "update",
-        `migration_type:${id}`
+        `migration_type:${id}`,
       );
       if (!permissions.hasPermission) {
         throw new Error(`Update denied: ${permissions.denialReason}`);
@@ -369,7 +391,13 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
       // Rate limiting for updates
       const rateLimit = this.config.security.rateLimit.update;
-      if (!SecurityUtils.enforceRateLimit("update_migration_type", rateLimit.limit, rateLimit.window)) {
+      if (
+        !SecurityUtils.enforceRateLimit(
+          "update_migration_type",
+          rateLimit.limit,
+          rateLimit.window,
+        )
+      ) {
         throw new Error("Update rate limit exceeded");
       }
 
@@ -399,7 +427,7 @@ class MigrationTypesEntityManager extends BaseEntityManager {
       const permissions = SecurityUtils.validatePermissions(
         window.currentUser,
         "delete",
-        `migration_type:${id}`
+        `migration_type:${id}`,
       );
       if (!permissions.hasPermission) {
         throw new Error(`Delete denied: ${permissions.denialReason}`);
@@ -407,7 +435,13 @@ class MigrationTypesEntityManager extends BaseEntityManager {
 
       // Strict rate limiting for deletions
       const rateLimit = this.config.security.rateLimit.delete;
-      if (!SecurityUtils.enforceRateLimit("delete_migration_type", rateLimit.limit, rateLimit.window)) {
+      if (
+        !SecurityUtils.enforceRateLimit(
+          "delete_migration_type",
+          rateLimit.limit,
+          rateLimit.window,
+        )
+      ) {
         throw new Error("Delete rate limit exceeded");
       }
 
@@ -433,12 +467,21 @@ class MigrationTypesEntityManager extends BaseEntityManager {
   getSecurityMetrics() {
     return {
       ...this.securityMetrics,
-      successRate: this.securityMetrics.attempts > 0 
-        ? ((this.securityMetrics.attempts - this.securityMetrics.failures) / this.securityMetrics.attempts * 100).toFixed(2)
-        : 100,
-      blockRate: this.securityMetrics.attempts > 0
-        ? (this.securityMetrics.blocked / this.securityMetrics.attempts * 100).toFixed(2)
-        : 0,
+      successRate:
+        this.securityMetrics.attempts > 0
+          ? (
+              ((this.securityMetrics.attempts - this.securityMetrics.failures) /
+                this.securityMetrics.attempts) *
+              100
+            ).toFixed(2)
+          : 100,
+      blockRate:
+        this.securityMetrics.attempts > 0
+          ? (
+              (this.securityMetrics.blocked / this.securityMetrics.attempts) *
+              100
+            ).toFixed(2)
+          : 0,
     };
   }
 }
@@ -457,14 +500,24 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Reset SecurityUtils mocks with proper return values
-    SecurityUtils.validateSessionToken.mockReturnValue({ valid: true, user: 'test-user' });
+    SecurityUtils.validateSessionToken.mockReturnValue({
+      valid: true,
+      user: "test-user",
+    });
     SecurityUtils.validateCSRFToken.mockReturnValue(true);
-    SecurityUtils.validatePermissions.mockReturnValue({ hasPermission: true, denialReason: null });
-    SecurityUtils.validateInput.mockReturnValue({ isValid: true, sanitizedData: {}, errors: [] });
+    SecurityUtils.validatePermissions.mockReturnValue({
+      hasPermission: true,
+      denialReason: null,
+    });
+    SecurityUtils.validateInput.mockReturnValue({
+      isValid: true,
+      sanitizedData: {},
+      errors: [],
+    });
     SecurityUtils.enforceRateLimit.mockReturnValue(true);
-    
+
     // Ensure window object is properly configured
     global.window = {
       currentUser: "test-user",
@@ -477,7 +530,12 @@ describe("MigrationTypesEntityManager Security Tests", () => {
           hasRole: jest.fn((role) => role === "SUPERADMIN"),
           isSuperAdmin: jest.fn(() => true),
           validateSession: jest.fn(() => ({ valid: true })),
-          getUserPermissions: jest.fn(() => ["CREATE", "READ", "UPDATE", "DELETE"]),
+          getUserPermissions: jest.fn(() => [
+            "CREATE",
+            "READ",
+            "UPDATE",
+            "DELETE",
+          ]),
         },
         securityService: {
           validateAccess: jest.fn(() => true),
@@ -486,15 +544,15 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         },
       },
       location: {
-        protocol: 'https:',
-        host: 'localhost:8090',
+        protocol: "https:",
+        host: "localhost:8090",
       },
     };
-    
+
     // Reset rate limit store
     global.rateLimitStore = new Map();
     manager = new MigrationTypesEntityManager("test-container");
-    
+
     // Reset security results
     securityResults = {
       vulnerabilitiesFound: [],
@@ -516,14 +574,20 @@ describe("MigrationTypesEntityManager Security Tests", () => {
   afterAll(() => {
     console.log("\n🔒 MIGRATION TYPES SECURITY TEST RESULTS SUMMARY");
     console.log("============================================================");
-    console.log(`Security Tests Passed: ${securityResults.securityTestsPassed}`);
+    console.log(
+      `Security Tests Passed: ${securityResults.securityTestsPassed}`,
+    );
     console.log(`Compliance Checks: ${securityResults.complianceChecks}`);
     console.log(`Authentication Tests: ${securityResults.authenticationTests}`);
     console.log(`Authorization Tests: ${securityResults.authorizationTests}`);
-    console.log(`Input Validation Tests: ${securityResults.inputValidationTests}`);
+    console.log(
+      `Input Validation Tests: ${securityResults.inputValidationTests}`,
+    );
     console.log(`Audit Tests: ${securityResults.auditTests}`);
-    console.log(`Vulnerabilities Found: ${securityResults.vulnerabilitiesFound.length}`);
-    
+    console.log(
+      `Vulnerabilities Found: ${securityResults.vulnerabilitiesFound.length}`,
+    );
+
     if (securityResults.vulnerabilitiesFound.length > 0) {
       console.log("⚠️  Security Issues:");
       securityResults.vulnerabilitiesFound.forEach((vuln, index) => {
@@ -545,7 +609,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         "migration_types_security_failure",
         expect.objectContaining({
           error: "Invalid session",
-        })
+        }),
       );
 
       securityResults.authenticationTests++;
@@ -555,15 +619,17 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should enforce HTTPS in production environments", async () => {
       const originalProtocol = window.location.protocol;
       const originalHost = window.location.host;
-      
+
       // Set up production environment
-      window.location.protocol = 'http:';
-      window.location.host = 'production.umig.com';
-      
+      window.location.protocol = "http:";
+      window.location.host = "production.umig.com";
+
       // Create new manager instance for this test
       const testManager = new MigrationTypesEntityManager("test-container");
 
-      await expect(testManager.initialize()).rejects.toThrow("HTTPS required for security");
+      await expect(testManager.initialize()).rejects.toThrow(
+        "HTTPS required for security",
+      );
 
       // Restore original values
       window.location.protocol = originalProtocol;
@@ -576,11 +642,13 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should validate CSRF tokens when required", async () => {
       // Mock CSRF validation to fail
       SecurityUtils.validateCSRFToken.mockReturnValueOnce(false);
-      
+
       // Create new manager instance for this test
       const testManager = new MigrationTypesEntityManager("test-container");
 
-      await expect(testManager.initialize()).rejects.toThrow("Invalid CSRF token");
+      await expect(testManager.initialize()).rejects.toThrow(
+        "Invalid CSRF token",
+      );
 
       securityResults.authenticationTests++;
       securityResults.securityTestsPassed++;
@@ -589,16 +657,16 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should allow localhost without HTTPS for development", async () => {
       const originalProtocol = window.location.protocol;
       const originalHost = window.location.host;
-      
+
       // Set up localhost development environment
-      window.location.protocol = 'http:';
-      window.location.host = 'localhost:8090';
-      
+      window.location.protocol = "http:";
+      window.location.host = "localhost:8090";
+
       // Create new manager instance for this test
       const testManager = new MigrationTypesEntityManager("test-container");
 
       await expect(testManager.initialize()).resolves.toBe(true);
-      
+
       // Restore original values
       window.location.protocol = originalProtocol;
       window.location.host = originalHost;
@@ -623,7 +691,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         manager.createMigrationType({
           mit_name: "Test Type",
           mit_code: "TEST",
-        })
+        }),
       ).rejects.toThrow("Access denied: Insufficient privileges");
 
       expect(manager.getSecurityMetrics().blocked).toBe(1);
@@ -639,13 +707,13 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       });
 
       await expect(
-        manager.updateMigrationType("test-mt-1", { mit_name: "Updated" })
+        manager.updateMigrationType("test-mt-1", { mit_name: "Updated" }),
       ).rejects.toThrow("Update denied: No permission for this resource");
 
       expect(SecurityUtils.validatePermissions).toHaveBeenCalledWith(
         "test-user",
         "update",
-        "migration_type:test-mt-1"
+        "migration_type:test-mt-1",
       );
 
       securityResults.authorizationTests++;
@@ -658,9 +726,9 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         denialReason: "Deletion not authorized",
       });
 
-      await expect(
-        manager.deleteMigrationType("test-mt-1")
-      ).rejects.toThrow("Delete denied: Deletion not authorized");
+      await expect(manager.deleteMigrationType("test-mt-1")).rejects.toThrow(
+        "Delete denied: Deletion not authorized",
+      );
 
       securityResults.authorizationTests++;
       securityResults.securityTestsPassed++;
@@ -703,9 +771,9 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       // Reset security metrics for this test
       manager.securityMetrics = { attempts: 0, failures: 0, blocked: 0 };
 
-      await expect(
-        manager.createMigrationType(maliciousInput)
-      ).rejects.toThrow("Security validation failed: Potentially malicious input detected");
+      await expect(manager.createMigrationType(maliciousInput)).rejects.toThrow(
+        "Security validation failed: Potentially malicious input detected",
+      );
 
       expect(manager.getSecurityMetrics().failures).toBe(1);
 
@@ -722,8 +790,12 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
       await manager.createMigrationType(inputWithHtml);
 
-      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith("<b>Bold Name</b><script>evil()</script>");
-      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith("<i>Description</i><script>attack</script>");
+      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith(
+        "<b>Bold Name</b><script>evil()</script>",
+      );
+      expect(SecurityUtils.sanitizeHtml).toHaveBeenCalledWith(
+        "<i>Description</i><script>attack</script>",
+      );
 
       securityResults.inputValidationTests++;
       securityResults.securityTestsPassed++;
@@ -741,8 +813,10 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       });
 
       await expect(
-        manager.createMigrationType(sqlInjectionInput)
-      ).rejects.toThrow("Security validation failed: Potentially malicious input detected");
+        manager.createMigrationType(sqlInjectionInput),
+      ).rejects.toThrow(
+        "Security validation failed: Potentially malicious input detected",
+      );
 
       securityResults.inputValidationTests++;
       securityResults.securityTestsPassed++;
@@ -761,7 +835,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       await manager.createMigrationType(sensitiveData);
 
       expect(SecurityUtils.encryptSensitiveField).toHaveBeenCalledWith(
-        "This contains sensitive information"
+        "This contains sensitive information",
       );
 
       securityResults.inputValidationTests++;
@@ -798,7 +872,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should enforce creation rate limits", async () => {
       // Mock successful first few requests
       SecurityUtils.enforceRateLimit.mockReturnValue(true);
-      
+
       for (let i = 0; i < 5; i++) {
         await manager.createMigrationType({
           mit_name: `Type ${i}`,
@@ -813,7 +887,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         manager.createMigrationType({
           mit_name: "Rate Limited Type",
           mit_code: "RATE_LIMITED",
-        })
+        }),
       ).rejects.toThrow("Rate limit exceeded");
 
       expect(manager.getSecurityMetrics().blocked).toBe(1);
@@ -825,7 +899,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       SecurityUtils.enforceRateLimit.mockReturnValueOnce(false);
 
       await expect(
-        manager.updateMigrationType("test-mt-1", { mit_name: "Updated" })
+        manager.updateMigrationType("test-mt-1", { mit_name: "Updated" }),
       ).rejects.toThrow("Update rate limit exceeded");
 
       securityResults.securityTestsPassed++;
@@ -834,9 +908,9 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should enforce strict deletion rate limits", async () => {
       SecurityUtils.enforceRateLimit.mockReturnValueOnce(false);
 
-      await expect(
-        manager.deleteMigrationType("test-mt-1")
-      ).rejects.toThrow("Delete rate limit exceeded");
+      await expect(manager.deleteMigrationType("test-mt-1")).rejects.toThrow(
+        "Delete rate limit exceeded",
+      );
 
       securityResults.securityTestsPassed++;
     });
@@ -870,7 +944,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
           user: "test-user",
           migrationTypeId: "test-mt-1",
           securityMetrics: expect.any(Object),
-        })
+        }),
       );
 
       securityResults.auditTests++;
@@ -886,7 +960,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       expect(SecurityUtils.auditDataAccess).toHaveBeenCalledWith(
         "create",
         "migration_type",
-        expect.any(Object)
+        expect.any(Object),
       );
 
       securityResults.auditTests++;
@@ -904,7 +978,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
         manager.createMigrationType({
           mit_name: "Failed Type",
           mit_code: "FAILED",
-        })
+        }),
       ).rejects.toThrow();
 
       expect(SecurityUtils.logSecurityEvent).toHaveBeenCalledWith(
@@ -913,7 +987,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
           user: "test-user",
           error: expect.stringContaining("Access denied"),
           securityMetrics: expect.any(Object),
-        })
+        }),
       );
 
       securityResults.auditTests++;
@@ -939,8 +1013,10 @@ describe("MigrationTypesEntityManager Security Tests", () => {
       expect(SecurityUtils.logSecurityEvent).toHaveBeenCalledWith(
         "migration_type_deleted",
         expect.objectContaining({
-          timestamp: expect.stringMatching(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
-        })
+          timestamp: expect.stringMatching(
+            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+          ),
+        }),
       );
 
       securityResults.auditTests++;
@@ -954,7 +1030,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
       expect(ComponentOrchestrator.registerComponent).toHaveBeenCalledWith(
         "migration-types-manager",
-        manager
+        manager,
       );
 
       securityResults.securityTestsPassed++;
@@ -973,16 +1049,18 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should validate component security score meets enterprise requirements", () => {
       ComponentOrchestrator.validateComponentSecurity.mockReturnValue({
         score: 8.9,
-        vulnerabilities: []
+        vulnerabilities: [],
       });
-      
+
       const securityScore = ComponentOrchestrator.validateComponentSecurity();
-      
+
       expect(securityScore.score).toBeGreaterThanOrEqual(8.9);
       expect(securityScore.vulnerabilities).toHaveLength(0);
 
       if (securityScore.score < 8.9) {
-        securityResults.vulnerabilitiesFound.push(`Security score ${securityScore.score} below required 8.9`);
+        securityResults.vulnerabilitiesFound.push(
+          `Security score ${securityScore.score} below required 8.9`,
+        );
       }
 
       securityResults.complianceChecks++;
@@ -1008,7 +1086,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
     it("should handle zero attempts gracefully", () => {
       // Reset security metrics to zero
       manager.securityMetrics = { attempts: 0, failures: 0, blocked: 0 };
-      
+
       const metrics = manager.getSecurityMetrics();
 
       expect(metrics.successRate).toBe("100");
@@ -1019,9 +1097,12 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
     it("should track cumulative security events", async () => {
       await manager.initialize();
-      
+
       // Simulate multiple operations
-      await manager.createMigrationType({ mit_name: "Type 1", mit_code: "TYPE1" });
+      await manager.createMigrationType({
+        mit_name: "Type 1",
+        mit_code: "TYPE1",
+      });
       await manager.updateMigrationType("test-mt-1", { mit_name: "Updated" });
 
       const metrics = manager.getSecurityMetrics();
@@ -1046,7 +1127,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
           user: expect.any(String),
           migrationTypeId: expect.any(String),
           securityMetrics: expect.any(Object),
-        })
+        }),
       );
 
       securityResults.complianceChecks++;
@@ -1055,10 +1136,10 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
     it("should meet GDPR requirements for data protection", async () => {
       await manager.initialize();
-      
+
       // Ensure encryption is configured for GDPR compliance
       manager.config.security.encryptSensitiveFields = ["mit_description"];
-      
+
       const personalData = {
         mit_name: "GDPR Test Type",
         mit_code: "GDPR_TEST",
@@ -1069,7 +1150,7 @@ describe("MigrationTypesEntityManager Security Tests", () => {
 
       // Verify sensitive data encryption
       expect(SecurityUtils.encryptSensitiveField).toHaveBeenCalledWith(
-        "Contains personal data"
+        "Contains personal data",
       );
 
       securityResults.complianceChecks++;
