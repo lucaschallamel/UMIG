@@ -1,0 +1,369 @@
+# OpenAPI Security Schemas Enhancement
+# Additional schemas to be merged into the main openapi.yaml file
+
+components:
+  schemas:
+    # Enhanced Error Response Schemas
+    RateLimitError:
+      type: object
+      description: Rate limit exceeded error with retry information
+      properties:
+        error:
+          type: string
+          example: "Rate limit exceeded"
+        message:
+          type: string
+          example: "Too many requests. Please try again later."
+        retryAfter:
+          type: string
+          example: "60 seconds"
+        code:
+          type: string
+          example: "RATE_LIMIT_EXCEEDED"
+      required:
+        - error
+        - message
+        - retryAfter
+        - code
+
+    ValidationError:
+      type: object
+      description: Comprehensive validation error with SQL state mapping
+      properties:
+        error:
+          type: string
+          example: "Validation failed"
+        details:
+          type: string
+          example: "Required field 'env_code' is missing"
+        sqlState:
+          type: string
+          example: "23505"
+          description: "SQL state code for database constraint violations"
+        field:
+          type: string
+          example: "env_code"
+          description: "Field that caused the validation error"
+        code:
+          type: string
+          enum:
+            [
+              "VALIDATION_ERROR",
+              "DUPLICATE_KEY",
+              "FOREIGN_KEY_VIOLATION",
+              "CONSTRAINT_VIOLATION",
+            ]
+      required:
+        - error
+
+    ConflictError:
+      type: object
+      description: Conflict error with detailed relationship information
+      properties:
+        error:
+          type: string
+          example: "Resource conflict"
+        message:
+          type: string
+          example: "An environment with this code already exists"
+        sqlState:
+          type: string
+          example: "23505"
+        blocking_relationships:
+          type: object
+          description: "Detailed information about blocking relationships"
+          additionalProperties: true
+      required:
+        - error
+        - message
+
+    SecurityHeaders:
+      type: object
+      description: Enterprise security headers included in all responses
+      properties:
+        X-Content-Type-Options:
+          type: string
+          example: "nosniff"
+        X-Frame-Options:
+          type: string
+          example: "DENY"
+        X-XSS-Protection:
+          type: string
+          example: "1; mode=block"
+        Content-Security-Policy:
+          type: string
+          example: "default-src 'self'"
+        Strict-Transport-Security:
+          type: string
+          example: "max-age=31536000; includeSubDomains"
+
+    RateLimitHeaders:
+      type: object
+      description: Rate limiting information included in response headers
+      properties:
+        X-RateLimit-Limit:
+          type: integer
+          example: 60
+          description: "Request limit per window"
+        X-RateLimit-Remaining:
+          type: integer
+          example: 45
+          description: "Remaining requests in current window"
+        X-RateLimit-Reset:
+          type: integer
+          format: int64
+          example: 1640995200000
+          description: "Unix timestamp when rate limit resets"
+        Retry-After:
+          type: integer
+          example: 60
+          description: "Seconds to wait before retrying (when rate limited)"
+
+    PerformanceMetrics:
+      type: object
+      description: Performance characteristics for API operations
+      properties:
+        response_time_target:
+          type: string
+          example: "<150ms"
+        throughput_limit:
+          type: string
+          example: "60 requests/minute"
+        sla_tier:
+          type: string
+          enum: ["standard", "enterprise", "premium"]
+          example: "enterprise"
+
+    # Enhanced Pagination Schema
+    PaginationMetadata:
+      type: object
+      description: Enhanced pagination metadata with performance information
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        size:
+          type: integer
+          minimum: 1
+          maximum: 500
+          example: 50
+        total:
+          type: integer
+          example: 150
+        pages:
+          type: integer
+          example: 3
+        hasNext:
+          type: boolean
+          example: true
+        hasPrevious:
+          type: boolean
+          example: false
+        performance:
+          $ref: "#/components/schemas/PerformanceMetrics"
+      required:
+        - page
+        - size
+        - total
+        - pages
+        - hasNext
+        - hasPrevious
+
+    # Authentication Context Schema
+    AuthContext:
+      type: object
+      description: Authentication context information per ADR-042
+      properties:
+        userId:
+          type: string
+          example: "user123"
+        username:
+          type: string
+          example: "john.doe"
+        groups:
+          type: array
+          items:
+            type: string
+          example: ["confluence-users", "confluence-administrators"]
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["ADMIN", "USER"]
+        sessionId:
+          type: string
+          example: "session-abc123"
+      required:
+        - userId
+        - username
+        - groups
+
+  responses:
+    # Standard Error Responses
+    BadRequest:
+      description: Bad request - validation error or malformed input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+      headers:
+        X-Content-Type-Options:
+          schema:
+            type: string
+            example: "nosniff"
+        X-Frame-Options:
+          schema:
+            type: string
+            example: "DENY"
+
+    Unauthorized:
+      description: Authentication required - Confluence Basic Auth
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+              message:
+                type: string
+                example: "Please provide valid Confluence credentials"
+
+    Forbidden:
+      description: Access denied - insufficient privileges
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Access denied"
+              message:
+                type: string
+                example: "Insufficient privileges for this operation"
+              requiredGroups:
+                type: array
+                items:
+                  type: string
+                example: ["confluence-administrators"]
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Resource not found"
+              message:
+                type: string
+                example: "The requested resource does not exist"
+              resourceType:
+                type: string
+                example: "Environment"
+              resourceId:
+                type: string
+                example: "123"
+      headers:
+        X-Content-Type-Options:
+          schema:
+            type: string
+            example: "nosniff"
+
+    Conflict:
+      description: Resource conflict - duplicate or blocking relationships
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ConflictError"
+      headers:
+        X-Content-Type-Options:
+          schema:
+            type: string
+            example: "nosniff"
+
+    RateLimit:
+      description: Rate limit exceeded - too many requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RateLimitError"
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+            example: 60
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+            format: int64
+            example: 1640995200000
+        Retry-After:
+          schema:
+            type: integer
+            example: 60
+        X-Content-Type-Options:
+          schema:
+            type: string
+            example: "nosniff"
+        X-Frame-Options:
+          schema:
+            type: string
+            example: "DENY"
+
+    InternalServerError:
+      description: Internal server error - database or system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Internal server error"
+              message:
+                type: string
+                example: "An unexpected error occurred"
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-01-13T10:30:00Z"
+              requestId:
+                type: string
+                example: "req-abc123"
+      headers:
+        X-Content-Type-Options:
+          schema:
+            type: string
+            example: "nosniff"
+
+  # Enhanced Security Schemes
+  securitySchemes:
+    ConfluenceBasicAuth:
+      type: http
+      scheme: basic
+      description: |
+        HTTP Basic Authentication using Confluence username and password.
+        All endpoints require membership in the "confluence-users" group.
+        Administrative endpoints require "confluence-administrators" group membership.
+
+        Security Features:
+        - Enterprise-grade rate limiting (60/min read, 30/min write)
+        - Advanced client IP tracking with automatic blocking
+        - Comprehensive audit logging for all operations
+        - Security headers injection (CSP, HSTS, X-Frame-Options)
+        - Input validation with XSS/CSRF protection
+
+        Performance SLA:
+        - Authentication: <50ms typical
+        - Authorization: <30ms typical
+        - Rate limit checking: <5ms overhead
