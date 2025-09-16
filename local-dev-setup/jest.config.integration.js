@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   displayName: "Integration Tests",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   testMatch: [
     "**/__tests__/integration/**/*.test.js",
     "**/__tests__/repositories/**/*.test.js",

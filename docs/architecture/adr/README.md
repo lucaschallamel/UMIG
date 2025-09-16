@@ -64,7 +64,7 @@ All ADRs are maintained in this single directory (`docs/adr/`) with a flat struc
 - **[ADR-039](ADR-039-enhanced-error-handling-and-user-guidance.md)** - Enhanced Error Handling and User Guidance
 - **[ADR-040](ADR-040-database-quality-validation-framework.md)** - Database Quality Validation Framework
 
-### Advanced Patterns & Service Architecture (ADR-041+)
+### Advanced Patterns & Service Architecture (ADR-041 to ADR-049)
 
 - **[ADR-041](ADR-041-technical-debt-prioritization-methodology.md)** - Technical Debt Prioritization Methodology
 - **[ADR-042](ADR-042-dual-authentication-context-management.md)** - Dual Authentication Context Management
@@ -73,6 +73,21 @@ All ADRs are maintained in this single directory (`docs/adr/`) with a flat struc
 - **[ADR-047](ADR-047-layer-separation-anti-patterns.md)** - Layer Separation Anti-Patterns
 - **[ADR-048](ADR-048-url-construction-service-architecture.md)** - URL Construction Service Architecture
 - **[ADR-049](ADR-049-service-layer-standardization-architecture.md)** - Service Layer Standardization Architecture
+
+### Runtime & Testing Architecture (ADR-050 to ADR-053)
+
+- **[ADR-050](ADR-050-Runtime-Dynamic-Class-Loading-Solution.md)** - Runtime Dynamic Class Loading Solution
+- **[ADR-051](ADR-051-ui-level-rbac-interim-solution.md)** - UI-Level RBAC Interim Solution
+- **[ADR-052](ADR-052-self-contained-test-architecture-pattern.md)** - Self-Contained Test Architecture Pattern
+- **[ADR-053](ADR-053-technology-prefixed-test-commands-architecture.md)** - Technology-Prefixed Test Commands Architecture
+
+### Security Architecture (ADR-054)
+
+- **[ADR-054](ADR-054-enterprise-component-security-architecture-pattern.md)** - Enterprise Component Security Architecture Pattern
+
+### Process Architecture (ADR-055)
+
+- **[ADR-055](ADR-055-multi-agent-security-collaboration-workflow-architecture.md)** - Multi-Agent Security Collaboration Workflow Architecture
 
 ## ADR Process
 
@@ -85,4 +100,4 @@ For comprehensive architectural guidance, also refer to:
 - **[UMIG Solution Architecture](../architecture/)** - Consolidated architectural documentation organized by TOGAF phases
 - **[Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)** - Current status of all architectural decisions
 
-## Total ADRs: 43 documented decisions
+## Total ADRs: 49 documented decisions
