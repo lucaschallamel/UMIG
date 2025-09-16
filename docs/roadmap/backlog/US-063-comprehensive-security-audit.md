@@ -189,7 +189,7 @@ Conduct a comprehensive security audit across the UMIG application to identify a
 
 ## Related Documentation
 
-- [UMIG Security Architecture](../../../architecture/security-architecture.md)
+- [UMIG Security Architecture - TOGAF Phase D](../../architecture/UMIG - TOGAF Phase D - Security Architecture.md)
 - [ADR-039: Error Handling and Security Logging](../../../solution-architecture.md#adr-039)
 - [Database Security Patterns](../../../architecture/database-security.md)
 - [OWASP Security Guidelines](../../../security/owasp-compliance.md)

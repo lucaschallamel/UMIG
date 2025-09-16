@@ -84,6 +84,17 @@ global.fetch = jest.fn(() =>
   }),
 );
 
+// Mock Performance API for component benchmarking
+global.performance = {
+  mark: jest.fn(),
+  measure: jest.fn(),
+  getEntriesByName: jest.fn(() => []),
+  getEntriesByType: jest.fn(() => []),
+  clearMarks: jest.fn(),
+  clearMeasures: jest.fn(),
+  now: jest.fn(() => Date.now()),
+};
+
 // Mock console methods to reduce noise in DOM tests
 const originalConsole = global.console;
 global.console = {
