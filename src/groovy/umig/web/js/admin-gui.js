@@ -249,10 +249,23 @@
     // Wrapper method for dual-mode operation (US-087)
     shouldUseComponentManager: function(entity) {
       if (!this.featureToggle) return false;
-      if (!this.featureToggle.isEnabled('admin-gui-migration')) return false;
+
+      // Security: Feature flag permission checks with audit logging
+      const migrationEnabled = this.featureToggle.isEnabled('admin-gui-migration');
+      if (!migrationEnabled) return false;
 
       const flagName = `${entity}-component`;
-      return this.featureToggle.isEnabled(flagName) && this.componentManagers[entity];
+      const componentEnabled = this.featureToggle.isEnabled(flagName);
+      const hasManager = Boolean(this.componentManagers[entity]);
+
+      const accessGranted = componentEnabled && hasManager;
+
+      // Security: Audit trail for component access decisions
+      if (accessGranted) {
+        console.log(`[US-087 Security] Component access granted for entity: ${entity}`);
+      }
+
+      return accessGranted;
     },
 
     // Show notification message

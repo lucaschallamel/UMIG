@@ -155,11 +155,18 @@
          */
         loadOverrides() {
             try {
+                // Security: Safe localStorage usage with validation
                 const stored = localStorage.getItem('umig-feature-toggles');
                 if (stored) {
+                    // Parse and validate stored data
                     const overrides = JSON.parse(stored);
-                    Object.assign(this.flags, overrides);
-                    console.log('📂 Feature toggle overrides loaded from localStorage');
+                    // Ensure overrides is an object before applying
+                    if (overrides && typeof overrides === 'object') {
+                        Object.assign(this.flags, overrides);
+                        console.log('📂 Feature toggle overrides loaded from localStorage');
+                    } else {
+                        console.warn('Invalid feature toggle overrides format');
+                    }
                 }
             } catch (e) {
                 console.warn('Failed to load feature toggle overrides:', e);
@@ -197,6 +204,7 @@
          */
         emergencyRollback() {
             console.warn('🚨 EMERGENCY ROLLBACK INITIATED');
+            console.log('[Security] Emergency rollback triggered at', new Date().toISOString());
 
             // Disable all migration-related features
             this.flags['admin-gui-migration'] = false;
