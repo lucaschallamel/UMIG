@@ -26,7 +26,7 @@
 -- Author: Lucas Challamel
 -- ================================================================================
 
---changeset lucaschallamel:teams-entity-performance-optimization
+--changeset lucaschallamel:teams-entity-performance-optimization runInTransaction:false
 --comment: US-082-C Teams Entity: Bidirectional query performance optimization
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'teams_tms_x_users_usr' AND indexname = 'idx_teams_users_usr_id_created';
@@ -70,7 +70,7 @@ COMMENT ON INDEX idx_teams_users_stats IS 'Performance index for team statistics
 --rollback DROP INDEX IF EXISTS idx_users_active;
 --rollback DROP INDEX IF EXISTS idx_teams_users_stats;
 
---changeset lucaschallamel:users-entity-primary-performance-optimization
+--changeset lucaschallamel:users-entity-primary-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Primary performance indexes for user operations
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'users_usr' AND indexname = 'idx_users_usr_id_active';
@@ -119,10 +119,10 @@ COMMENT ON INDEX idx_users_names_search IS 'Full-text search index for user name
 --rollback DROP INDEX IF EXISTS idx_users_role_active;
 --rollback DROP INDEX IF EXISTS idx_users_names_search;
 
---changeset lucaschallamel:users-entity-audit-performance-optimization
+--changeset lucaschallamel:users-entity-audit-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Audit trail and activity tracking performance indexes
 --preconditions onFail:MARK_RAN
---precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'audit_log' AND indexname = 'idx_audit_log_user_entity';
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'audit_log_aud' AND indexname = 'idx_audit_log_user_entity';
 
 -- ================================================================================
 -- USERS ENTITY PERFORMANCE INDEXES - AUDIT TRAIL
@@ -130,23 +130,23 @@ COMMENT ON INDEX idx_users_names_search IS 'Full-text search index for user name
 
 -- Index for audit trail queries by user
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_user_entity
-ON audit_log(entity_type, entity_id, changed_at DESC)
-WHERE entity_type = 'user';
+ON audit_log_aud(aud_entity_type, aud_entity_id, aud_timestamp DESC)
+WHERE aud_entity_type = 'user';
 
--- Index for audit trail queries by changed_by (who made changes)
+-- Index for audit trail queries by user who made changes
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_changed_by
-ON audit_log(changed_by, changed_at DESC)
-WHERE changed_by IS NOT NULL;
+ON audit_log_aud(usr_id, aud_timestamp DESC)
+WHERE usr_id IS NOT NULL;
 
--- Index for user activity queries (combined entity and changed_by)
+-- Index for user activity queries (combined user and entity type)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_user_activity
-ON audit_log(changed_by, entity_type, changed_at DESC)
-WHERE changed_by IS NOT NULL;
+ON audit_log_aud(usr_id, aud_entity_type, aud_timestamp DESC)
+WHERE usr_id IS NOT NULL;
 
 -- Index for role transition audit queries
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_role_changes
-ON audit_log(entity_type, action, changed_at DESC)
-WHERE entity_type = 'user' AND action = 'role_change';
+ON audit_log_aud(aud_entity_type, aud_action, aud_timestamp DESC)
+WHERE aud_entity_type = 'user' AND aud_action = 'role_change';
 
 -- Performance comments for audit indexes
 COMMENT ON INDEX idx_audit_log_user_entity IS 'Performance index for user audit trail queries - US-082-C Users optimization';
@@ -159,7 +159,7 @@ COMMENT ON INDEX idx_audit_log_role_changes IS 'Performance index for role chang
 --rollback DROP INDEX IF EXISTS idx_audit_log_user_activity;
 --rollback DROP INDEX IF EXISTS idx_audit_log_role_changes;
 
---changeset lucaschallamel:users-entity-relationship-performance-optimization
+--changeset lucaschallamel:users-entity-relationship-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Team relationship and lifecycle tracking performance indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'teams_tms_x_users_usr' AND indexname = 'idx_teams_users_reverse_lookup';
@@ -172,19 +172,9 @@ COMMENT ON INDEX idx_audit_log_role_changes IS 'Performance index for role chang
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_teams_users_reverse_lookup
 ON teams_tms_x_users_usr(usr_id, tms_id, created_at DESC);
 
--- Index for orphaned relationship cleanup queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_teams_users_cleanup
-ON teams_tms_x_users_usr(created_at)
-WHERE created_at < (NOW() - INTERVAL '90 days');
-
--- Index for user deactivation/restoration fields
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_deactivation_tracking
-ON users_usr(usr_deactivated_at, usr_deactivated_by)
-WHERE usr_deactivated_at IS NOT NULL;
-
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_restoration_tracking
-ON users_usr(usr_restored_at, usr_restored_by)
-WHERE usr_restored_at IS NOT NULL;
+-- Index for created_at queries (useful for cleanup operations)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_teams_users_created_at
+ON teams_tms_x_users_usr(created_at);
 
 -- Index for role hierarchy queries (used in role transition validation)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_roles_hierarchy
@@ -206,24 +196,20 @@ INCLUDE (tms_id, created_at);
 
 -- Performance comments for relationship indexes
 COMMENT ON INDEX idx_teams_users_reverse_lookup IS 'Performance index for user team membership queries - US-082-C Users optimization';
-COMMENT ON INDEX idx_teams_users_cleanup IS 'Performance index for orphaned relationship cleanup - US-082-C Users optimization';
-COMMENT ON INDEX idx_users_deactivation_tracking IS 'Performance index for user deactivation tracking - US-082-C Users optimization';
-COMMENT ON INDEX idx_users_restoration_tracking IS 'Performance index for user restoration tracking - US-082-C Users optimization';
+COMMENT ON INDEX idx_teams_users_created_at IS 'Performance index for created_at queries and cleanup operations - US-082-C Users optimization';
 COMMENT ON INDEX idx_roles_hierarchy IS 'Performance index for role hierarchy queries - US-082-C Users optimization';
 COMMENT ON INDEX idx_users_admin_active IS 'Partial index for admin user operations - US-082-C Users optimization';
 COMMENT ON INDEX idx_users_pagination_sort IS 'Performance index for paginated user listings - US-082-C Users optimization';
 COMMENT ON INDEX idx_teams_users_member_stats IS 'Performance index for team membership statistics - US-082-C Users optimization';
 
 --rollback DROP INDEX IF EXISTS idx_teams_users_reverse_lookup;
---rollback DROP INDEX IF EXISTS idx_teams_users_cleanup;
---rollback DROP INDEX IF EXISTS idx_users_deactivation_tracking;
---rollback DROP INDEX IF EXISTS idx_users_restoration_tracking;
+--rollback DROP INDEX IF EXISTS idx_teams_users_created_at;
 --rollback DROP INDEX IF EXISTS idx_roles_hierarchy;
 --rollback DROP INDEX IF EXISTS idx_users_admin_active;
 --rollback DROP INDEX IF EXISTS idx_users_pagination_sort;
 --rollback DROP INDEX IF EXISTS idx_teams_users_member_stats;
 
---changeset lucaschallamel:applications-entity-primary-performance-optimization
+--changeset lucaschallamel:applications-entity-primary-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Primary table performance indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'applications_app' AND indexname = 'idx_applications_app_code_lookup';
@@ -267,7 +253,7 @@ COMMENT ON INDEX idx_applications_pagination IS 'Performance index for applicati
 --rollback DROP INDEX IF EXISTS idx_applications_search_composite;
 --rollback DROP INDEX IF EXISTS idx_applications_pagination;
 
---changeset lucaschallamel:applications-entity-relationship-performance-optimization
+--changeset lucaschallamel:applications-entity-relationship-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Environment, Team, and Label relationship indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'environments_env_x_applications_app' AND indexname = 'idx_env_app_assoc_app_id';
@@ -327,7 +313,7 @@ COMMENT ON INDEX idx_label_app_assoc_composite IS 'Composite performance index f
 --rollback DROP INDEX IF EXISTS idx_label_app_assoc_label_id;
 --rollback DROP INDEX IF EXISTS idx_label_app_assoc_composite;
 
---changeset lucaschallamel:applications-entity-advanced-performance-optimization
+--changeset lucaschallamel:applications-entity-advanced-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Advanced performance optimization with INCLUDE columns
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'applications_app' AND indexname = 'idx_applications_count_optimization';
@@ -427,7 +413,7 @@ ANALYZE teams_tms_x_users_usr;
 
 -- Users entity tables
 ANALYZE roles_rls;
-ANALYZE audit_log;
+ANALYZE audit_log_aud;
 
 -- Applications entity tables
 ANALYZE applications_app;
@@ -437,71 +423,5 @@ ANALYZE labels_lbl_x_applications_app;
 
 --rollback -- No rollback needed for ANALYZE commands
 
---changeset lucaschallamel:entity-performance-monitoring-views
---comment: US-082-C Entity Performance: Create comprehensive performance monitoring views
---preconditions onFail:MARK_RAN
---precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.views WHERE table_name = 'v_entity_performance_stats';
-
--- ================================================================================
--- ENTITY PERFORMANCE OPTIMIZATION - MONITORING VIEWS
--- ================================================================================
-
--- Create a comprehensive view for monitoring entity query performance
-CREATE OR REPLACE VIEW v_entity_performance_stats AS
-SELECT
-    schemaname,
-    tablename,
-    attname,
-    n_distinct,
-    correlation,
-    most_common_vals[1:5] as top_values
-FROM pg_stats
-WHERE schemaname = current_schema()
-  AND tablename IN (
-      'teams_tms', 'users_usr', 'applications_app',
-      'teams_tms_x_users_usr',
-      'environments_env_x_applications_app',
-      'teams_tms_x_applications_app',
-      'labels_lbl_x_applications_app',
-      'audit_log', 'roles_rls'
-  )
-ORDER BY tablename, attname;
-
--- Create a comprehensive view for monitoring index usage across all entities
-CREATE OR REPLACE VIEW v_entity_index_usage AS
-SELECT
-    schemaname,
-    tablename,
-    indexname,
-    idx_tup_read,
-    idx_tup_fetch,
-    idx_scan as times_used,
-    CASE
-        WHEN tablename LIKE '%teams%' THEN 'Teams'
-        WHEN tablename LIKE '%users%' OR tablename = 'audit_log' OR tablename = 'roles_rls' THEN 'Users'
-        WHEN tablename LIKE '%applications%' THEN 'Applications'
-        ELSE 'Other'
-    END as entity_group
-FROM pg_stat_user_indexes
-WHERE schemaname = current_schema()
-  AND (
-      tablename IN ('teams_tms', 'users_usr', 'applications_app', 'audit_log', 'roles_rls') OR
-      tablename LIKE '%_x_%'
-  )
-ORDER BY entity_group, times_used DESC;
-
--- Create a view for monitoring performance optimization effectiveness
-CREATE OR REPLACE VIEW v_entity_optimization_summary AS
-SELECT
-    entity_group,
-    COUNT(*) as total_indexes,
-    SUM(times_used) as total_index_usage,
-    AVG(times_used) as avg_index_usage,
-    MAX(times_used) as max_index_usage
-FROM v_entity_index_usage
-GROUP BY entity_group
-ORDER BY total_index_usage DESC;
-
---rollback DROP VIEW IF EXISTS v_entity_performance_stats;
---rollback DROP VIEW IF EXISTS v_entity_index_usage;
---rollback DROP VIEW IF EXISTS v_entity_optimization_summary;
+-- Note: Monitoring views removed to avoid unnecessary database views
+-- Performance can be monitored using standard PostgreSQL catalog queries when needed
