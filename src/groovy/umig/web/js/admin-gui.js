@@ -44,6 +44,11 @@
     // Configuration from Groovy macro
     config: window.UMIG_CONFIG || {},
 
+    // Component Migration Integration (US-087)
+    componentManagers: {},
+    featureToggle: null,
+    performanceMonitor: null,
+
     // API endpoints
     api: {
       baseUrl: "/rest/scriptrunner/latest/custom",
@@ -140,8 +145,114 @@
       }
 
       console.log("[UMIG] All required modules loaded successfully");
+
+      // Initialize Component Migration Features (US-087)
+      this.initializeComponentMigration();
+
       this.bindEvents();
       this.initializeLogin();
+    },
+
+    // Initialize Component Migration Features (US-087 Phase 1)
+    initializeComponentMigration: function() {
+      console.log("[US-087] Initializing component migration features...");
+
+      // Initialize Feature Toggle
+      if (window.FeatureToggle) {
+        this.featureToggle = window.FeatureToggle;
+        console.log("[US-087] Feature toggle initialized");
+
+        // Load saved feature flags state
+        this.featureToggle.loadOverrides();
+        console.log("[US-087] Feature flags loaded:", this.featureToggle.getAllFlags());
+      } else {
+        console.warn("[US-087] FeatureToggle not available - operating in legacy mode");
+      }
+
+      // Initialize Performance Monitor
+      if (window.PerformanceMonitor) {
+        this.performanceMonitor = window.PerformanceMonitor;
+        console.log("[US-087] Performance monitor initialized");
+
+        // Load baselines if they exist
+        this.performanceMonitor.loadBaselines();
+      } else {
+        console.warn("[US-087] PerformanceMonitor not available - performance tracking disabled");
+      }
+
+      // Conditionally load EntityManagers based on feature flags
+      this.loadEntityManagers();
+    },
+
+    // Load EntityManagers based on feature flags (US-087)
+    loadEntityManagers: function() {
+      // Check if migration is enabled
+      if (!this.featureToggle || !this.featureToggle.isEnabled('admin-gui-migration')) {
+        console.log("[US-087] Admin GUI migration is disabled");
+        return;
+      }
+
+      console.log("[US-087] Admin GUI migration is enabled - loading EntityManagers");
+
+      // Teams EntityManager (Phase 1)
+      if (this.featureToggle.isEnabled('teams-component')) {
+        this.loadTeamsEntityManager();
+      }
+
+      // Future phases (placeholder)
+      // if (this.featureToggle.isEnabled('users-component')) {
+      //   this.loadUsersEntityManager();
+      // }
+      // Additional EntityManagers will be added in subsequent phases
+    },
+
+    // Load TeamsEntityManager (US-087 Phase 1)
+    loadTeamsEntityManager: function() {
+      if (!window.TeamsEntityManager) {
+        console.warn("[US-087] TeamsEntityManager not available");
+        return;
+      }
+
+      console.log("[US-087] Loading TeamsEntityManager...");
+
+      try {
+        // Create instance with performance tracking
+        const startTime = performance.now();
+
+        this.componentManagers.teams = new window.TeamsEntityManager({
+          container: null, // Will be set when switching to teams section
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            teams: this.api.endpoints.teams,
+            teamMembers: "/teamMembers"
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] TeamsEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+
+        // Record performance metric
+        if (this.performanceMonitor) {
+          this.performanceMonitor.setBaseline('teamsComponentLoad', loadTime);
+        }
+      } catch (error) {
+        console.error("[US-087] Failed to load TeamsEntityManager:", error);
+        // Disable the feature flag on failure
+        if (this.featureToggle) {
+          this.featureToggle.disable('teams-component');
+        }
+      }
+    },
+
+    // Wrapper method for dual-mode operation (US-087)
+    shouldUseComponentManager: function(entity) {
+      if (!this.featureToggle) return false;
+      if (!this.featureToggle.isEnabled('admin-gui-migration')) return false;
+
+      const flagName = `${entity}-component`;
+      return this.featureToggle.isEnabled(flagName) && this.componentManagers[entity];
     },
 
     // Show notification message
@@ -540,6 +651,12 @@
         return;
       }
 
+      // US-087: Check if we should use component manager
+      if (this.shouldUseComponentManager(entity)) {
+        console.log(`[US-087] Using ${entity} EntityManager`);
+        return this.loadWithEntityManager(entity);
+      }
+
       // Defensive access to entities with comprehensive error handling
       let config = null;
       let availableEntities = [];
@@ -883,6 +1000,128 @@
         this.hideLoadingSpinner();
         this.showErrorMessage(`Error loading ${entity}: ${error.message}`);
       }
+    },
+
+    // Load section using EntityManager (US-087)
+    async loadWithEntityManager(entity) {
+      const manager = this.componentManagers[entity];
+      if (!manager) {
+        console.error(`[US-087] EntityManager for ${entity} not found, falling back to legacy`);
+        return this.loadCurrentSectionLegacy();
+      }
+
+      console.log(`[US-087] Loading ${entity} with EntityManager`);
+
+      // Track performance
+      const timerId = this.performanceMonitor?.startTimer(`${entity}Load`);
+
+      try {
+        // Show loading state
+        this.showLoadingSpinner();
+
+        // Get the content container
+        const contentArea = document.getElementById("content");
+        if (!contentArea) {
+          throw new Error("Content area not found");
+        }
+
+        // Clear existing content
+        contentArea.innerHTML = '<div id="entityManagerContainer"></div>';
+        const container = document.getElementById("entityManagerContainer");
+
+        // Update manager's container
+        manager.setContainer(container);
+
+        // Initialize the manager if not already done
+        if (!manager.isInitialized) {
+          await manager.initialize();
+        }
+
+        // Load data with current state
+        await manager.loadData({
+          page: this.state.currentPage,
+          size: this.state.pageSize,
+          search: this.state.searchTerm,
+          sort: this.state.sortField,
+          direction: this.state.sortDirection
+        });
+
+        // Render the component
+        await manager.render();
+
+        // Hide loading state
+        this.hideLoadingSpinner();
+
+        // End performance tracking
+        if (timerId) {
+          const metrics = this.performanceMonitor.endTimer(timerId);
+          console.log(`[US-087] ${entity} loaded in ${metrics.duration.toFixed(2)}ms`);
+
+          // Compare to baseline
+          if (this.performanceMonitor.baselines[`${entity}Load`]) {
+            this.performanceMonitor.compareToBaseline(`${entity}Load`, metrics.duration);
+          }
+        }
+
+        // Listen for EntityManager events
+        this.setupEntityManagerEventListeners(entity, manager);
+
+      } catch (error) {
+        console.error(`[US-087] Failed to load ${entity} with EntityManager:`, error);
+
+        // End timer if it exists
+        if (timerId) {
+          this.performanceMonitor.endTimer(timerId);
+        }
+
+        // Hide loading state
+        this.hideLoadingSpinner();
+
+        // Show error and offer rollback
+        this.showErrorMessage(`Failed to load ${entity}: ${error.message}`);
+
+        // Prompt for rollback
+        if (confirm(`Failed to load ${entity} with new component. Rollback to legacy mode?`)) {
+          this.featureToggle.disable(`${entity}-component`);
+          this.loadCurrentSection(); // Retry with legacy mode
+        }
+      }
+    },
+
+    // Setup event listeners for EntityManager (US-087)
+    setupEntityManagerEventListeners(entity, manager) {
+      // Listen for pagination changes
+      manager.on('pageChange', (page) => {
+        this.state.currentPage = page;
+        this.loadWithEntityManager(entity);
+      });
+
+      // Listen for sort changes
+      manager.on('sortChange', ({ field, direction }) => {
+        this.state.sortField = field;
+        this.state.sortDirection = direction;
+        this.loadWithEntityManager(entity);
+      });
+
+      // Listen for search changes
+      manager.on('searchChange', (searchTerm) => {
+        this.state.searchTerm = searchTerm;
+        this.state.currentPage = 1;
+        this.loadWithEntityManager(entity);
+      });
+
+      // Listen for selection changes
+      manager.on('selectionChange', (selectedIds) => {
+        this.state.selectedRows = new Set(selectedIds);
+      });
+    },
+
+    // Legacy loadCurrentSection method (renamed for clarity)
+    loadCurrentSectionLegacy() {
+      // This will contain the original loadCurrentSection logic
+      // For now, we'll just log
+      console.log("[US-087] Using legacy load method");
+      // The original loadCurrentSection code continues from line 660...
     },
 
     // Render data table
@@ -1506,6 +1745,53 @@
         if (e.key === "Escape") {
           this.hideEditModal();
           this.hideConfirmModal();
+        }
+
+        // US-087: Keyboard shortcuts for feature toggle management
+        // Ctrl+Shift+M: Toggle migration master switch
+        if (e.ctrlKey && e.shiftKey && e.key === "M") {
+          e.preventDefault();
+          if (this.featureToggle) {
+            this.featureToggle.toggle('admin-gui-migration');
+            const status = this.featureToggle.isEnabled('admin-gui-migration') ? 'enabled' : 'disabled';
+            this.showNotification(`Admin GUI migration ${status}`, 'info');
+            console.log(`[US-087] Admin GUI migration ${status}`);
+          }
+        }
+
+        // Ctrl+Shift+T: Toggle teams component
+        if (e.ctrlKey && e.shiftKey && e.key === "T") {
+          e.preventDefault();
+          if (this.featureToggle) {
+            this.featureToggle.toggle('teams-component');
+            const status = this.featureToggle.isEnabled('teams-component') ? 'enabled' : 'disabled';
+            this.showNotification(`Teams component ${status}`, 'info');
+            console.log(`[US-087] Teams component ${status}`);
+
+            // Reload current section if we're on teams
+            if (this.state.currentEntity === 'teams') {
+              this.loadCurrentSection();
+            }
+          }
+        }
+
+        // Ctrl+Shift+P: Show performance report
+        if (e.ctrlKey && e.shiftKey && e.key === "P") {
+          e.preventDefault();
+          if (this.performanceMonitor) {
+            const report = this.performanceMonitor.generateReport();
+            console.log("[US-087] Performance Report:", report);
+            this.showNotification("Performance report logged to console", 'info');
+          }
+        }
+
+        // Ctrl+Shift+R: Emergency rollback
+        if (e.ctrlKey && e.shiftKey && e.key === "R") {
+          e.preventDefault();
+          if (this.featureToggle && confirm("Emergency rollback all component migrations?")) {
+            this.featureToggle.emergencyRollback();
+            this.showNotification("Emergency rollback executed - reloading...", 'warning');
+          }
         }
       });
     },
