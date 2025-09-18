@@ -30,6 +30,9 @@ import umig.repository.EmailTemplateRepository
 import umig.utils.DatabaseUtil
 import umig.utils.UrlConstructionService
 
+// StatusService import for TD-003 Phase 2C migration
+import umig.service.StatusService
+
 /**
  * EmailService - Centralized email notification service for UMIG
  * 
@@ -41,7 +44,26 @@ import umig.utils.UrlConstructionService
  * @since 2025-01-16
  */
 class EmailService {
-    
+
+    // ========================================
+    // TD-003 PHASE 2C: STATUS SERVICE INTEGRATION
+    // ========================================
+
+    /** StatusService for centralized status management (lazy loading) */
+    private static StatusService statusService
+
+    /**
+     * Get StatusService instance with lazy loading pattern
+     * @return StatusService instance
+     */
+    private static StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+            println "EmailService: StatusService lazy loaded for status color handling"
+        }
+        return statusService
+    }
+
     // Default from address for UMIG notifications
     private static final String DEFAULT_FROM_ADDRESS = 'umig-system@company.com'
     
@@ -861,21 +883,42 @@ class EmailService {
     }
     
     /**
-     * Get color for status display
+     * Get color for status display - TD-003 Phase 2C Migration
+     * Uses StatusService for centralized status management
+     * Fallback to hardcoded values for color mapping (status names now dynamic)
      */
     private static String getStatusColor(String status) {
-        switch (status?.toUpperCase()) {
-            case 'OPEN':
-            case 'IN_PROGRESS':
-                return '#0052cc'
-            case 'COMPLETED':
-            case 'DONE':
-                return '#28a745'
-            case 'BLOCKED':
-            case 'FAILED':
-                return '#dc3545'
-            default:
-                return '#6c757d'
+        if (!status) {
+            return '#6c757d' // Default gray color
+        }
+
+        try {
+            // Use StatusService to get the CSS class for the status
+            String cssClass = getStatusService().getStatusCssClass(status)
+
+            // Map CSS classes to actual colors for email display
+            // Note: CSS class provides consistent styling basis, but emails need actual colors
+            switch (cssClass) {
+                case 'status-open':
+                case 'status-in-progress':
+                    return '#0052cc' // Blue for active/in-progress states
+                case 'status-completed':
+                case 'status-done':
+                    return '#28a745' // Green for completion states
+                case 'status-blocked':
+                case 'status-failed':
+                    return '#dc3545' // Red for error/blocked states
+                case 'status-pending':
+                case 'status-todo':
+                case 'status-not-started':
+                    return '#f39c12' // Orange for waiting states
+                default:
+                    return '#6c757d' // Gray for unknown/default
+            }
+        } catch (Exception e) {
+            println "EmailService: Error getting status color via StatusService for '${status}': ${e.message}"
+            // Fallback to prevent email failure
+            return '#6c757d'
         }
     }
     

@@ -39,38 +39,50 @@ The enhanced BaseEntityManager now provides:
 ### Common Root Causes & Solutions
 
 #### 1. Component Initialization Failure
+
 **Symptoms**:
+
 - `tableComponent` is `null` or `undefined`
 - Console shows "Component not initialized"
 
 **Solutions**:
+
 ```javascript
 // Check if ComponentOrchestrator is available
-console.log('ComponentOrchestrator available:', typeof window.ComponentOrchestrator);
+console.log(
+  "ComponentOrchestrator available:",
+  typeof window.ComponentOrchestrator,
+);
 
 // Verify entity manager is properly initialized
-console.log('Manager initialized:', yourEntityManager.isInitialized);
+console.log("Manager initialized:", yourEntityManager.isInitialized);
 
 // Check orchestrator status
-console.log('Orchestrator:', yourEntityManager.orchestrator);
+console.log("Orchestrator:", yourEntityManager.orchestrator);
 ```
 
 #### 2. ComponentOrchestrator Missing createComponent Method
+
 **Symptoms**:
+
 - Console shows "ComponentOrchestrator missing createComponent method"
 - Components show as "not_initialized"
 
 **Solutions**:
+
 - Ensure ComponentOrchestrator.js is loaded before entity managers
 - Verify ComponentOrchestrator version compatibility
 - Check browser console for JavaScript loading errors
 
 #### 3. TableComponent Missing Methods
+
 **Symptoms**:
+
 - `tableComponent` exists but lacks `updateData`/`setData` methods
 - Console shows "Missing required methods"
 
 **Solutions**:
+
 - Verify TableComponent.js is loaded properly
 - Check if BaseComponent is available as a dependency
 - Ensure component inheritance chain is intact
@@ -94,12 +106,12 @@ The improved `_updateComponents()` method now provides:
 
 ### Debugging Methods Available
 
-| Method | Purpose | Usage |
-|--------|---------|-------|
-| `debugComponents()` | Quick status overview | `manager.debugComponents()` |
-| `debugComponents(true)` | Detailed diagnostics | `manager.debugComponents(true)` |
-| `testComponents()` | Functional testing | `await manager.testComponents()` |
-| `getComponentDiagnostics()` | Full report | `manager.getComponentDiagnostics()` |
+| Method                      | Purpose               | Usage                               |
+| --------------------------- | --------------------- | ----------------------------------- |
+| `debugComponents()`         | Quick status overview | `manager.debugComponents()`         |
+| `debugComponents(true)`     | Detailed diagnostics  | `manager.debugComponents(true)`     |
+| `testComponents()`          | Functional testing    | `await manager.testComponents()`    |
+| `getComponentDiagnostics()` | Full report           | `manager.getComponentDiagnostics()` |
 
 ### Example Debugging Session
 
@@ -126,7 +138,7 @@ await envManager.testComponents();
 
 // 3. Get detailed report for support
 const report = envManager.getComponentDiagnostics();
-console.log('Full diagnostic report:', report);
+console.log("Full diagnostic report:", report);
 ```
 
 ### Prevention Best Practices

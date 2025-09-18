@@ -6,23 +6,66 @@
  *
  * This ensures robustness against future status name changes while maintaining
  * backward compatibility and API integration.
+ *
+ * Migrated for TD-003 Phase 3: Uses MockStatusProvider for test isolation
  */
+
+const MockStatusProvider = require("../../mocks/MockStatusProvider");
 
 describe("Status Dropdown Refactoring Tests", () => {
   let iterationView;
   let mockStatuses;
   let dropdown;
+  let mockStatusProvider;
 
   beforeEach(() => {
-    // Mock status data structure matching StatusRepository.findStatusesByType('Step')
+    // Initialize MockStatusProvider for controlled test values (TD-003)
+    mockStatusProvider = new MockStatusProvider();
+
+    // Mock status data structure using MockStatusProvider
     mockStatuses = [
-      { id: 21, name: "PENDING", color: "#DDDDDD", type: "Step" },
-      { id: 22, name: "TODO", color: "#FFFF00", type: "Step" },
-      { id: 23, name: "IN_PROGRESS", color: "#0066CC", type: "Step" },
-      { id: 24, name: "COMPLETED", color: "#00AA00", type: "Step" },
-      { id: 25, name: "FAILED", color: "#FF0000", type: "Step" },
-      { id: 26, name: "BLOCKED", color: "#FF6600", type: "Step" },
-      { id: 27, name: "CANCELLED", color: "#CC0000", type: "Step" },
+      {
+        id: 21,
+        name: mockStatusProvider.getStatusNameById(1),
+        color: "#DDDDDD",
+        type: "Step",
+      }, // PENDING
+      {
+        id: 22,
+        name: mockStatusProvider.getStatusNameById(7),
+        color: "#FFFF00",
+        type: "Step",
+      }, // TODO
+      {
+        id: 23,
+        name: mockStatusProvider.getStatusNameById(2),
+        color: "#0066CC",
+        type: "Step",
+      }, // IN_PROGRESS
+      {
+        id: 24,
+        name: mockStatusProvider.getStatusNameById(3),
+        color: "#00AA00",
+        type: "Step",
+      }, // COMPLETED
+      {
+        id: 25,
+        name: mockStatusProvider.getStatusNameById(4),
+        color: "#FF0000",
+        type: "Step",
+      }, // FAILED
+      {
+        id: 26,
+        name: mockStatusProvider.getStatusNameById(6),
+        color: "#FF6600",
+        type: "Step",
+      }, // BLOCKED
+      {
+        id: 27,
+        name: mockStatusProvider.getStatusNameById(5),
+        color: "#CC0000",
+        type: "Step",
+      }, // CANCELLED
     ];
 
     // Create mock DOM elements
@@ -63,7 +106,9 @@ describe("Status Dropdown Refactoring Tests", () => {
 
   describe("populateStatusDropdown()", () => {
     it("should use status IDs as option values", async () => {
-      await iterationView.populateStatusDropdown("PENDING");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(1),
+      );
 
       const options = Array.from(dropdown.options);
       expect(options.length).toBe(7);
@@ -79,7 +124,9 @@ describe("Status Dropdown Refactoring Tests", () => {
     });
 
     it("should display status names as text with underscore replacement", async () => {
-      await iterationView.populateStatusDropdown("IN_PROGRESS");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(2),
+      );
 
       const options = Array.from(dropdown.options);
 
@@ -91,7 +138,9 @@ describe("Status Dropdown Refactoring Tests", () => {
     });
 
     it("should store status names in data-status-name attributes", async () => {
-      await iterationView.populateStatusDropdown("TODO");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(7),
+      );
 
       const options = Array.from(dropdown.options);
 
@@ -102,7 +151,9 @@ describe("Status Dropdown Refactoring Tests", () => {
     });
 
     it("should select correct option when given status name", async () => {
-      await iterationView.populateStatusDropdown("COMPLETED");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(3),
+      );
 
       const selectedOption = dropdown.options[dropdown.selectedIndex];
       expect(selectedOption.value).toBe("24"); // COMPLETED ID
@@ -118,14 +169,18 @@ describe("Status Dropdown Refactoring Tests", () => {
     });
 
     it("should store both old-status and old-status-id attributes", async () => {
-      await iterationView.populateStatusDropdown("BLOCKED");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(6),
+      );
 
       expect(dropdown.getAttribute("data-old-status")).toBe("BLOCKED");
       expect(dropdown.getAttribute("data-old-status-id")).toBe("26");
     });
 
     it("should handle backward compatibility for status ID lookup", async () => {
-      await iterationView.populateStatusDropdown("IN_PROGRESS");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(2),
+      );
 
       // Verify backward compatibility mapping
       expect(dropdown.getAttribute("data-old-status")).toBe("IN_PROGRESS");
@@ -149,7 +204,10 @@ describe("Status Dropdown Refactoring Tests", () => {
                 <option value="23" data-status-name="IN_PROGRESS" data-color="#0066CC" selected>IN PROGRESS</option>
                 <option value="24" data-status-name="COMPLETED" data-color="#00AA00">COMPLETED</option>
             `;
-      dropdown.setAttribute("data-old-status", "IN_PROGRESS");
+      dropdown.setAttribute(
+        "data-old-status",
+        mockStatusProvider.getStatusNameById(2),
+      );
       dropdown.setAttribute("data-old-status-id", "23");
     });
 
@@ -164,7 +222,7 @@ describe("Status Dropdown Refactoring Tests", () => {
       // Verify API called with status name, not ID
       expect(iterationView.apiClient.updateStepStatus).toHaveBeenCalledWith(
         "test-step-123",
-        "COMPLETED", // Status name, not ID
+        mockStatusProvider.getStatusNameById(3), // Status name, not ID
         "PILOT",
       );
     });
@@ -252,7 +310,9 @@ describe("Status Dropdown Refactoring Tests", () => {
   describe("Backward Compatibility", () => {
     it("should handle mixed ID and name inputs correctly", async () => {
       // Test with status name input
-      await iterationView.populateStatusDropdown("TODO");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(7),
+      );
       expect(dropdown.getAttribute("data-old-status-id")).toBe("22");
 
       // Test with status ID input
@@ -261,7 +321,9 @@ describe("Status Dropdown Refactoring Tests", () => {
     });
 
     it("should maintain API contract with status names", async () => {
-      await iterationView.populateStatusDropdown("PENDING");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(1),
+      );
 
       dropdown.value = "23"; // IN_PROGRESS ID
       dropdown.selectedIndex = 2;
@@ -273,7 +335,7 @@ describe("Status Dropdown Refactoring Tests", () => {
       const apiCall =
         iterationView.apiClient.updateStepStatus.calls.mostRecent();
       expect(typeof apiCall.args[1]).toBe("string");
-      expect(apiCall.args[1]).toBe("IN_PROGRESS");
+      expect(apiCall.args[1]).toBe(mockStatusProvider.getStatusNameById(2));
     });
   });
 
@@ -285,7 +347,9 @@ describe("Status Dropdown Refactoring Tests", () => {
 
       // Should not throw error
       await expectAsync(
-        iterationView.populateStatusDropdown("PENDING"),
+        iterationView.populateStatusDropdown(
+          mockStatusProvider.getStatusNameById(1),
+        ),
       ).not.toBeRejected();
     });
 
@@ -310,15 +374,21 @@ describe("Status Dropdown Refactoring Tests", () => {
     it("should minimize DOM operations during population", async () => {
       const initialChildCount = dropdown.children.length;
 
-      await iterationView.populateStatusDropdown("PENDING");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(1),
+      );
 
       // Should have exactly the expected number of options
       expect(dropdown.children.length).toBe(7);
     });
 
     it("should cache status data appropriately", async () => {
-      await iterationView.populateStatusDropdown("PENDING");
-      await iterationView.populateStatusDropdown("COMPLETED");
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(1),
+      );
+      await iterationView.populateStatusDropdown(
+        mockStatusProvider.getStatusNameById(3),
+      );
 
       // fetchStepStatuses should be called for each population
       // (no caching implemented yet, but validates current behavior)
@@ -334,7 +404,7 @@ describe("Status Dropdown API Integration Tests", () => {
   it("should maintain compatibility with existing StepsApi endpoint", () => {
     // Mock API response format validation
     const expectedApiPayload = {
-      status: "COMPLETED", // String status name (not ID)
+      status: mockStatusProvider.getStatusNameById(3), // String status name (not ID)
       userRole: "PILOT",
       timestamp: jasmine.any(String),
     };

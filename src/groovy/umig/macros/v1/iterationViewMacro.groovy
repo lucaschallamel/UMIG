@@ -45,7 +45,10 @@ return """
     console.log('IterationView: Configuration loaded', window.UMIG_ITERATION_CONFIG);
 </script>
 
-<!-- Main JavaScript file - Load AFTER configuration -->
+<!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
+<script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
+
+<!-- Main JavaScript file - Load AFTER configuration and dependencies -->
 <script src=\"${webRoot}/js/iteration-view.js\"></script>
 
 <div class=\"iteration-view\">

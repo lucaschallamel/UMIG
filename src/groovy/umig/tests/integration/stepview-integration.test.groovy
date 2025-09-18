@@ -3,7 +3,7 @@
  *
  * US-036: Comprehensive integration test suite covering:
  * - End-to-end URL routing validation
- * - API data retrieval and parsing  
+ * - API data retrieval and parsing
  * - Step status updates and operations
  * - Comment operations (add/edit/delete)
  * - Email generation and template rendering
@@ -18,20 +18,40 @@
 
 import groovy.json.JsonSlurper
 import groovy.json.JsonBuilder
-import groovy.transform.Field
-import com.atlassian.sal.api.component.ComponentLocator
-import com.atlassian.sal.api.net.Request
-import com.atlassian.sal.api.net.Response
-import com.atlassian.sal.api.net.RequestFilledEvent
+import groovy.transform.CompileStatic
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.Future
+import java.util.concurrent.ExecutorService
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
+import java.io.InputStream
 
-// Test configuration and setup
-@Field static final String BASE_URL = "http://localhost:8090"
-@Field static final String API_BASE = "/rest/scriptrunner/latest/custom"
-@Field static final String STEPVIEW_URL = "/stepview.html"
-@Field static final JsonSlurper jsonSlurper = new JsonSlurper()
+@CompileStatic
+
+// Embedded mock service following self-contained test architecture (TD-001)
+class EmbeddedMockStatusService {
+    private static final Map<Integer, String> STATUS_NAMES = [
+        1: 'PENDING',
+        2: 'IN_PROGRESS',
+        3: 'COMPLETED',
+        4: 'FAILED',
+        5: 'CANCELLED',
+        6: 'BLOCKED'
+    ]
+
+    static String getStatusNameById(Integer statusId) {
+        return STATUS_NAMES[statusId] ?: 'UNKNOWN'
+    }
+}
 
 class StepViewIntegrationTest {
+
+    // Test configuration constants
+    private static final String BASE_URL = "http://localhost:8090"
+    private static final String API_BASE = "/rest/scriptrunner/latest/custom"
+    private static final String STEPVIEW_URL = "/stepview.html"
+    private static final JsonSlurper jsonSlurper = new JsonSlurper()
     
     // Test data setup
     private static final Map<String, Object> TEST_STEP_DATA = [
@@ -39,7 +59,7 @@ class StepViewIntegrationTest {
             ID: "test-step-instance-001",
             StepCode: "DEC-001", 
             Name: "Database Cutover Decision",
-            Status: "PENDING",
+            Status: EmbeddedMockStatusService.getStatusNameById(1),
             Duration: 30,
             AssignedTeam: "Database Team",
             MigrationName: "Test Migration A",
@@ -96,13 +116,13 @@ class StepViewIntegrationTest {
     private static final String TEST_ITERATION_NAME = "run1"
     private static final String TEST_STEP_CODE = "DEC-001"
 
-    static void main(String[] args) {
+    static void main() {
         println "🧪 Starting StepView Integration Tests..."
-        
+
         try {
             // Execute test suites in order
             testUrlRoutingValidation()
-            testApiDataRetrieval() 
+            testApiDataRetrieval()
             testStepOperations()
             testCommentOperations()
             testEmailGeneration()
@@ -111,9 +131,9 @@ class StepViewIntegrationTest {
             testPerformanceMetrics()
             testMobileCompatibility()
             testSecurityValidation()
-            
+
             println "✅ All integration tests completed successfully!"
-            
+
         } catch (Exception e) {
             println "❌ Integration tests failed: ${e.message}"
             e.printStackTrace()
@@ -128,30 +148,30 @@ class StepViewIntegrationTest {
         println "\n📍 Testing URL Routing Validation..."
         
         // Test 1: UUID-based routing
-        def uuidUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=PILOT"
-        def uuidResponse = makeHttpRequest("GET", uuidUrl)
+        String uuidUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=PILOT"
+        Map<String, Object> uuidResponse = makeHttpRequest("GET", uuidUrl)
         assert uuidResponse.statusCode == 200, "UUID-based URL should load successfully"
-        assert uuidResponse.body.contains("stepview-root"), "Should contain stepview root element"
+        assert ((String) uuidResponse.body).contains("stepview-root"), "Should contain stepview root element"
         
-        // Test 2: Human-readable routing  
-        def humanUrl = "${BASE_URL}${STEPVIEW_URL}?mig=${TEST_MIGRATION_NAME}&ite=${TEST_ITERATION_NAME}&stepid=${TEST_STEP_CODE}&role=NORMAL"
-        def humanResponse = makeHttpRequest("GET", humanUrl)
+        // Test 2: Human-readable routing
+        String humanUrl = "${BASE_URL}${STEPVIEW_URL}?mig=${TEST_MIGRATION_NAME}&ite=${TEST_ITERATION_NAME}&stepid=${TEST_STEP_CODE}&role=NORMAL"
+        Map<String, Object> humanResponse = makeHttpRequest("GET", humanUrl)
         assert humanResponse.statusCode == 200, "Human-readable URL should load successfully"
-        
+
         // Test 3: Invalid UUID format
-        def invalidUuidUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=invalid-uuid"
+        String invalidUuidUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=invalid-uuid"
         // Should still load page but JavaScript will handle the error
-        def invalidResponse = makeHttpRequest("GET", invalidUuidUrl)
+        Map<String, Object> invalidResponse = makeHttpRequest("GET", invalidUuidUrl)
         assert invalidResponse.statusCode == 200, "Page should load even with invalid parameters"
-        
+
         // Test 4: Invalid step code format
-        def invalidStepUrl = "${BASE_URL}${STEPVIEW_URL}?mig=test&ite=run1&stepid=INVALID"
-        def invalidStepResponse = makeHttpRequest("GET", invalidStepUrl)  
+        String invalidStepUrl = "${BASE_URL}${STEPVIEW_URL}?mig=test&ite=run1&stepid=INVALID"
+        Map<String, Object> invalidStepResponse = makeHttpRequest("GET", invalidStepUrl)
         assert invalidStepResponse.statusCode == 200, "Page should load for client-side validation"
-        
+
         // Test 5: Missing parameters
-        def missingParamsUrl = "${BASE_URL}${STEPVIEW_URL}"
-        def missingResponse = makeHttpRequest("GET", missingParamsUrl)
+        String missingParamsUrl = "${BASE_URL}${STEPVIEW_URL}"
+        Map<String, Object> missingResponse = makeHttpRequest("GET", missingParamsUrl)
         assert missingResponse.statusCode == 200, "Page should load and show error state"
         
         println "✅ URL routing validation tests passed"
@@ -164,43 +184,44 @@ class StepViewIntegrationTest {
         println "\n🔌 Testing API Data Retrieval..."
         
         // Test 1: Resolve by iteration ID
-        def iterationApiUrl = "${BASE_URL}${API_BASE}/stepViewApi/byIteration/${TEST_ITERATION_UUID}"
-        def iterationResponse = makeApiRequest("GET", iterationApiUrl, [:], [
+        String iterationApiUrl = "${BASE_URL}${API_BASE}/stepViewApi/byIteration/${TEST_ITERATION_UUID}"
+        Map<String, Object> iterationResponse = makeApiRequest("GET", iterationApiUrl, [:], [
             'Accept': 'application/json',
             'X-StandaloneView': 'true'
         ])
-        
+
         if (iterationResponse.statusCode == 200) {
-            def data = jsonSlurper.parseText(iterationResponse.body)
+            Map<String, Object> data = (Map<String, Object>) jsonSlurper.parseText((String) iterationResponse.body)
             assert data.stepSummary != null, "Response should contain step summary"
-            assert data.stepSummary.ID != null, "Step should have an ID"
+            Map<String, Object> stepSummary = (Map<String, Object>) data.stepSummary
+            assert stepSummary.ID != null, "Step should have an ID"
             println "✅ Iteration ID resolution successful"
         } else {
             println "⚠️  Iteration ID API not available, skipping validation"
         }
         
         // Test 2: Resolve by human-readable names
-        def humanApiUrl = "${BASE_URL}${API_BASE}/stepViewApi/instance"
-        def queryParams = [
+        String humanApiUrl = "${BASE_URL}${API_BASE}/stepViewApi/instance"
+        Map<String, String> queryParams = [
             migrationName: TEST_MIGRATION_NAME,
-            iterationName: TEST_ITERATION_NAME, 
+            iterationName: TEST_ITERATION_NAME,
             stepCode: TEST_STEP_CODE,
             includeContext: 'true'
         ]
-        def humanResponse = makeApiRequest("GET", humanApiUrl, queryParams, [
+        Map<String, Object> humanResponse = makeApiRequest("GET", humanApiUrl, queryParams, [
             'Accept': 'application/json',
             'X-StandaloneView': 'true'
         ])
-        
+
         if (humanResponse.statusCode == 200) {
-            def data = jsonSlurper.parseText(humanResponse.body)
+            Map<String, Object> data = (Map<String, Object>) jsonSlurper.parseText((String) humanResponse.body)
             assert data.stepSummary != null, "Response should contain step summary"
             println "✅ Human-readable resolution successful"
         } else {
             println "⚠️  Human-readable API not available, creating mock response"
-            
+
             // Test with mock data structure
-            def mockData = TEST_STEP_DATA
+            Map<String, Object> mockData = TEST_STEP_DATA
             validateStepDataStructure(mockData)
         }
         
@@ -212,17 +233,17 @@ class StepViewIntegrationTest {
      */
     static void testStepOperations() {
         println "\n⚙️  Testing Step Operations..."
-        
-        def stepInstanceId = "test-step-instance-001"
-        
+
+        String stepInstanceId = "test-step-instance-001"
+
         // Test 1: Update step status
-        def statusUpdateUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/status"
-        def statusPayload = [
-            status: "IN_PROGRESS",
+        String statusUpdateUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/status"
+        Map<String, Object> statusPayload = [
+            status: EmbeddedMockStatusService.getStatusNameById(2),
             userId: "test-user-123"
-        ]
-        
-        def statusResponse = makeApiRequest("PUT", statusUpdateUrl, [:], [:], statusPayload)
+        ] as Map<String, Object>
+
+        Map<String, Object> statusResponse = makeApiRequest("PUT", statusUpdateUrl, [:] as Map<String, String>, [:] as Map<String, String>, statusPayload)
         
         if (statusResponse.statusCode in [200, 404]) {
             println "✅ Status update endpoint accessible"
@@ -231,21 +252,21 @@ class StepViewIntegrationTest {
         }
         
         // Test 2: Complete instruction
-        def instructionId = "inst-001"
-        def completeUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/instructions/${instructionId}/complete"
-        def completePayload = [userId: "test-user-123"]
-        
-        def completeResponse = makeApiRequest("POST", completeUrl, [:], [:], completePayload)
-        
+        String instructionId = "inst-001"
+        String completeUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/instructions/${instructionId}/complete"
+        Map<String, Object> completePayload = [userId: "test-user-123"] as Map<String, Object>
+
+        Map<String, Object> completeResponse = makeApiRequest("POST", completeUrl, [:] as Map<String, String>, [:] as Map<String, String>, completePayload)
+
         if (completeResponse.statusCode in [200, 404]) {
             println "✅ Instruction completion endpoint accessible"
         } else {
             println "⚠️  Instruction endpoint not configured, skipping"
         }
-        
+
         // Test 3: Uncomplete instruction
-        def incompleteUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/instructions/${instructionId}/incomplete"
-        def incompleteResponse = makeApiRequest("POST", incompleteUrl, [:], [:], completePayload)
+        String incompleteUrl = "${BASE_URL}${API_BASE}/steps/${stepInstanceId}/instructions/${instructionId}/incomplete"
+        Map<String, Object> incompleteResponse = makeApiRequest("POST", incompleteUrl, [:] as Map<String, String>, [:] as Map<String, String>, completePayload)
         
         if (incompleteResponse.statusCode in [200, 404]) {
             println "✅ Instruction incompletion endpoint accessible"
@@ -261,23 +282,23 @@ class StepViewIntegrationTest {
      */
     static void testCommentOperations() {
         println "\n💬 Testing Comment Operations..."
-        
-        def stepInstanceId = "test-step-instance-001"
-        
+
+        String stepInstanceId = "test-step-instance-001"
+
         // Test 1: Add comment
-        def addCommentUrl = "${BASE_URL}${API_BASE}/comments/${stepInstanceId}/comments"
-        def addCommentPayload = [
+        String addCommentUrl = "${BASE_URL}${API_BASE}/comments/${stepInstanceId}/comments"
+        Map<String, Object> addCommentPayload = [
             body: "This is a test comment from integration tests",
             userId: "test-user-123"
-        ]
-        
-        def addResponse = makeApiRequest("POST", addCommentUrl, [:], [:], addCommentPayload)
-        
+        ] as Map<String, Object>
+
+        Map<String, Object> addResponse = makeApiRequest("POST", addCommentUrl, [:] as Map<String, String>, [:] as Map<String, String>, addCommentPayload)
+
         if (addResponse.statusCode in [200, 201, 404]) {
             println "✅ Add comment endpoint accessible"
-            
+
             if (addResponse.statusCode in [200, 201]) {
-                def responseData = jsonSlurper.parseText(addResponse.body)
+                Map<String, Object> responseData = (Map<String, Object>) jsonSlurper.parseText((String) addResponse.body)
                 assert responseData.id != null, "Added comment should have ID"
             }
         } else {
@@ -285,21 +306,21 @@ class StepViewIntegrationTest {
         }
         
         // Test 2: Edit comment (if implemented)
-        def commentId = "comment-001"
-        def editCommentUrl = "${BASE_URL}${API_BASE}/comments/${commentId}"
-        def editCommentPayload = [
+        String commentId = "comment-001"
+        String editCommentUrl = "${BASE_URL}${API_BASE}/comments/${commentId}"
+        Map<String, Object> editCommentPayload = [
             body: "Updated test comment",
             userId: "test-user-123"
-        ]
-        
-        def editResponse = makeApiRequest("PUT", editCommentUrl, [:], [:], editCommentPayload)
-        
+        ] as Map<String, Object>
+
+        Map<String, Object> editResponse = makeApiRequest("PUT", editCommentUrl, [:] as Map<String, String>, [:] as Map<String, String>, editCommentPayload)
+
         if (editResponse.statusCode in [200, 404, 405]) {
             println "✅ Edit comment endpoint checked"
         }
-        
-        // Test 3: Delete comment (if implemented)  
-        def deleteResponse = makeApiRequest("DELETE", editCommentUrl, [:], [:])
+
+        // Test 3: Delete comment (if implemented)
+        Map<String, Object> deleteResponse = makeApiRequest("DELETE", editCommentUrl, [:] as Map<String, String>, [:] as Map<String, String>)
         
         if (deleteResponse.statusCode in [200, 204, 404, 405]) {
             println "✅ Delete comment endpoint checked"
@@ -313,30 +334,30 @@ class StepViewIntegrationTest {
      */
     static void testEmailGeneration() {
         println "\n📧 Testing Email Generation..."
-        
-        def stepInstanceId = "test-step-instance-001"
-        
+
+        String stepInstanceId = "test-step-instance-001"
+
         // Test 1: Generate email template
-        def emailUrl = "${BASE_URL}${API_BASE}/email/step/${stepInstanceId}"
-        def emailPayload = [
+        String emailUrl = "${BASE_URL}${API_BASE}/email/step/${stepInstanceId}"
+        Map<String, Object> emailPayload = [
             userId: "pilot-user-456",
             includeInstructions: true,
             includeComments: true,
             templateFormat: 'html'
-        ]
-        
-        def emailResponse = makeApiRequest("POST", emailUrl, [:], [:], emailPayload)
-        
+        ] as Map<String, Object>
+
+        Map<String, Object> emailResponse = makeApiRequest("POST", emailUrl, [:] as Map<String, String>, [:] as Map<String, String>, emailPayload)
+
         if (emailResponse.statusCode in [200, 404]) {
             println "✅ Email generation endpoint accessible"
-            
+
             if (emailResponse.statusCode == 200) {
-                def responseData = jsonSlurper.parseText(emailResponse.body)
+                Map<String, Object> responseData = (Map<String, Object>) jsonSlurper.parseText((String) emailResponse.body)
                 assert responseData.html != null || responseData.subject != null, "Email response should contain template data"
             }
         } else {
             println "⚠️  Email endpoint not configured, testing template structure"
-            
+
             // Validate email template structure with mock data
             validateEmailTemplate()
         }
@@ -398,44 +419,44 @@ class StepViewIntegrationTest {
         println "\n🔐 Testing Authentication Flows..."
         
         // Test 1: NORMAL user permissions
-        def normalUserContext = [
+        Map<String, Object> normalUserContext = [
             role: "NORMAL",
             userId: "normal-user-123"
-        ]
-        
+        ] as Map<String, Object>
+
         validateUserPermissions(normalUserContext, [
             canEditInstructions: true,
             canChangeStatus: false,
             canAddComments: false,
             canSendEmail: false
-        ])
+        ] as Map<String, Object>)
         
         // Test 2: PILOT user permissions
-        def pilotUserContext = [
-            role: "PILOT", 
+        Map<String, Object> pilotUserContext = [
+            role: "PILOT",
             userId: "pilot-user-456"
-        ]
-        
+        ] as Map<String, Object>
+
         validateUserPermissions(pilotUserContext, [
             canEditInstructions: true,
             canChangeStatus: true,
             canAddComments: true,
             canSendEmail: true
-        ])
+        ] as Map<String, Object>)
         
         // Test 3: Guest user permissions
-        def guestUserContext = [
+        Map<String, Object> guestUserContext = [
             role: "NORMAL",
             userId: null,
             isGuest: true
-        ]
-        
+        ] as Map<String, Object>
+
         validateUserPermissions(guestUserContext, [
             canEditInstructions: true,
             canChangeStatus: false,
             canAddComments: false,
             canSendEmail: false
-        ])
+        ] as Map<String, Object>)
         
         println "✅ Authentication flow tests completed"
     }
@@ -447,44 +468,44 @@ class StepViewIntegrationTest {
         println "\n⚡ Testing Performance Metrics..."
         
         // Test 1: Page load performance
-        def startTime = System.currentTimeMillis()
-        def pageUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=NORMAL"
-        def pageResponse = makeHttpRequest("GET", pageUrl)
-        def pageLoadTime = System.currentTimeMillis() - startTime
-        
+        long startTime = System.currentTimeMillis()
+        String pageUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=NORMAL"
+        Map<String, Object> pageResponse = makeHttpRequest("GET", pageUrl)
+        long pageLoadTime = System.currentTimeMillis() - startTime
+
         assert pageResponse.statusCode == 200, "Page should load successfully"
         assert pageLoadTime < 5000, "Page load should complete within 5 seconds, actual: ${pageLoadTime}ms"
         println "✅ Page load time: ${pageLoadTime}ms"
-        
+
         // Test 2: API response performance
         startTime = System.currentTimeMillis()
-        def apiUrl = "${BASE_URL}${API_BASE}/stepViewApi/byIteration/${TEST_ITERATION_UUID}"
-        def apiResponse = makeApiRequest("GET", apiUrl, [:], [
+        String apiUrl = "${BASE_URL}${API_BASE}/stepViewApi/byIteration/${TEST_ITERATION_UUID}"
+        Map<String, Object> apiResponse = makeApiRequest("GET", apiUrl, [:], [
             'Accept': 'application/json',
             'X-StandaloneView': 'true'
         ])
-        def apiResponseTime = System.currentTimeMillis() - startTime
-        
+        long apiResponseTime = System.currentTimeMillis() - startTime
+
         if (apiResponse.statusCode == 200) {
             assert apiResponseTime < 3000, "API response should complete within 3 seconds, actual: ${apiResponseTime}ms"
             println "✅ API response time: ${apiResponseTime}ms"
         } else {
             println "⚠️  API performance test skipped (endpoint not available)"
         }
-        
+
         // Test 3: Concurrent request handling
-        def concurrentRequests = []
-        def executorService = java.util.concurrent.Executors.newFixedThreadPool(5)
-        
+        List<Future<Map<String, Object>>> concurrentRequests = []
+        ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(5)
+
         for (int i = 0; i < 10; i++) {
-            concurrentRequests << executorService.submit {
+            concurrentRequests << (Future<Map<String, Object>>) executorService.submit {
                 makeHttpRequest("GET", pageUrl)
             }
         }
-        
-        def successCount = 0
-        concurrentRequests.each { future ->
-            def response = future.get(10, TimeUnit.SECONDS)
+
+        int successCount = 0
+        concurrentRequests.each { Future<Map<String, Object>> future ->
+            Map<String, Object> response = future.get(10, TimeUnit.SECONDS)
             if (response.statusCode == 200) successCount++
         }
         
@@ -503,27 +524,27 @@ class StepViewIntegrationTest {
         println "\n📱 Testing Mobile Compatibility..."
         
         // Test 1: Mobile viewport meta tag presence
-        def pageUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=NORMAL"
-        def response = makeHttpRequest("GET", pageUrl)
-        
-        assert response.body.contains('name="viewport"'), "Page should contain viewport meta tag"
-        assert response.body.contains('width=device-width'), "Viewport should be mobile-responsive"
+        String pageUrl = "${BASE_URL}${STEPVIEW_URL}?ite_id=${TEST_ITERATION_UUID}&role=NORMAL"
+        Map<String, Object> response = makeHttpRequest("GET", pageUrl)
+
+        assert ((String) response.body).contains('name="viewport"'), "Page should contain viewport meta tag"
+        assert ((String) response.body).contains('width=device-width'), "Viewport should be mobile-responsive"
         println "✅ Viewport meta tag validation passed"
-        
+
         // Test 2: Mobile-specific CSS presence
-        assert response.body.contains('@media'), "Page should contain responsive CSS"
-        assert response.body.contains('max-width'), "Page should have mobile breakpoints"
+        assert ((String) response.body).contains('@media'), "Page should contain responsive CSS"
+        assert ((String) response.body).contains('max-width'), "Page should have mobile breakpoints"
         println "✅ Mobile CSS validation passed"
-        
+
         // Test 3: Touch-friendly elements
-        assert response.body.contains('min-height: 44px') || response.body.contains('touch-friendly'), "Should have touch-friendly button sizing"
+        assert ((String) response.body).contains('min-height: 44px') || ((String) response.body).contains('touch-friendly'), "Should have touch-friendly button sizing"
         println "✅ Touch-friendly elements validation passed"
-        
+
         // Test 4: Mobile user agent simulation
-        def mobileHeaders = [
+        Map<String, String> mobileHeaders = [
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
         ]
-        def mobileResponse = makeHttpRequest("GET", pageUrl, mobileHeaders)
+        Map<String, Object> mobileResponse = makeHttpRequest("GET", pageUrl, mobileHeaders)
         
         assert mobileResponse.statusCode == 200, "Page should load correctly with mobile user agent"
         println "✅ Mobile user agent compatibility verified"
@@ -582,9 +603,9 @@ class StepViewIntegrationTest {
         }
         
         // Test 4: CSRF token validation (if implemented)
-        def csrfUrl = "${BASE_URL}${API_BASE}/steps/test-step/status"
-        def csrfPayload = [status: "IN_PROGRESS", userId: "test-user"]
-        def csrfResponse = makeApiRequest("PUT", csrfUrl, [:], [:], csrfPayload)
+        String csrfUrl = "${BASE_URL}${API_BASE}/steps/test-step/status"
+        Map<String, Object> csrfPayload = [status: EmbeddedMockStatusService.getStatusNameById(2), userId: "test-user"] as Map<String, Object>
+        Map<String, Object> csrfResponse = makeApiRequest("PUT", csrfUrl, [:] as Map<String, String>, [:] as Map<String, String>, csrfPayload)
         
         // Should either accept request or require CSRF token
         if (csrfResponse.statusCode in [200, 400, 403, 404]) {
@@ -599,137 +620,139 @@ class StepViewIntegrationTest {
     /**
      * Make HTTP request with optional headers
      */
-    private static Map makeHttpRequest(String method, String url, Map<String, String> headers = [:]) {
+    private static Map<String, Object> makeHttpRequest(String method, String url, Map<String, String> headers = [:]) {
         try {
-            def connection = new URL(url).openConnection()
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection()
             connection.setRequestMethod(method)
             connection.setConnectTimeout(10000)
             connection.setReadTimeout(30000)
-            
+
             // Add default headers
             connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
             connection.setRequestProperty("User-Agent", "UMIG-IntegrationTest/1.0")
-            
+
             // Add custom headers
-            headers.each { key, value ->
+            headers.each { String key, String value ->
                 connection.setRequestProperty(key, value)
             }
-            
-            def responseCode = connection.getResponseCode()
-            def responseBody = ""
-            
+
+            int responseCode = connection.getResponseCode()
+            String responseBody = ""
+
             try {
-                def stream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()
+                InputStream stream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()
                 responseBody = stream?.text ?: ""
             } catch (Exception e) {
                 responseBody = "Error reading response: ${e.message}"
             }
-            
+
             return [
                 statusCode: responseCode,
                 body: responseBody,
                 headers: connection.getHeaderFields()
-            ]
+            ] as Map<String, Object>
         } catch (Exception e) {
             return [
                 statusCode: 0,
                 body: "Connection failed: ${e.message}",
                 headers: [:]
-            ]
+            ] as Map<String, Object>
         }
     }
     
     /**
      * Make API request with query parameters and JSON payload
      */
-    private static Map makeApiRequest(String method, String url, Map<String, String> queryParams = [:], 
-                                     Map<String, String> headers = [:], Map payload = null) {
+    private static Map<String, Object> makeApiRequest(String method, String url, Map<String, String> queryParams = [:],
+                                     Map<String, String> headers = [:], Map<String, Object> payload = null) {
         try {
-            def urlWithParams = url
+            String urlWithParams = url
             if (queryParams) {
-                def paramString = queryParams.collect { k, v -> "${URLEncoder.encode(k, 'UTF-8')}=${URLEncoder.encode(v, 'UTF-8')}" }.join('&')
+                String paramString = queryParams.collect { String k, String v -> "${URLEncoder.encode(k, 'UTF-8')}=${URLEncoder.encode(v, 'UTF-8')}" }.join('&')
                 urlWithParams = "${url}?${paramString}"
             }
-            
-            def connection = new URL(urlWithParams).openConnection()
+
+            HttpURLConnection connection = (HttpURLConnection) new URL(urlWithParams).openConnection()
             connection.setRequestMethod(method)
             connection.setConnectTimeout(10000)
             connection.setReadTimeout(30000)
-            
+
             // Add default headers
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Accept", "application/json")
             connection.setRequestProperty("User-Agent", "UMIG-IntegrationTest/1.0")
-            
+
             // Add custom headers
-            headers.each { key, value ->
+            headers.each { String key, String value ->
                 connection.setRequestProperty(key, value)
             }
-            
+
             // Add payload if present
             if (payload && method in ['POST', 'PUT', 'PATCH']) {
                 connection.setDoOutput(true)
-                def jsonPayload = new JsonBuilder(payload).toString()
+                String jsonPayload = new JsonBuilder(payload).toString()
                 connection.getOutputStream().write(jsonPayload.getBytes('UTF-8'))
             }
-            
-            def responseCode = connection.getResponseCode()
-            def responseBody = ""
-            
+
+            int responseCode = connection.getResponseCode()
+            String responseBody = ""
+
             try {
-                def stream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()
+                InputStream stream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()
                 responseBody = stream?.text ?: ""
             } catch (Exception e) {
                 responseBody = "Error reading response: ${e.message}"
             }
-            
+
             return [
                 statusCode: responseCode,
                 body: responseBody,
                 headers: connection.getHeaderFields()
-            ]
+            ] as Map<String, Object>
         } catch (Exception e) {
             return [
                 statusCode: 0,
                 body: "Connection failed: ${e.message}",
                 headers: [:]
-            ]
+            ] as Map<String, Object>
         }
     }
     
     /**
      * Make API request with custom timeout
      */
-    private static Map makeApiRequestWithTimeout(String method, String url, int timeoutMs) {
-        def connection = new URL(url).openConnection()
+    private static Map<String, Object> makeApiRequestWithTimeout(String method, String url, int timeoutMs) {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection()
         connection.setRequestMethod(method)
         connection.setConnectTimeout(timeoutMs)
         connection.setReadTimeout(timeoutMs)
-        
-        def responseCode = connection.getResponseCode()
-        def responseBody = connection.getInputStream().text
-        
-        return [statusCode: responseCode, body: responseBody]
+
+        int responseCode = connection.getResponseCode()
+        String responseBody = connection.getInputStream().text
+
+        return [statusCode: responseCode, body: responseBody] as Map<String, Object>
     }
     
     /**
      * Validate step data structure
      */
-    private static void validateStepDataStructure(Map stepData) {
+    private static void validateStepDataStructure(Map<String, Object> stepData) {
         assert stepData.stepSummary != null, "Step data should contain summary"
-        assert stepData.stepSummary.ID != null, "Step summary should have ID"
-        assert stepData.stepSummary.StepCode != null, "Step summary should have step code"
-        assert stepData.stepSummary.Name != null, "Step summary should have name"
-        assert stepData.stepSummary.Status != null, "Step summary should have status"
-        
+        Map<String, Object> stepSummary = (Map<String, Object>) stepData.stepSummary
+        assert stepSummary.ID != null, "Step summary should have ID"
+        assert stepSummary.StepCode != null, "Step summary should have step code"
+        assert stepSummary.Name != null, "Step summary should have name"
+        assert stepSummary.Status != null, "Step summary should have status"
+
         assert stepData.instructions != null, "Step data should contain instructions array"
-        if (stepData.instructions.size() > 0) {
-            def firstInstruction = stepData.instructions[0]
+        List<Map<String, Object>> instructions = (List<Map<String, Object>>) stepData.instructions
+        if (instructions.size() > 0) {
+            Map<String, Object> firstInstruction = instructions[0]
             assert firstInstruction.Id != null, "Instruction should have ID"
             assert firstInstruction.Description != null, "Instruction should have description"
             assert firstInstruction.Order != null, "Instruction should have order"
         }
-        
+
         println "✅ Step data structure validation passed"
     }
     
@@ -767,14 +790,14 @@ class StepViewIntegrationTest {
     /**
      * Validate user permissions based on role
      */
-    private static void validateUserPermissions(Map userContext, Map expectedPermissions) {
-        def role = userContext.role
-        
-        expectedPermissions.each { permission, expected ->
-            def actual = calculatePermission(role, permission)
+    private static void validateUserPermissions(Map<String, Object> userContext, Map<String, Object> expectedPermissions) {
+        String role = (String) userContext.role
+
+        expectedPermissions.each { String permission, Object expected ->
+            boolean actual = calculatePermission(role, permission)
             assert actual == expected, "Role ${role} should have ${permission}=${expected}, but got ${actual}"
         }
-        
+
         println "✅ User permissions validation passed for role: ${role}"
     }
     
@@ -782,30 +805,31 @@ class StepViewIntegrationTest {
      * Calculate permission based on role
      */
     private static boolean calculatePermission(String role, String permission) {
-        def rolePermissions = [
+        Map<String, Map<String, Boolean>> rolePermissions = [
             NORMAL: [
                 canEditInstructions: true,
                 canChangeStatus: false,
                 canAddComments: false,
                 canSendEmail: false,
                 canEditComments: false
-            ],
+            ] as Map<String, Boolean>,
             PILOT: [
                 canEditInstructions: true,
                 canChangeStatus: true,
                 canAddComments: true,
                 canSendEmail: true,
                 canEditComments: true
-            ]
-        ]
-        
-        return rolePermissions[role]?[permission] ?: false
+            ] as Map<String, Boolean>
+        ] as Map<String, Map<String, Boolean>>
+
+        Map<String, Boolean> permissions = rolePermissions[role]
+        return permissions ? permissions[permission] ?: false : false
     }
 }
 
 // Execute tests if run directly
 if (this.getClass().getName() == 'Main') {
-    StepViewIntegrationTest.main(args)
+    StepViewIntegrationTest.main()
 }
 
 /**

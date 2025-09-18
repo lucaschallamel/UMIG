@@ -16,6 +16,11 @@
  * - Implemented smart polling for CSS debug function
  * - Added comprehensive error logging with helpful user guidance
  * - Improved graceful degradation when DOM elements are unavailable
+ *
+ * TD-003 Phase 2H: StatusProvider Integration
+ * - Migrated hardcoded status values to dynamic StatusProvider
+ * - Enhanced status dropdown with centralized status management
+ * - Integrated status mapping with fallback patterns
  */
 
 /**
@@ -411,12 +416,7 @@ class StepViewSearchFilter {
             <label for="status-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Status:</label>
             <select id="status-filter" class="select">
               <option value="all">All Statuses</option>
-              <option value="PENDING" ${this.searchState.statusFilter === "PENDING" ? "selected" : ""}>Pending</option>
-              <option value="TODO" ${this.searchState.statusFilter === "TODO" ? "selected" : ""}>To Do</option>
-              <option value="IN_PROGRESS" ${this.searchState.statusFilter === "IN_PROGRESS" ? "selected" : ""}>In Progress</option>
-              <option value="COMPLETED" ${this.searchState.statusFilter === "COMPLETED" ? "selected" : ""}>Completed</option>
-              <option value="BLOCKED" ${this.searchState.statusFilter === "BLOCKED" ? "selected" : ""}>Blocked</option>
-              <option value="FAILED" ${this.searchState.statusFilter === "FAILED" ? "selected" : ""}>Failed</option>
+              <!-- Dynamic status options will be populated by StatusProvider -->
             </select>
           </div>
           
@@ -538,6 +538,94 @@ class StepViewSearchFilter {
         }
       });
     });
+
+    // TD-003 Phase 2H: Populate status filter dropdown using StatusProvider
+    this.populateStatusFilterDropdown();
+  }
+
+  /**
+   * Populate status filter dropdown using StatusProvider (TD-003 Phase 2H)
+   */
+  async populateStatusFilterDropdown() {
+    const statusFilter = document.getElementById("status-filter");
+    if (!statusFilter) {
+      console.warn("StepView: Status filter dropdown not found");
+      return;
+    }
+
+    try {
+      // Get status options from StatusProvider
+      if (window.StatusProvider) {
+        console.debug(
+          "StepView: Using StatusProvider for status filter options",
+        );
+        const statusOptions =
+          await window.StatusProvider.getDropdownOptions("Step");
+
+        // Keep the "All Statuses" option and add dynamic options
+        const currentSelection = this.searchState.statusFilter;
+
+        // Add status options
+        statusOptions.forEach((option) => {
+          if (option && option.value) {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.value;
+            optionElement.textContent = option.text || option.value;
+
+            if (currentSelection === option.value) {
+              optionElement.selected = true;
+            }
+
+            statusFilter.appendChild(optionElement);
+          }
+        });
+
+        console.debug(
+          `StepView: Added ${statusOptions.length} dynamic status options to filter`,
+        );
+      } else {
+        console.warn(
+          "StepView: StatusProvider not available, using fallback status options",
+        );
+        this.populateStatusFilterFallback(statusFilter);
+      }
+    } catch (error) {
+      console.error(
+        "StepView: Error populating status filter dropdown:",
+        error,
+      );
+      this.populateStatusFilterFallback(statusFilter);
+    }
+  }
+
+  /**
+   * Fallback method to populate status filter with hardcoded options (TD-003 Phase 2H)
+   */
+  populateStatusFilterFallback(statusFilter) {
+    const fallbackOptions = [
+      { value: "PENDING", text: "Pending" },
+      { value: "TODO", text: "To Do" },
+      { value: "IN_PROGRESS", text: "In Progress" },
+      { value: "COMPLETED", text: "Completed" },
+      { value: "BLOCKED", text: "Blocked" },
+      { value: "FAILED", text: "Failed" },
+    ];
+
+    const currentSelection = this.searchState.statusFilter;
+
+    fallbackOptions.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.value;
+      optionElement.textContent = option.text;
+
+      if (currentSelection === option.value) {
+        optionElement.selected = true;
+      }
+
+      statusFilter.appendChild(optionElement);
+    });
+
+    console.debug("StepView: Added fallback status options to filter");
   }
 
   /**
@@ -4353,13 +4441,13 @@ class StepView {
     // US-036: Use fetched statuses data for accurate mapping
     const parsedId = parseInt(statusId);
 
-    // First try to use fetched status data
+    // First try to use StatusProvider dynamic data (TD-003 Phase 2H)
     if (this.statusesMap && this.statusesMap.has(parsedId)) {
       const status = this.statusesMap.get(parsedId);
       return status.name;
     }
 
-    // Fallback to hardcoded mapping if statuses not yet fetched
+    // Fallback to hardcoded mapping if StatusProvider not yet loaded (TD-003 Phase 2H)
     // Step statuses start at ID 21 (after Migration:1-4, Plan:5-8, Iteration:9-12, Sequence:13-16, Phase:17-20)
     const statusMap = {
       21: "PENDING", // Corrected: was 20
@@ -4418,7 +4506,7 @@ class StepView {
       const status = this.statusesMap.get(parsedId);
       color = status.color || color;
     } else {
-      // Fallback to hardcoded colors if statuses not yet fetched
+      // Fallback to hardcoded colors if StatusProvider not yet loaded (TD-003 Phase 2H)
       const statusColors = {
         PENDING: "#DDDDDD",
         TODO: "#FFFF00",

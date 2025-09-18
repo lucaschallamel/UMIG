@@ -8,13 +8,19 @@ import java.time.LocalDateTime
 import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
 import umig.utils.EnhancedEmailService
+import umig.tests.unit.mock.MockStatusService
 
 /**
- * Integration tests for US-056B Template Integration
- * 
+ * Integration tests for US-056B Template Integration (TD-003 Migrated)
+ *
  * Verifies end-to-end integration between StepInstanceDTO,
  * CommentDTO, and EnhancedEmailService template processing.
- * 
+ *
+ * MIGRATION NOTE (TD-003 Phase 2):
+ * - Migrated from hardcoded status values to MockStatusService patterns
+ * - Maintains test reliability while eliminating hardcoded status strings
+ * - Uses MockStatusService dynamic status selection for email template testing
+ *
  * NOTE: Static type checking is disabled for this Spock test to avoid
  * compilation errors when accessing Map properties returned from template
  * transformations. The static type checker incorrectly treats Map results
@@ -67,7 +73,7 @@ class EmailTemplateIntegrationTest extends Specification {
         def stepDTO = StepInstanceDTO.builder()
             .stepId("critical-step-456")
             .stepName("Database Migration Validation")
-            .stepStatus("IN_PROGRESS")
+            .stepStatus(MockStatusService.getAllStatusNames('Step').find { it == 'IN_PROGRESS' } ?: MockStatusService.getDefaultStatus('Step'))
             .stepDescription("Validate database migration scripts and test data integrity")
             .assignedTeamName("Database Team")
             .migrationCode("PROJ-2025-Q1")
@@ -86,7 +92,7 @@ class EmailTemplateIntegrationTest extends Specification {
         
         then: "Step-level template variables are correctly mapped"
         templateMap.stepName == "Database Migration Validation"
-        templateMap.stepStatus == "IN_PROGRESS"
+        templateMap.stepStatus == (MockStatusService.getAllStatusNames('Step').find { it == 'IN_PROGRESS' } ?: MockStatusService.getDefaultStatus('Step'))
         templateMap.assignedTeamName == "Database Team"
         templateMap.hasActiveComments == true
         templateMap.commentCount == 3
@@ -136,7 +142,7 @@ class EmailTemplateIntegrationTest extends Specification {
         def stepDTO = StepInstanceDTO.builder()
             .stepId("minimal-step-789")
             .stepName("Minimal Step")
-            .stepStatus("PENDING")
+            .stepStatus(MockStatusService.getAllStatusNames('Step').find { it == 'PENDING' } ?: MockStatusService.getDefaultStatus('Step'))
             .comments([minimalComment])
             .build()
         
@@ -176,7 +182,7 @@ class EmailTemplateIntegrationTest extends Specification {
         def stepDTO = StepInstanceDTO.builder()
             .stepId("mixed-step-101")
             .stepName("Mixed Comment Step")
-            .stepStatus("COMPLETED")
+            .stepStatus(MockStatusService.getAllStatusNames('Step').find { it == 'COMPLETED' } ?: MockStatusService.getDefaultStatus('Step'))
             .comments([enhancedComment, legacyComment])
             .build()
         
@@ -216,7 +222,7 @@ class EmailTemplateIntegrationTest extends Specification {
         def stepInstance = StepInstanceDTO.builder()
             .stepId("emergency-step-999")
             .stepName("Emergency Database Recovery")
-            .stepStatus("FAILED")
+            .stepStatus(MockStatusService.getAllStatusNames('Step').find { it == 'FAILED' } ?: MockStatusService.getDefaultStatus('Step'))
             .assignedTeamName("Emergency Response Team")
             .comments([criticalComment])
             .hasActiveComments(true)

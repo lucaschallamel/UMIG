@@ -22,10 +22,10 @@
  * Coverage Target: End-to-end validation of new instance endpoints
  */
 
-const expect = require("chai").expect;
 const fetch = require("node-fetch");
 const fs = require("fs").promises;
 const path = require("path");
+const MockStatusProvider = require("../../../mocks/MockStatusProvider");
 
 describe("US-056-C Steps API Instance Endpoints Integration", function () {
   this.timeout(30000); // 30 seconds for API calls
@@ -33,6 +33,9 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
   const BASE_URL = "http://localhost:8090";
   const SCRIPTRUNNER_BASE = "/rest/scriptrunner/latest/custom";
   const STEPS_API_BASE = `${BASE_URL}${SCRIPTRUNNER_BASE}/steps`;
+
+  // Initialize MockStatusProvider for controlled test values (TD-003)
+  const mockStatusProvider = new MockStatusProvider();
 
   // Test data - using known IDs from test database
   const TEST_TEAM_ID = "c550e8400-e29b-41d4-a716-446655440101";
@@ -152,21 +155,21 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
         testResults.postEndpointTests.push(result);
         testResults.performanceTests.push(result);
 
-        expect(response.status).to.equal(201, "Should return 201 Created");
-        expect(responseTime).to.be.below(51, "Response time should be < 51ms");
+        expect(response.status).toBe(201);
+        expect(responseTime).toBeLessThan(51);
 
         const responseData = JSON.parse(responseText);
 
         // Validate DTO structure
-        expect(responseData).to.have.property("stepId");
-        expect(responseData).to.have.property("stepInstanceId");
-        expect(responseData.stepName).to.equal("Integration Test Step");
-        expect(responseData.stepType).to.equal("CUTOVER");
-        expect(responseData.assignedTeamId).to.equal(TEST_TEAM_ID);
-        expect(responseData.phaseId).to.equal(TEST_PHASE_ID);
-        expect(responseData.priority).to.equal(5);
-        expect(responseData.estimatedDuration).to.equal(60);
-        expect(responseData.isActive).to.equal(true);
+        expect(responseData).toHaveProperty("stepId");
+        expect(responseData).toHaveProperty("stepInstanceId");
+        expect(responseData.stepName).toBe("Integration Test Step");
+        expect(responseData.stepType).toBe("CUTOVER");
+        expect(responseData.assignedTeamId).toBe(TEST_TEAM_ID);
+        expect(responseData.phaseId).toBe(TEST_PHASE_ID);
+        expect(responseData.priority).toBe(5);
+        expect(responseData.estimatedDuration).toBe(60);
+        expect(responseData.isActive).toBe(true);
 
         // Store for cleanup and further tests
         createdStepInstances.push(responseData.stepInstanceId);
@@ -221,15 +224,16 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.postEndpointTests.push(result);
 
-      expect(response.status).to.equal(201, "Should return 201 Created");
-      expect(responseTime).to.be.below(51, "Response time should be < 51ms");
+      expect(response.status).toBe(201);
+      expect(responseTime).toBeLessThan(51);
 
       const responseData = JSON.parse(responseText);
 
-      // Validate defaults were applied
-      expect(responseData.stepStatus).to.equal("PENDING"); // Default
-      expect(responseData.priority).to.equal(5); // Default
-      expect(responseData.isActive).to.equal(true); // Default
+      // Validate defaults were applied (TD-003: Using MockStatusProvider)
+      const defaultStatus = mockStatusProvider.getDefaultStatus("Step");
+      expect(responseData.stepStatus).toBe(defaultStatus); // Default from MockStatusProvider
+      expect(responseData.priority).toBe(5); // Default
+      expect(responseData.isActive).toBe(true); // Default
 
       createdStepInstances.push(responseData.stepInstanceId);
 
@@ -268,14 +272,11 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.errorHandlingTests.push(result);
 
-      expect(response.status).to.equal(
-        400,
-        "Should return 400 Bad Request for missing required fields",
-      );
+      expect(response.status).toBe(400);
 
       const errorData = JSON.parse(responseText);
-      expect(errorData).to.have.property("error");
-      expect(errorData.error).to.include("required"); // Should mention missing required fields
+      expect(errorData).toHaveProperty("error");
+      expect(errorData.error).toContain("required"); // Should mention missing required fields
 
       console.log(
         `  ✓ Proper error handling for missing fields in ${responseTime}ms`,
@@ -311,14 +312,11 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.errorHandlingTests.push(result);
 
-      expect(response.status).to.equal(
-        400,
-        "Should return 400 Bad Request for invalid UUID",
-      );
+      expect(response.status).toBe(400);
 
       const errorData = JSON.parse(responseText);
-      expect(errorData).to.have.property("error");
-      expect(errorData.error.toLowerCase()).to.include("uuid"); // Should mention UUID format issue
+      expect(errorData).toHaveProperty("error");
+      expect(errorData.error.toLowerCase()).toContain("uuid"); // Should mention UUID format issue
 
       console.log("  ✓ Proper error handling for invalid UUID format");
     });
@@ -357,10 +355,12 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
     });
 
     it("should update existing step instance successfully", async function () {
+      // TD-003: Using MockStatusProvider for status values
+      const inProgressStatus = mockStatusProvider.getStatusNameById(2);
       const updateData = {
         stepName: "Updated Test Step Name",
         stepDescription: "Updated description for integration testing",
-        stepStatus: "IN_PROGRESS",
+        stepStatus: inProgressStatus,
         priority: 2,
         estimatedDuration: 90,
       };
@@ -392,20 +392,20 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
       testResults.putEndpointTests.push(result);
       testResults.performanceTests.push(result);
 
-      expect(response.status).to.equal(200, "Should return 200 OK");
-      expect(responseTime).to.be.below(51, "Response time should be < 51ms");
+      expect(response.status).toBe(200);
+      expect(responseTime).toBeLessThan(51);
 
       const responseData = JSON.parse(responseText);
 
       // Validate update was successful
-      expect(responseData.stepInstanceId).to.equal(testStepInstanceId);
-      expect(responseData.stepName).to.equal("Updated Test Step Name");
-      expect(responseData.stepDescription).to.equal(
+      expect(responseData.stepInstanceId).toBe(testStepInstanceId);
+      expect(responseData.stepName).toBe("Updated Test Step Name");
+      expect(responseData.stepDescription).toBe(
         "Updated description for integration testing",
       );
-      expect(responseData.stepStatus).to.equal("IN_PROGRESS");
-      expect(responseData.priority).to.equal(2);
-      expect(responseData.estimatedDuration).to.equal(90);
+      expect(responseData.stepStatus).toBe(inProgressStatus);
+      expect(responseData.priority).toBe(2);
+      expect(responseData.estimatedDuration).toBe(90);
 
       console.log(
         `  ✓ Step instance updated successfully in ${responseTime}ms`,
@@ -413,8 +413,10 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
     });
 
     it("should handle partial updates correctly", async function () {
+      // TD-003: Using MockStatusProvider for status values
+      const completedStatus = mockStatusProvider.getStatusNameById(3);
       const partialUpdateData = {
-        stepStatus: "COMPLETED",
+        stepStatus: completedStatus,
         priority: 1,
       };
 
@@ -445,13 +447,13 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.putEndpointTests.push(result);
 
-      expect(response.status).to.equal(200, "Should return 200 OK");
+      expect(response.status).toBe(200);
 
       // Validate partial update - only changed fields should be updated
-      expect(responseData.stepStatus).to.equal("COMPLETED");
-      expect(responseData.priority).to.equal(1);
+      expect(responseData.stepStatus).toBe(completedStatus);
+      expect(responseData.priority).toBe(1);
       // Other fields should remain unchanged from previous test
-      expect(responseData.stepName).to.equal("Updated Test Step Name");
+      expect(responseData.stepName).toBe("Updated Test Step Name");
 
       console.log(`  ✓ Partial update handled correctly in ${responseTime}ms`);
     });
@@ -483,11 +485,11 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.errorHandlingTests.push(result);
 
-      expect(response.status).to.equal(404, "Should return 404 Not Found");
+      expect(response.status).toBe(404);
 
       const errorData = await response.json();
-      expect(errorData).to.have.property("error");
-      expect(errorData.error.toLowerCase()).to.include("not found");
+      expect(errorData).toHaveProperty("error");
+      expect(errorData.error.toLowerCase()).toContain("not found");
 
       console.log("  ✓ Proper 404 handling for non-existent step instance");
     });
@@ -516,14 +518,11 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.errorHandlingTests.push(result);
 
-      expect(response.status).to.equal(
-        400,
-        "Should return 400 Bad Request for invalid UUID",
-      );
+      expect(response.status).toBe(400);
 
       const errorData = await response.json();
-      expect(errorData).to.have.property("error");
-      expect(errorData.error.toLowerCase()).to.include("uuid");
+      expect(errorData).toHaveProperty("error");
+      expect(errorData.error.toLowerCase()).toContain("uuid");
 
       console.log("  ✓ Proper error handling for invalid UUID format");
     });
@@ -550,10 +549,7 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.errorHandlingTests.push(result);
 
-      expect(response.status).to.equal(
-        400,
-        "Should return 400 Bad Request for empty body",
-      );
+      expect(response.status).toBe(400);
 
       console.log("  ✓ Proper error handling for empty request body");
     });
@@ -604,17 +600,14 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
       ];
 
       for (const field of expectedFields) {
-        expect(responseData).to.have.property(
-          field,
-          `DTO should include ${field} field`,
-        );
+        expect(responseData).toHaveProperty(field);
       }
 
       // Validate field types
-      expect(responseData.stepInstanceId).to.be.a("string");
-      expect(responseData.stepName).to.be.a("string");
-      expect(responseData.priority).to.be.a("number");
-      expect(responseData.isActive).to.be.a("boolean");
+      expect(typeof responseData.stepInstanceId).toBe("string");
+      expect(typeof responseData.stepName).toBe("string");
+      expect(typeof responseData.priority).toBe("number");
+      expect(typeof responseData.isActive).toBe("boolean");
 
       console.log("  ✓ DTO structure validation passed");
       console.log(
@@ -662,15 +655,15 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.dtoValidationTests.push(result);
 
-      expect(response.status).to.equal(
-        201,
-        "Should handle type casting and return 201",
-      );
+      expect(response.status).toBe(201);
 
       // Validate proper type casting occurred
-      expect(responseData.priority).to.be.a("number").and.equal(6);
-      expect(responseData.estimatedDuration).to.be.a("number").and.equal(120);
-      expect(responseData.isActive).to.be.a("boolean").and.equal(true);
+      expect(typeof responseData.priority).toBe("number");
+      expect(responseData.priority).toBe(6);
+      expect(typeof responseData.estimatedDuration).toBe("number");
+      expect(responseData.estimatedDuration).toBe(120);
+      expect(typeof responseData.isActive).toBe("boolean");
+      expect(responseData.isActive).toBe(true);
 
       console.log("  ✓ Type casting validation (ADR-031) passed");
       console.log(
@@ -745,20 +738,14 @@ describe("US-056-C Steps API Instance Endpoints Integration", function () {
 
       testResults.performanceTests.push(result);
 
-      expect(averageResponseTime).to.be.below(
-        51,
-        `Average response time should be < 51ms (actual: ${averageResponseTime.toFixed(2)}ms)`,
-      );
-      expect(maxResponseTime).to.be.below(
-        100,
-        "Maximum response time should be reasonable",
-      );
+      expect(averageResponseTime).toBeLessThan(51);
+      expect(maxResponseTime).toBeLessThan(100);
 
       console.log(`  ✓ Performance benchmark passed:`);
       console.log(`    Average: ${averageResponseTime.toFixed(2)}ms`);
       console.log(`    Min: ${minResponseTime}ms, Max: ${maxResponseTime}ms`);
       console.log(
-        `    Target: < 51ms (${averageResponseTime < 51 ? "PASSED" : "FAILED"})`,
+        `    Target: < 51ms (${averageResponseTime < 51 ? mockStatusProvider.getStatusNameById(3) : mockStatusProvider.getStatusNameById(4)})`,
       );
     });
   });

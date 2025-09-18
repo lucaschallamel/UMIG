@@ -250,6 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Include URL constructor utility -->
 <script type=\"text/javascript\" src=\"${webRoot}/js/utils/url-constructor.js\"></script>
 
+<!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
+<script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
+
 <!-- Include main step view JavaScript -->
 <script type=\"text/javascript\" src=\"${webRoot}/js/step-view.js\"></script>
 """

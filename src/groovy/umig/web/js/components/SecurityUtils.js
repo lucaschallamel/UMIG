@@ -549,6 +549,12 @@ if (typeof SecurityUtils === "undefined") {
       // Intercept fetch requests
       const originalFetch = window.fetch;
       window.fetch = (url, options = {}) => {
+        // Ensure credentials are included for same-origin requests
+        // This is crucial for ScriptRunner API calls that need session authentication
+        if (!options.credentials && this.isSameOriginRequest(url)) {
+          options.credentials = "include";
+        }
+
         // Add CSRF token for state-changing requests
         if (this.isStateChangingRequest(options.method)) {
           options.headers = {
@@ -595,6 +601,36 @@ if (typeof SecurityUtils === "undefined") {
     isStateChangingRequest(method) {
       const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
       return method && stateChangingMethods.includes(method.toUpperCase());
+    }
+
+    /**
+     * Check if URL is same-origin (for credential inclusion)
+     * @param {string} url - URL to check
+     * @returns {boolean} True if same-origin
+     */
+    isSameOriginRequest(url) {
+      try {
+        // Handle relative URLs (always same-origin)
+        if (!url.startsWith("http")) {
+          return true;
+        }
+
+        const requestURL = new URL(url);
+        const currentURL = new URL(window.location.href);
+
+        return (
+          requestURL.protocol === currentURL.protocol &&
+          requestURL.hostname === currentURL.hostname &&
+          requestURL.port === currentURL.port
+        );
+      } catch (error) {
+        // If URL parsing fails, assume same-origin for safety
+        console.warn(
+          "[SecurityUtils] Error parsing URL for same-origin check:",
+          error,
+        );
+        return true;
+      }
     }
 
     // ===== Centralized Input Sanitization =====
