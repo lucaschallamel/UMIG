@@ -83,9 +83,9 @@ GET /instructions?stepId=123e4567-e89b-12d3-a456-426614174000
     "teamName": "Database Team",
     "controlId": "abc12345-e89b-12d3-a456-426614174002",
     "controlName": "DB_CONNECTIVITY_CHECK",
-    "createdAt": "2025-01-20T10:30:00Z",
+    "createdAt": "2025-07-20T10:30:00Z",
     "createdBy": 1001,
-    "updatedAt": "2025-01-22T14:15:00Z",
+    "updatedAt": "2025-08-01T14:15:00Z",
     "updatedBy": 1002
   }
 ]
@@ -458,18 +458,18 @@ Retrieves instruction completion timeline data.
 {
   "timelineData": [
     {
-      "date": "2025-01-20",
+      "date": "2025-07-20",
       "count": 15,
       "cumulativeCount": 15
     },
     {
-      "date": "2025-01-21",
+      "date": "2025-08-01",
       "count": 28,
       "cumulativeCount": 43
     }
   ],
   "averageCompletionTime": 2.5,
-  "peakCompletionDays": ["2025-01-21", "2025-01-22"],
+  "peakCompletionDays": ["2025-08-01", "2025-08-01"],
   "teamPerformance": [
     {
       "teamId": 1,

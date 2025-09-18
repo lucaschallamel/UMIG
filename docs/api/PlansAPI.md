@@ -159,9 +159,9 @@
   "sts_name": "Active",
   "sts_color": "#28a745",
   "created_by": "admin",
-  "created_at": "2025-01-15T10:30:00Z",
+  "created_at": "2025-07-15T10:30:00Z",
   "updated_by": "admin",
-  "updated_at": "2025-01-15T10:30:00Z"
+  "updated_at": "2025-07-15T10:30:00Z"
 }
 ```
 
@@ -428,8 +428,8 @@ The API provides specific error messages with recovery guidance:
 ## 14. Changelog
 
 - **2025-08-22:** Enhanced with PostgreSQL patterns, flexible status handling, and comprehensive troubleshooting
-- **2025-01-15:** Created comprehensive API specification with audit fields
-- **2024-12-15:** Initial implementation of Plans API v2
+- **2025-07-15:** Created comprehensive API specification with audit fields
+- **2025-08-01:** Initial implementation of Plans API v2
 - **Author:** Claude AI Assistant (UMIG Documentation Update)
 
 ---

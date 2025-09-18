@@ -147,13 +147,13 @@
       "tms_description": "Core development team",
       "tms_active": true,
       "created_by": "admin",
-      "created_at": "2025-01-10T10:30:00Z",
+      "created_at": "2025-07-10T10:30:00Z",
       "updated_by": "admin",
-      "updated_at": "2025-01-10T10:30:00Z"
+      "updated_at": "2025-07-10T10:30:00Z"
     }
   ],
   "totalTeams": 1,
-  "timestamp": "2025-01-13T15:45:23.123Z"
+  "timestamp": "2025-07-13T15:45:23.123Z"
 }
 ```
 
@@ -617,13 +617,13 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams?includeArchived=fa
       "tms_description": "Core development team",
       "tms_active": true,
       "created_by": "admin",
-      "created_at": "2025-01-10T10:30:00Z",
+      "created_at": "2025-07-10T10:30:00Z",
       "updated_by": "admin",
-      "updated_at": "2025-01-10T10:30:00Z"
+      "updated_at": "2025-07-10T10:30:00Z"
     }
   ],
   "totalTeams": 1,
-  "timestamp": "2025-01-13T15:45:23.123Z"
+  "timestamp": "2025-07-13T15:45:23.123Z"
 }
 ```
 
@@ -650,13 +650,13 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users?includeInactive=fals
       "usr_active": true,
       "role_name": "Developer",
       "created_by": "admin",
-      "created_at": "2025-01-10T11:00:00Z",
+      "created_at": "2025-07-10T11:00:00Z",
       "updated_by": "admin",
-      "updated_at": "2025-01-10T11:00:00Z"
+      "updated_at": "2025-07-10T11:00:00Z"
     }
   ],
   "totalUsers": 1,
-  "timestamp": "2025-01-13T15:50:15.456Z"
+  "timestamp": "2025-07-13T15:50:15.456Z"
 }
 ```
 
@@ -679,9 +679,9 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users/101/validate" \
     "teamActive": true,
     "userActive": true,
     "integrityIssues": [],
-    "validationDate": "2025-01-13T15:55:00Z"
+    "validationDate": "2025-07-13T15:55:00Z"
   },
-  "timestamp": "2025-01-13T15:55:00.789Z"
+  "timestamp": "2025-07-13T15:55:00.789Z"
 }
 ```
 
@@ -720,7 +720,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/delete-protection" \
       "steps": 15
     }
   },
-  "timestamp": "2025-01-13T16:00:00.123Z"
+  "timestamp": "2025-07-13T16:00:00.123Z"
 }
 ```
 
@@ -751,7 +751,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/teams/1/soft-delete" \
     "preservedRelationships": 5
   },
   "message": "Team soft deleted successfully",
-  "timestamp": "2025-01-13T16:05:00.456Z"
+  "timestamp": "2025-07-13T16:05:00.456Z"
 }
 ```
 
@@ -786,7 +786,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/teams/cleanup-orphaned-members" \
     ]
   },
   "message": "Orphaned member cleanup completed",
-  "timestamp": "2025-01-13T16:10:00.789Z"
+  "timestamp": "2025-07-13T16:10:00.789Z"
 }
 ```
 
@@ -842,7 +842,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/teams/batch-validate-relationship
     "validCount": 2,
     "invalidCount": 1
   },
-  "timestamp": "2025-01-13T16:15:00.123Z"
+  "timestamp": "2025-07-13T16:15:00.123Z"
 }
 ```
 
@@ -875,10 +875,10 @@ curl -X POST "/rest/scriptrunner/latest/custom/teams/batch-validate-relationship
 
 ## 15. Change Log
 
-- **2025-01-13:** Initial API specification created for US-082-C Teams Entity Migration
-- **2025-01-13:** Added comprehensive relationship integrity validation
-- **2025-01-13:** Implemented cascade delete protection and orphaned member cleanup
-- **2025-01-13:** Added batch validation capabilities for large dataset operations
+- **2025-07-13:** Initial API specification created for US-082-C Teams Entity Migration
+- **2025-07-13:** Added comprehensive relationship integrity validation
+- **2025-07-13:** Implemented cascade delete protection and orphaned member cleanup
+- **2025-07-13:** Added batch validation capabilities for large dataset operations
 
 ---
 

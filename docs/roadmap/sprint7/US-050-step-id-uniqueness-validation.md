@@ -4,7 +4,7 @@
 **Story Points**: 2  
 **Priority**: Medium  
 **Sprint**: Sprint 7 (Moved from Sprint 6)  
-**Created**: 2025-01-26  
+**Created**: 2025-09-10  
 **Moved to Sprint 7**: September 10, 2025  
 **Status**: READY FOR SPRINT 7
 

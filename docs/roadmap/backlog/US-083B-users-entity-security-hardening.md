@@ -489,8 +489,8 @@ void "should load 1000 users with teams in under 200ms"() {
 
 ---
 
-**Story Created**: 2025-01-15  
-**Last Updated**: 2025-01-15  
+**Story Created**: 2025-07-15  
+**Last Updated**: 2025-07-15  
 **Security Priority**: HIGH  
 **Sprint Target**: Sprint 7  
 **Estimated Completion**: 4 weeks

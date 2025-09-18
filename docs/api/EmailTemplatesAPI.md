@@ -112,8 +112,8 @@ The API follows standard HTTP status codes:
   "emt_body_html": "<h2>Step Status Update</h2>...",
   "emt_body_text": "Step ${stepInstance.sti_name} has changed...",
   "emt_is_active": true,
-  "emt_created_date": "2025-01-16T10:30:00.000Z",
-  "emt_updated_date": "2025-01-16T10:30:00.000Z",
+  "emt_created_date": "2025-07-16T10:30:00.000Z",
+  "emt_updated_date": "2025-07-16T10:30:00.000Z",
   "emt_created_by": "admin",
   "emt_updated_by": "admin"
 }
