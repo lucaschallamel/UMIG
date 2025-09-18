@@ -4,6 +4,7 @@ import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 import umig.dto.CommentDTO
 import umig.utils.DatabaseUtil
+import umig.service.StatusService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -35,8 +36,22 @@ import java.util.UUID
  * @author UMIG Development Team
  */
 class StepDataTransformationService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(StepDataTransformationService.class)
+
+    // StatusService dependency - lazy loaded to avoid class loading issues
+    private StatusService statusService
+
+    /**
+     * Get StatusService instance with lazy initialization
+     * Following established UMIG pattern for service dependencies
+     */
+    private StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+        }
+        return statusService
+    }
     
     // ========================================
     // DATABASE ROW TO DTO TRANSFORMATION
@@ -66,7 +81,7 @@ class StepDataTransformationService {
                 .stepInstanceId(safeUUIDToString(row.sti_id))
                 .stepName(safeString(row.stm_name ?: row.sti_name))
                 .stepDescription(safeString(row.stm_description ?: row.sti_description))
-                .stepStatus(safeString(row.step_status ?: row.sti_status ?: 'PENDING'))
+                .stepStatus(safeString(row.step_status ?: row.sti_status ?: getStatusService().getDefaultStatus('Step')))
                 
                 // Team assignment
                 .assignedTeamId(safeUUIDToString(row.tms_id ?: row.assigned_team_id))
@@ -242,7 +257,7 @@ class StepDataTransformationService {
                 .stepInstanceId(safeUUIDToString(step.instanceId ?: step.stepInstanceId ?: step.sti_id))
                 .stepName(safeString(step.name ?: step.stepName ?: step.title))
                 .stepDescription(safeString(step.description ?: step.stepDescription ?: step.details))
-                .stepStatus(safeString(step.status ?: step.stepStatus ?: 'PENDING'))
+                .stepStatus(safeString(step.status ?: step.stepStatus ?: getStatusService().getDefaultStatus('Step')))
                 
                 // Legacy team assignment patterns - ADR-031 Type Safety Compliance
                 .assignedTeamId(safeUUIDToString(step.teamId ?: step.assignedTeamId ?: (step.team ? (step.team as Map).id : null)))
@@ -597,17 +612,18 @@ class StepDataTransformationService {
     
     /**
      * Format status for email display
+     * Now uses StatusService for centralized status management (TD-003 Phase 2)
      */
     private String formatStatusForDisplay(String status) {
         if (!status) return "Unknown"
-        
-        switch (status.toUpperCase()) {
-            case 'PENDING': return 'Pending'
-            case 'IN_PROGRESS': return 'In Progress'
-            case 'COMPLETED': return 'Completed'
-            case 'FAILED': return 'Failed'
-            case 'CANCELLED': return 'Cancelled'
-            default: return status.toLowerCase().tokenize('_').collect { it.capitalize() }.join(' ')
+
+        try {
+            // Use StatusService for consistent status formatting across UMIG
+            return getStatusService().formatStatusDisplay(status)
+        } catch (Exception e) {
+            log.debug("Failed to format status '{}' using StatusService, using fallback: {}", status, e.message)
+            // Fallback to previous logic for backwards compatibility
+            return status.toLowerCase().tokenize('_').collect { it.capitalize() }.join(' ')
         }
     }
     
@@ -649,18 +665,15 @@ class StepDataTransformationService {
     }
     
     /**
-     * Map status to email CSS class
+     * Map status to email CSS class - TD-003 Phase 2 Migration
+     * Uses StatusService for centralized status management
      */
     private String mapStatusToEmailClass(String status) {
-        if (!status) return "status-unknown"
-        
-        switch (status.toUpperCase()) {
-            case 'PENDING': return 'status-pending'
-            case 'IN_PROGRESS': return 'status-in-progress'
-            case 'COMPLETED': return 'status-completed'
-            case 'FAILED': return 'status-failed'
-            case 'CANCELLED': return 'status-cancelled'
-            default: return 'status-unknown'
+        try {
+            return getStatusService().getStatusCssClass(status)
+        } catch (Exception e) {
+            log.warn("Failed to get status CSS class from StatusService for '${status}': ${e.message}")
+            return "status-unknown"
         }
     }
     
