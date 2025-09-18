@@ -47,11 +47,15 @@ if (typeof BaseEntityManager === "undefined") {
         ...config,
       };
 
+      // Store orchestrator class or instance if provided
+      this.orchestratorClass = config.orchestrator;
+
       // Performance tracking for A/B testing
       this.performanceTracker = null;
       this.migrationMode = null; // 'legacy', 'new', or 'ab-test'
 
       // Component references
+      this.container = null;
       this.orchestrator = null;
       this.tableComponent = null;
       this.modalComponent = null;
@@ -59,6 +63,7 @@ if (typeof BaseEntityManager === "undefined") {
       this.paginationComponent = null;
 
       // State management
+      this.isInitialized = false;
       this.currentData = [];
       this.currentFilters = {};
       this.currentSort = null;
@@ -89,13 +94,39 @@ if (typeof BaseEntityManager === "undefined") {
           `[BaseEntityManager] Initializing ${this.entityType} entity manager`,
         );
 
+        // Store container reference
+        this.container = container;
+
         // Initialize ComponentOrchestrator with enterprise security
-        this.orchestrator = new ComponentOrchestrator({
-          container: container,
-          securityLevel: "enterprise",
-          auditMode: true,
-          performanceMonitoring: true,
-        });
+        if (this.orchestratorClass) {
+          // Use provided orchestrator class or instance
+          if (typeof this.orchestratorClass === "function") {
+            // If it's a class, instantiate it
+            this.orchestrator = new this.orchestratorClass({
+              container: container,
+              securityLevel: "enterprise",
+              auditMode: true,
+              performanceMonitoring: true,
+            });
+          } else {
+            // If it's already an instance, use it directly
+            this.orchestrator = this.orchestratorClass;
+          }
+        } else {
+          // Fallback to creating a new instance if ComponentOrchestrator is available
+          if (typeof window.ComponentOrchestrator !== "undefined") {
+            this.orchestrator = new window.ComponentOrchestrator({
+              container: container,
+              securityLevel: "enterprise",
+              auditMode: true,
+              performanceMonitoring: true,
+            });
+          } else {
+            throw new Error(
+              "ComponentOrchestrator is not available and no orchestrator was provided",
+            );
+          }
+        }
 
         // Initialize performance tracker for A/B testing
         await this._initializePerformanceTracking();
@@ -112,6 +143,9 @@ if (typeof BaseEntityManager === "undefined") {
         // Initialize security monitoring
         this._initializeSecurityMonitoring();
 
+        // Mark as initialized
+        this.isInitialized = true;
+
         console.log(
           `[BaseEntityManager] ${this.entityType} initialization complete`,
         );
@@ -122,6 +156,29 @@ if (typeof BaseEntityManager === "undefined") {
         );
         throw error;
       }
+    }
+
+    /**
+     * Set the container for the entity manager
+     * @param {HTMLElement} container - DOM container element
+     */
+    setContainer(container) {
+      if (!container || !(container instanceof HTMLElement)) {
+        throw new Error(
+          `[BaseEntityManager] setContainer requires a valid HTMLElement, got: ${typeof container}`,
+        );
+      }
+
+      this.container = container;
+
+      // If orchestrator exists, update its container
+      if (this.orchestrator) {
+        this.orchestrator.setContainer(container);
+      }
+
+      console.log(
+        `[BaseEntityManager] Container set for ${this.entityType} entity manager`,
+      );
     }
 
     /**
@@ -144,7 +201,28 @@ if (typeof BaseEntityManager === "undefined") {
         });
 
         // COMPREHENSIVE SECURITY VALIDATION
-        const validationResult = SecurityUtils.validateInput(filters, {
+        // Defensive check for SecurityUtils availability (check window.SecurityUtils specifically)
+        if (
+          typeof window.SecurityUtils === "undefined" ||
+          !window.SecurityUtils.validateInput
+        ) {
+          console.error(
+            "[BaseEntityManager] SecurityUtils not available or validateInput method missing",
+          );
+          console.error(
+            "[BaseEntityManager] window.SecurityUtils:",
+            typeof window.SecurityUtils,
+          );
+          console.error(
+            "[BaseEntityManager] Available window properties:",
+            Object.keys(window).filter((key) => key.includes("Security")),
+          );
+          throw new Error(
+            "SecurityUtils validation service not available. Ensure SecurityUtils.js is loaded before BaseEntityManager.",
+          );
+        }
+
+        const validationResult = window.SecurityUtils.validateInput(filters, {
           preventXSS: true,
           preventSQLInjection: true,
           sanitizeStrings: true,
@@ -153,11 +231,11 @@ if (typeof BaseEntityManager === "undefined") {
         if (!validationResult.isValid) {
           this._trackError(
             "load",
-            new SecurityUtils.ValidationException(
+            new window.SecurityUtils.ValidationException(
               `Filter validation failed: ${validationResult.errors.join(", ")}`,
             ),
           );
-          throw new SecurityUtils.ValidationException(
+          throw new window.SecurityUtils.ValidationException(
             "Invalid filter parameters",
             "filters",
             filters,
@@ -213,6 +291,40 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
+     * Render the entity manager components to the container
+     * @returns {Promise<void>}
+     */
+    async render() {
+      try {
+        console.log(
+          `[BaseEntityManager] Rendering ${this.entityType} components`,
+        );
+
+        if (!this.container) {
+          throw new Error("Container must be set before rendering");
+        }
+
+        if (!this.orchestrator) {
+          throw new Error("Manager must be initialized before rendering");
+        }
+
+        // Render all components through the orchestrator
+        await this.orchestrator.render();
+
+        console.log(
+          `[BaseEntityManager] ${this.entityType} rendering complete`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Failed to render ${this.entityType}:`,
+          error,
+        );
+        this._trackError("render", error);
+        throw error;
+      }
+    }
+
+    /**
      * Create new entity record
      * @param {Object} data - Entity data
      * @returns {Promise<Object>} Created entity
@@ -227,7 +339,24 @@ if (typeof BaseEntityManager === "undefined") {
         );
 
         // COMPREHENSIVE SECURITY VALIDATION AND SANITIZATION
-        const validationResult = SecurityUtils.validateInput(data, {
+        // Defensive check for SecurityUtils availability (check window.SecurityUtils specifically)
+        if (
+          typeof window.SecurityUtils === "undefined" ||
+          !window.SecurityUtils.validateInput
+        ) {
+          console.error(
+            "[BaseEntityManager] SecurityUtils not available or validateInput method missing",
+          );
+          console.error(
+            "[BaseEntityManager] window.SecurityUtils:",
+            typeof window.SecurityUtils,
+          );
+          throw new Error(
+            "SecurityUtils validation service not available. Ensure SecurityUtils.js is loaded before BaseEntityManager.",
+          );
+        }
+
+        const validationResult = window.SecurityUtils.validateInput(data, {
           preventXSS: true,
           preventSQLInjection: true,
           sanitizeStrings: true,
@@ -237,11 +366,11 @@ if (typeof BaseEntityManager === "undefined") {
         if (!validationResult.isValid) {
           this._trackError(
             "create",
-            new SecurityUtils.ValidationException(
+            new window.SecurityUtils.ValidationException(
               `Create validation failed: ${validationResult.errors.join(", ")}`,
             ),
           );
-          throw new SecurityUtils.ValidationException(
+          throw new window.SecurityUtils.ValidationException(
             "Invalid entity data for creation",
             "data",
             data,
@@ -249,15 +378,19 @@ if (typeof BaseEntityManager === "undefined") {
         }
 
         // Additional XSS prevention layer
-        const sanitizedData = SecurityUtils.preventXSS(
+        const sanitizedData = window.SecurityUtils.preventXSS(
           validationResult.sanitizedData,
         );
 
         // Rate limiting check
         if (
-          !SecurityUtils.checkRateLimit(`${this.entityType}_create`, 10, 60000)
+          !window.SecurityUtils.checkRateLimit(
+            `${this.entityType}_create`,
+            10,
+            60000,
+          )
         ) {
-          SecurityUtils.logSecurityEvent(
+          window.SecurityUtils.logSecurityEvent(
             "rate_limit_exceeded_create",
             "warning",
             {
@@ -265,7 +398,7 @@ if (typeof BaseEntityManager === "undefined") {
               sessionId: this.securityContext?.sessionId,
             },
           );
-          throw new SecurityUtils.SecurityException(
+          throw new window.SecurityUtils.SecurityException(
             "Rate limit exceeded for entity creation",
           );
         }
@@ -321,7 +454,24 @@ if (typeof BaseEntityManager === "undefined") {
         );
 
         // COMPREHENSIVE SECURITY VALIDATION FOR UPDATE
-        const validationResult = SecurityUtils.validateInput(
+        // Defensive check for SecurityUtils availability (check window.SecurityUtils specifically)
+        if (
+          typeof window.SecurityUtils === "undefined" ||
+          !window.SecurityUtils.validateInput
+        ) {
+          console.error(
+            "[BaseEntityManager] SecurityUtils not available or validateInput method missing",
+          );
+          console.error(
+            "[BaseEntityManager] window.SecurityUtils:",
+            typeof window.SecurityUtils,
+          );
+          throw new Error(
+            "SecurityUtils validation service not available. Ensure SecurityUtils.js is loaded before BaseEntityManager.",
+          );
+        }
+
+        const validationResult = window.SecurityUtils.validateInput(
           { id, ...data },
           {
             preventXSS: true,
@@ -334,11 +484,11 @@ if (typeof BaseEntityManager === "undefined") {
         if (!validationResult.isValid) {
           this._trackError(
             "update",
-            new SecurityUtils.ValidationException(
+            new window.SecurityUtils.ValidationException(
               `Update validation failed: ${validationResult.errors.join(", ")}`,
             ),
           );
-          throw new SecurityUtils.ValidationException(
+          throw new window.SecurityUtils.ValidationException(
             "Invalid entity data for update",
             "data",
             { id, ...data },
@@ -350,13 +500,18 @@ if (typeof BaseEntityManager === "undefined") {
           validationResult.sanitizedData;
 
         // Additional XSS prevention layer
-        const finalSanitizedData = SecurityUtils.preventXSS(sanitizedData);
+        const finalSanitizedData =
+          window.SecurityUtils.preventXSS(sanitizedData);
 
         // Rate limiting check
         if (
-          !SecurityUtils.checkRateLimit(`${this.entityType}_update`, 20, 60000)
+          !window.SecurityUtils.checkRateLimit(
+            `${this.entityType}_update`,
+            20,
+            60000,
+          )
         ) {
-          SecurityUtils.logSecurityEvent(
+          window.SecurityUtils.logSecurityEvent(
             "rate_limit_exceeded_update",
             "warning",
             {
@@ -365,7 +520,7 @@ if (typeof BaseEntityManager === "undefined") {
               sessionId: this.securityContext?.sessionId,
             },
           );
-          throw new SecurityUtils.SecurityException(
+          throw new window.SecurityUtils.SecurityException(
             "Rate limit exceeded for entity updates",
           );
         }
@@ -422,7 +577,24 @@ if (typeof BaseEntityManager === "undefined") {
         );
 
         // COMPREHENSIVE SECURITY VALIDATION FOR DELETE
-        const validationResult = SecurityUtils.validateInput(
+        // Defensive check for SecurityUtils availability (check window.SecurityUtils specifically)
+        if (
+          typeof window.SecurityUtils === "undefined" ||
+          !window.SecurityUtils.validateInput
+        ) {
+          console.error(
+            "[BaseEntityManager] SecurityUtils not available or validateInput method missing",
+          );
+          console.error(
+            "[BaseEntityManager] window.SecurityUtils:",
+            typeof window.SecurityUtils,
+          );
+          throw new Error(
+            "SecurityUtils validation service not available. Ensure SecurityUtils.js is loaded before BaseEntityManager.",
+          );
+        }
+
+        const validationResult = window.SecurityUtils.validateInput(
           { id },
           {
             preventXSS: true,
@@ -434,11 +606,11 @@ if (typeof BaseEntityManager === "undefined") {
         if (!validationResult.isValid) {
           this._trackError(
             "delete",
-            new SecurityUtils.ValidationException(
+            new window.SecurityUtils.ValidationException(
               `Delete validation failed: ${validationResult.errors.join(", ")}`,
             ),
           );
-          throw new SecurityUtils.ValidationException(
+          throw new window.SecurityUtils.ValidationException(
             "Invalid entity ID for deletion",
             "id",
             id,
@@ -449,9 +621,13 @@ if (typeof BaseEntityManager === "undefined") {
 
         // Rate limiting check for delete operations
         if (
-          !SecurityUtils.checkRateLimit(`${this.entityType}_delete`, 5, 60000)
+          !window.SecurityUtils.checkRateLimit(
+            `${this.entityType}_delete`,
+            5,
+            60000,
+          )
         ) {
-          SecurityUtils.logSecurityEvent(
+          window.SecurityUtils.logSecurityEvent(
             "rate_limit_exceeded_delete",
             "warning",
             {
@@ -460,7 +636,7 @@ if (typeof BaseEntityManager === "undefined") {
               sessionId: this.securityContext?.sessionId,
             },
           );
-          throw new SecurityUtils.SecurityException(
+          throw new window.SecurityUtils.SecurityException(
             "Rate limit exceeded for entity deletion",
           );
         }
@@ -647,43 +823,282 @@ if (typeof BaseEntityManager === "undefined") {
      * @private
      */
     async _initializeComponents() {
-      // Initialize TableComponent
-      if (this.config.tableConfig) {
-        this.tableComponent = await this.orchestrator.createComponent("table", {
-          ...this.config.tableConfig,
+      console.log(
+        `[BaseEntityManager] Initializing components for ${this.entityType}`,
+      );
+
+      // Validate orchestrator before component creation
+      if (!this.orchestrator) {
+        const error = new Error(
+          "ComponentOrchestrator is not available for component initialization",
+        );
+        console.error(`[BaseEntityManager] ${error.message}`, {
           entityType: this.entityType,
+          orchestrator: this.orchestrator,
         });
+        this._trackError("_initializeComponents", error);
+        throw error;
       }
 
-      // Initialize ModalComponent
-      if (this.config.modalConfig) {
-        this.modalComponent = await this.orchestrator.createComponent("modal", {
-          ...this.config.modalConfig,
+      // Validate orchestrator has createComponent method
+      if (typeof this.orchestrator.createComponent !== "function") {
+        const error = new Error(
+          "ComponentOrchestrator missing createComponent method",
+        );
+        console.error(`[BaseEntityManager] ${error.message}`, {
           entityType: this.entityType,
+          orchestrator: this.orchestrator,
+          availableMethods: Object.getOwnPropertyNames(
+            this.orchestrator,
+          ).filter((name) => typeof this.orchestrator[name] === "function"),
         });
+        this._trackError("_initializeComponents", error);
+        throw error;
+      }
+
+      let initializationErrors = [];
+
+      // Initialize TableComponent with comprehensive error handling
+      if (this.config.tableConfig) {
+        try {
+          console.log(
+            `[BaseEntityManager] Creating table component for ${this.entityType}`,
+          );
+          this.tableComponent = await this.orchestrator.createComponent(
+            "table",
+            {
+              ...this.config.tableConfig,
+              entityType: this.entityType,
+            },
+          );
+
+          // Validate created component
+          if (!this.tableComponent) {
+            const error = new Error(
+              "TableComponent creation returned null/undefined",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              config: this.config.tableConfig,
+            });
+            initializationErrors.push(`TableComponent: ${error.message}`);
+          } else if (
+            typeof this.tableComponent.updateData !== "function" &&
+            typeof this.tableComponent.setData !== "function"
+          ) {
+            const error = new Error(
+              "TableComponent missing required data update methods",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              tableComponent: this.tableComponent,
+              availableMethods: Object.getOwnPropertyNames(
+                this.tableComponent,
+              ).filter(
+                (name) => typeof this.tableComponent[name] === "function",
+              ),
+            });
+            initializationErrors.push(`TableComponent: ${error.message}`);
+          } else {
+            console.log(
+              `[BaseEntityManager] TableComponent initialized successfully for ${this.entityType}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[BaseEntityManager] Failed to create TableComponent for ${this.entityType}:`,
+            error,
+          );
+          initializationErrors.push(`TableComponent: ${error.message}`);
+          this._trackError("_initializeComponents", error);
+          this.tableComponent = null; // Ensure clean state
+        }
+      } else {
+        console.log(
+          `[BaseEntityManager] TableComponent configuration not provided for ${this.entityType}`,
+        );
+      }
+
+      // Initialize ModalComponent with error handling
+      if (this.config.modalConfig) {
+        try {
+          console.log(
+            `[BaseEntityManager] Creating modal component for ${this.entityType}`,
+          );
+          this.modalComponent = await this.orchestrator.createComponent(
+            "modal",
+            {
+              ...this.config.modalConfig,
+              entityType: this.entityType,
+            },
+          );
+
+          if (!this.modalComponent) {
+            const error = new Error(
+              "ModalComponent creation returned null/undefined",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              config: this.config.modalConfig,
+            });
+            initializationErrors.push(`ModalComponent: ${error.message}`);
+          } else {
+            console.log(
+              `[BaseEntityManager] ModalComponent initialized successfully for ${this.entityType}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[BaseEntityManager] Failed to create ModalComponent for ${this.entityType}:`,
+            error,
+          );
+          initializationErrors.push(`ModalComponent: ${error.message}`);
+          this._trackError("_initializeComponents", error);
+          this.modalComponent = null; // Ensure clean state
+        }
       }
 
       // Initialize FilterComponent if enabled
       if (this.config.filterConfig?.enabled) {
-        this.filterComponent = await this.orchestrator.createComponent(
-          "filter",
-          {
-            ...this.config.filterConfig,
-            entityType: this.entityType,
-          },
-        );
+        try {
+          console.log(
+            `[BaseEntityManager] Creating filter component for ${this.entityType}`,
+          );
+          this.filterComponent = await this.orchestrator.createComponent(
+            "filter",
+            {
+              ...this.config.filterConfig,
+              entityType: this.entityType,
+            },
+          );
+
+          if (!this.filterComponent) {
+            const error = new Error(
+              "FilterComponent creation returned null/undefined",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              config: this.config.filterConfig,
+            });
+            initializationErrors.push(`FilterComponent: ${error.message}`);
+          } else {
+            console.log(
+              `[BaseEntityManager] FilterComponent initialized successfully for ${this.entityType}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[BaseEntityManager] Failed to create FilterComponent for ${this.entityType}:`,
+            error,
+          );
+          initializationErrors.push(`FilterComponent: ${error.message}`);
+          this._trackError("_initializeComponents", error);
+          this.filterComponent = null; // Ensure clean state
+        }
       }
 
-      // Initialize PaginationComponent
+      // Initialize PaginationComponent with error handling
       if (this.config.paginationConfig) {
-        this.paginationComponent = await this.orchestrator.createComponent(
-          "pagination",
-          {
-            ...this.config.paginationConfig,
-            entityType: this.entityType,
-          },
-        );
+        try {
+          console.log(
+            `[BaseEntityManager] Creating pagination component for ${this.entityType}`,
+          );
+          this.paginationComponent = await this.orchestrator.createComponent(
+            "pagination",
+            {
+              ...this.config.paginationConfig,
+              entityType: this.entityType,
+            },
+          );
+
+          // Validate created component
+          if (!this.paginationComponent) {
+            const error = new Error(
+              "PaginationComponent creation returned null/undefined",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              config: this.config.paginationConfig,
+            });
+            initializationErrors.push(`PaginationComponent: ${error.message}`);
+          } else if (
+            typeof this.paginationComponent.updatePagination !== "function"
+          ) {
+            const error = new Error(
+              "PaginationComponent missing updatePagination method",
+            );
+            console.error(`[BaseEntityManager] ${error.message}`, {
+              entityType: this.entityType,
+              paginationComponent: this.paginationComponent,
+              availableMethods: Object.getOwnPropertyNames(
+                this.paginationComponent,
+              ).filter(
+                (name) => typeof this.paginationComponent[name] === "function",
+              ),
+            });
+            initializationErrors.push(`PaginationComponent: ${error.message}`);
+          } else {
+            console.log(
+              `[BaseEntityManager] PaginationComponent initialized successfully for ${this.entityType}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[BaseEntityManager] Failed to create PaginationComponent for ${this.entityType}:`,
+            error,
+          );
+          initializationErrors.push(`PaginationComponent: ${error.message}`);
+          this._trackError("_initializeComponents", error);
+          this.paginationComponent = null; // Ensure clean state
+        }
       }
+
+      // Report component initialization status
+      const totalComponents = [
+        this.config.tableConfig ? "table" : null,
+        this.config.modalConfig ? "modal" : null,
+        this.config.filterConfig?.enabled ? "filter" : null,
+        this.config.paginationConfig ? "pagination" : null,
+      ].filter(Boolean);
+
+      const successfulComponents = [
+        this.tableComponent ? "table" : null,
+        this.modalComponent ? "modal" : null,
+        this.filterComponent ? "filter" : null,
+        this.paginationComponent ? "pagination" : null,
+      ].filter(Boolean);
+
+      console.log(
+        `[BaseEntityManager] Component initialization summary for ${this.entityType}:`,
+        {
+          requested: totalComponents,
+          successful: successfulComponents,
+          errors: initializationErrors,
+        },
+      );
+
+      // If there are initialization errors but at least one component succeeded, continue with warnings
+      if (initializationErrors.length > 0) {
+        if (successfulComponents.length === 0) {
+          // If no components were successfully created, this is a critical failure
+          const criticalError = new Error(
+            `Critical failure: No components could be initialized for ${this.entityType}. Errors: ${initializationErrors.join(", ")}`,
+          );
+          console.error(`[BaseEntityManager] ${criticalError.message}`);
+          this._trackError("_initializeComponents", criticalError);
+          throw criticalError;
+        } else {
+          // Some components failed but others succeeded - log warnings but continue
+          console.warn(
+            `[BaseEntityManager] Partial component initialization for ${this.entityType}. Some components failed:`,
+            initializationErrors,
+          );
+        }
+      }
+
+      console.log(
+        `[BaseEntityManager] Component initialization completed for ${this.entityType}`,
+      );
     }
 
     /**
@@ -791,19 +1206,294 @@ if (typeof BaseEntityManager === "undefined") {
 
     /**
      * Update components with current data
+     * ENHANCED DEFENSIVE PROGRAMMING v2.0 - Comprehensive error handling and validation
      * @private
      */
     async _updateComponents() {
-      if (this.tableComponent) {
-        await this.tableComponent.updateData(this.currentData);
-      }
+      try {
+        console.log(
+          `[BaseEntityManager] Updating components for ${this.entityType} with ${this.currentData?.length || 0} records`,
+        );
 
-      if (this.paginationComponent) {
-        await this.paginationComponent.updatePagination({
-          page: this.currentPage,
-          total: this.totalRecords,
-          pageSize: this.config.paginationConfig.pageSize,
-        });
+        // Pre-update validation: Check if we're in a valid state for component updates
+        if (!this.isInitialized) {
+          console.warn(
+            `[BaseEntityManager] Attempting to update components before initialization is complete for ${this.entityType}`,
+          );
+          return; // Early exit - graceful degradation
+        }
+
+        if (!this.orchestrator) {
+          console.warn(
+            `[BaseEntityManager] No orchestrator available for component updates for ${this.entityType}`,
+          );
+          return; // Early exit - graceful degradation
+        }
+
+        // Track component update attempts and successes for debugging
+        const updateAttempts = {
+          table: {
+            attempted: false,
+            successful: false,
+            method: null,
+            error: null,
+          },
+          pagination: {
+            attempted: false,
+            successful: false,
+            method: null,
+            error: null,
+          },
+          filter: {
+            attempted: false,
+            successful: false,
+            method: null,
+            error: null,
+          },
+        };
+
+        // ENHANCED DEFENSIVE PROGRAMMING: TableComponent validation and update
+        if (this.tableComponent) {
+          updateAttempts.table.attempted = true;
+
+          try {
+            // Multi-level validation for table component
+            if (
+              typeof this.tableComponent === "object" &&
+              this.tableComponent !== null
+            ) {
+              // Primary method: updateData (preferred alias)
+              if (typeof this.tableComponent.updateData === "function") {
+                updateAttempts.table.method = "updateData";
+                console.log(
+                  `[BaseEntityManager] Updating table via updateData() with ${this.currentData?.length || 0} records`,
+                );
+                await this.tableComponent.updateData(this.currentData);
+                updateAttempts.table.successful = true;
+
+                // Fallback method: setData (original method)
+              } else if (typeof this.tableComponent.setData === "function") {
+                updateAttempts.table.method = "setData";
+                console.log(
+                  `[BaseEntityManager] Falling back to setData() method for table component`,
+                );
+                await this.tableComponent.setData(this.currentData);
+                updateAttempts.table.successful = true;
+
+                // Component exists but lacks required methods
+              } else {
+                const availableMethods = this._getAvailableMethods(
+                  this.tableComponent,
+                );
+                const errorMsg = `TableComponent missing both updateData and setData methods. Available methods: ${availableMethods.join(", ")}`;
+                updateAttempts.table.error = errorMsg;
+
+                console.error(`[BaseEntityManager] ${errorMsg}`, {
+                  tableComponent: this.tableComponent,
+                  constructor: this.tableComponent.constructor?.name,
+                  prototype: Object.getPrototypeOf(this.tableComponent)
+                    .constructor?.name,
+                  entityType: this.entityType,
+                  availableMethods: availableMethods,
+                });
+
+                this._trackError(
+                  "_updateComponents_table",
+                  new Error(errorMsg),
+                );
+              }
+            } else {
+              const errorMsg = `TableComponent is not a valid object (type: ${typeof this.tableComponent})`;
+              updateAttempts.table.error = errorMsg;
+
+              console.error(`[BaseEntityManager] ${errorMsg}`, {
+                tableComponent: this.tableComponent,
+                type: typeof this.tableComponent,
+                entityType: this.entityType,
+                isNull: this.tableComponent === null,
+                isUndefined: this.tableComponent === undefined,
+              });
+
+              this._trackError("_updateComponents_table", new Error(errorMsg));
+            }
+          } catch (tableError) {
+            updateAttempts.table.error = tableError.message;
+            console.error(
+              `[BaseEntityManager] Exception during table component update for ${this.entityType}:`,
+              tableError,
+            );
+            this._trackError("_updateComponents_table", tableError);
+          }
+        } else {
+          console.log(
+            `[BaseEntityManager] TableComponent not initialized for ${this.entityType} - data update skipped`,
+          );
+        }
+
+        // ENHANCED DEFENSIVE PROGRAMMING: PaginationComponent validation and update
+        if (this.paginationComponent) {
+          updateAttempts.pagination.attempted = true;
+
+          try {
+            // Multi-level validation for pagination component
+            if (
+              typeof this.paginationComponent === "object" &&
+              this.paginationComponent !== null
+            ) {
+              // Check for updatePagination method
+              if (
+                typeof this.paginationComponent.updatePagination === "function"
+              ) {
+                updateAttempts.pagination.method = "updatePagination";
+                const paginationData = {
+                  page: this.currentPage,
+                  total: this.totalRecords,
+                  pageSize: this.config.paginationConfig?.pageSize || 20,
+                };
+
+                console.log(
+                  `[BaseEntityManager] Updating pagination component - page ${this.currentPage}, total ${this.totalRecords}`,
+                );
+                await this.paginationComponent.updatePagination(paginationData);
+                updateAttempts.pagination.successful = true;
+              } else {
+                const availableMethods = this._getAvailableMethods(
+                  this.paginationComponent,
+                );
+                const errorMsg = `PaginationComponent missing updatePagination method. Available methods: ${availableMethods.join(", ")}`;
+                updateAttempts.pagination.error = errorMsg;
+
+                console.error(`[BaseEntityManager] ${errorMsg}`, {
+                  paginationComponent: this.paginationComponent,
+                  constructor: this.paginationComponent.constructor?.name,
+                  prototype: Object.getPrototypeOf(this.paginationComponent)
+                    .constructor?.name,
+                  entityType: this.entityType,
+                  availableMethods: availableMethods,
+                });
+
+                this._trackError(
+                  "_updateComponents_pagination",
+                  new Error(errorMsg),
+                );
+              }
+            } else {
+              const errorMsg = `PaginationComponent is not a valid object (type: ${typeof this.paginationComponent})`;
+              updateAttempts.pagination.error = errorMsg;
+
+              console.error(`[BaseEntityManager] ${errorMsg}`, {
+                paginationComponent: this.paginationComponent,
+                type: typeof this.paginationComponent,
+                entityType: this.entityType,
+                isNull: this.paginationComponent === null,
+                isUndefined: this.paginationComponent === undefined,
+              });
+
+              this._trackError(
+                "_updateComponents_pagination",
+                new Error(errorMsg),
+              );
+            }
+          } catch (paginationError) {
+            updateAttempts.pagination.error = paginationError.message;
+            console.error(
+              `[BaseEntityManager] Exception during pagination component update for ${this.entityType}:`,
+              paginationError,
+            );
+            this._trackError("_updateComponents_pagination", paginationError);
+          }
+        } else {
+          console.log(
+            `[BaseEntityManager] PaginationComponent not initialized for ${this.entityType} - pagination update skipped`,
+          );
+        }
+
+        // ENHANCED DEFENSIVE PROGRAMMING: FilterComponent update (if available)
+        if (this.filterComponent) {
+          updateAttempts.filter.attempted = true;
+
+          try {
+            if (
+              typeof this.filterComponent === "object" &&
+              this.filterComponent !== null
+            ) {
+              // Check for common filter update methods
+              if (typeof this.filterComponent.updateFilters === "function") {
+                updateAttempts.filter.method = "updateFilters";
+                console.log(
+                  `[BaseEntityManager] Updating filter component with current filters`,
+                );
+                await this.filterComponent.updateFilters(this.currentFilters);
+                updateAttempts.filter.successful = true;
+              } else if (
+                typeof this.filterComponent.setFilters === "function"
+              ) {
+                updateAttempts.filter.method = "setFilters";
+                console.log(
+                  `[BaseEntityManager] Updating filter component via setFilters`,
+                );
+                await this.filterComponent.setFilters(this.currentFilters);
+                updateAttempts.filter.successful = true;
+              } else {
+                console.log(
+                  `[BaseEntityManager] FilterComponent does not require updates or lacks update methods`,
+                );
+              }
+            } else {
+              const errorMsg = `FilterComponent is not a valid object (type: ${typeof this.filterComponent})`;
+              updateAttempts.filter.error = errorMsg;
+              console.warn(`[BaseEntityManager] ${errorMsg}`);
+            }
+          } catch (filterError) {
+            updateAttempts.filter.error = filterError.message;
+            console.error(
+              `[BaseEntityManager] Exception during filter component update for ${this.entityType}:`,
+              filterError,
+            );
+            this._trackError("_updateComponents_filter", filterError);
+          }
+        }
+
+        // Summary reporting for debugging and monitoring
+        const successfulUpdates = Object.values(updateAttempts).filter(
+          (attempt) => attempt.successful,
+        ).length;
+        const attemptedUpdates = Object.values(updateAttempts).filter(
+          (attempt) => attempt.attempted,
+        ).length;
+        const failedUpdates = Object.values(updateAttempts).filter(
+          (attempt) => attempt.attempted && !attempt.successful,
+        ).length;
+
+        console.log(
+          `[BaseEntityManager] Component update summary for ${this.entityType}:`,
+          {
+            attempted: attemptedUpdates,
+            successful: successfulUpdates,
+            failed: failedUpdates,
+            details: updateAttempts,
+          },
+        );
+
+        // If all attempted updates failed, log as warning but don't throw
+        if (attemptedUpdates > 0 && successfulUpdates === 0) {
+          console.warn(
+            `[BaseEntityManager] All component updates failed for ${this.entityType}. Application will continue but UI may not reflect latest data.`,
+          );
+        }
+
+        console.log(
+          `[BaseEntityManager] Component update process completed for ${this.entityType}`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Critical error in component update process for ${this.entityType}:`,
+          error,
+        );
+        this._trackError("_updateComponents_critical", error);
+
+        // Don't rethrow - ensure graceful degradation
+        // The application should continue functioning even if component updates fail completely
       }
     }
 
@@ -888,6 +1578,570 @@ if (typeof BaseEntityManager === "undefined") {
      */
     _generateSessionId() {
       return `${this.entityType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * Get available methods from a component for debugging
+     * @param {Object} component - Component to inspect
+     * @returns {Array<string>} Array of method names
+     * @private
+     */
+    _getAvailableMethods(component) {
+      if (!component || typeof component !== "object") {
+        return ["<invalid_component>"];
+      }
+
+      try {
+        // Get all enumerable and non-enumerable properties
+        const allProperties = new Set();
+
+        // Get properties from the object itself
+        Object.getOwnPropertyNames(component).forEach((name) => {
+          if (typeof component[name] === "function") {
+            allProperties.add(name);
+          }
+        });
+
+        // Get properties from the prototype chain
+        let current = component;
+        while (current && current !== Object.prototype) {
+          Object.getOwnPropertyNames(current).forEach((name) => {
+            if (typeof current[name] === "function" && name !== "constructor") {
+              allProperties.add(name);
+            }
+          });
+          current = Object.getPrototypeOf(current);
+        }
+
+        return Array.from(allProperties).sort();
+      } catch (error) {
+        console.warn(
+          "[BaseEntityManager] Error getting available methods:",
+          error,
+        );
+        return ["<error_getting_methods>"];
+      }
+    }
+
+    /**
+     * Validate component state and availability
+     * @returns {Object} Component validation report
+     * @private
+     */
+    _validateComponentState() {
+      const report = {
+        isInitialized: this.isInitialized,
+        orchestratorAvailable: !!this.orchestrator,
+        components: {
+          table: {
+            available: !!this.tableComponent,
+            hasUpdateData:
+              this.tableComponent &&
+              typeof this.tableComponent.updateData === "function",
+            hasSetData:
+              this.tableComponent &&
+              typeof this.tableComponent.setData === "function",
+            isValid:
+              this.tableComponent &&
+              (typeof this.tableComponent.updateData === "function" ||
+                typeof this.tableComponent.setData === "function"),
+          },
+          modal: {
+            available: !!this.modalComponent,
+            isValid: !!this.modalComponent,
+          },
+          filter: {
+            available: !!this.filterComponent,
+            isValid: !!this.filterComponent,
+          },
+          pagination: {
+            available: !!this.paginationComponent,
+            hasUpdatePagination:
+              this.paginationComponent &&
+              typeof this.paginationComponent.updatePagination === "function",
+            isValid:
+              this.paginationComponent &&
+              typeof this.paginationComponent.updatePagination === "function",
+          },
+        },
+        healthScore: 0,
+      };
+
+      // Calculate health score
+      let totalComponents = 0;
+      let validComponents = 0;
+
+      Object.values(report.components).forEach((component) => {
+        if (component.available) {
+          totalComponents++;
+          if (component.isValid) {
+            validComponents++;
+          }
+        }
+      });
+
+      report.healthScore =
+        totalComponents > 0 ? (validComponents / totalComponents) * 100 : 0;
+
+      return report;
+    }
+
+    /**
+     * Get component diagnostics for debugging
+     * ENHANCED v2.0 - Comprehensive debugging information for component failures
+     * @returns {Object} Detailed component diagnostics with actionable debugging data
+     */
+    getComponentDiagnostics() {
+      const validation = this._validateComponentState();
+
+      const diagnostics = {
+        entityType: this.entityType,
+        timestamp: new Date().toISOString(),
+        validation: validation,
+        status: this._getComponentStatusSummary(),
+        configuration: {
+          tableConfig: !!this.config.tableConfig,
+          modalConfig: !!this.config.modalConfig,
+          filterConfig: !!this.config.filterConfig?.enabled,
+          paginationConfig: !!this.config.paginationConfig,
+          // Detailed config validation
+          tableConfigValid:
+            this.config.tableConfig &&
+            Array.isArray(this.config.tableConfig.columns),
+          modalConfigValid:
+            this.config.modalConfig &&
+            typeof this.config.modalConfig === "object",
+          filterConfigValid:
+            this.config.filterConfig &&
+            this.config.filterConfig.enabled === true,
+          paginationConfigValid:
+            this.config.paginationConfig &&
+            typeof this.config.paginationConfig.pageSize === "number",
+        },
+        state: {
+          isInitialized: this.isInitialized,
+          currentDataLength: this.currentData?.length || 0,
+          currentPage: this.currentPage,
+          totalRecords: this.totalRecords,
+          hasFilters: Object.keys(this.currentFilters || {}).length > 0,
+          hasCurrentSort: !!this.currentSort,
+          dataType: Array.isArray(this.currentData)
+            ? "array"
+            : typeof this.currentData,
+        },
+        orchestrator: {
+          available: !!this.orchestrator,
+          type: this.orchestrator ? typeof this.orchestrator : "undefined",
+          hasCreateComponent:
+            this.orchestrator &&
+            typeof this.orchestrator.createComponent === "function",
+          hasRender:
+            this.orchestrator && typeof this.orchestrator.render === "function",
+          hasDestroy:
+            this.orchestrator &&
+            typeof this.orchestrator.destroy === "function",
+          hasOn:
+            this.orchestrator && typeof this.orchestrator.on === "function",
+          hasSetContainer:
+            this.orchestrator &&
+            typeof this.orchestrator.setContainer === "function",
+          constructor: this.orchestrator?.constructor?.name || "unknown",
+        },
+        components: {
+          table: this._getComponentDiagnostics(this.tableComponent, [
+            "updateData",
+            "setData",
+            "render",
+            "destroy",
+          ]),
+          modal: this._getComponentDiagnostics(this.modalComponent, [
+            "show",
+            "hide",
+            "render",
+            "destroy",
+          ]),
+          filter: this._getComponentDiagnostics(this.filterComponent, [
+            "updateFilters",
+            "setFilters",
+            "render",
+            "destroy",
+          ]),
+          pagination: this._getComponentDiagnostics(this.paginationComponent, [
+            "updatePagination",
+            "render",
+            "destroy",
+          ]),
+        },
+        dependencies: {
+          SecurityUtils: {
+            available: typeof window.SecurityUtils !== "undefined",
+            hasValidateInput:
+              typeof window.SecurityUtils?.validateInput === "function",
+            hasPreventXSS:
+              typeof window.SecurityUtils?.preventXSS === "function",
+            hasCheckRateLimit:
+              typeof window.SecurityUtils?.checkRateLimit === "function",
+          },
+          BaseEntityManager: {
+            available: typeof window.BaseEntityManager !== "undefined",
+            isInstance: this instanceof window.BaseEntityManager,
+          },
+          ComponentOrchestrator: {
+            available: typeof window.ComponentOrchestrator !== "undefined",
+            hasInstance: !!this.orchestrator,
+          },
+        },
+        recommendations: this._getRecommendations(validation),
+      };
+
+      return diagnostics;
+    }
+
+    /**
+     * Get detailed diagnostics for a specific component
+     * @param {Object} component - Component to diagnose
+     * @param {Array<string>} expectedMethods - Expected methods for this component type
+     * @returns {Object} Component-specific diagnostics
+     * @private
+     */
+    _getComponentDiagnostics(component, expectedMethods = []) {
+      if (!component) {
+        return {
+          available: false,
+          status: "not_initialized",
+          type: "undefined",
+          expectedMethods: expectedMethods,
+          availableMethods: [],
+          missingMethods: expectedMethods,
+          error: "Component not initialized",
+        };
+      }
+
+      const availableMethods = this._getAvailableMethods(component);
+      const missingMethods = expectedMethods.filter(
+        (method) => !availableMethods.includes(method),
+      );
+      const hasRequiredMethods = missingMethods.length === 0;
+
+      return {
+        available: true,
+        status: hasRequiredMethods ? "healthy" : "missing_methods",
+        type: typeof component,
+        constructor: component.constructor?.name || "unknown",
+        prototype:
+          Object.getPrototypeOf(component).constructor?.name || "unknown",
+        expectedMethods: expectedMethods,
+        availableMethods: availableMethods,
+        missingMethods: missingMethods,
+        hasRequiredMethods: hasRequiredMethods,
+        error:
+          missingMethods.length > 0
+            ? `Missing required methods: ${missingMethods.join(", ")}`
+            : null,
+      };
+    }
+
+    /**
+     * Get component status summary
+     * @returns {Object} Status summary
+     * @private
+     */
+    _getComponentStatusSummary() {
+      const componentStatuses = {
+        table: this.tableComponent ? "available" : "missing",
+        modal: this.modalComponent ? "available" : "missing",
+        filter: this.filterComponent ? "available" : "missing",
+        pagination: this.paginationComponent ? "available" : "missing",
+      };
+
+      const availableCount = Object.values(componentStatuses).filter(
+        (status) => status === "available",
+      ).length;
+      const totalRequestedCount = [
+        this.config.tableConfig ? 1 : 0,
+        this.config.modalConfig ? 1 : 0,
+        this.config.filterConfig?.enabled ? 1 : 0,
+        this.config.paginationConfig ? 1 : 0,
+      ].reduce((sum, count) => sum + count, 0);
+
+      return {
+        overall:
+          availableCount === totalRequestedCount
+            ? "healthy"
+            : availableCount > 0
+              ? "partial"
+              : "failed",
+        availableComponents: availableCount,
+        requestedComponents: totalRequestedCount,
+        initializationRate:
+          totalRequestedCount > 0
+            ? ((availableCount / totalRequestedCount) * 100).toFixed(1) + "%"
+            : "0%",
+        components: componentStatuses,
+      };
+    }
+
+    /**
+     * Get recommendations based on validation results
+     * @param {Object} validation - Validation results
+     * @returns {Array<string>} Recommendations for fixing issues
+     * @private
+     */
+    _getRecommendations(validation) {
+      const recommendations = [];
+
+      if (!validation.isInitialized) {
+        recommendations.push(
+          "Call initialize() method before using the entity manager",
+        );
+      }
+
+      if (!validation.orchestratorAvailable) {
+        recommendations.push(
+          "Ensure ComponentOrchestrator is loaded and available",
+        );
+      }
+
+      if (!validation.components.table.isValid && this.config.tableConfig) {
+        recommendations.push(
+          'Check TableComponent initialization - verify ComponentOrchestrator.createComponent("table", ...) succeeds',
+        );
+      }
+
+      if (
+        !validation.components.pagination.isValid &&
+        this.config.paginationConfig
+      ) {
+        recommendations.push(
+          'Check PaginationComponent initialization - verify ComponentOrchestrator.createComponent("pagination", ...) succeeds',
+        );
+      }
+
+      if (validation.healthScore < 50) {
+        recommendations.push(
+          "Multiple component failures detected - check browser console for initialization errors",
+        );
+        recommendations.push(
+          "Verify all component dependencies (BaseComponent, SecurityUtils) are loaded",
+        );
+      }
+
+      if (validation.healthScore === 0 && validation.orchestratorAvailable) {
+        recommendations.push(
+          "Critical: All components failed to initialize despite orchestrator being available - check component factory methods",
+        );
+      }
+
+      return recommendations;
+    }
+
+    /**
+     * Debug component state and provide troubleshooting guidance
+     * Use this method when encountering component-related errors
+     * @param {boolean} detailed - Whether to include detailed component analysis
+     * @returns {Object} Debug report with recommendations
+     */
+    debugComponents(detailed = false) {
+      console.group(`[BaseEntityManager] Debug Report for ${this.entityType}`);
+
+      const diagnostics = this.getComponentDiagnostics();
+
+      console.log("=== COMPONENT STATUS SUMMARY ===");
+      console.log(
+        `Overall Status: ${diagnostics.status.overall.toUpperCase()}`,
+      );
+      console.log(
+        `Initialization Rate: ${diagnostics.status.initializationRate}`,
+      );
+      console.log(
+        `Available Components: ${diagnostics.status.availableComponents}/${diagnostics.status.requestedComponents}`,
+      );
+
+      console.log("\n=== COMPONENT AVAILABILITY ===");
+      Object.entries(diagnostics.components).forEach(([name, component]) => {
+        const status = component.available
+          ? component.hasRequiredMethods
+            ? "✅ HEALTHY"
+            : "⚠️  MISSING METHODS"
+          : "❌ NOT INITIALIZED";
+        console.log(`${name.toUpperCase()}: ${status}`);
+
+        if (component.available && !component.hasRequiredMethods) {
+          console.log(`  Missing: ${component.missingMethods.join(", ")}`);
+        }
+      });
+
+      console.log("\n=== ORCHESTRATOR STATUS ===");
+      console.log(
+        `Available: ${diagnostics.orchestrator.available ? "✅" : "❌"}`,
+      );
+      console.log(`Type: ${diagnostics.orchestrator.constructor}`);
+      console.log(
+        `Has createComponent: ${diagnostics.orchestrator.hasCreateComponent ? "✅" : "❌"}`,
+      );
+
+      if (diagnostics.recommendations.length > 0) {
+        console.log("\n=== RECOMMENDATIONS ===");
+        diagnostics.recommendations.forEach((rec, index) => {
+          console.log(`${index + 1}. ${rec}`);
+        });
+      }
+
+      if (detailed) {
+        console.log("\n=== DETAILED DIAGNOSTICS ===");
+        console.log(diagnostics);
+      }
+
+      console.groupEnd();
+
+      return diagnostics;
+    }
+
+    /**
+     * Test component functionality with safe error handling
+     * Use this to verify component methods work as expected
+     * @returns {Object} Test results
+     */
+    async testComponents() {
+      console.log(
+        `[BaseEntityManager] Testing component functionality for ${this.entityType}`,
+      );
+
+      const testResults = {
+        timestamp: new Date().toISOString(),
+        entityType: this.entityType,
+        tests: {},
+        overall: "unknown",
+      };
+
+      // Test TableComponent
+      if (this.tableComponent) {
+        testResults.tests.table = await this._testTableComponent();
+      }
+
+      // Test PaginationComponent
+      if (this.paginationComponent) {
+        testResults.tests.pagination = await this._testPaginationComponent();
+      }
+
+      // Test ModalComponent
+      if (this.modalComponent) {
+        testResults.tests.modal = await this._testModalComponent();
+      }
+
+      // Calculate overall test status
+      const testValues = Object.values(testResults.tests);
+      const passedTests = testValues.filter(
+        (test) => test.status === "passed",
+      ).length;
+      const failedTests = testValues.filter(
+        (test) => test.status === "failed",
+      ).length;
+
+      testResults.overall =
+        failedTests === 0 ? "passed" : passedTests > 0 ? "partial" : "failed";
+      testResults.summary = {
+        total: testValues.length,
+        passed: passedTests,
+        failed: failedTests,
+      };
+
+      console.log(
+        `[BaseEntityManager] Component tests completed for ${this.entityType}:`,
+        testResults.summary,
+      );
+
+      return testResults;
+    }
+
+    /**
+     * Test table component functionality
+     * @returns {Object} Test result
+     * @private
+     */
+    async _testTableComponent() {
+      try {
+        const testData = [{ id: "test", name: "Test Item" }];
+
+        if (typeof this.tableComponent.updateData === "function") {
+          await this.tableComponent.updateData(testData);
+          return { status: "passed", method: "updateData", error: null };
+        } else if (typeof this.tableComponent.setData === "function") {
+          await this.tableComponent.setData(testData);
+          return { status: "passed", method: "setData", error: null };
+        } else {
+          return {
+            status: "failed",
+            method: "none",
+            error: "No data update method available",
+          };
+        }
+      } catch (error) {
+        return {
+          status: "failed",
+          method: "updateData/setData",
+          error: error.message,
+        };
+      }
+    }
+
+    /**
+     * Test pagination component functionality
+     * @returns {Object} Test result
+     * @private
+     */
+    async _testPaginationComponent() {
+      try {
+        if (typeof this.paginationComponent.updatePagination === "function") {
+          await this.paginationComponent.updatePagination({
+            page: 1,
+            total: 10,
+            pageSize: 5,
+          });
+          return { status: "passed", method: "updatePagination", error: null };
+        } else {
+          return {
+            status: "failed",
+            method: "none",
+            error: "No updatePagination method available",
+          };
+        }
+      } catch (error) {
+        return {
+          status: "failed",
+          method: "updatePagination",
+          error: error.message,
+        };
+      }
+    }
+
+    /**
+     * Test modal component functionality
+     * @returns {Object} Test result
+     * @private
+     */
+    async _testModalComponent() {
+      try {
+        // Just test that the component has expected methods, don't actually show modal
+        const hasShow = typeof this.modalComponent.show === "function";
+        const hasHide = typeof this.modalComponent.hide === "function";
+
+        if (hasShow && hasHide) {
+          return { status: "passed", method: "show/hide", error: null };
+        } else {
+          return {
+            status: "failed",
+            method: "show/hide",
+            error: `Missing methods: show=${hasShow}, hide=${hasHide}`,
+          };
+        }
+      } catch (error) {
+        return {
+          status: "failed",
+          method: "show/hide",
+          error: error.message,
+        };
+      }
     }
 
     /**

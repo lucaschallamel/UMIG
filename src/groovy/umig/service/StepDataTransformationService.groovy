@@ -66,31 +66,31 @@ class StepDataTransformationService {
                 .stepInstanceId(safeUUIDToString(row.sti_id))
                 .stepName(safeString(row.stm_name ?: row.sti_name))
                 .stepDescription(safeString(row.stm_description ?: row.sti_description))
-                .stepStatus(safeString(row.sti_status ?: row.step_status ?: 'PENDING'))
+                .stepStatus(safeString(row.step_status ?: row.sti_status ?: 'PENDING'))
                 
                 // Team assignment
                 .assignedTeamId(safeUUIDToString(row.tms_id ?: row.assigned_team_id))
                 .assignedTeamName(safeString(row.team_name ?: row.tms_name))
                 
                 // Hierarchical context
-                .migrationId(safeUUIDToString(row.mig_id ?: row.migration_id))
-                .migrationCode(safeString(row.migration_name ?: row.mig_name))  // Using mig_name since mig_code doesn't exist
-                .iterationId(safeUUIDToString(row.ite_id ?: row.iteration_id))
-                .iterationCode(safeString(row.iteration_type ?: row.itt_code))  // Using itt_code since ite_code doesn't exist
-                .sequenceId(safeUUIDToString(row.sqm_id ?: row.sequence_id))
-                .phaseId(safeUUIDToString(row.phm_id ?: row.phase_id))
+                .migrationId(safeUUIDToString(row.migration_id))
+                .migrationCode(safeString(row.migration_name))
+                .iterationId(safeUUIDToString(row.iteration_id))
+                .iterationCode(safeString(row.iteration_type))
+                .sequenceId(safeUUIDToString(row.sequence_id))
+                .phaseId(safeUUIDToString(row.phase_id))
                 
                 // Temporal fields with proper LocalDateTime conversion
-                .createdDate(safeTimestampToLocalDateTime(row.created_at))
-                .lastModifiedDate(safeTimestampToLocalDateTime(row.updated_at))
+                .createdDate(safeTimestampToLocalDateTime(row.created_date))
+                .lastModifiedDate(safeTimestampToLocalDateTime(row.last_modified_date))
                 // .isActive(safeBoolean(row.is_active, true))  // REMOVED - No sti_is_active column exists
                 // .priority(safeInteger(row.priority, 5))  // REMOVED - No sti_priority column exists
                 
                 // Extended metadata
-                .stepType(safeString(row.stt_code ?: row.step_type))
-                .stepCategory(safeString(row.step_category ?: row.stt_name))
-                .estimatedDuration(safeInteger(row.stm_duration_minutes ?: row.estimated_duration))
-                .actualDuration(safeInteger(row.sti_duration_minutes ?: row.actual_duration))
+                .stepType(safeString(row.stt_code))
+                .stepCategory(safeString(row.stt_name))
+                .estimatedDuration(safeInteger(row.stm_duration_minutes))
+                .actualDuration(safeInteger(row.sti_duration_minutes))
                 
                 // Progress tracking with safe integer conversion
                 .dependencyCount(safeInteger(row.dependency_count, 0))

@@ -1,8 +1,36 @@
 # Project Progress
 
-**Last Updated**: September 17, 2025
-**Status**: US-087 Admin GUI Phase 1 COMPLETE ✅ | SQL Schema Alignment COMPLETE ✅
-**Current Achievement**: 100% module loading success (25/25 components), IIFE race conditions resolved, SecurityUtils fully functional, SQL schema 100% aligned with zero phantom columns, 8 critical SQL errors fixed
+**Last Updated**: September 18, 2025
+**Status**: Sprint 7 - Critical Technical Debt Discovery & Resolution (TD-003, TD-004)
+**Current Achievement**: Two major architectural discoveries with 71 story points of improvement work identified, Steps API 0% → 100% success rate
+
+## 🚨 Critical Technical Debt Discoveries (September 18, 2025)
+
+### TD-003: Hardcoded Status Values Crisis - 50+ Files Affected
+
+**Discovery**: Steps API 500 errors revealed systematic technical debt
+**Scope**: 50+ files with hardcoded status values instead of database lookups
+**Business Impact**: 68 story points (5-7 days) of implementation work
+**Solution Plan**: 4-phase StatusService architecture implementation
+
+**Immediate Fixes Applied**:
+
+- ✅ Fixed Steps API with status table JOIN (0% → 100% success rate)
+- ✅ Updated DTO validation for all 7 step statuses
+- ✅ Database query optimisation with proper status resolution
+
+### TD-004: Architectural Interface Mismatches
+
+**Discovery**: BaseEntityManager vs ComponentOrchestrator philosophy conflict
+**Impact**: Teams component migration blocked by interface expectations
+**Decision**: Option B - Fix BaseEntityManager to match component interfaces
+**Implementation**: 3 story points (4-6 hours) across 3 phases
+
+**Critical Issues Resolved**:
+
+- ✅ Created `/users/current` endpoint for TeamsEntityManager
+- ✅ Fixed SecurityUtils window scope references
+- ✅ Resolved UserService compilation errors
 
 ## 🎯 Sprint Summary & Status
 

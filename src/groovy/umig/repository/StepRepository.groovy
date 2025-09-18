@@ -2980,7 +2980,7 @@ class StepRepository {
                 sti.sti_id,
                 COALESCE(sti.sti_name, stm.stm_name) as stm_name,
                 COALESCE(sti.sti_description, stm.stm_description) as stm_description,
-                sti.sti_status as step_status,
+                sts.sts_name as step_status,
                 
                 -- Team assignment
                 tms.tms_id,
@@ -2990,7 +2990,7 @@ class StepRepository {
                 mig.mig_id as migration_id,
                 mig.mig_name as migration_name,
                 ite.ite_id as iteration_id,
-                ite.itt_code as iteration_type,
+                itt.itt_code as iteration_type,
                 sqm.sqm_id as sequence_id,
                 phm.phm_id as phase_id,
                 
@@ -3001,10 +3001,10 @@ class StepRepository {
                 -- priority column doesn't exist in database
                 
                 -- Extended metadata
-                stt.stt_code as step_type,
-                stt.stt_name as step_category,
-                stm.stm_duration_minutes as estimated_duration,
-                sti.sti_duration_minutes as actual_duration,
+                stt.stt_code,
+                stt.stt_name,
+                stm.stm_duration_minutes,
+                sti.sti_duration_minutes,
                 
                 -- Progress tracking with computed values
                 COALESCE(dep_counts.dependency_count, 0) as dependency_count,
@@ -3020,6 +3020,7 @@ class StepRepository {
             FROM steps_instance_sti sti
             JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
             JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+            JOIN status_sts sts ON sti.sti_status = sts.sts_id AND sts.sts_type = 'Step'
             
             -- Hierarchical joins
             JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
@@ -3032,6 +3033,7 @@ class StepRepository {
             
             -- Migration and iteration context
             LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+            LEFT JOIN iteration_types_itt itt ON ite.itt_code = itt.itt_code
             LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
             
             -- Team assignment (using step master's owner team)

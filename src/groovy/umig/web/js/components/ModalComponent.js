@@ -50,6 +50,11 @@ class ModalComponent extends BaseComponent {
     this.previousFocus = null;
     this.formData = {};
     this.validationErrors = {};
+
+    // Tab functionality state (US-087 extension)
+    this.tabs = new Map();
+    this.activeTabId = null;
+    this.tabsEnabled = config.enableTabs || false;
   }
 
   /**
@@ -96,6 +101,7 @@ class ModalComponent extends BaseComponent {
                   : ""
               }
             </div>
+            ${this.tabsEnabled ? '<div class="modal-tabs-nav" role="tablist"></div>' : ""}
             <div id="modal-content-${this.containerId}" class="modal-body">
               <!-- Content will be injected here -->
             </div>
@@ -144,6 +150,13 @@ class ModalComponent extends BaseComponent {
     // Set title
     if (title) {
       title.textContent = this.config.title;
+    }
+
+    // Render tabs if enabled
+    if (this.tabsEnabled && this.tabs.size > 0) {
+      this.renderTabs();
+      this.renderActiveTabContent();
+      return; // Skip normal content rendering when tabs are active
     }
 
     // Set content
@@ -469,9 +482,230 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
+   * Add tab to modal (US-087 Teams Enhancement)
+   * @param {Object} tabConfig - Tab configuration
+   * @param {string} tabConfig.id - Unique tab identifier
+   * @param {string} tabConfig.label - Tab label text
+   * @param {Function|string} tabConfig.content - Content function or HTML string
+   * @param {boolean} tabConfig.active - Whether this tab should be active initially
+   */
+  async addTab(tabConfig) {
+    if (!tabConfig || !tabConfig.id || !tabConfig.label) {
+      throw new Error("[Modal] Tab configuration requires id and label");
+    }
+
+    // Enable tabs if first tab is added
+    if (!this.tabsEnabled) {
+      this.tabsEnabled = true;
+      // Recreate structure with tabs support
+      if (this.container.querySelector(".modal-wrapper")) {
+        this.createModalStructure();
+      }
+    }
+
+    // Store tab configuration
+    this.tabs.set(tabConfig.id, {
+      id: tabConfig.id,
+      label: tabConfig.label,
+      content: tabConfig.content,
+      active: tabConfig.active || false,
+    });
+
+    // Set as active if no active tab exists or explicitly marked active
+    if (!this.activeTabId || tabConfig.active) {
+      this.activeTabId = tabConfig.id;
+    }
+
+    // Re-render tabs if modal is open
+    if (this.isOpen) {
+      this.renderTabs();
+      this.renderActiveTabContent();
+    }
+  }
+
+  /**
+   * Remove tab from modal
+   * @param {string} tabId - Tab identifier to remove
+   */
+  removeTab(tabId) {
+    if (!this.tabs.has(tabId)) return;
+
+    this.tabs.delete(tabId);
+
+    // If removing active tab, switch to first available tab
+    if (this.activeTabId === tabId) {
+      const firstTab = this.tabs.keys().next().value;
+      this.activeTabId = firstTab || null;
+    }
+
+    // Re-render if modal is open
+    if (this.isOpen) {
+      this.renderTabs();
+      this.renderActiveTabContent();
+    }
+  }
+
+  /**
+   * Switch to specific tab
+   * @param {string} tabId - Tab identifier to activate
+   */
+  switchTab(tabId) {
+    if (!this.tabs.has(tabId)) {
+      console.warn(`[Modal] Tab ${tabId} not found`);
+      return;
+    }
+
+    this.activeTabId = tabId;
+
+    if (this.isOpen) {
+      this.renderTabs();
+      this.renderActiveTabContent();
+    }
+
+    // Emit tab change event
+    this.emit("tabChange", { tabId, tab: this.tabs.get(tabId) });
+  }
+
+  /**
+   * Render tab navigation
+   * @private
+   */
+  renderTabs() {
+    const tabsNav = this.container.querySelector(".modal-tabs-nav");
+    if (!tabsNav || this.tabs.size === 0) return;
+
+    const tabsHTML = Array.from(this.tabs.entries())
+      .map(([tabId, tab]) => {
+        const isActive = tabId === this.activeTabId;
+        return `
+          <button class="modal-tab ${isActive ? "active" : ""}"
+                  role="tab"
+                  aria-selected="${isActive}"
+                  aria-controls="modal-tab-content-${tabId}"
+                  data-tab-id="${tabId}"
+                  tabindex="${isActive ? "0" : "-1"}">
+            ${tab.label}
+          </button>
+        `;
+      })
+      .join("");
+
+    // Use SecurityUtils for safe tab rendering if available
+    if (typeof window.SecurityUtils !== "undefined") {
+      window.SecurityUtils.safeSetInnerHTML(tabsNav, tabsHTML, {
+        allowedTags: ["button"],
+        allowedAttributes: {
+          button: [
+            "class",
+            "role",
+            "aria-selected",
+            "aria-controls",
+            "data-tab-id",
+            "tabindex",
+          ],
+        },
+      });
+    } else {
+      tabsNav.innerHTML = tabsHTML;
+    }
+
+    // Setup tab click handlers
+    tabsNav.querySelectorAll(".modal-tab").forEach((tabButton) => {
+      this.addDOMListener(tabButton, "click", (e) => {
+        const tabId = e.target.dataset.tabId;
+        this.switchTab(tabId);
+      });
+    });
+  }
+
+  /**
+   * Render active tab content
+   * @private
+   */
+  async renderActiveTabContent() {
+    const body = this.container.querySelector(".modal-body");
+    if (!body || !this.activeTabId) return;
+
+    const activeTab = this.tabs.get(this.activeTabId);
+    if (!activeTab) return;
+
+    try {
+      let content = "";
+
+      if (typeof activeTab.content === "function") {
+        // Content is a function - call it to get HTML/Element
+        const result = await activeTab.content();
+        if (result instanceof HTMLElement) {
+          // Clear body and append element
+          body.innerHTML = "";
+          body.appendChild(result);
+          return;
+        } else {
+          content = result || "";
+        }
+      } else {
+        content = activeTab.content || "";
+      }
+
+      // Use SecurityUtils for safe content rendering if available
+      if (typeof window.SecurityUtils !== "undefined") {
+        window.SecurityUtils.safeSetInnerHTML(body, content, {
+          allowedTags: [
+            "div",
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "span",
+            "a",
+            "ul",
+            "ol",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "button",
+            "input",
+            "select",
+            "textarea",
+            "form",
+            "label",
+          ],
+          allowedAttributes: {
+            a: ["href", "title", "target"],
+            span: ["class", "id"],
+            div: ["class", "id", "data-action"],
+            button: ["class", "type", "data-action"],
+            input: ["type", "class", "name", "value", "placeholder"],
+            select: ["class", "name"],
+            textarea: ["class", "name", "rows", "placeholder"],
+            form: ["class"],
+            label: ["for", "class"],
+          },
+        });
+      } else {
+        body.innerHTML = content;
+      }
+    } catch (error) {
+      console.error("[Modal] Error rendering tab content:", error);
+      body.innerHTML = `<div class="error">Error loading tab content</div>`;
+    }
+  }
+
+  /**
    * Open modal
    */
-  open() {
+  async open() {
     if (this.isOpen) return;
 
     const wrapper = this.container.querySelector(".modal-wrapper");
@@ -489,6 +723,11 @@ class ModalComponent extends BaseComponent {
 
     // Render content
     this.render();
+
+    // If tabs are enabled, ensure active tab content is rendered
+    if (this.tabsEnabled && this.tabs.size > 0) {
+      await this.renderActiveTabContent();
+    }
 
     // Focus first focusable element
     this.focusFirstElement();
@@ -548,6 +787,12 @@ class ModalComponent extends BaseComponent {
     // Reset form if present
     if (this.config.form) {
       this.resetForm();
+    }
+
+    // Reset tabs state
+    if (this.tabsEnabled) {
+      this.activeTabId =
+        this.tabs.size > 0 ? this.tabs.keys().next().value : null;
     }
 
     // Call close callback
@@ -990,6 +1235,11 @@ class ModalComponent extends BaseComponent {
     if (this.isOpen) {
       this.close();
     }
+
+    // Clear tabs state
+    this.tabs.clear();
+    this.activeTabId = null;
+    this.tabsEnabled = false;
   }
 }
 

@@ -58,7 +58,7 @@ class StepInstanceDTO {
     @JsonProperty("stepDescription")
     String stepDescription
     
-    /** Current step status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED) */
+    /** Current step status (PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED) */
     @JsonProperty("stepStatus")
     String stepStatus
     
@@ -246,7 +246,7 @@ class StepInstanceDTO {
         
         // Status validation
         if (stepStatus && !isValidStatus(stepStatus)) {
-            errors.add("stepStatus must be one of: PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED")
+            errors.add("stepStatus must be one of: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED")
         }
         
         // Priority validation
@@ -307,7 +307,7 @@ class StepInstanceDTO {
      * @return true if valid status
      */
     private static boolean isValidStatus(String status) {
-        return status in ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED']
+        return status in ['PENDING', 'TODO', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED']
     }
     
     // ========================================

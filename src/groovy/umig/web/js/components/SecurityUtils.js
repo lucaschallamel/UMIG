@@ -873,6 +873,311 @@ if (typeof SecurityUtils === "undefined") {
       return SecurityUtils.instance;
     }
 
+    // ===== Security Exception Classes =====
+
+    /**
+     * Security validation exception for input validation failures
+     */
+    static ValidationException = class ValidationException extends Error {
+      constructor(message, field = null, value = null) {
+        super(message);
+        this.name = "ValidationException";
+        this.field = field;
+        this.value = value;
+        this.timestamp = new Date().toISOString();
+      }
+    };
+
+    /**
+     * Security exception for security policy violations
+     */
+    static SecurityException = class SecurityException extends Error {
+      constructor(message, action = null, details = null) {
+        super(message);
+        this.name = "SecurityException";
+        this.action = action;
+        this.details = details;
+        this.timestamp = new Date().toISOString();
+      }
+    };
+
+    // ===== Enhanced Validation Methods =====
+
+    /**
+     * Enhanced validateInput method for object validation with security options
+     * Used by BaseEntityManager and other components for comprehensive validation
+     * @param {Object|string|any} data - Data to validate (object, string, or any type)
+     * @param {Object} options - Security validation options
+     * @param {boolean} options.preventXSS - Enable XSS prevention (default: true)
+     * @param {boolean} options.preventSQLInjection - Enable SQL injection prevention (default: true)
+     * @param {boolean} options.sanitizeStrings - Enable string sanitization (default: true)
+     * @param {boolean} options.allowEmpty - Allow empty values (default: true)
+     * @param {boolean} options.recursiveValidation - Validate nested objects (default: true)
+     * @returns {Object} Validation result with isValid, sanitizedData, errors, and warnings
+     */
+    static validateInput(data, options = {}) {
+      const config = {
+        preventXSS: true,
+        preventSQLInjection: true,
+        sanitizeStrings: true,
+        allowEmpty: true,
+        recursiveValidation: true,
+        maxDepth: 10,
+        maxStringLength: 10000,
+        ...options,
+      };
+
+      const result = {
+        isValid: true,
+        sanitizedData: data,
+        errors: [],
+        warnings: [],
+      };
+
+      try {
+        // Handle null/undefined
+        if (data === null || data === undefined) {
+          if (config.allowEmpty) {
+            return result;
+          } else {
+            result.isValid = false;
+            result.errors.push("Data cannot be null or undefined");
+            return result;
+          }
+        }
+
+        // Handle different data types
+        if (typeof data === "string") {
+          result.sanitizedData = SecurityUtils._validateString(
+            data,
+            config,
+            result,
+          );
+        } else if (typeof data === "object" && !Array.isArray(data)) {
+          result.sanitizedData = SecurityUtils._validateObject(
+            data,
+            config,
+            result,
+            0,
+          );
+        } else if (Array.isArray(data)) {
+          result.sanitizedData = SecurityUtils._validateArray(
+            data,
+            config,
+            result,
+            0,
+          );
+        } else {
+          // For primitives (numbers, booleans), just pass through
+          result.sanitizedData = data;
+        }
+
+        // Log validation event for security monitoring
+        if (result.errors.length > 0 || result.warnings.length > 0) {
+          SecurityUtils.logSecurityEvent("input_validation", {
+            dataType: typeof data,
+            hasErrors: result.errors.length > 0,
+            hasWarnings: result.warnings.length > 0,
+            errorCount: result.errors.length,
+            warningCount: result.warnings.length,
+          });
+        }
+      } catch (error) {
+        result.isValid = false;
+        result.errors.push(`Validation error: ${error.message}`);
+        console.error("[SecurityUtils] validateInput error:", error);
+      }
+
+      return result;
+    }
+
+    /**
+     * Validate string with security options
+     * @private
+     */
+    static _validateString(str, config, result) {
+      let sanitized = str;
+
+      // Check string length
+      if (str.length > config.maxStringLength) {
+        result.warnings.push(
+          `String length exceeds maximum (${config.maxStringLength})`,
+        );
+        sanitized = str.substring(0, config.maxStringLength);
+      }
+
+      // Apply sanitization based on config
+      if (config.sanitizeStrings) {
+        if (config.preventXSS) {
+          sanitized = SecurityUtils.sanitizeXSS(sanitized);
+        }
+        if (config.preventSQLInjection) {
+          sanitized = SecurityUtils._preventSQLInjection(sanitized);
+        }
+      }
+
+      return sanitized;
+    }
+
+    /**
+     * Validate object recursively with security options
+     * @private
+     */
+    static _validateObject(obj, config, result, depth) {
+      if (depth > config.maxDepth) {
+        result.warnings.push(
+          `Object depth exceeds maximum (${config.maxDepth})`,
+        );
+        return obj;
+      }
+
+      if (!config.recursiveValidation) {
+        return obj;
+      }
+
+      const sanitized = {};
+      for (const [key, value] of Object.entries(obj)) {
+        // Validate the key itself
+        const sanitizedKey = SecurityUtils._validateString(key, config, result);
+
+        // Validate the value
+        if (typeof value === "string") {
+          sanitized[sanitizedKey] = SecurityUtils._validateString(
+            value,
+            config,
+            result,
+          );
+        } else if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value)
+        ) {
+          sanitized[sanitizedKey] = SecurityUtils._validateObject(
+            value,
+            config,
+            result,
+            depth + 1,
+          );
+        } else if (Array.isArray(value)) {
+          sanitized[sanitizedKey] = SecurityUtils._validateArray(
+            value,
+            config,
+            result,
+            depth + 1,
+          );
+        } else {
+          sanitized[sanitizedKey] = value;
+        }
+      }
+
+      return sanitized;
+    }
+
+    /**
+     * Validate array with security options
+     * @private
+     */
+    static _validateArray(arr, config, result, depth) {
+      if (depth > config.maxDepth) {
+        result.warnings.push(
+          `Array depth exceeds maximum (${config.maxDepth})`,
+        );
+        return arr;
+      }
+
+      if (!config.recursiveValidation) {
+        return arr;
+      }
+
+      return arr.map((item) => {
+        if (typeof item === "string") {
+          return SecurityUtils._validateString(item, config, result);
+        } else if (
+          typeof item === "object" &&
+          item !== null &&
+          !Array.isArray(item)
+        ) {
+          return SecurityUtils._validateObject(item, config, result, depth + 1);
+        } else if (Array.isArray(item)) {
+          return SecurityUtils._validateArray(item, config, result, depth + 1);
+        } else {
+          return item;
+        }
+      });
+    }
+
+    /**
+     * Basic SQL injection prevention
+     * @private
+     */
+    static _preventSQLInjection(str) {
+      if (typeof str !== "string") return str;
+
+      // Basic SQL injection patterns to neutralize
+      const sqlPatterns = [
+        /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b)/gi,
+        /(;|\-\-|\/\*|\*\/)/g,
+        /(\b(or|and)\s+\d+\s*=\s*\d+)/gi,
+      ];
+
+      let sanitized = str;
+      sqlPatterns.forEach((pattern) => {
+        sanitized = sanitized.replace(pattern, "");
+      });
+
+      return sanitized;
+    }
+
+    // ===== CSRF Header Management =====
+
+    /**
+     * Add CSRF protection headers to existing headers object
+     * @param {Object} headers - Existing headers object
+     * @returns {Object} Headers with CSRF protection added
+     */
+    static addCSRFProtection(headers = {}) {
+      const instance = SecurityUtils.getInstance();
+      if (!instance) {
+        console.warn(
+          "[SecurityUtils] No instance available for CSRF protection",
+        );
+        return headers;
+      }
+
+      const csrfToken = instance.getCSRFToken();
+      if (!csrfToken) {
+        console.warn("[SecurityUtils] No CSRF token available");
+        return headers;
+      }
+
+      return {
+        ...headers,
+        "X-CSRF-Token": csrfToken,
+        "X-Requested-With": "XMLHttpRequest",
+      };
+    }
+
+    /**
+     * Add CSRF protection headers to existing headers object (Instance method)
+     * @param {Object} headers - Existing headers object
+     * @returns {Object} Headers with CSRF protection added
+     */
+    addCSRFProtection(headers = {}) {
+      const csrfToken = this.getCSRFToken();
+      if (!csrfToken) {
+        console.warn(
+          "[SecurityUtils] No CSRF token available for instance method",
+        );
+        return headers;
+      }
+
+      return {
+        ...headers,
+        "X-CSRF-Token": csrfToken,
+        "X-Requested-With": "XMLHttpRequest",
+      };
+    }
+
     // ===== Legacy Support =====
 
     /**
@@ -880,24 +1185,6 @@ if (typeof SecurityUtils === "undefined") {
      */
     static sanitizeString(str) {
       return SecurityUtils.sanitizeXSS(str);
-    }
-
-    /**
-     * Legacy validateInput method for backward compatibility
-     */
-    static validateInput(data) {
-      if (typeof data === "string") {
-        return {
-          isValid: true,
-          sanitizedData: SecurityUtils.sanitizeXSS(data),
-          errors: [],
-        };
-      }
-      return {
-        isValid: true,
-        sanitizedData: data,
-        errors: [],
-      };
     }
 
     /**
@@ -990,6 +1277,9 @@ if (typeof SecurityUtils === "undefined") {
     }
     if (!window.SecurityUtils.setTextContent) {
       window.SecurityUtils.setTextContent = SecurityUtils.setTextContent;
+    }
+    if (!window.SecurityUtils.addCSRFProtection) {
+      window.SecurityUtils.addCSRFProtection = SecurityUtils.addCSRFProtection;
     }
   }
 } // End of SecurityUtils undefined check

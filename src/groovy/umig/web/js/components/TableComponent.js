@@ -1058,6 +1058,14 @@ class TableComponent extends BaseComponent {
     this.render();
   }
 
+  /**
+   * Update table data - alias for setData for component compatibility
+   * @param {Array} data - New data array
+   */
+  updateData(data) {
+    return this.setData(data);
+  }
+
   getData() {
     return this.config.data;
   }

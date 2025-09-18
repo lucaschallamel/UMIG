@@ -14,7 +14,7 @@
         "admin-gui-migration": false,
 
         // Individual entity toggles for gradual rollout
-        "teams-component": false,
+        // NOTE: teams-component removed - Teams always uses new component architecture
         "users-component": false,
         "environments-component": false,
         "applications-component": false,
@@ -162,7 +162,6 @@
           type: "object",
           properties: {
             "admin-gui-migration": { type: "boolean", required: false },
-            "teams-component": { type: "boolean", required: false },
             "users-component": { type: "boolean", required: false },
             "environments-component": { type: "boolean", required: false },
             "applications-component": { type: "boolean", required: false },
@@ -360,7 +359,7 @@
 
       // Disable all migration-related features
       this.flags["admin-gui-migration"] = false;
-      this.flags["teams-component"] = false;
+      // NOTE: teams-component removed - Teams always enabled
       this.flags["users-component"] = false;
       this.flags["environments-component"] = false;
       this.flags["applications-component"] = false;

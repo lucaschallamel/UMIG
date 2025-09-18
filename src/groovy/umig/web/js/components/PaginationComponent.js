@@ -66,22 +66,37 @@ class PaginationComponent extends BaseComponent {
    * Calculate pagination values
    */
   calculate() {
-    this.totalPages =
-      Math.ceil(this.config.totalItems / this.config.pageSize) || 1;
-
-    // Ensure current page is within bounds
-    if (this.config.currentPage < 1) {
+    // Fix edge case: if totalItems is 0, totalPages should be 1 but pagination should be hidden/disabled
+    if (this.config.totalItems <= 0) {
+      this.totalPages = 1;
       this.config.currentPage = 1;
-    } else if (this.config.currentPage > this.totalPages) {
-      this.config.currentPage = this.totalPages;
-    }
+      this.startItem = 0;
+      this.endItem = 0;
+    } else {
+      this.totalPages = Math.ceil(
+        this.config.totalItems / this.config.pageSize,
+      );
 
-    // Calculate item range
-    this.startItem = (this.config.currentPage - 1) * this.config.pageSize + 1;
-    this.endItem = Math.min(
-      this.config.currentPage * this.config.pageSize,
-      this.config.totalItems,
-    );
+      // Ensure current page is within bounds
+      if (this.config.currentPage < 1) {
+        this.config.currentPage = 1;
+      } else if (this.config.currentPage > this.totalPages) {
+        this.config.currentPage = this.totalPages;
+      }
+
+      // Calculate item range - fix for edge cases
+      if (this.config.totalItems === 0) {
+        this.startItem = 0;
+        this.endItem = 0;
+      } else {
+        this.startItem =
+          (this.config.currentPage - 1) * this.config.pageSize + 1;
+        this.endItem = Math.min(
+          this.config.currentPage * this.config.pageSize,
+          this.config.totalItems,
+        );
+      }
+    }
 
     // Calculate visible page numbers
     this.calculateVisiblePages();
@@ -251,21 +266,29 @@ class PaginationComponent extends BaseComponent {
    * Render compact pagination controls
    */
   renderCompact() {
+    // Enhanced logic for compact mode buttons
+    const previousDisabled =
+      this.config.currentPage <= 1 || this.config.totalItems === 0;
+    const nextDisabled =
+      this.config.currentPage >= this.totalPages ||
+      this.totalPages <= 1 ||
+      this.config.totalItems === 0;
+
     const html = `
       <div class="pagination-wrapper pagination-compact">
         <div class="pagination-controls">
-          <button class="btn btn-icon" 
-                  data-action="previous" 
-                  ${this.config.currentPage === 1 ? "disabled" : ""}
+          <button class="btn btn-icon"
+                  data-action="previous"
+                  ${previousDisabled ? "disabled" : ""}
                   aria-label="${this.config.labels.previous}">
             <span aria-hidden="true">‹</span>
           </button>
           <span class="pagination-info">
             ${this.config.labels.page} ${this.config.currentPage} ${this.config.labels.of} ${this.totalPages}
           </span>
-          <button class="btn btn-icon" 
-                  data-action="next" 
-                  ${this.config.currentPage === this.totalPages ? "disabled" : ""}
+          <button class="btn btn-icon"
+                  data-action="next"
+                  ${nextDisabled ? "disabled" : ""}
                   aria-label="${this.config.labels.next}">
             <span aria-hidden="true">›</span>
           </button>
@@ -318,10 +341,17 @@ class PaginationComponent extends BaseComponent {
    * Render items info
    */
   renderItemsInfo() {
-    const info = this.config.labels.itemsInfo
-      .replace("{start}", this.startItem)
-      .replace("{end}", this.endItem)
-      .replace("{total}", this.config.totalItems);
+    let info;
+
+    // Handle edge cases for empty data
+    if (this.config.totalItems === 0) {
+      info = "Showing 0 to 0 of 0 items";
+    } else {
+      info = this.config.labels.itemsInfo
+        .replace("{start}", this.startItem)
+        .replace("{end}", this.endItem)
+        .replace("{total}", this.config.totalItems);
+    }
 
     return `
       <div class="pagination-info" aria-live="polite" aria-atomic="true">
@@ -428,10 +458,15 @@ class PaginationComponent extends BaseComponent {
    * Render next button
    */
   renderNextButton() {
-    const disabled = this.config.currentPage === this.totalPages;
+    // Enhanced logic: disable if on last page OR if there's only one page OR no items
+    const disabled =
+      this.config.currentPage >= this.totalPages ||
+      this.totalPages <= 1 ||
+      this.config.totalItems === 0;
+
     return `
       <li class="pagination-item">
-        <button class="pagination-link pagination-next" 
+        <button class="pagination-link pagination-next"
                 data-action="next"
                 ${disabled ? "disabled" : ""}
                 aria-label="${this.config.labels.next}"
@@ -447,10 +482,15 @@ class PaginationComponent extends BaseComponent {
    * Render last button
    */
   renderLastButton() {
-    const disabled = this.config.currentPage === this.totalPages;
+    // Enhanced logic: disable if on last page OR if there's only one page OR no items
+    const disabled =
+      this.config.currentPage >= this.totalPages ||
+      this.totalPages <= 1 ||
+      this.config.totalItems === 0;
+
     return `
       <li class="pagination-item">
-        <button class="pagination-link pagination-last" 
+        <button class="pagination-link pagination-last"
                 data-action="last"
                 ${disabled ? "disabled" : ""}
                 aria-label="${this.config.labels.last}"
@@ -774,6 +814,40 @@ class PaginationComponent extends BaseComponent {
     if (wasCompact !== this.config.compactMode) {
       this.render();
     }
+  }
+
+  /**
+   * Debug method - get detailed pagination state for troubleshooting
+   */
+  getDebugInfo() {
+    return {
+      containerId: this.containerId,
+      totalItems: this.config.totalItems,
+      pageSize: this.config.pageSize,
+      currentPage: this.config.currentPage,
+      totalPages: this.totalPages,
+      startItem: this.startItem,
+      endItem: this.endItem,
+      calculated: {
+        itemsRange: `${this.startItem} to ${this.endItem} of ${this.config.totalItems}`,
+        buttonStates: {
+          first: this.config.currentPage === 1,
+          previous:
+            this.config.currentPage <= 1 || this.config.totalItems === 0,
+          next:
+            this.config.currentPage >= this.totalPages ||
+            this.totalPages <= 1 ||
+            this.config.totalItems === 0,
+          last:
+            this.config.currentPage >= this.totalPages ||
+            this.totalPages <= 1 ||
+            this.config.totalItems === 0,
+        },
+      },
+      visiblePageNumbers: this.visiblePageNumbers,
+      pageSizeOptions: this.config.pageSizeOptions,
+      compactMode: this.config.compactMode,
+    };
   }
 }
 

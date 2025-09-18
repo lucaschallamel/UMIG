@@ -370,7 +370,7 @@
 
         const response = await fetch(this.usersApiUrl, {
           method: "POST",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(sanitizedFilters),
@@ -439,7 +439,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}/teams?includeArchived=${includeArchived}`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -511,7 +511,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}/teams`,
           {
             method: "POST",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({
@@ -588,7 +588,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}/teams/${encodeURIComponent(teamId)}`,
           {
             method: "DELETE",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -686,7 +686,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}`,
           {
             method: "PUT",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify(sanitizedUpdates),
@@ -752,7 +752,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}/activity?days=${days}`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -793,7 +793,7 @@
           `${this.relationshipsApiUrl}/batch-validate`,
           {
             method: "POST",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({ userIds }),
@@ -855,7 +855,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/role`,
           {
             method: "PUT",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({
@@ -914,7 +914,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/role/validate`,
           {
             method: "PUT",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({
@@ -976,7 +976,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/soft-delete`,
           {
             method: "PUT",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({
@@ -1046,7 +1046,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/restore`,
           {
             method: "PUT",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify({
@@ -1096,7 +1096,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/delete-protection`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1138,7 +1138,7 @@
           `${this.relationshipsApiUrl}/${encodeURIComponent(userId)}/teams/${encodeURIComponent(teamId)}/validate`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1178,7 +1178,7 @@
           `${this.relationshipsApiUrl}/relationship-statistics`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1218,7 +1218,7 @@
           `${this.relationshipsApiUrl}/cleanup-orphaned-members`,
           {
             method: "POST",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1405,7 +1405,7 @@
           `${this.usersApiUrl}?${params.toString()}`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1546,7 +1546,7 @@
           `${this.usersApiUrl}/${encodeURIComponent(userId)}`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
