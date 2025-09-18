@@ -2991,6 +2991,11 @@ class ComponentOrchestrator {
   }
 }
 
+// Make available globally for browser compatibility
+if (typeof window !== "undefined") {
+  window.ComponentOrchestrator = ComponentOrchestrator;
+}
+
 // Export for use in other components
 if (typeof module !== "undefined" && module.exports) {
   module.exports = ComponentOrchestrator;

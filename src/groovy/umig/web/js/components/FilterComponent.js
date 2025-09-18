@@ -11,17 +11,21 @@
  * - Security-first design
  */
 
-// Ensure BaseComponent is available
-let BaseComponent;
-if (typeof require !== "undefined") {
-  try {
-    BaseComponent = require("./BaseComponent");
-  } catch (e) {
-    // BaseComponent may be loaded globally
-  }
-}
-if (!BaseComponent && typeof window !== "undefined") {
-  BaseComponent = window.BaseComponent;
+// Import BaseComponent for Node.js/testing environment
+if (typeof BaseComponent === "undefined") {
+  var BaseComponent = (function () {
+    if (typeof require !== "undefined") {
+      try {
+        return require("./BaseComponent");
+      } catch (e) {
+        // BaseComponent not available in this environment
+        return null;
+      }
+    } else if (typeof window !== "undefined") {
+      return window.BaseComponent;
+    }
+    return null;
+  })();
 }
 
 class FilterComponent extends BaseComponent {

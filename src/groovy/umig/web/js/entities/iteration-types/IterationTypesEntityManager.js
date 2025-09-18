@@ -35,11 +35,16 @@
  * @performance <200ms target with intelligent caching and optimized queries
  */
 
-import { BaseEntityManager } from "../BaseEntityManager.js";
-import { ComponentOrchestrator } from "../../components/ComponentOrchestrator.js";
-import { SecurityUtils } from "../../components/SecurityUtils.js";
+// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Dependencies: BaseEntityManager, ComponentOrchestrator, SecurityUtils (accessed via window.X)
 
-export class IterationTypesEntityManager extends BaseEntityManager {
+// Utility function to get dependencies safely
+function getDependency(name, fallback = {}) {
+  return window[name] || fallback;
+}
+
+class IterationTypesEntityManager extends (window.BaseEntityManager ||
+  class {}) {
   /**
    * Initialize IterationTypesEntityManager with specific configuration
    * @param {Object} config - Configuration object

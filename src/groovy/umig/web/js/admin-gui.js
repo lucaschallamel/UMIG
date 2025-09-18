@@ -18,6 +18,19 @@
 (function () {
   "use strict";
 
+  // Security Utils availability checker
+  function isSecurityUtilsAvailable(methodName = null) {
+    if (!window.SecurityUtils) {
+      console.warn("[AdminGUI] SecurityUtils not available on window object");
+      return false;
+    }
+    if (methodName && typeof window.SecurityUtils[methodName] !== "function") {
+      console.warn(`[AdminGUI] SecurityUtils.${methodName} is not a function`);
+      return false;
+    }
+    return true;
+  }
+
   // Global Admin GUI namespace
   window.adminGui = {
     // Application state
@@ -116,98 +129,1118 @@
       console.log("[UMIG] Admin GUI cleanup completed");
     },
 
+    // Centralized API utility to eliminate fetch code duplication
+    makeApiCall: async function (options) {
+      const {
+        endpoint,
+        method = "GET",
+        data = null,
+        params = null,
+        headers = {},
+        timeout = 30000, // 30 second timeout
+        retries = 1,
+        onSuccess = null,
+        onError = null,
+        context = "API call",
+      } = options;
+
+      try {
+        // Build URL with parameters
+        let url = `${this.api.baseUrl}${endpoint}`;
+        if (params) {
+          const urlParams = new URLSearchParams(params);
+          url += `?${urlParams.toString()}`;
+        }
+
+        // Default headers with security enhancements
+        const defaultHeaders = {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check",
+          ...headers,
+        };
+
+        // Add CSRF token if available
+        if (isSecurityUtilsAvailable("getCSRFToken")) {
+          const csrfToken = window.SecurityUtils.getCSRFToken();
+          if (csrfToken) {
+            defaultHeaders["X-CSRF-Token"] = csrfToken;
+          }
+        }
+
+        console.log(`[UMIG API] ${method} ${url} - ${context}`);
+
+        // Log security event for API calls
+        if (isSecurityUtilsAvailable("logSecurityEvent")) {
+          window.SecurityUtils.logSecurityEvent("api_call_initiated", {
+            method: method,
+            endpoint: endpoint,
+            context: context,
+            hasData: !!data,
+          });
+        }
+
+        // Create fetch configuration
+        const fetchConfig = {
+          method: method,
+          credentials: "same-origin",
+          headers: defaultHeaders,
+        };
+
+        // Add body for non-GET requests
+        if (data && method !== "GET") {
+          fetchConfig.body = JSON.stringify(data);
+        }
+
+        // Create timeout promise
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(
+            () => reject(new Error(`Request timeout after ${timeout}ms`)),
+            timeout,
+          );
+        });
+
+        // Attempt API call with retries
+        let lastError = null;
+        for (let attempt = 0; attempt <= retries; attempt++) {
+          try {
+            if (attempt > 0) {
+              console.log(`[UMIG API] Retry attempt ${attempt} for ${context}`);
+              // Wait before retry (exponential backoff)
+              await new Promise((resolve) =>
+                setTimeout(resolve, Math.pow(2, attempt) * 1000),
+              );
+            }
+
+            // Make the fetch call with timeout
+            const response = await Promise.race([
+              fetch(url, fetchConfig),
+              timeoutPromise,
+            ]);
+
+            console.log(
+              `[UMIG API] Response status: ${response.status} for ${context}`,
+            );
+
+            // Handle non-OK responses
+            if (!response.ok) {
+              const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+              // Try to get error details from response body
+              let errorDetails = errorMessage;
+              try {
+                const errorBody = await response.text();
+                if (errorBody) {
+                  try {
+                    const errorJson = JSON.parse(errorBody);
+                    errorDetails =
+                      errorJson.message || errorJson.error || errorMessage;
+                  } catch (parseError) {
+                    errorDetails = errorBody.substring(0, 200); // Limit error message length
+                  }
+                }
+              } catch (bodyError) {
+                console.warn(
+                  `[UMIG API] Could not read error response body:`,
+                  bodyError,
+                );
+              }
+
+              throw new Error(errorDetails);
+            }
+
+            // Parse response
+            const responseData = await response.json();
+
+            // Log successful API call
+            if (window.SecurityUtils) {
+              window.SecurityUtils.logSecurityEvent("api_call_completed", {
+                method: method,
+                endpoint: endpoint,
+                context: context,
+                responseSize: JSON.stringify(responseData).length,
+                attempt: attempt + 1,
+              });
+            }
+
+            console.log(`[UMIG API] Success: ${context}`);
+
+            // Call success callback if provided
+            if (onSuccess) {
+              onSuccess(responseData);
+            }
+
+            return responseData;
+          } catch (error) {
+            lastError = error;
+            console.error(
+              `[UMIG API] Attempt ${attempt + 1} failed for ${context}:`,
+              error.message,
+            );
+
+            // Don't retry on certain error types
+            if (
+              error.message.includes("400") ||
+              error.message.includes("401") ||
+              error.message.includes("403") ||
+              error.message.includes("404")
+            ) {
+              break; // Don't retry client errors
+            }
+
+            // If this was the last attempt, break out of retry loop
+            if (attempt === retries) {
+              break;
+            }
+          }
+        }
+
+        // If we get here, all attempts failed
+        throw lastError;
+      } catch (error) {
+        console.error(`[UMIG API] Final error for ${context}:`, error);
+
+        // Log security event for API failure
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("api_call_failed", {
+            method: method,
+            endpoint: endpoint,
+            context: context,
+            errorMessage: error.message || "Unknown error",
+            errorType: error.name || "Unknown",
+          });
+        }
+
+        // Call error callback if provided
+        if (onError) {
+          onError(error);
+        } else {
+          // Default error handling - show user-friendly message
+          this.showErrorMessage(
+            `${context} failed: ${this.getApiErrorMessage(error)}`,
+          );
+        }
+
+        throw error; // Re-throw for caller to handle if needed
+      }
+    },
+
+    // Get user-friendly API error messages
+    getApiErrorMessage: function (error) {
+      const message = error.message || "Unknown error";
+
+      if (message.includes("400")) {
+        return "Invalid request. Please check your input.";
+      } else if (message.includes("401")) {
+        return "Authentication required. Please log in again.";
+      } else if (message.includes("403")) {
+        return "You do not have permission to perform this action.";
+      } else if (message.includes("404")) {
+        return "The requested resource was not found.";
+      } else if (message.includes("500")) {
+        return "Server error. Please try again later.";
+      } else if (message.includes("timeout")) {
+        return "Request timed out. Please check your connection and try again.";
+      } else {
+        return message.length > 100
+          ? message.substring(0, 100) + "..."
+          : message;
+      }
+    },
+
+    // Centralized UI utility to eliminate DOM manipulation duplication
+    uiUtils: {
+      // Safely get element by ID with error handling
+      getElement: function (id, required = false) {
+        try {
+          const element = document.getElementById(id);
+          if (required && !element) {
+            console.error(`[UMIG UI] Required element not found: ${id}`);
+            throw new Error(`Required UI element not found: ${id}`);
+          }
+          return element;
+        } catch (error) {
+          console.error(`[UMIG UI] Error getting element ${id}:`, error);
+          if (required) throw error;
+          return null;
+        }
+      },
+
+      // Safely set content with security validation
+      setContent: function (elementId, content, isHTML = false) {
+        try {
+          const element = this.getElement(elementId);
+          if (!element) return false;
+
+          if (isHTML) {
+            // Use SecurityUtils for safe HTML setting
+            if (window.SecurityUtils) {
+              window.SecurityUtils.safeSetInnerHTML(element, content);
+            } else {
+              element.innerHTML = content;
+            }
+          } else {
+            // Use textContent for text
+            element.textContent = content;
+          }
+          return true;
+        } catch (error) {
+          console.error(
+            `[UMIG UI] Error setting content for ${elementId}:`,
+            error,
+          );
+          return false;
+        }
+      },
+
+      // Show/hide elements with animation support
+      setVisibility: function (elementId, visible, animated = false) {
+        try {
+          const element = this.getElement(elementId);
+          if (!element) return false;
+
+          if (animated) {
+            if (visible) {
+              element.style.display = "block";
+              element.style.opacity = "0";
+              setTimeout(() => {
+                element.style.transition = "opacity 0.3s ease";
+                element.style.opacity = "1";
+              }, 10);
+            } else {
+              element.style.transition = "opacity 0.3s ease";
+              element.style.opacity = "0";
+              setTimeout(() => {
+                element.style.display = "none";
+              }, 300);
+            }
+          } else {
+            element.style.display = visible ? "block" : "none";
+          }
+          return true;
+        } catch (error) {
+          console.error(
+            `[UMIG UI] Error setting visibility for ${elementId}:`,
+            error,
+          );
+          return false;
+        }
+      },
+
+      // Create modal with standard structure and security
+      createModal: function (id, title, content, options = {}) {
+        try {
+          const {
+            closable = true,
+            size = "medium",
+            className = "",
+            onClose = null,
+          } = options;
+
+          // Remove existing modal if it exists
+          this.removeElement(id);
+
+          const sizeClass =
+            {
+              small: "modal-small",
+              medium: "modal-medium",
+              large: "modal-large",
+              xlarge: "modal-xlarge",
+            }[size] || "modal-medium";
+
+          const modalHTML = `
+            <div id="${id}" class="aui-dialog2 aui-dialog2-${size} ${className}"
+                 style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0,0,0,0.5); z-index: 3000;">
+              <div class="aui-dialog2-content ${sizeClass}"
+                   style="margin: 5% auto; background: white; border-radius: 4px;
+                          max-height: 90vh; overflow-y: auto;">
+                <header class="aui-dialog2-header">
+                  <h2 class="aui-dialog2-header-main">${title}</h2>
+                  ${
+                    closable
+                      ? `<a class="aui-dialog2-header-close" data-modal-id="${id}">
+                    <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                  </a>`
+                      : ""
+                  }
+                </header>
+                <div class="aui-dialog2-content-body">
+                  ${content}
+                </div>
+              </div>
+            </div>`;
+
+          // Create modal element
+          const modalElement = document.createElement("div");
+          modalElement.innerHTML = modalHTML;
+          document.body.appendChild(modalElement.firstElementChild);
+
+          // Add close event listeners if closable
+          if (closable) {
+            const closeBtn = document.querySelector(`[data-modal-id="${id}"]`);
+            const modal = this.getElement(id);
+
+            const closeHandler = () => {
+              this.setVisibility(id, false, true);
+              setTimeout(() => this.removeElement(id), 300);
+              if (onClose) onClose();
+            };
+
+            if (closeBtn) {
+              closeBtn.addEventListener("click", closeHandler);
+            }
+
+            if (modal) {
+              modal.addEventListener("click", (e) => {
+                if (e.target === modal) closeHandler();
+              });
+
+              // ESC key handler
+              const escHandler = (e) => {
+                if (e.key === "Escape") {
+                  closeHandler();
+                  document.removeEventListener("keydown", escHandler);
+                }
+              };
+              document.addEventListener("keydown", escHandler);
+            }
+          }
+
+          return this.getElement(id);
+        } catch (error) {
+          console.error(`[UMIG UI] Error creating modal ${id}:`, error);
+          return null;
+        }
+      },
+
+      // Remove element safely
+      removeElement: function (elementId) {
+        try {
+          const element = this.getElement(elementId);
+          if (element && element.parentNode) {
+            element.parentNode.removeChild(element);
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error(
+            `[UMIG UI] Error removing element ${elementId}:`,
+            error,
+          );
+          return false;
+        }
+      },
+
+      // Show notification messages
+      showNotification: function (message, type = "info", duration = 5000) {
+        try {
+          const types = {
+            success: "aui-message-success",
+            error: "aui-message-error",
+            warning: "aui-message-warning",
+            info: "aui-message-info",
+          };
+
+          const className = types[type] || types.info;
+          const notificationId = `notification-${Date.now()}`;
+
+          const notificationHTML = `
+            <div id="${notificationId}" class="aui-message ${className}"
+                 style="position: fixed; top: 20px; right: 20px; z-index: 4000;
+                        max-width: 400px; margin-bottom: 10px;">
+              <p>${message}</p>
+              <span class="aui-icon icon-close" onclick="document.getElementById('${notificationId}').remove()"></span>
+            </div>`;
+
+          const notificationElement = document.createElement("div");
+          notificationElement.innerHTML = notificationHTML;
+          document.body.appendChild(notificationElement.firstElementChild);
+
+          // Auto-remove after duration
+          if (duration > 0) {
+            setTimeout(() => {
+              this.removeElement(notificationId);
+            }, duration);
+          }
+
+          return notificationId;
+        } catch (error) {
+          console.error(`[UMIG UI] Error showing notification:`, error);
+          return null;
+        }
+      },
+
+      // Create loading spinner
+      showLoadingSpinner: function (
+        containerId = null,
+        message = "Loading...",
+      ) {
+        try {
+          const spinnerId = containerId
+            ? `${containerId}-spinner`
+            : "global-spinner";
+          const container = containerId
+            ? this.getElement(containerId)
+            : document.body;
+
+          if (!container) return null;
+
+          const spinnerHTML = `
+            <div id="${spinnerId}" class="loading-spinner"
+                 style="position: ${containerId ? "absolute" : "fixed"};
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(255,255,255,0.8);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 1000;">
+              <div style="text-align: center;">
+                <div class="aui-icon aui-icon-wait" style="margin-bottom: 10px;"></div>
+                <div>${message}</div>
+              </div>
+            </div>`;
+
+          if (containerId) {
+            container.style.position = "relative";
+            container.insertAdjacentHTML("beforeend", spinnerHTML);
+          } else {
+            const spinnerElement = document.createElement("div");
+            spinnerElement.innerHTML = spinnerHTML;
+            container.appendChild(spinnerElement.firstElementChild);
+          }
+
+          return this.getElement(spinnerId);
+        } catch (error) {
+          console.error(`[UMIG UI] Error showing loading spinner:`, error);
+          return null;
+        }
+      },
+
+      // Hide loading spinner
+      hideLoadingSpinner: function (containerId = null) {
+        try {
+          const spinnerId = containerId
+            ? `${containerId}-spinner`
+            : "global-spinner";
+          return this.removeElement(spinnerId);
+        } catch (error) {
+          console.error(`[UMIG UI] Error hiding loading spinner:`, error);
+          return false;
+        }
+      },
+    },
+
     // Initialize the application
     init: function () {
-      console.log("UMIG Admin GUI initializing...");
+      try {
+        console.log("UMIG Admin GUI initializing...");
 
-      // Defensive checks for required modules
-      const requiredModules = {
-        EntityConfig: window.EntityConfig,
-        UiUtils: window.UiUtils,
-        AdminGuiState: window.AdminGuiState,
+        // Log security event for audit trail
+        if (isSecurityUtilsAvailable("logSecurityEvent")) {
+          window.SecurityUtils.logSecurityEvent("admin_gui_init_started");
+        }
+
+        // Defensive checks for required modules
+        const requiredModules = {
+          EntityConfig: window.EntityConfig,
+          UiUtils: window.UiUtils,
+          AdminGuiState: window.AdminGuiState,
+        };
+
+        // Check for SecurityUtils availability
+        const securityUtilsAvailable = isSecurityUtilsAvailable();
+        if (!securityUtilsAvailable) {
+          console.warn(
+            "[AdminGUI] SecurityUtils not fully available - some security features may be limited",
+          );
+        }
+
+        const missingModules = [];
+        for (const [name, module] of Object.entries(requiredModules)) {
+          if (!module) {
+            missingModules.push(name);
+          }
+        }
+
+        if (missingModules.length > 0) {
+          console.warn(
+            "[UMIG] Missing required modules:",
+            missingModules.join(", "),
+          );
+          console.warn("[UMIG] Retrying initialization in 500ms...");
+
+          // Log security event for missing modules
+          if (window.SecurityUtils) {
+            window.SecurityUtils.logSecurityEvent("admin_gui_missing_modules", {
+              missingModules: missingModules,
+              retryScheduled: true,
+            });
+          }
+
+          setTimeout(() => {
+            try {
+              this.init();
+            } catch (retryError) {
+              console.error(
+                "[UMIG] Critical initialization failure on retry:",
+                retryError,
+              );
+              this.handleInitializationFailure(retryError, "retry_failed");
+            }
+          }, 500);
+          return;
+        }
+
+        console.log("[UMIG] All required modules loaded successfully");
+
+        // Initialize Component Migration Features (US-087)
+        this.initializeComponentMigration();
+
+        // Initialize core functionality with error boundaries
+        try {
+          this.bindEvents();
+        } catch (eventError) {
+          console.error("[UMIG] Event binding failed:", eventError);
+          this.handleInitializationFailure(eventError, "event_binding_failed");
+        }
+
+        try {
+          this.initializeLogin();
+        } catch (loginError) {
+          console.error("[UMIG] Login initialization failed:", loginError);
+          this.handleInitializationFailure(loginError, "login_init_failed");
+        }
+
+        // Log successful initialization
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("admin_gui_init_completed");
+        }
+        console.log("[UMIG] Admin GUI initialization completed successfully");
+      } catch (error) {
+        console.error("[UMIG] Critical initialization failure:", error);
+        this.handleInitializationFailure(error, "critical_init_failure");
+      }
+    },
+
+    // Handle initialization failures with recovery strategies
+    handleInitializationFailure: function (error, failureType) {
+      try {
+        // Log security event for critical failure
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("admin_gui_init_failure", {
+            failureType: failureType,
+            errorMessage: error.message || "Unknown error",
+            errorStack: error.stack || "No stack trace available",
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        // Display user-friendly error message
+        const errorMessage = this.getInitializationErrorMessage(failureType);
+
+        // Try to show error in UI if possible
+        const contentArea = document.getElementById("content-area");
+        if (contentArea) {
+          const errorHtml = `
+            <div class="aui-message aui-message-error">
+              <p class="title">
+                <strong>System Initialization Error</strong>
+              </p>
+              <p>${errorMessage}</p>
+              <p>Please refresh the page to try again or contact your system administrator if the problem persists.</p>
+            </div>`;
+
+          if (window.SecurityUtils) {
+            window.SecurityUtils.safeSetInnerHTML(contentArea, errorHtml);
+          } else {
+            contentArea.innerHTML = errorHtml;
+          }
+        } else {
+          // Fallback: show alert if no content area available
+          alert(
+            "System initialization failed: " +
+              errorMessage +
+              "\n\nPlease refresh the page to try again.",
+          );
+        }
+
+        // Attempt graceful degradation for non-critical failures
+        if (
+          failureType === "event_binding_failed" ||
+          failureType === "login_init_failed"
+        ) {
+          console.log("[UMIG] Attempting graceful degradation...");
+          this.enableBasicMode();
+        }
+      } catch (handlerError) {
+        console.error("[UMIG] Error handler itself failed:", handlerError);
+        // Ultimate fallback
+        alert(
+          "Critical system error. Please refresh the page and contact support if the issue persists.",
+        );
+      }
+    },
+
+    // Get user-friendly error messages for different failure types
+    getInitializationErrorMessage: function (failureType) {
+      const messages = {
+        critical_init_failure: "The application failed to initialize properly.",
+        retry_failed:
+          "Required system components could not be loaded after multiple attempts.",
+        event_binding_failed:
+          "User interface controls could not be initialized.",
+        login_init_failed: "Authentication system could not be initialized.",
       };
 
-      const missingModules = [];
-      for (const [name, module] of Object.entries(requiredModules)) {
-        if (!module) {
-          missingModules.push(name);
+      return (
+        messages[failureType] || "An unknown initialization error occurred."
+      );
+    },
+
+    // Enable basic mode with limited functionality
+    enableBasicMode: function () {
+      try {
+        console.log("[UMIG] Enabling basic mode with limited functionality...");
+
+        // Set basic mode flag
+        this.isBasicMode = true;
+
+        // Show basic mode notice
+        const contentArea = document.getElementById("content-area");
+        if (contentArea) {
+          const noticeHtml = `
+            <div class="aui-message aui-message-warning">
+              <p class="title">
+                <strong>Limited Functionality Mode</strong>
+              </p>
+              <p>The system is running in basic mode due to initialization issues. Some features may not be available.</p>
+            </div>`;
+
+          if (window.SecurityUtils) {
+            window.SecurityUtils.safeSetInnerHTML(contentArea, noticeHtml);
+          } else {
+            contentArea.innerHTML = noticeHtml;
+          }
         }
+
+        // Log basic mode activation
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("admin_gui_basic_mode_enabled");
+        }
+      } catch (basicModeError) {
+        console.error("[UMIG] Failed to enable basic mode:", basicModeError);
       }
+    },
 
-      if (missingModules.length > 0) {
-        console.warn(
-          "[UMIG] Missing required modules:",
-          missingModules.join(", "),
-        );
-        console.warn("[UMIG] Retrying initialization in 500ms...");
-        setTimeout(() => this.init(), 500);
-        return;
+    // Initialize missing modules with fallbacks to prevent loading errors
+    initializeMissingModules: function () {
+      try {
+        // Create fallback for UiUtils if missing
+        if (typeof window.UiUtils === "undefined") {
+          console.warn("[AdminGUI] UiUtils not loaded, creating fallback");
+          window.UiUtils = {
+            showNotification: function (message, type) {
+              console.log(`[UiUtils Fallback] ${type}: ${message}`);
+              // Basic fallback notification
+              if (typeof alert !== "undefined") {
+                alert(`${type.toUpperCase()}: ${message}`);
+              }
+            },
+            formatDate: function (date) {
+              return date ? new Date(date).toLocaleDateString() : "";
+            },
+            debounce: function (func, wait) {
+              let timeout;
+              return function executedFunction(...args) {
+                const later = () => {
+                  clearTimeout(timeout);
+                  func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+              };
+            },
+          };
+        }
+
+        // Create fallback for AdminGuiState if missing
+        if (typeof window.AdminGuiState === "undefined") {
+          console.warn(
+            "[AdminGUI] AdminGuiState not loaded, creating fallback",
+          );
+          window.AdminGuiState = {
+            state: {},
+            setState: function (key, value) {
+              this.state[key] = value;
+              console.log(`[AdminGuiState Fallback] Set ${key}:`, value);
+            },
+            getState: function (key) {
+              return this.state[key];
+            },
+            clearState: function () {
+              this.state = {};
+            },
+          };
+        }
+
+        // Create fallback for FeatureToggle if missing
+        if (typeof window.FeatureToggle === "undefined") {
+          console.warn(
+            "[AdminGUI] FeatureToggle not loaded, creating fallback",
+          );
+          window.FeatureToggle = {
+            _flags: {},
+            _overrides: {},
+            isEnabled: function (feature) {
+              console.log(
+                `[FeatureToggle Fallback] Checking feature: ${feature} (returning true)`,
+              );
+              return this._overrides[feature] !== undefined
+                ? this._overrides[feature]
+                : this._flags[feature] || true;
+            },
+            enable: function (feature) {
+              console.log(
+                `[FeatureToggle Fallback] Enabling feature: ${feature}`,
+              );
+              this._flags[feature] = true;
+            },
+            disable: function (feature) {
+              console.log(
+                `[FeatureToggle Fallback] Disabling feature: ${feature}`,
+              );
+              this._flags[feature] = false;
+            },
+            loadOverrides: function () {
+              console.log(
+                "[FeatureToggle Fallback] loadOverrides() called - no persistent storage",
+              );
+              try {
+                const saved = localStorage.getItem("featureToggleOverrides");
+                if (saved) {
+                  this._overrides = JSON.parse(saved);
+                  console.log(
+                    "[FeatureToggle Fallback] Loaded overrides:",
+                    this._overrides,
+                  );
+                }
+              } catch (e) {
+                console.warn(
+                  "[FeatureToggle Fallback] Failed to load overrides:",
+                  e,
+                );
+                this._overrides = {};
+              }
+            },
+            getAllFlags: function () {
+              console.log("[FeatureToggle Fallback] getAllFlags() called");
+              return Object.assign({}, this._flags, this._overrides);
+            },
+            saveOverrides: function () {
+              console.log("[FeatureToggle Fallback] saveOverrides() called");
+              try {
+                localStorage.setItem(
+                  "featureToggleOverrides",
+                  JSON.stringify(this._overrides),
+                );
+              } catch (e) {
+                console.warn(
+                  "[FeatureToggle Fallback] Failed to save overrides:",
+                  e,
+                );
+              }
+            },
+          };
+        }
+
+        // Create fallback for PerformanceMonitor if missing
+        if (typeof window.PerformanceMonitor === "undefined") {
+          console.warn(
+            "[AdminGUI] PerformanceMonitor not loaded, creating fallback",
+          );
+          window.PerformanceMonitor = {
+            _baselines: {},
+            _metrics: {},
+            startTimer: function (name) {
+              console.log(
+                `[PerformanceMonitor Fallback] Starting timer: ${name}`,
+              );
+              return { name: name, start: Date.now() };
+            },
+            endTimer: function (timer) {
+              const duration = Date.now() - timer.start;
+              console.log(
+                `[PerformanceMonitor Fallback] Timer ${timer.name}: ${duration}ms`,
+              );
+              return duration;
+            },
+            recordMetric: function (name, value) {
+              console.log(
+                `[PerformanceMonitor Fallback] Metric ${name}: ${value}`,
+              );
+              this._metrics[name] = value;
+            },
+            loadBaselines: function () {
+              console.log(
+                "[PerformanceMonitor Fallback] loadBaselines() called",
+              );
+              try {
+                const saved = localStorage.getItem("performanceBaselines");
+                if (saved) {
+                  this._baselines = JSON.parse(saved);
+                  console.log(
+                    "[PerformanceMonitor Fallback] Loaded baselines:",
+                    this._baselines,
+                  );
+                } else {
+                  console.log(
+                    "[PerformanceMonitor Fallback] No saved baselines found",
+                  );
+                }
+              } catch (e) {
+                console.warn(
+                  "[PerformanceMonitor Fallback] Failed to load baselines:",
+                  e,
+                );
+                this._baselines = {};
+              }
+            },
+            setBaseline: function (name, value) {
+              console.log(
+                `[PerformanceMonitor Fallback] Setting baseline ${name}: ${value}`,
+              );
+              this._baselines[name] = value;
+              this.saveBaselines();
+            },
+            getBaseline: function (name) {
+              return this._baselines[name];
+            },
+            saveBaselines: function () {
+              console.log(
+                "[PerformanceMonitor Fallback] saveBaselines() called",
+              );
+              try {
+                localStorage.setItem(
+                  "performanceBaselines",
+                  JSON.stringify(this._baselines),
+                );
+              } catch (e) {
+                console.warn(
+                  "[PerformanceMonitor Fallback] Failed to save baselines:",
+                  e,
+                );
+              }
+            },
+            getMetrics: function () {
+              return Object.assign({}, this._metrics);
+            },
+            clearMetrics: function () {
+              console.log(
+                "[PerformanceMonitor Fallback] clearMetrics() called",
+              );
+              this._metrics = {};
+            },
+          };
+        }
+
+        console.log("[AdminGUI] Missing module fallbacks initialized");
+      } catch (error) {
+        console.error("[AdminGUI] Error initializing missing modules:", error);
       }
-
-      console.log("[UMIG] All required modules loaded successfully");
-
-      // Initialize Component Migration Features (US-087)
-      this.initializeComponentMigration();
-
-      this.bindEvents();
-      this.initializeLogin();
     },
 
     // Initialize Component Migration Features (US-087 Phase 1)
-    initializeComponentMigration: function() {
-      console.log("[US-087] Initializing component migration features...");
+    initializeComponentMigration: function () {
+      try {
+        console.log("[US-087] Initializing component migration features...");
 
-      // Initialize Feature Toggle
-      if (window.FeatureToggle) {
-        this.featureToggle = window.FeatureToggle;
-        console.log("[US-087] Feature toggle initialized");
+        // Initialize missing modules with fallbacks
+        this.initializeMissingModules();
 
-        // Load saved feature flags state
-        this.featureToggle.loadOverrides();
-        console.log("[US-087] Feature flags loaded:", this.featureToggle.getAllFlags());
-      } else {
-        console.warn("[US-087] FeatureToggle not available - operating in legacy mode");
+        // Initialize Feature Toggle with error boundary
+        try {
+          if (window.FeatureToggle) {
+            this.featureToggle = window.FeatureToggle;
+            console.log("[US-087] Feature toggle initialized");
+
+            // Load saved feature flags state with error handling
+            try {
+              this.featureToggle.loadOverrides();
+              console.log(
+                "[US-087] Feature flags loaded:",
+                this.featureToggle.getAllFlags(),
+              );
+            } catch (flagLoadError) {
+              console.error(
+                "[US-087] Failed to load feature flags:",
+                flagLoadError,
+              );
+              // Continue with default flags
+              console.log("[US-087] Using default feature flags");
+            }
+          } else {
+            console.warn(
+              "[US-087] FeatureToggle not available - operating in legacy mode",
+            );
+          }
+        } catch (featureToggleError) {
+          console.error(
+            "[US-087] Feature toggle initialization failed:",
+            featureToggleError,
+          );
+          this.featureToggle = null; // Fallback to null
+        }
+
+        // Initialize Performance Monitor with error boundary
+        try {
+          if (window.PerformanceMonitor) {
+            this.performanceMonitor = window.PerformanceMonitor;
+            console.log("[US-087] Performance monitor initialized");
+
+            // Load baselines if they exist with error handling
+            try {
+              this.performanceMonitor.loadBaselines();
+            } catch (baselineLoadError) {
+              console.error(
+                "[US-087] Failed to load performance baselines:",
+                baselineLoadError,
+              );
+              // Continue without baselines
+              console.log(
+                "[US-087] Performance monitor running without baselines",
+              );
+            }
+          } else {
+            console.warn(
+              "[US-087] PerformanceMonitor not available - performance tracking disabled",
+            );
+          }
+        } catch (performanceMonitorError) {
+          console.error(
+            "[US-087] Performance monitor initialization failed:",
+            performanceMonitorError,
+          );
+          this.performanceMonitor = null; // Fallback to null
+        }
+
+        // Conditionally load EntityManagers based on feature flags with error boundary
+        try {
+          this.loadEntityManagers();
+        } catch (entityManagerError) {
+          console.error(
+            "[US-087] EntityManager loading failed:",
+            entityManagerError,
+          );
+          // Continue with legacy mode
+          console.log(
+            "[US-087] Falling back to legacy mode due to EntityManager errors",
+          );
+        }
+
+        console.log(
+          "[US-087] Component migration feature initialization completed",
+        );
+      } catch (error) {
+        console.error(
+          "[US-087] Critical component migration initialization failure:",
+          error,
+        );
+
+        // Log security event for component migration failure
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent(
+            "component_migration_init_failure",
+            {
+              errorMessage: error.message || "Unknown error",
+              errorStack: error.stack || "No stack trace available",
+              fallbackMode: "legacy",
+            },
+          );
+        }
+
+        // Ensure fallback state is set
+        this.featureToggle = null;
+        this.performanceMonitor = null;
+        console.log(
+          "[US-087] Component migration disabled - running in legacy mode",
+        );
       }
-
-      // Initialize Performance Monitor
-      if (window.PerformanceMonitor) {
-        this.performanceMonitor = window.PerformanceMonitor;
-        console.log("[US-087] Performance monitor initialized");
-
-        // Load baselines if they exist
-        this.performanceMonitor.loadBaselines();
-      } else {
-        console.warn("[US-087] PerformanceMonitor not available - performance tracking disabled");
-      }
-
-      // Conditionally load EntityManagers based on feature flags
-      this.loadEntityManagers();
     },
 
     // Load EntityManagers based on feature flags (US-087)
-    loadEntityManagers: function() {
-      // Check if migration is enabled
-      if (!this.featureToggle || !this.featureToggle.isEnabled('admin-gui-migration')) {
-        console.log("[US-087] Admin GUI migration is disabled");
-        return;
+    loadEntityManagers: function () {
+      try {
+        // Check if migration is enabled
+        if (
+          !this.featureToggle ||
+          !this.featureToggle.isEnabled("admin-gui-migration")
+        ) {
+          console.log("[US-087] Admin GUI migration is disabled");
+          return;
+        }
+
+        console.log(
+          "[US-087] Admin GUI migration is enabled - loading EntityManagers",
+        );
+
+        // Teams EntityManager (Phase 1) with error boundary
+        try {
+          if (this.featureToggle.isEnabled("teams-component")) {
+            this.loadTeamsEntityManager();
+          }
+        } catch (teamsError) {
+          console.error(
+            "[US-087] Failed to load TeamsEntityManager:",
+            teamsError,
+          );
+
+          // Log security event for EntityManager failure
+          if (window.SecurityUtils) {
+            window.SecurityUtils.logSecurityEvent(
+              "teams_entity_manager_load_failure",
+              {
+                errorMessage: teamsError.message || "Unknown error",
+                errorStack: teamsError.stack || "No stack trace available",
+              },
+            );
+          }
+
+          // Continue with other EntityManagers
+          console.log("[US-087] Continuing with other EntityManagers...");
+        }
+
+        // Future phases (placeholder)
+        // if (this.featureToggle.isEnabled('users-component')) {
+        //   this.loadUsersEntityManager();
+        // }
+        // Additional EntityManagers will be added in subsequent phases
+
+        console.log("[US-087] EntityManager loading completed");
+      } catch (error) {
+        console.error(
+          "[US-087] Critical EntityManager loading failure:",
+          error,
+        );
+
+        // Log security event for critical EntityManager failure
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent(
+            "entity_managers_load_failure",
+            {
+              errorMessage: error.message || "Unknown error",
+              errorStack: error.stack || "No stack trace available",
+            },
+          );
+        }
+
+        // Continue with legacy mode
+        console.log(
+          "[US-087] EntityManager loading failed - continuing in legacy mode",
+        );
       }
-
-      console.log("[US-087] Admin GUI migration is enabled - loading EntityManagers");
-
-      // Teams EntityManager (Phase 1)
-      if (this.featureToggle.isEnabled('teams-component')) {
-        this.loadTeamsEntityManager();
-      }
-
-      // Future phases (placeholder)
-      // if (this.featureToggle.isEnabled('users-component')) {
-      //   this.loadUsersEntityManager();
-      // }
-      // Additional EntityManagers will be added in subsequent phases
     },
 
     // Load TeamsEntityManager (US-087 Phase 1)
-    loadTeamsEntityManager: function() {
+    loadTeamsEntityManager: function () {
       if (!window.TeamsEntityManager) {
         console.warn("[US-087] TeamsEntityManager not available");
         return;
@@ -224,34 +1257,38 @@
           apiBase: this.api.baseUrl,
           endpoints: {
             teams: this.api.endpoints.teams,
-            teamMembers: "/teamMembers"
+            teamMembers: "/teamMembers",
           },
           orchestrator: window.ComponentOrchestrator,
-          performanceMonitor: this.performanceMonitor
+          performanceMonitor: this.performanceMonitor,
         });
 
         const loadTime = performance.now() - startTime;
-        console.log(`[US-087] TeamsEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+        console.log(
+          `[US-087] TeamsEntityManager loaded in ${loadTime.toFixed(2)}ms`,
+        );
 
         // Record performance metric
         if (this.performanceMonitor) {
-          this.performanceMonitor.setBaseline('teamsComponentLoad', loadTime);
+          this.performanceMonitor.setBaseline("teamsComponentLoad", loadTime);
         }
       } catch (error) {
         console.error("[US-087] Failed to load TeamsEntityManager:", error);
         // Disable the feature flag on failure
         if (this.featureToggle) {
-          this.featureToggle.disable('teams-component');
+          this.featureToggle.disable("teams-component");
         }
       }
     },
 
     // Wrapper method for dual-mode operation (US-087)
-    shouldUseComponentManager: function(entity) {
+    shouldUseComponentManager: function (entity) {
       if (!this.featureToggle) return false;
 
       // Security: Feature flag permission checks with audit logging
-      const migrationEnabled = this.featureToggle.isEnabled('admin-gui-migration');
+      const migrationEnabled = this.featureToggle.isEnabled(
+        "admin-gui-migration",
+      );
       if (!migrationEnabled) return false;
 
       const flagName = `${entity}-component`;
@@ -262,7 +1299,9 @@
 
       // Security: Audit trail for component access decisions
       if (accessGranted) {
-        console.log(`[US-087 Security] Component access granted for entity: ${entity}`);
+        console.log(
+          `[US-087 Security] Component access granted for entity: ${entity}`,
+        );
       }
 
       return accessGranted;
@@ -400,15 +1439,38 @@
 
       if (!userCodeInput || !loginBtn || !btnText || !btnLoading) {
         console.error("[UMIG] Login form elements not found");
+        window.SecurityUtils?.logSecurityEvent("login_elements_missing");
         return;
       }
 
       const userCode = userCodeInput.value.trim().toUpperCase();
 
-      // Basic validation
-      if (!userCode || userCode.length !== 3) {
-        this.showLoginError("Please enter a valid 3-character trigram");
+      // Enhanced validation
+      if (!userCode) {
+        this.showLoginError("Please enter your user code");
         return;
+      }
+
+      if (userCode.length !== 3) {
+        this.showLoginError("User code must be exactly 3 characters");
+        return;
+      }
+
+      // Security validation
+      if (isSecurityUtilsAvailable("validateInput")) {
+        const validation = window.SecurityUtils.validateInput(
+          userCode,
+          "userCode",
+        );
+        if (!validation.isValid) {
+          this.showLoginError("User code can only contain letters and numbers");
+          if (isSecurityUtilsAvailable("logSecurityEvent")) {
+            window.SecurityUtils.logSecurityEvent("login_invalid_format", {
+              userCode,
+            });
+          }
+          return;
+        }
       }
 
       // Use setTimeout to avoid conflicts with Confluence's MutationObserver
@@ -422,31 +1484,101 @@
             errorDiv.style.display = "none";
           }
 
-          // Simulate authentication (in real app, this would call an API)
-          setTimeout(() => {
-            this.authenticateUser(userCode)
-              .then((user) => {
-                this.state.currentUser = user;
-                this.state.isAuthenticated = true;
-                this.showDashboard();
-              })
-              .catch((error) => {
-                this.showLoginError(error.message);
-              })
-              .finally(() => {
-                // Use another timeout to avoid MutationObserver conflicts
-                setTimeout(() => {
-                  loginBtn.disabled = false;
-                  btnText.style.display = "inline";
-                  btnLoading.style.display = "none";
-                }, 50);
+          // Log authentication attempt
+          window.SecurityUtils?.logSecurityEvent("login_attempt", {
+            userCode: userCode,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Enhanced authentication with proper error handling
+          this.authenticateUser(userCode)
+            .then((user) => {
+              console.log("[UMIG] User authenticated:", {
+                trigram: user.trigram,
+                role: user.role,
+                permissions: user.permissions.length,
               });
-          }, 500);
+
+              // Validate user is active
+              if (user.active === false) {
+                throw new Error(
+                  "User account is inactive. Please contact your administrator.",
+                );
+              }
+
+              // Set authentication state
+              this.state.currentUser = user;
+              this.state.isAuthenticated = true;
+              this.state.authTimestamp = new Date().toISOString();
+
+              // Clear form
+              userCodeInput.value = "";
+
+              // Show main interface
+              this.showDashboard();
+
+              // Log successful authentication
+              window.SecurityUtils?.logSecurityEvent("login_success", {
+                userCode: user.trigram,
+                role: user.role,
+              });
+            })
+            .catch((error) => {
+              console.error("[UMIG] Authentication failed:", error);
+
+              // Show user-friendly error message
+              let errorMessage = "Authentication failed";
+              if (
+                error.message.includes("rate limit") ||
+                error.message.includes("too many")
+              ) {
+                errorMessage =
+                  "Too many login attempts. Please wait before trying again.";
+              } else if (
+                error.message.includes("Security token") ||
+                error.message.includes("CSRF")
+              ) {
+                errorMessage =
+                  "Security token expired. Please refresh the page and try again.";
+              } else if (
+                error.message.includes("service unavailable") ||
+                error.message.includes("API")
+              ) {
+                errorMessage =
+                  "Authentication service is currently unavailable. Please try again later.";
+              } else if (error.message.includes("inactive")) {
+                errorMessage = error.message; // Use the specific inactive message
+              } else {
+                errorMessage =
+                  "Invalid user code. Please check your credentials.";
+              }
+
+              this.showLoginError(errorMessage);
+
+              // Log authentication failure
+              window.SecurityUtils?.logSecurityEvent("login_failed", {
+                userCode: userCode,
+                error: error.message,
+              });
+            })
+            .finally(() => {
+              // Use another timeout to avoid MutationObserver conflicts
+              setTimeout(() => {
+                loginBtn.disabled = false;
+                btnText.style.display = "inline";
+                btnLoading.style.display = "none";
+              }, 50);
+            });
         } catch (error) {
           console.error("[UMIG] Login handling error:", error);
           this.showLoginError("Login system error. Please try again.");
+          window.SecurityUtils?.logSecurityEvent("login_error", {
+            error: error.message,
+          });
         }
       }, 10); // Small delay to avoid MutationObserver conflicts
+
+      this.activeTimeouts.add(timeoutId);
     },
 
     // Authenticate user (mock implementation)
@@ -640,7 +1772,21 @@
             }
 
             if (addNewBtn) {
-              addNewBtn.innerHTML = `<span class="btn-icon">➕</span> Add New ${entity.name.slice(0, -1)}`;
+              // Secure alternative to innerHTML - use safe HTML setting
+              if (
+                window.SecurityUtils &&
+                typeof window.SecurityUtils.safeSetInnerHTML === "function"
+              ) {
+                const entityName = entity.name.slice(0, -1);
+                const safeHTML = `<span class="btn-icon">➕</span> Add New ${entityName}`;
+                window.SecurityUtils.safeSetInnerHTML(addNewBtn, safeHTML, {
+                  allowedTags: ["span"],
+                  allowedAttributes: { span: ["class"] },
+                });
+              } else {
+                // Fallback to textContent for safety
+                addNewBtn.textContent = `➕ Add New ${entity.name.slice(0, -1)}`;
+              }
             }
           }
         } catch (error) {
@@ -1019,7 +2165,9 @@
     async loadWithEntityManager(entity) {
       const manager = this.componentManagers[entity];
       if (!manager) {
-        console.error(`[US-087] EntityManager for ${entity} not found, falling back to legacy`);
+        console.error(
+          `[US-087] EntityManager for ${entity} not found, falling back to legacy`,
+        );
         return this.loadCurrentSectionLegacy();
       }
 
@@ -1039,7 +2187,19 @@
         }
 
         // Clear existing content
-        contentArea.innerHTML = '<div id="entityManagerContainer"></div>';
+        // Secure alternative to innerHTML
+        if (
+          window.SecurityUtils &&
+          typeof window.SecurityUtils.safeSetInnerHTML === "function"
+        ) {
+          window.SecurityUtils.safeSetInnerHTML(
+            contentArea,
+            '<div id="entityManagerContainer"></div>',
+            { allowedTags: ["div"], allowedAttributes: { div: ["id"] } },
+          );
+        } else {
+          contentArea.innerHTML = '<div id="entityManagerContainer"></div>'; // Safe static HTML
+        }
         const container = document.getElementById("entityManagerContainer");
 
         // Update manager's container
@@ -1056,7 +2216,7 @@
           size: this.state.pageSize,
           search: this.state.searchTerm,
           sort: this.state.sortField,
-          direction: this.state.sortDirection
+          direction: this.state.sortDirection,
         });
 
         // Render the component
@@ -1068,19 +2228,26 @@
         // End performance tracking
         if (timerId) {
           const metrics = this.performanceMonitor.endTimer(timerId);
-          console.log(`[US-087] ${entity} loaded in ${metrics.duration.toFixed(2)}ms`);
+          console.log(
+            `[US-087] ${entity} loaded in ${metrics.duration.toFixed(2)}ms`,
+          );
 
           // Compare to baseline
           if (this.performanceMonitor.baselines[`${entity}Load`]) {
-            this.performanceMonitor.compareToBaseline(`${entity}Load`, metrics.duration);
+            this.performanceMonitor.compareToBaseline(
+              `${entity}Load`,
+              metrics.duration,
+            );
           }
         }
 
         // Listen for EntityManager events
         this.setupEntityManagerEventListeners(entity, manager);
-
       } catch (error) {
-        console.error(`[US-087] Failed to load ${entity} with EntityManager:`, error);
+        console.error(
+          `[US-087] Failed to load ${entity} with EntityManager:`,
+          error,
+        );
 
         // End timer if it exists
         if (timerId) {
@@ -1094,7 +2261,11 @@
         this.showErrorMessage(`Failed to load ${entity}: ${error.message}`);
 
         // Prompt for rollback
-        if (confirm(`Failed to load ${entity} with new component. Rollback to legacy mode?`)) {
+        if (
+          confirm(
+            `Failed to load ${entity} with new component. Rollback to legacy mode?`,
+          )
+        ) {
           this.featureToggle.disable(`${entity}-component`);
           this.loadCurrentSection(); // Retry with legacy mode
         }
@@ -1104,27 +2275,27 @@
     // Setup event listeners for EntityManager (US-087)
     setupEntityManagerEventListeners(entity, manager) {
       // Listen for pagination changes
-      manager.on('pageChange', (page) => {
+      manager.on("pageChange", (page) => {
         this.state.currentPage = page;
         this.loadWithEntityManager(entity);
       });
 
       // Listen for sort changes
-      manager.on('sortChange', ({ field, direction }) => {
+      manager.on("sortChange", ({ field, direction }) => {
         this.state.sortField = field;
         this.state.sortDirection = direction;
         this.loadWithEntityManager(entity);
       });
 
       // Listen for search changes
-      manager.on('searchChange', (searchTerm) => {
+      manager.on("searchChange", (searchTerm) => {
         this.state.searchTerm = searchTerm;
         this.state.currentPage = 1;
         this.loadWithEntityManager(entity);
       });
 
       // Listen for selection changes
-      manager.on('selectionChange', (selectedIds) => {
+      manager.on("selectionChange", (selectedIds) => {
         this.state.selectedRows = new Set(selectedIds);
       });
     },
@@ -1271,11 +2442,35 @@
         return;
       }
 
-      headerRow.innerHTML = "";
+      // Clear content safely
+      headerRow.textContent = "";
+      // Remove all child elements
+      while (headerRow.firstChild) {
+        headerRow.removeChild(headerRow.firstChild);
+      }
 
       // Add checkbox column for row selection
       const checkboxTh = document.createElement("th");
-      checkboxTh.innerHTML = '<input type="checkbox" id="selectAll">';
+      // Secure alternative to innerHTML for checkbox
+      if (
+        window.SecurityUtils &&
+        typeof window.SecurityUtils.safeSetInnerHTML === "function"
+      ) {
+        window.SecurityUtils.safeSetInnerHTML(
+          checkboxTh,
+          '<input type="checkbox" id="selectAll">',
+          {
+            allowedTags: ["input"],
+            allowedAttributes: { input: ["type", "id"] },
+          },
+        );
+      } else {
+        // Fallback: create element safely
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "selectAll";
+        checkboxTh.appendChild(checkbox);
+      }
       checkboxTh.style.width = "40px";
       headerRow.appendChild(checkboxTh);
 
@@ -1335,7 +2530,12 @@
         return;
       }
 
-      tbody.innerHTML = "";
+      // Clear tbody content safely
+      tbody.textContent = "";
+      // Remove all child elements
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
 
       if (data.length === 0) {
         const tr = document.createElement("tr");
@@ -1356,14 +2556,60 @@
 
         // Checkbox column
         const checkboxTd = document.createElement("td");
-        checkboxTd.innerHTML = `<input type="checkbox" class="row-select" value="${record[entity.fields[0].key]}">`;
+        // Secure checkbox creation
+        if (window.SecurityUtils) {
+          const recordId = window.SecurityUtils.validateInput(
+            String(record[entity.fields[0].key]),
+            "alphanumeric",
+          );
+          if (recordId.isValid) {
+            const safeHTML = `<input type="checkbox" class="row-select" value="${recordId.sanitizedData}">`;
+            window.SecurityUtils.safeSetInnerHTML(checkboxTd, safeHTML, {
+              allowedTags: ["input"],
+              allowedAttributes: { input: ["type", "class", "value"] },
+            });
+          } else {
+            console.warn(
+              "[Security] Invalid record ID for checkbox:",
+              record[entity.fields[0].key],
+            );
+            checkboxTd.textContent = "Invalid ID";
+          }
+        } else {
+          // Fallback: create element safely
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "row-select";
+          checkbox.value = String(record[entity.fields[0].key]);
+          checkboxTd.appendChild(checkbox);
+        }
         tr.appendChild(checkboxTd);
 
         // Data columns
         entity.tableColumns.forEach((columnKey) => {
           const td = document.createElement("td");
           const value = this.formatCellValue(record, columnKey, entity);
-          td.innerHTML = value;
+
+          // Handle HTML content (like email links)
+          if (typeof value === "string" && value.includes("<")) {
+            // Value contains HTML
+            if (window.SecurityUtils) {
+              // Use SecurityUtils if available for safe HTML rendering
+              window.SecurityUtils.safeSetInnerHTML(td, value);
+            } else {
+              // For email columns, we trust the HTML from formatCellValue
+              // since it's generated internally, not from user input
+              if (columnKey.includes("email")) {
+                td.innerHTML = value;
+              } else {
+                // For other HTML content, escape it for safety
+                td.textContent = value;
+              }
+            }
+          } else {
+            // Plain text content
+            td.textContent = value;
+          }
           tr.appendChild(td);
         });
 
@@ -1375,7 +2621,25 @@
         let actionsHtml = "";
 
         // VIEW button - now available for ALL entities
-        actionsHtml += `<button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Details">👁️</button>`;
+        // Secure action button creation with validation
+        const recordId = record[entity.fields[0].key];
+        if (window.SecurityUtils) {
+          const validatedId = window.SecurityUtils.validateInput(
+            String(recordId),
+            "alphanumeric",
+          );
+          if (validatedId.isValid) {
+            actionsHtml += `<button class="btn-table-action btn-view" data-action="view" data-id="${validatedId.sanitizedData}" title="View Details">👁️</button>`;
+          } else {
+            console.warn(
+              "[Security] Invalid record ID for action button:",
+              recordId,
+            );
+            actionsHtml += `<span class="btn-disabled" title="Invalid ID">❌</span>`;
+          }
+        } else {
+          actionsHtml += `<button class="btn-table-action btn-view" data-action="view" data-id="${recordId}" title="View Details">👁️</button>`;
+        }
 
         // Entity-specific action buttons
         if (this.state.currentEntity === "phasesinstance") {
@@ -1394,7 +2658,18 @@
                     <button class="btn-table-action btn-delete" data-action="delete" data-id="${record[entity.fields[0].key]}" title="Delete">🗑️</button>
                 `;
 
-        actionsTd.innerHTML = actionsHtml;
+        // Secure actions HTML setting
+        if (window.SecurityUtils && actionsHtml) {
+          window.SecurityUtils.safeSetInnerHTML(actionsTd, actionsHtml, {
+            allowedTags: ["button", "span"],
+            allowedAttributes: {
+              button: ["class", "data-action", "data-id", "title"],
+              span: ["class", "title"],
+            },
+          });
+        } else if (actionsHtml) {
+          actionsTd.innerHTML = actionsHtml; // Fallback for constructed HTML
+        }
         tr.appendChild(actionsTd);
 
         tbody.appendChild(tr);
@@ -1765,9 +3040,11 @@
         if (e.ctrlKey && e.shiftKey && e.key === "M") {
           e.preventDefault();
           if (this.featureToggle) {
-            this.featureToggle.toggle('admin-gui-migration');
-            const status = this.featureToggle.isEnabled('admin-gui-migration') ? 'enabled' : 'disabled';
-            this.showNotification(`Admin GUI migration ${status}`, 'info');
+            this.featureToggle.toggle("admin-gui-migration");
+            const status = this.featureToggle.isEnabled("admin-gui-migration")
+              ? "enabled"
+              : "disabled";
+            this.showNotification(`Admin GUI migration ${status}`, "info");
             console.log(`[US-087] Admin GUI migration ${status}`);
           }
         }
@@ -1776,13 +3053,15 @@
         if (e.ctrlKey && e.shiftKey && e.key === "T") {
           e.preventDefault();
           if (this.featureToggle) {
-            this.featureToggle.toggle('teams-component');
-            const status = this.featureToggle.isEnabled('teams-component') ? 'enabled' : 'disabled';
-            this.showNotification(`Teams component ${status}`, 'info');
+            this.featureToggle.toggle("teams-component");
+            const status = this.featureToggle.isEnabled("teams-component")
+              ? "enabled"
+              : "disabled";
+            this.showNotification(`Teams component ${status}`, "info");
             console.log(`[US-087] Teams component ${status}`);
 
             // Reload current section if we're on teams
-            if (this.state.currentEntity === 'teams') {
+            if (this.state.currentEntity === "teams") {
               this.loadCurrentSection();
             }
           }
@@ -1794,16 +3073,25 @@
           if (this.performanceMonitor) {
             const report = this.performanceMonitor.generateReport();
             console.log("[US-087] Performance Report:", report);
-            this.showNotification("Performance report logged to console", 'info');
+            this.showNotification(
+              "Performance report logged to console",
+              "info",
+            );
           }
         }
 
         // Ctrl+Shift+R: Emergency rollback
         if (e.ctrlKey && e.shiftKey && e.key === "R") {
           e.preventDefault();
-          if (this.featureToggle && confirm("Emergency rollback all component migrations?")) {
+          if (
+            this.featureToggle &&
+            confirm("Emergency rollback all component migrations?")
+          ) {
             this.featureToggle.emergencyRollback();
-            this.showNotification("Emergency rollback executed - reloading...", 'warning');
+            this.showNotification(
+              "Emergency rollback executed - reloading...",
+              "warning",
+            );
           }
         }
       });
@@ -1954,21 +3242,70 @@
       }
       const formFields = document.getElementById("formFields");
       const data = this.state.data[this.state.currentEntity] || [];
-      const record = id ? data.find((r) => r[entity.fields[0].key] == id) : {};
+      const record = id ? data.find((r) => r[entity.fields[0].key] === id) : {};
 
-      formFields.innerHTML = "";
+      // Clear form fields safely
+      formFields.textContent = "";
+      // Remove all child elements
+      while (formFields.firstChild) {
+        formFields.removeChild(formFields.firstChild);
+      }
 
       // Add association management for environments (only when editing)
       if (this.state.currentEntity === "environments" && id) {
         const associationDiv = document.createElement("div");
         associationDiv.className = "form-group association-management";
-        associationDiv.innerHTML = `
-                    <label>Manage Associations</label>
-                    <div class="association-buttons">
-                        <button type="button" class="btn-primary" onclick="adminGui.showAssociateApplicationModal(${id})">Associate Application</button>
-                        <button type="button" class="btn-primary" onclick="adminGui.showAssociateIterationModal(${id})">Associate Iteration</button>
-                    </div>
-                `;
+        // Secure association div creation
+        if (window.SecurityUtils) {
+          const validatedId = window.SecurityUtils.validateInput(
+            String(id),
+            "alphanumeric",
+          );
+          if (validatedId.isValid) {
+            const safeHTML = `
+                        <label>Manage Associations</label>
+                        <div class="association-buttons">
+                            <button type="button" class="btn-primary" onclick="adminGui.showAssociateApplicationModal(${validatedId.sanitizedData})">Associate Application</button>
+                            <button type="button" class="btn-primary" onclick="adminGui.showAssociateIterationModal(${validatedId.sanitizedData})">Associate Iteration</button>
+                        </div>
+                    `;
+            window.SecurityUtils.safeSetInnerHTML(associationDiv, safeHTML, {
+              allowedTags: ["label", "div", "button"],
+              allowedAttributes: {
+                div: ["class"],
+                button: ["type", "class", "onclick"],
+              },
+            });
+          } else {
+            console.warn("[Security] Invalid ID for association buttons:", id);
+            associationDiv.textContent =
+              "Invalid environment ID - associations disabled";
+          }
+        } else {
+          // Fallback - create elements safely
+          const label = document.createElement("label");
+          label.textContent = "Manage Associations";
+          associationDiv.appendChild(label);
+
+          const buttonsDiv = document.createElement("div");
+          buttonsDiv.className = "association-buttons";
+
+          const appBtn = document.createElement("button");
+          appBtn.type = "button";
+          appBtn.className = "btn-primary";
+          appBtn.textContent = "Associate Application";
+          appBtn.onclick = () => adminGui.showAssociateApplicationModal(id);
+
+          const iterBtn = document.createElement("button");
+          iterBtn.type = "button";
+          iterBtn.className = "btn-primary";
+          iterBtn.textContent = "Associate Iteration";
+          iterBtn.onclick = () => adminGui.showAssociateIterationModal(id);
+
+          buttonsDiv.appendChild(appBtn);
+          buttonsDiv.appendChild(iterBtn);
+          associationDiv.appendChild(buttonsDiv);
+        }
         formFields.appendChild(associationDiv);
 
         // Add separator
@@ -2006,8 +3343,27 @@
             break;
           case "boolean":
             input = document.createElement("select");
-            input.innerHTML =
-              '<option value="true">Yes</option><option value="false">No</option>';
+            // Secure option creation
+            if (window.SecurityUtils) {
+              window.SecurityUtils.safeSetInnerHTML(
+                input,
+                '<option value="true">Yes</option><option value="false">No</option>',
+                {
+                  allowedTags: ["option"],
+                  allowedAttributes: { option: ["value"] },
+                },
+              );
+            } else {
+              // Fallback: create options safely
+              const yesOption = document.createElement("option");
+              yesOption.value = "true";
+              yesOption.textContent = "Yes";
+              const noOption = document.createElement("option");
+              noOption.value = "false";
+              noOption.textContent = "No";
+              input.appendChild(yesOption);
+              input.appendChild(noOption);
+            }
             break;
           case "color":
             console.log(`Creating color input for field: ${field.key}`);
@@ -2149,12 +3505,38 @@
     validateFormData: function (data, entity) {
       const errors = [];
 
+      // Security check: Validate data structure integrity
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        errors.push("• Invalid form data structure");
+        return errors;
+      }
+
+      // Security check: Validate entity configuration
+      if (!entity || !entity.fields || !Array.isArray(entity.fields)) {
+        errors.push("• Invalid entity configuration");
+        return errors;
+      }
+
       entity.fields.forEach((field) => {
         const value = data[field.key];
         const label = field.label;
 
         // Skip readonly fields
         if (field.readonly) return;
+
+        // Security validation using SecurityUtils if available
+        if (value && typeof value === "string" && window.SecurityUtils) {
+          // Basic XSS protection
+          const xssValidation = window.SecurityUtils.validateInput(
+            value,
+            "safeText",
+            { maxLength: 10000 },
+          );
+          if (!xssValidation.isValid) {
+            errors.push(`• ${label} contains potentially dangerous content`);
+            return;
+          }
+        }
 
         // Check required fields
         if (field.required) {
@@ -2169,160 +3551,348 @@
           return;
         }
 
-        // Type-specific validation
+        // Enhanced type-specific validation
         switch (field.type) {
           case "email":
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-              errors.push(`• ${label} must be a valid email address`);
+            // Enhanced email validation using SecurityUtils if available
+            if (window.SecurityUtils) {
+              const emailValidation = window.SecurityUtils.validateInput(
+                value,
+                "email",
+              );
+              if (!emailValidation.isValid) {
+                errors.push(`• ${label} must be a valid email address`);
+              }
+            } else {
+              // Fallback regex
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRegex.test(value)) {
+                errors.push(`• ${label} must be a valid email address`);
+              }
             }
             break;
 
           case "text":
-            if (field.maxLength && value.length > field.maxLength) {
-              errors.push(
-                `• ${label} cannot exceed ${field.maxLength} characters`,
-              );
+            // Enhanced text validation with security checks
+            const maxLength = field.maxLength || 1000; // Default max length for security
+
+            if (value.length > maxLength) {
+              errors.push(`• ${label} cannot exceed ${maxLength} characters`);
             }
 
-            // Special validation for usr_code
+            // Security: Check for potentially dangerous patterns
+            if (/[<>'"&]/.test(value)) {
+              errors.push(`• ${label} contains invalid characters`);
+            }
+
+            // Security: Check for SQL injection patterns
+            const sqlPatterns =
+              /(union|select|insert|update|delete|drop|exec|script)/i;
+            if (sqlPatterns.test(value)) {
+              errors.push(`• ${label} contains potentially dangerous content`);
+            }
+
+            // Special validation for usr_code with enhanced security
             if (field.key === "usr_code") {
-              if (value.length !== 3) {
-                errors.push(`• ${label} must be exactly 3 characters`);
+              if (window.SecurityUtils) {
+                const userCodeValidation = window.SecurityUtils.validateInput(
+                  value,
+                  "userCode",
+                );
+                if (!userCodeValidation.isValid) {
+                  errors.push(
+                    `• ${label} must be exactly 3 alphanumeric characters`,
+                  );
+                }
+              } else {
+                if (value.length !== 3) {
+                  errors.push(`• ${label} must be exactly 3 characters`);
+                }
+                if (!/^[A-Z0-9]+$/i.test(value)) {
+                  errors.push(
+                    `• ${label} can only contain letters and numbers`,
+                  );
+                }
               }
-              if (!/^[A-Z0-9]+$/i.test(value)) {
-                errors.push(`• ${label} can only contain letters and numbers`);
+            }
+
+            // Enhanced alphanumeric validation for certain fields
+            if (field.key.includes("code") || field.key.includes("id")) {
+              if (window.SecurityUtils) {
+                const alphanumericValidation =
+                  window.SecurityUtils.validateInput(value, "alphanumeric");
+                if (!alphanumericValidation.isValid) {
+                  errors.push(
+                    `• ${label} can only contain letters, numbers, hyphens, and underscores`,
+                  );
+                }
               }
             }
             break;
 
           case "number":
-            if (isNaN(value) || !Number.isInteger(Number(value))) {
+            // Enhanced number validation
+            const numValue = Number(value);
+            if (isNaN(numValue) || !isFinite(numValue)) {
               errors.push(`• ${label} must be a valid number`);
+            } else if (!Number.isInteger(numValue) && field.integer !== false) {
+              errors.push(`• ${label} must be a whole number`);
+            } else if (numValue < 0 && field.allowNegative !== true) {
+              errors.push(`• ${label} must be a positive number`);
+            } else if (field.min !== undefined && numValue < field.min) {
+              errors.push(`• ${label} must be at least ${field.min}`);
+            } else if (field.max !== undefined && numValue > field.max) {
+              errors.push(`• ${label} cannot exceed ${field.max}`);
+            }
+            break;
+
+          case "uuid":
+            // UUID validation using SecurityUtils if available
+            if (window.SecurityUtils) {
+              const uuidValidation = window.SecurityUtils.validateInput(
+                value,
+                "uuid",
+              );
+              if (!uuidValidation.isValid) {
+                errors.push(`• ${label} must be a valid UUID format`);
+              }
+            } else {
+              // Fallback UUID regex
+              const uuidRegex =
+                /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+              if (!uuidRegex.test(value)) {
+                errors.push(`• ${label} must be a valid UUID format`);
+              }
+            }
+            break;
+
+          case "select":
+            // Enhanced select validation
+            if (field.options && Array.isArray(field.options)) {
+              const validValues = field.options.map((opt) => opt.value || opt);
+              if (!validValues.includes(value)) {
+                errors.push(`• ${label} contains an invalid selection`);
+              }
+            }
+            break;
+
+          case "url":
+            // URL validation
+            try {
+              new URL(value);
+            } catch (e) {
+              errors.push(`• ${label} must be a valid URL`);
+            }
+            break;
+
+          default:
+            // Generic validation for unknown types
+            if (typeof value === "string" && value.length > 10000) {
+              errors.push(`• ${label} is too long`);
             }
             break;
         }
+
+        // Security: Additional length checks for all string fields
+        if (typeof value === "string" && value.length > 50000) {
+          errors.push(`• ${label} exceeds maximum allowed length`);
+        }
       });
+
+      // Log validation attempt for security audit
+      if (window.SecurityUtils) {
+        window.SecurityUtils.logSecurityEvent("form_validation_performed", {
+          entityType: entity.name,
+          fieldCount: entity.fields.length,
+          errorCount: errors.length,
+          hasErrors: errors.length > 0,
+        });
+      }
 
       return errors;
     },
 
-    // Handle save
+    // Handle save with comprehensive error boundaries
     handleSave: function () {
-      const form = document.getElementById("editForm");
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
+      try {
+        // Defensive programming: Check if DOM elements exist
+        const form = document.getElementById("editForm");
+        if (!form) {
+          throw new Error("Edit form not found - DOM may be corrupted");
+        }
 
-      // Enhanced validation
-      const entity = this.getEntity(this.state.currentEntity);
-      if (!entity) {
-        this.showError("Entity configuration not found");
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Enhanced validation with error boundary
+        const entity = this.getEntity(this.state.currentEntity);
+        if (!entity) {
+          throw new Error(
+            "Entity configuration not found - check entity setup",
+          );
+        }
+
+        const validationErrors = this.validateFormData(data, entity);
+
+        if (validationErrors.length > 0) {
+          const errorMessage =
+            "Please fix the following issues:\n\n" +
+            validationErrors.join("\n");
+          alert(errorMessage);
+          return;
+        }
+      } catch (error) {
+        console.error("Form validation error:", error);
+        this.showMessage(`Form validation failed: ${error.message}`, "error");
         return;
       }
-      const validationErrors = this.validateFormData(data, entity);
 
-      if (validationErrors.length > 0) {
-        const errorMessage =
-          "Please fix the following issues:\n\n" + validationErrors.join("\n");
-        alert(errorMessage);
-        return;
-      }
-
-      // Convert data types
-      entity.fields.forEach((field) => {
-        if (data[field.key] !== undefined) {
-          switch (field.type) {
-            case "number":
-              data[field.key] = data[field.key]
-                ? parseInt(data[field.key])
-                : null;
-              break;
-            case "boolean":
-              data[field.key] = data[field.key] === "true";
-              break;
-            case "select":
-              // Handle select fields that have numeric values
-              if (field.key === "rls_id") {
-                data[field.key] =
-                  data[field.key] && data[field.key] !== "null"
-                    ? parseInt(data[field.key])
-                    : null;
-              }
-              break;
+      // Wrap the main save operation in a try-catch block for error handling
+      try {
+        // Convert data types
+        entity.fields.forEach((field) => {
+          if (data[field.key] !== undefined) {
+            switch (field.type) {
+              case "number":
+                data[field.key] = data[field.key]
+                  ? parseInt(data[field.key])
+                  : null;
+                break;
+              case "boolean":
+                data[field.key] = data[field.key] === "true";
+                break;
+              case "select":
+                // Handle select fields that have numeric values
+                if (field.key === "rls_id") {
+                  data[field.key] =
+                    data[field.key] && data[field.key] !== "null"
+                      ? parseInt(data[field.key])
+                      : null;
+                }
+                break;
+            }
           }
-        }
-      });
-
-      console.log("Saving data:", data);
-
-      // Determine if this is an edit or create operation
-      const primaryKeyField = entity.fields.find((f) => f.key.endsWith("_id"));
-      const recordId = data[primaryKeyField.key];
-      const isEdit = recordId && recordId !== "";
-
-      // Remove readonly fields and timestamp fields from data being sent to API
-      const apiData = {};
-      entity.fields.forEach((field) => {
-        if (
-          !field.readonly &&
-          data[field.key] !== undefined &&
-          field.key !== "created_at" &&
-          field.key !== "updated_at"
-        ) {
-          apiData[field.key] = data[field.key];
-        }
-      });
-
-      // Make API call
-      const url = isEdit
-        ? `${this.api.baseUrl}${this.api.endpoints[this.state.currentEntity]}/${recordId}`
-        : `${this.api.baseUrl}${this.api.endpoints[this.state.currentEntity]}`;
-
-      const method = isEdit ? "PUT" : "POST";
-
-      fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(apiData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            return response.json().then((error) => {
-              let errorMessage =
-                error.error ||
-                `HTTP ${response.status}: ${response.statusText}`;
-
-              // Add details if available
-              if (error.details) {
-                errorMessage += "\n\nDetails: " + error.details;
-              }
-
-              // Add SQL state if available for debugging
-              if (error.sqlState) {
-                errorMessage += "\n\nSQL State: " + error.sqlState;
-              }
-
-              throw new Error(errorMessage);
-            });
-          }
-          return response.json();
-        })
-        .then((result) => {
-          console.log("Save successful:", result);
-          this.hideEditModal();
-          this.refreshCurrentSection();
-
-          // Show success message
-          const operation = isEdit ? "updated" : "created";
-          this.showMessage(`Record ${operation} successfully`, "success");
-        })
-        .catch((error) => {
-          console.error("Save failed:", error);
-          this.showMessage(`Failed to save record: ${error.message}`, "error");
         });
+
+        console.log("Saving data:", data);
+
+        // Determine if this is an edit or create operation
+        const primaryKeyField = entity.fields.find((f) =>
+          f.key.endsWith("_id"),
+        );
+        const recordId = data[primaryKeyField.key];
+        const isEdit = recordId && recordId !== "";
+
+        // Remove readonly fields and timestamp fields from data being sent to API
+        const apiData = {};
+        entity.fields.forEach((field) => {
+          if (
+            !field.readonly &&
+            data[field.key] !== undefined &&
+            field.key !== "created_at" &&
+            field.key !== "updated_at"
+          ) {
+            apiData[field.key] = data[field.key];
+          }
+        });
+
+        // Make API call
+        const url = isEdit
+          ? `${this.api.baseUrl}${this.api.endpoints[this.state.currentEntity]}/${recordId}`
+          : `${this.api.baseUrl}${this.api.endpoints[this.state.currentEntity]}`;
+
+        const method = isEdit ? "PUT" : "POST";
+
+        fetch(url, {
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(apiData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              return response.json().then((error) => {
+                let errorMessage =
+                  error.error ||
+                  `HTTP ${response.status}: ${response.statusText}`;
+
+                // Add details if available
+                if (error.details) {
+                  errorMessage += "\n\nDetails: " + error.details;
+                }
+
+                // Add SQL state if available for debugging
+                if (error.sqlState) {
+                  errorMessage += "\n\nSQL State: " + error.sqlState;
+                }
+
+                throw new Error(errorMessage);
+              });
+            }
+            return response.json();
+          })
+          .then((result) => {
+            console.log("Save successful:", result);
+            this.hideEditModal();
+            this.refreshCurrentSection();
+
+            // Show success message
+            const operation = isEdit ? "updated" : "created";
+            this.showMessage(`Record ${operation} successfully`, "success");
+          })
+          .catch((error) => {
+            console.error("Save failed:", error);
+
+            // Enhanced error message based on error type
+            let userMessage = `Failed to save record: ${error.message}`;
+            if (
+              error.message.includes("network") ||
+              error.message.includes("fetch")
+            ) {
+              userMessage =
+                "Network error: Please check your connection and try again";
+            } else if (error.message.includes("timeout")) {
+              userMessage =
+                "Request timeout: The server may be busy, please try again";
+            } else if (
+              error.message.includes("403") ||
+              error.message.includes("Forbidden")
+            ) {
+              userMessage =
+                "Access denied: You don't have permission to perform this action";
+            } else if (error.message.includes("500")) {
+              userMessage =
+                "Server error: Please contact support if this persists";
+            }
+
+            this.showMessage(userMessage, "error");
+
+            // Log security event for failed save
+            if (window.SecurityUtils) {
+              window.SecurityUtils.logSecurityEvent("record_save_error", {
+                entity: this.state.currentEntity,
+                operation: isEdit ? "update" : "create",
+                error: error.message,
+              });
+            }
+          });
+      } catch (error) {
+        // Catch any synchronous errors in the setup/validation phase
+        console.error("Save setup failed:", error);
+
+        const userMessage = `Unable to save: ${error.message}`;
+        this.showMessage(userMessage, "error");
+
+        // Log security event for setup error
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("record_save_setup_error", {
+            entity: this.state.currentEntity,
+            error: error.message,
+          });
+        }
+      }
     },
 
     // Confirm delete
@@ -2416,7 +3986,18 @@
       const content = document.getElementById("envDetailsContent");
 
       // Show loading state
-      content.innerHTML = "<p>Loading environment details...</p>";
+      // Secure loading message
+      if (window.SecurityUtils) {
+        window.SecurityUtils.safeSetInnerHTML(
+          content,
+          "<p>Loading environment details...</p>",
+          {
+            allowedTags: ["p"],
+          },
+        );
+      } else {
+        content.textContent = "Loading environment details...";
+      }
       modal.style.display = "flex";
 
       // Fetch environment details
@@ -2521,12 +4102,48 @@
               html += "</div>";
 
               html += "</div>";
-              content.innerHTML = html;
+              // Secure HTML content setting for environment details
+              if (window.SecurityUtils) {
+                window.SecurityUtils.safeSetInnerHTML(content, html, {
+                  allowedTags: [
+                    "div",
+                    "h3",
+                    "h4",
+                    "p",
+                    "strong",
+                    "ul",
+                    "li",
+                    "span",
+                    "button",
+                  ],
+                  allowedAttributes: {
+                    div: ["class"],
+                    span: ["class"],
+                    p: ["class"],
+                    button: ["class", "onclick"],
+                  },
+                });
+              } else {
+                content.innerHTML = html;
+              }
             });
         })
         .catch((error) => {
           console.error("Error loading environment details:", error);
-          content.innerHTML = `<p class="error">Failed to load environment details: ${error.message}</p>`;
+          // Secure error message
+          if (window.SecurityUtils) {
+            const safeErrorMsg = window.SecurityUtils.validateInput(
+              error.message,
+              "safeText",
+            );
+            const errorHTML = `<p class="error">Failed to load environment details: ${safeErrorMsg.isValid ? safeErrorMsg.sanitizedData : "Unknown error"}</p>`;
+            window.SecurityUtils.safeSetInnerHTML(content, errorHTML, {
+              allowedTags: ["p"],
+              allowedAttributes: { p: ["class"] },
+            });
+          } else {
+            content.textContent = `Failed to load environment details: ${error.message}`;
+          }
         });
 
       // Store environment ID for later use
@@ -2592,16 +4209,71 @@
         .then((response) => response.json())
         .then((applications) => {
           const select = document.getElementById("appSelect");
-          select.innerHTML =
-            '<option value="">-- Select an application --</option>';
-          applications.forEach((app) => {
-            select.innerHTML += `<option value="${app.app_id}">${app.app_name} (${app.app_code})</option>`;
-          });
+          // Secure select option creation for applications
+          if (window.SecurityUtils) {
+            window.SecurityUtils.safeSetInnerHTML(
+              select,
+              '<option value="">-- Select an application --</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+            applications.forEach((app) => {
+              const validatedId = window.SecurityUtils.validateInput(
+                String(app.app_id),
+                "alphanumeric",
+              );
+              const validatedName = window.SecurityUtils.validateInput(
+                String(app.app_name),
+                "safeText",
+              );
+              const validatedCode = window.SecurityUtils.validateInput(
+                String(app.app_code),
+                "safeText",
+              );
+
+              if (
+                validatedId.isValid &&
+                validatedName.isValid &&
+                validatedCode.isValid
+              ) {
+                const option = document.createElement("option");
+                option.value = validatedId.sanitizedData;
+                option.textContent = `${validatedName.sanitizedData} (${validatedCode.sanitizedData})`;
+                select.appendChild(option);
+              } else {
+                console.warn("[Security] Invalid application data:", app);
+              }
+            });
+          } else {
+            // Fallback: create options safely without validation
+            select.innerHTML =
+              '<option value="">-- Select an application --</option>';
+            applications.forEach((app) => {
+              const option = document.createElement("option");
+              option.value = app.app_id;
+              option.textContent = `${app.app_name} (${app.app_code})`;
+              select.appendChild(option);
+            });
+          }
         })
         .catch((error) => {
           console.error("Error loading applications:", error);
-          document.getElementById("appSelect").innerHTML =
-            '<option value="">Error loading applications</option>';
+          // Secure error message for app select
+          const appSelect = document.getElementById("appSelect");
+          if (window.SecurityUtils && appSelect) {
+            window.SecurityUtils.safeSetInnerHTML(
+              appSelect,
+              '<option value="">Error loading applications</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+          } else if (appSelect) {
+            appSelect.textContent = "Error loading applications";
+          }
         });
     },
 
@@ -2652,16 +4324,71 @@
         .then((response) => response.json())
         .then((iterations) => {
           const select = document.getElementById("iterSelect");
-          select.innerHTML =
-            '<option value="">-- Select an iteration --</option>';
-          iterations.forEach((iter) => {
-            select.innerHTML += `<option value="${iter.ite_id}">${iter.ite_name} (${iter.itt_code})</option>`;
-          });
+          // Secure select option creation for iterations
+          if (window.SecurityUtils) {
+            window.SecurityUtils.safeSetInnerHTML(
+              select,
+              '<option value="">-- Select an iteration --</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+            iterations.forEach((iter) => {
+              const validatedId = window.SecurityUtils.validateInput(
+                String(iter.ite_id),
+                "alphanumeric",
+              );
+              const validatedName = window.SecurityUtils.validateInput(
+                String(iter.ite_name),
+                "safeText",
+              );
+              const validatedCode = window.SecurityUtils.validateInput(
+                String(iter.itt_code),
+                "safeText",
+              );
+
+              if (
+                validatedId.isValid &&
+                validatedName.isValid &&
+                validatedCode.isValid
+              ) {
+                const option = document.createElement("option");
+                option.value = validatedId.sanitizedData;
+                option.textContent = `${validatedName.sanitizedData} (${validatedCode.sanitizedData})`;
+                select.appendChild(option);
+              } else {
+                console.warn("[Security] Invalid iteration data:", iter);
+              }
+            });
+          } else {
+            // Fallback: create options safely without validation
+            select.innerHTML =
+              '<option value="">-- Select an iteration --</option>';
+            iterations.forEach((iter) => {
+              const option = document.createElement("option");
+              option.value = iter.ite_id;
+              option.textContent = `${iter.ite_name} (${iter.itt_code})`;
+              select.appendChild(option);
+            });
+          }
         })
         .catch((error) => {
           console.error("Error loading iterations:", error);
-          document.getElementById("iterSelect").innerHTML =
-            '<option value="">Error loading iterations</option>';
+          // Secure error message for iteration select
+          const iterSelect = document.getElementById("iterSelect");
+          if (window.SecurityUtils && iterSelect) {
+            window.SecurityUtils.safeSetInnerHTML(
+              iterSelect,
+              '<option value="">Error loading iterations</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+          } else if (iterSelect) {
+            iterSelect.textContent = "Error loading iterations";
+          }
         });
 
       // Load environment roles
@@ -2676,15 +4403,70 @@
         .then((response) => response.json())
         .then((roles) => {
           const select = document.getElementById("roleSelect");
-          select.innerHTML = '<option value="">-- Select a role --</option>';
-          roles.forEach((role) => {
-            select.innerHTML += `<option value="${role.enr_id}">${role.enr_name} - ${role.enr_description}</option>`;
-          });
+          // Secure select option creation for roles
+          if (window.SecurityUtils) {
+            window.SecurityUtils.safeSetInnerHTML(
+              select,
+              '<option value="">-- Select a role --</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+            roles.forEach((role) => {
+              const validatedId = window.SecurityUtils.validateInput(
+                String(role.enr_id),
+                "alphanumeric",
+              );
+              const validatedName = window.SecurityUtils.validateInput(
+                String(role.enr_name),
+                "safeText",
+              );
+              const validatedDesc = window.SecurityUtils.validateInput(
+                String(role.enr_description),
+                "safeText",
+              );
+
+              if (
+                validatedId.isValid &&
+                validatedName.isValid &&
+                validatedDesc.isValid
+              ) {
+                const option = document.createElement("option");
+                option.value = validatedId.sanitizedData;
+                option.textContent = `${validatedName.sanitizedData} - ${validatedDesc.sanitizedData}`;
+                select.appendChild(option);
+              } else {
+                console.warn("[Security] Invalid role data:", role);
+              }
+            });
+          } else {
+            // Fallback: create options safely without validation
+            select.innerHTML = '<option value="">-- Select a role --</option>';
+            roles.forEach((role) => {
+              const option = document.createElement("option");
+              option.value = role.enr_id;
+              option.textContent = `${role.enr_name} - ${role.enr_description}`;
+              select.appendChild(option);
+            });
+          }
         })
         .catch((error) => {
           console.error("Error loading roles:", error);
-          document.getElementById("roleSelect").innerHTML =
-            '<option value="">Error loading roles</option>';
+          // Secure error message for role select
+          const roleSelect = document.getElementById("roleSelect");
+          if (window.SecurityUtils && roleSelect) {
+            window.SecurityUtils.safeSetInnerHTML(
+              roleSelect,
+              '<option value="">Error loading roles</option>',
+              {
+                allowedTags: ["option"],
+                allowedAttributes: { option: ["value"] },
+              },
+            );
+          } else if (roleSelect) {
+            roleSelect.textContent = "Error loading roles";
+          }
         });
     },
 
@@ -2893,11 +4675,39 @@
 
       if (!entity || !entity.filters || entity.filters.length === 0) {
         // No filters for this entity, hide filter controls or show default buttons
-        filterControlsDiv.innerHTML = `
-                    <button class="btn-filter" id="filterBtn">Filter</button>
-                    <button class="btn-export" id="exportBtn">Export</button>
-                    <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
-                `;
+        // Secure filter controls creation for entities without filters
+        if (window.SecurityUtils) {
+          const safeHTML = `
+                        <button class="btn-filter" id="filterBtn">Filter</button>
+                        <button class="btn-export" id="exportBtn">Export</button>
+                        <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+                    `;
+          window.SecurityUtils.safeSetInnerHTML(filterControlsDiv, safeHTML, {
+            allowedTags: ["button"],
+            allowedAttributes: { button: ["class", "id", "disabled"] },
+          });
+        } else {
+          // Fallback: create buttons safely
+          filterControlsDiv.innerHTML = "";
+          const filterBtn = document.createElement("button");
+          filterBtn.className = "btn-filter";
+          filterBtn.id = "filterBtn";
+          filterBtn.textContent = "Filter";
+          filterControlsDiv.appendChild(filterBtn);
+
+          const exportBtn = document.createElement("button");
+          exportBtn.className = "btn-export";
+          exportBtn.id = "exportBtn";
+          exportBtn.textContent = "Export";
+          filterControlsDiv.appendChild(exportBtn);
+
+          const bulkBtn = document.createElement("button");
+          bulkBtn.className = "btn-bulk";
+          bulkBtn.id = "bulkActionsBtn";
+          bulkBtn.disabled = true;
+          bulkBtn.textContent = "Bulk Actions";
+          filterControlsDiv.appendChild(bulkBtn);
+        }
         return;
       }
 
@@ -2918,11 +4728,29 @@
         }
       });
 
-      filterControlsDiv.innerHTML = `
-                ${filtersHtml}
-                <button class="btn-export" id="exportBtn">Export</button>
-                <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
-            `;
+      // Secure filter controls creation with filters
+      if (window.SecurityUtils) {
+        const safeHTML = `
+                    ${filtersHtml}
+                    <button class="btn-export" id="exportBtn">Export</button>
+                    <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+                `;
+        window.SecurityUtils.safeSetInnerHTML(filterControlsDiv, safeHTML, {
+          allowedTags: ["button", "select", "option", "input"],
+          allowedAttributes: {
+            button: ["class", "id", "disabled"],
+            select: ["class", "id"],
+            option: ["value"],
+            input: ["type", "class", "id", "placeholder"],
+          },
+        });
+      } else {
+        filterControlsDiv.innerHTML = `
+                    ${filtersHtml}
+                    <button class="btn-export" id="exportBtn">Export</button>
+                    <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+                `;
+      }
 
       // Load filter data and bind events
       this.loadFilterData(entity);
@@ -2957,10 +4785,18 @@
               // Handle both array and paginated responses
               const items = Array.isArray(data) ? data : data.content || [];
 
-              // Clear existing options except the first one (placeholder)
+              // Clear existing options except the first one (placeholder) - safely
               const firstOption = selectElement.firstElementChild;
-              selectElement.innerHTML = "";
-              selectElement.appendChild(firstOption);
+              // Clear content safely
+              selectElement.textContent = "";
+              // Remove all child elements
+              while (selectElement.firstChild) {
+                selectElement.removeChild(selectElement.firstChild);
+              }
+              // Re-add the first option if it existed
+              if (firstOption) {
+                selectElement.appendChild(firstOption);
+              }
 
               // Add options
               items.forEach((item) => {
@@ -3014,7 +4850,18 @@
       const content = document.getElementById("phaseDetailsContent");
 
       // Show loading state
-      content.innerHTML = "<p>Loading phase instance details...</p>";
+      // Secure loading message
+      if (window.SecurityUtils) {
+        window.SecurityUtils.safeSetInnerHTML(
+          content,
+          "<p>Loading phase instance details...</p>",
+          {
+            allowedTags: ["p"],
+          },
+        );
+      } else {
+        content.textContent = "Loading phase instance details...";
+      }
       modal.style.display = "flex";
 
       // Fetch phase instance details
@@ -3074,7 +4921,20 @@
         })
         .catch((error) => {
           console.error("Error loading phase instance details:", error);
-          content.innerHTML = `<p class="error">Failed to load phase instance details: ${error.message}</p>`;
+          // Secure error message for phase details
+          if (window.SecurityUtils) {
+            const safeErrorMsg = window.SecurityUtils.validateInput(
+              error.message,
+              "safeText",
+            );
+            const errorHTML = `<p class="error">Failed to load phase instance details: ${safeErrorMsg.isValid ? safeErrorMsg.sanitizedData : "Unknown error"}</p>`;
+            window.SecurityUtils.safeSetInnerHTML(content, errorHTML, {
+              allowedTags: ["p"],
+              allowedAttributes: { p: ["class"] },
+            });
+          } else {
+            content.textContent = `Failed to load phase instance details: ${error.message}`;
+          }
         });
     },
 
@@ -3091,7 +4951,7 @@
 
       // Find the record in current data
       const data = this.state.data[this.state.currentEntity] || [];
-      const record = data.find((item) => item[entity.fields[0].key] == id);
+      const record = data.find((item) => item[entity.fields[0].key] === id);
 
       if (!record) {
         this.showError(`Record not found with ID: ${id}`);
@@ -3204,7 +5064,18 @@
       const title = document.getElementById("controlPointsTitle");
       const content = document.getElementById("controlPointsContent");
 
-      content.innerHTML = "<p>Loading control points...</p>";
+      // Secure loading message for control points
+      if (window.SecurityUtils) {
+        window.SecurityUtils.safeSetInnerHTML(
+          content,
+          "<p>Loading control points...</p>",
+          {
+            allowedTags: ["p"],
+          },
+        );
+      } else {
+        content.textContent = "Loading control points...";
+      }
       modal.style.display = "flex";
 
       // Fetch control points for the phase
@@ -3263,7 +5134,20 @@
         })
         .catch((error) => {
           console.error("Error loading control points:", error);
-          content.innerHTML = `<p class="error">Failed to load control points: ${error.message}</p>`;
+          // Secure error message for control points
+          if (window.SecurityUtils) {
+            const safeErrorMsg = window.SecurityUtils.validateInput(
+              error.message,
+              "safeText",
+            );
+            const errorHTML = `<p class="error">Failed to load control points: ${safeErrorMsg.isValid ? safeErrorMsg.sanitizedData : "Unknown error"}</p>`;
+            window.SecurityUtils.safeSetInnerHTML(content, errorHTML, {
+              allowedTags: ["p"],
+              allowedAttributes: { p: ["class"] },
+            });
+          } else {
+            content.textContent = `Failed to load control points: ${error.message}`;
+          }
         });
     },
 
@@ -3613,12 +5497,25 @@
     },
   };
 
-  // Initialize when DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      window.adminGui.init();
-    });
+  // UPDATED: Let the Advanced Module Loader v3.0 control initialization
+  // Check if the new module loader is managing initialization
+  if (
+    window.UMIG_MODULE_LOADER ||
+    document.body?.hasAttribute("data-umig-loader-active")
+  ) {
+    // New loader will call adminGui.init() when ready
+    console.log(
+      "[AdminGUI] Waiting for Advanced Module Loader v3.0 to control initialization",
+    );
   } else {
-    window.adminGui.init();
+    // Fallback: Initialize when DOM is ready (legacy mode)
+    console.log("[AdminGUI] Using legacy initialization mode");
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        window.adminGui.init();
+      });
+    } else {
+      window.adminGui.init();
+    }
   }
 })();

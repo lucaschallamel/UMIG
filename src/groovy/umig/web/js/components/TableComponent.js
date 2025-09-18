@@ -15,11 +15,20 @@
  */
 
 // Import BaseComponent for Node.js/testing environment
-let BaseComponent;
-if (typeof require !== "undefined") {
-  BaseComponent = require("./BaseComponent");
-} else if (typeof window !== "undefined") {
-  BaseComponent = window.BaseComponent;
+if (typeof BaseComponent === "undefined") {
+  var BaseComponent = (function () {
+    if (typeof require !== "undefined") {
+      try {
+        return require("./BaseComponent");
+      } catch (e) {
+        // BaseComponent not available in this environment
+        return null;
+      }
+    } else if (typeof window !== "undefined") {
+      return window.BaseComponent;
+    }
+    return null;
+  })();
 }
 
 // Import SecurityUtils for safe HTML handling
@@ -496,17 +505,40 @@ class TableComponent extends BaseComponent {
    */
   renderCell(row, column) {
     let value = row[column.key];
+    let isHtmlContent = false;
 
     // Apply custom renderer if available
     if (this.customRenderers.has(column.key)) {
       value = this.customRenderers.get(column.key)(value, row);
+      isHtmlContent = true; // Custom renderers may return HTML
     } else if (column.renderer) {
       value = column.renderer(value, row);
+      isHtmlContent = true; // Column renderers may return HTML
     }
 
-    // Apply search highlighting
-    if (this.config.search.highlightResults && this.config.search.term) {
+    // Apply search highlighting (skip for HTML content to avoid breaking markup)
+    if (
+      !isHtmlContent &&
+      this.config.search.highlightResults &&
+      this.config.search.term
+    ) {
       value = this.highlightSearchTerm(value, this.config.search.term);
+    }
+
+    // For email type or when renderer is used, allow HTML content
+    // Otherwise escape HTML for security
+    if (!isHtmlContent && column.type !== "email") {
+      // Escape HTML to prevent XSS for non-HTML content
+      value = String(value || "").replace(/[&<>"']/g, (match) => {
+        const escapeMap = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        };
+        return escapeMap[match];
+      });
     }
 
     return `<td class="data-cell" role="cell" data-column="${column.key}">${value}</td>`;

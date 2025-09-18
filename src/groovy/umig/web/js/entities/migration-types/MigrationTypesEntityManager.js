@@ -36,11 +36,16 @@
  * @performance <200ms target with intelligent caching and lazy loading
  */
 
-import { BaseEntityManager } from "../BaseEntityManager.js";
-import { ComponentOrchestrator } from "../../components/ComponentOrchestrator.js";
-import { SecurityUtils } from "../../components/SecurityUtils.js";
+// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Dependencies: BaseEntityManager, ComponentOrchestrator, SecurityUtils (accessed via window.X)
 
-export class MigrationTypesEntityManager extends BaseEntityManager {
+// Utility function to get dependencies safely
+function getDependency(name, fallback = {}) {
+  return window[name] || fallback;
+}
+
+class MigrationTypesEntityManager extends (window.BaseEntityManager ||
+  class {}) {
   /**
    * Initialize MigrationTypesEntityManager with specific configuration
    * @param {Object} config - Configuration object
@@ -2265,7 +2270,10 @@ export class MigrationTypesEntityManager extends BaseEntityManager {
   }
 }
 
-export default MigrationTypesEntityManager;
+// Attach to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.MigrationTypesEntityManager = MigrationTypesEntityManager;
+}
 
 // CommonJS export for Jest compatibility
 if (typeof module !== "undefined" && module.exports) {

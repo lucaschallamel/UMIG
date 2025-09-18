@@ -314,11 +314,12 @@ class StepRepository {
             return sql.firstRow('''
                 SELECT sti.*
                 FROM steps_instance_sti sti
-                JOIN plans_instance_pli pli ON sti.pli_id = pli.pli_id
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                JOIN plans_instance_pli pli ON sti.phi_id = pli.pli_id
                 JOIN plans_plm plm ON pli.plm_id = plm.plm_id
                 JOIN iterations_ite ite ON plm.ite_id = ite.ite_id
                 JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
-                WHERE sti.stt_code = :sttCode AND sti.stm_number = :stmNumber
+                WHERE stm.stt_code = :sttCode AND stm.stm_number = :stmNumber
                 ORDER BY mig.mig_id, ite.ite_id, plm.plm_id, pli.pli_id, sti.sti_id
                 LIMIT 1
             ''', [sttCode: sttCode, stmNumber: stmNumber])
@@ -2349,7 +2350,6 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def row = sql.firstRow(buildDTOBaseQuery() + '''
                 WHERE (stm.stm_id = :stepId OR sti.sti_id = :stepId)
-                AND sti.sti_is_active = true
             ''', [stepId: stepId])
             
             return row ? transformationService.fromDatabaseRow(row) : null
@@ -2365,7 +2365,7 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def row = sql.firstRow(buildDTOBaseQuery() + '''
                 WHERE sti.sti_id = :stepInstanceId
-                AND sti.sti_is_active = true
+                
             ''', [stepInstanceId: stepInstanceId])
             
             return row ? transformationService.fromDatabaseRow(row) : null
@@ -2381,8 +2381,8 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE (phi.phi_id = :phaseId OR stm.phm_id = :phaseId)
-                AND sti.sti_is_active = true
-                ORDER BY stm.stm_order, sti.sti_created_date
+                
+                ORDER BY stm.stm_number, sti.created_at
             ''', [phaseId: phaseId])
             
             return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
@@ -2398,8 +2398,8 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE mig.mig_id = :migrationId
-                AND sti.sti_is_active = true
-                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_order, sti.sti_created_date
+
+                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_number, sti.created_at
             ''', [migrationId: migrationId])
             
             return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
@@ -2415,8 +2415,8 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE ite.ite_id = :iterationId
-                AND sti.sti_is_active = true
-                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_order, sti.sti_created_date
+
+                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_number, sti.created_at
             ''', [iterationId: iterationId])
             
             return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
@@ -2433,8 +2433,8 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE sti.sti_status = :status
-                AND sti.sti_is_active = true
-                ORDER BY sti.sti_priority DESC, sti.sti_last_modified_date DESC
+                
+                ORDER BY sti.updated_at DESC
                 LIMIT :limit
             ''', [status: status, limit: limit])
             
@@ -2451,8 +2451,8 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE tms.tms_id = :teamId
-                AND sti.sti_is_active = true
-                ORDER BY sti.sti_priority DESC, sti.sti_status, sti.sti_created_date
+                
+                ORDER BY sti.sti_status, sti.created_at
             ''', [teamId: teamId])
             
             return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
@@ -2468,7 +2468,7 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def rows = sql.rows(buildDTOBaseQuery() + '''
                 WHERE comment_count > 0
-                AND sti.sti_is_active = true
+                
                 ORDER BY last_comment_date DESC
                 LIMIT :limit
             ''', [limit: limit])
@@ -2487,7 +2487,7 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             def query = buildDTOBaseQuery()
             def params = [:]
-            def whereConditions = ["sti.sti_is_active = true"]
+            def whereConditions = []
             
             // Add hierarchical filters
             if (filters.migrationId) {
@@ -2577,8 +2577,8 @@ class StepRepository {
             def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
             
             // Validate and set sort field
-            def allowedSortFields = ['stm_id', 'stm_name', 'stm_order', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name']
-            def actualSortField = allowedSortFields.contains(sortField) ? sortField : 'stm.stm_order'
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_number', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name']
+            def actualSortField = allowedSortFields.contains(sortField) ? sortField : 'stm.stm_number'
             def actualSortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
             
             // Count query for pagination
@@ -2689,22 +2689,18 @@ class StepRepository {
                             stm_name: stepDTO.stepName,
                             stm_description: stepDTO.stepDescription,
                             phm_id: stepDTO.phaseId ? UUID.fromString(stepDTO.phaseId) : null,
-                            stm_order: 1, // Default order for DTO operations
-                            stm_estimated_duration: stepDTO.estimatedDuration,
-                            stm_is_critical: false, // Default for DTO operations
-                            stm_created_date: new Timestamp(System.currentTimeMillis()),
-                            stm_last_modified_date: new Timestamp(System.currentTimeMillis())
+                            stm_duration_minutes: stepDTO.estimatedDuration,
+                            tms_id_owner: 1, // Default team owner - required field
+                            enr_id_target: 1 // Default environment role target - required field
                         ]
                         
                         def insertMasterSql = '''
                             INSERT INTO steps_master_stm (
                                 stm_id, stt_code, stm_number, stm_name, stm_description, phm_id,
-                                stm_order, stm_estimated_duration, stm_is_critical, 
-                                stm_created_date, stm_last_modified_date
+                                stm_duration_minutes, tms_id_owner, enr_id_target
                             ) VALUES (
                                 :stm_id, :stt_code, :stm_number, :stm_name, :stm_description, :phm_id,
-                                :stm_order, :stm_estimated_duration, :stm_is_critical,
-                                :stm_created_date, :stm_last_modified_date
+                                :stm_duration_minutes, :tms_id_owner, :enr_id_target
                             )
                         '''
                         
@@ -2721,27 +2717,25 @@ class StepRepository {
                         sti_id: newInstanceId,
                         stm_id: newStepId,
                         phi_id: stepDTO.phaseId ? UUID.fromString(stepDTO.phaseId) : null,
-                        tms_id: stepDTO.assignedTeamId ? UUID.fromString(stepDTO.assignedTeamId) : null,
                         sti_name: stepDTO.stepName,
                         sti_description: stepDTO.stepDescription,
                         sti_status: stepDTO.stepStatus ?: 'PENDING',
-                        sti_priority: stepDTO.priority ?: 5,
-                        sti_planned_start_date: stepDTO.createdDate ? Timestamp.valueOf(stepDTO.createdDate) : null,
-                        sti_planned_end_date: stepDTO.lastModifiedDate ? Timestamp.valueOf(stepDTO.lastModifiedDate) : null,
-                        sti_is_active: stepDTO.isActive ?: true,
-                        sti_created_date: new Timestamp(System.currentTimeMillis()),
-                        sti_last_modified_date: new Timestamp(System.currentTimeMillis())
+                        // sti_priority: stepDTO.priority ?: 5, // Column doesn't exist
+                        sti_start_time: stepDTO.createdDate ? Timestamp.valueOf(stepDTO.createdDate) : null,
+                        sti_end_time: stepDTO.lastModifiedDate ? Timestamp.valueOf(stepDTO.lastModifiedDate) : null,
+                        created_at: new Timestamp(System.currentTimeMillis()),
+                        updated_at: new Timestamp(System.currentTimeMillis())
                     ]
-                    
+
                     def insertInstanceSql = '''
                         INSERT INTO steps_instance_sti (
-                            sti_id, stm_id, phi_id, tms_id, sti_name, sti_description,
-                            sti_status, sti_priority, sti_planned_start_date, sti_planned_end_date,
-                            sti_is_active, sti_created_date, sti_last_modified_date
+                            sti_id, stm_id, phi_id, sti_name, sti_description,
+                            sti_status, sti_start_time, sti_end_time,
+                            created_at, updated_at
                         ) VALUES (
-                            :sti_id, :stm_id, :phi_id, :tms_id, :sti_name, :sti_description,
-                            :sti_status, :sti_priority, :sti_planned_start_date, :sti_planned_end_date,
-                            :sti_is_active, :sti_created_date, :sti_last_modified_date
+                            :sti_id, :stm_id, :phi_id, :sti_name, :sti_description,
+                            :sti_status, :sti_start_time, :sti_end_time,
+                            :created_at, :updated_at
                         )
                     '''
                     
@@ -2818,10 +2812,7 @@ class StepRepository {
                             stm_name: stepDTO.stepName,
                             stm_description: stepDTO.stepDescription,
                             phm_id: stepDTO.phaseId ? UUID.fromString(stepDTO.phaseId) : null,
-                            stm_order: 1, // Default for DTO operations
-                            stm_estimated_duration: stepDTO.estimatedDuration,
-                            stm_is_critical: false, // Default for DTO operations
-                            stm_last_modified_date: now
+                            stm_duration_minutes: stepDTO.estimatedDuration
                         ]
                         
                         def updateMasterSql = '''
@@ -2831,10 +2822,7 @@ class StepRepository {
                                 stm_name = :stm_name,
                                 stm_description = :stm_description,
                                 phm_id = :phm_id,
-                                stm_order = :stm_order,
-                                stm_estimated_duration = :stm_estimated_duration,
-                                stm_is_critical = :stm_is_critical,
-                                stm_last_modified_date = :stm_last_modified_date
+                                stm_duration_minutes = :stm_duration_minutes
                             WHERE stm_id = :stm_id
                         '''
                         
@@ -2877,32 +2865,29 @@ class StepRepository {
                         def instanceParams = [
                             sti_id: UUID.fromString(stepDTO.stepInstanceId),
                             phi_id: stepDTO.phaseId ? UUID.fromString(stepDTO.phaseId) : null,
-                            tms_id: stepDTO.assignedTeamId ? UUID.fromString(stepDTO.assignedTeamId) : null,
                             sti_name: stepDTO.stepName,
                             sti_description: stepDTO.stepDescription,
                             sti_status: stepDTO.stepStatus,
-                            sti_priority: stepDTO.priority,
+                            // sti_priority: stepDTO.priority, // Column doesn't exist
                             sti_planned_start_date: stepDTO.createdDate ? Timestamp.valueOf(stepDTO.createdDate) : null,
                             sti_planned_end_date: stepDTO.lastModifiedDate ? Timestamp.valueOf(stepDTO.lastModifiedDate) : null,
                             sti_actual_start_date: null, // Not available in current DTO
                             sti_actual_end_date: null, // Not available in current DTO
-                            sti_last_modified_date: now
+                            updated_at: now
                         ]
                         
                         def updateInstanceSql = '''
                             UPDATE steps_instance_sti SET
                                 phi_id = :phi_id,
-                                tms_id = :tms_id,
                                 sti_name = :sti_name,
                                 sti_description = :sti_description,
                                 sti_status = :sti_status,
-                                sti_priority = :sti_priority,
                                 sti_planned_start_date = :sti_planned_start_date,
                                 sti_planned_end_date = :sti_planned_end_date,
                                 sti_actual_start_date = :sti_actual_start_date,
                                 sti_actual_end_date = :sti_actual_end_date,
-                                sti_last_modified_date = :sti_last_modified_date
-                            WHERE sti_id = :sti_id AND sti_is_active = true
+                                updated_at = :updated_at
+                            WHERE sti_id = :sti_id
                         '''
                         
                         def instanceUpdateCount = sql.executeUpdate(updateInstanceSql, instanceParams)
@@ -3001,25 +2986,25 @@ class StepRepository {
                 tms.tms_id,
                 tms.tms_name as team_name,
                 
-                -- Hierarchical context  
+                -- Hierarchical context
                 mig.mig_id as migration_id,
-                mig.mig_code as migration_code,
+                mig.mig_name as migration_name,
                 ite.ite_id as iteration_id,
-                ite.ite_code as iteration_code,
+                ite.itt_code as iteration_type,
                 sqm.sqm_id as sequence_id,
                 phm.phm_id as phase_id,
                 
                 -- Temporal fields
-                sti.sti_created_date as created_date,
-                sti.sti_last_modified_date as last_modified_date,
-                sti.sti_is_active as is_active,
-                sti.sti_priority as priority,
+                sti.created_at as created_date,
+                sti.updated_at as last_modified_date,
+                true as is_active,  -- Default to true since column doesn't exist
+                -- priority column doesn't exist in database
                 
                 -- Extended metadata
                 stt.stt_code as step_type,
                 stt.stt_name as step_category,
-                stm.stm_estimated_duration as estimated_duration,
-                sti.sti_actual_duration as actual_duration,
+                stm.stm_duration_minutes as estimated_duration,
+                sti.sti_duration_minutes as actual_duration,
                 
                 -- Progress tracking with computed values
                 COALESCE(dep_counts.dependency_count, 0) as dependency_count,
@@ -3046,42 +3031,42 @@ class StepRepository {
             LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
             
             -- Migration and iteration context
-            LEFT JOIN migrations_mig mig ON pli.mig_id = mig.mig_id
             LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+            LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
             
-            -- Team assignment
-            LEFT JOIN teams_tms tms ON sti.assigned_team_id = tms.tms_id
+            -- Team assignment (using step master's owner team)
+            LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
             
-            -- Dependency counts subquery
+            -- Dependency counts subquery (based on predecessor relationships in steps_master_stm)
             LEFT JOIN (
-                SELECT 
-                    sti_id,
+                SELECT
+                    dependent_step.stm_id as dependent_stm_id,
                     COUNT(*) as dependency_count,
-                    SUM(CASE WHEN dependency_status = 'COMPLETED' THEN 1 ELSE 0 END) as completed_dependencies
-                FROM step_dependencies_sde 
-                WHERE is_active = true
-                GROUP BY sti_id
-            ) dep_counts ON sti.sti_id = dep_counts.sti_id
-            
-            -- Instruction counts subquery
+                    SUM(CASE WHEN predecessor_status.sts_name = 'COMPLETED' THEN 1 ELSE 0 END) as completed_dependencies
+                FROM steps_master_stm dependent_step
+                JOIN steps_master_stm predecessor_step ON dependent_step.stm_id_predecessor = predecessor_step.stm_id
+                LEFT JOIN steps_instance_sti predecessor_instances ON predecessor_step.stm_id = predecessor_instances.stm_id
+                LEFT JOIN status_sts predecessor_status ON predecessor_instances.sti_status = predecessor_status.sts_id
+                GROUP BY dependent_step.stm_id
+            ) dep_counts ON stm.stm_id = dep_counts.dependent_stm_id
+
+            -- Instruction counts subquery (corrected column names)
             LEFT JOIN (
-                SELECT 
+                SELECT
                     sti_id,
                     COUNT(*) as instruction_count,
-                    SUM(CASE WHEN ini_status = 'COMPLETED' THEN 1 ELSE 0 END) as completed_instructions
+                    SUM(CASE WHEN ini_is_completed = true THEN 1 ELSE 0 END) as completed_instructions
                 FROM instructions_instance_ini
-                WHERE ini_is_active = true
                 GROUP BY sti_id
             ) inst_counts ON sti.sti_id = inst_counts.sti_id
-            
-            -- Comment counts and latest comment date
+
+            -- Comment counts and latest comment date (removed non-existent is_active field)
             LEFT JOIN (
-                SELECT 
+                SELECT
                     sti_id,
                     COUNT(*) as comment_count,
                     MAX(created_at) as last_comment_date
                 FROM step_instance_comments_sic
-                WHERE is_active = true
                 GROUP BY sti_id
             ) comment_counts ON sti.sti_id = comment_counts.sti_id
         '''
@@ -3131,10 +3116,11 @@ class StepRepository {
                 params.stepType = filters.stepType as String
             }
             
-            if (filters.priority) {
-                whereConditions << "sti.sti_priority = :priority"
-                params.priority = Integer.parseInt(filters.priority as String)
-            }
+            // Priority filtering disabled - column doesn't exist in database
+            // if (filters.priority) {
+            //     whereConditions << "sti.sti_priority = :priority"
+            //     params.priority = Integer.parseInt(filters.priority as String)
+            // }
             
             if (filters.hasActiveComments) {
                 if (filters.hasActiveComments as Boolean) {
@@ -3144,22 +3130,21 @@ class StepRepository {
                 }
             }
             
-            // Always filter for active step instances
-            whereConditions << "sti.sti_is_active = true"
+            // No is_active filter - column doesn't exist in schema
             
             def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
             
             // Build ORDER BY clause with safe field mapping
             def sortFieldMap = [
-                'created_date': 'sti.sti_created_date',
-                'modified_date': 'sti.sti_last_modified_date', 
+                'created_date': 'sti.created_at',
+                'modified_date': 'sti.updated_at', 
                 'name': 'stm_name',
                 'status': 'sti.sti_status',
-                'priority': 'sti.sti_priority',
+                // 'priority': 'sti.sti_priority', // Column doesn't exist
                 'team': 'tms.tms_name'
             ]
             
-            def actualSortField = sortFieldMap[sortField] ?: 'sti.sti_created_date'
+            def actualSortField = sortFieldMap[sortField] ?: 'sti.created_at'
             def actualSortDirection = (sortDirection?.toLowerCase() == 'asc') ? 'ASC' : 'DESC'
             def orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
             
@@ -3174,9 +3159,9 @@ class StepRepository {
                 LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
                 LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                 LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-                LEFT JOIN migrations_mig mig ON pli.mig_id = mig.mig_id
                 LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
-                LEFT JOIN teams_tms tms ON sti.assigned_team_id = tms.tms_id
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
                 LEFT JOIN (
                     SELECT sti_id, COUNT(*) as comment_count
                     FROM step_instance_comments_sic
@@ -3488,35 +3473,22 @@ class StepRepository {
                     sti_name: instanceData.sti_name as String,
                     sti_description: instanceData.sti_description as String ?: null,
                     sti_status: instanceData.sti_status ? Integer.parseInt(instanceData.sti_status as String) : 1, // Default: NOT_STARTED
-                    sti_is_active: instanceData.sti_is_active != null ? Boolean.parseBoolean(instanceData.sti_is_active as String) : true,
-                    sti_assigned_user_id: instanceData.sti_assigned_user_id as String ?: null,
-                    sti_assigned_team_id: instanceData.sti_assigned_team_id ? Integer.parseInt(instanceData.sti_assigned_team_id as String) : null,
-                    sti_planned_start_time: instanceData.sti_planned_start_time ? Timestamp.valueOf(instanceData.sti_planned_start_time as String) : null,
-                    sti_planned_end_time: instanceData.sti_planned_end_time ? Timestamp.valueOf(instanceData.sti_planned_end_time as String) : null,
-                    sti_actual_start_time: instanceData.sti_actual_start_time ? Timestamp.valueOf(instanceData.sti_actual_start_time as String) : null,
-                    sti_actual_end_time: instanceData.sti_actual_end_time ? Timestamp.valueOf(instanceData.sti_actual_end_time as String) : null,
-                    sti_comments: instanceData.sti_comments as String ?: null,
-                    sti_created_date: new Timestamp(System.currentTimeMillis()),
-                    sti_last_modified_date: new Timestamp(System.currentTimeMillis()),
-                    sti_created_by: 'admin',
-                    sti_last_modified_by: 'admin'
+                    sti_start_time: instanceData.sti_start_time ? Timestamp.valueOf(instanceData.sti_start_time as String) : null,
+                    sti_end_time: instanceData.sti_end_time ? Timestamp.valueOf(instanceData.sti_end_time as String) : null,
+                    sti_duration_minutes: instanceData.sti_duration_minutes ? Integer.parseInt(instanceData.sti_duration_minutes as String) : null,
+                    created_by: 'admin',
+                    updated_by: 'admin'
                 ]
                 
                 def insertQuery = """
                     INSERT INTO steps_instance_sti (
                         sti_id, stm_id, phi_id, sti_name, sti_description,
-                        sti_status, sti_is_active, sti_assigned_user_id, sti_assigned_team_id,
-                        sti_planned_start_time, sti_planned_end_time,
-                        sti_actual_start_time, sti_actual_end_time,
-                        sti_comments, sti_created_date, sti_last_modified_date,
-                        sti_created_by, sti_last_modified_by
+                        sti_status, sti_start_time, sti_end_time,
+                        sti_duration_minutes, created_by, updated_by
                     ) VALUES (
                         :sti_id, :stm_id, :phi_id, :sti_name, :sti_description,
-                        :sti_status, :sti_is_active, :sti_assigned_user_id, :sti_assigned_team_id,
-                        :sti_planned_start_time, :sti_planned_end_time,
-                        :sti_actual_start_time, :sti_actual_end_time,
-                        :sti_comments, :sti_created_date, :sti_last_modified_date,
-                        :sti_created_by, :sti_last_modified_by
+                        :sti_status, :sti_start_time, :sti_end_time,
+                        :sti_duration_minutes, :created_by, :updated_by
                     )
                 """
                 
@@ -3577,44 +3549,25 @@ class StepRepository {
                     updateFields << "sti_status = :sti_status"
                     params.sti_status = Integer.parseInt(instanceData.sti_status as String)
                 }
-                if (instanceData.sti_is_active != null) {
-                    updateFields << "sti_is_active = :sti_is_active"
-                    params.sti_is_active = Boolean.parseBoolean(instanceData.sti_is_active as String)
+                // Note: Many legacy fields do not exist in current schema
+                // Using only valid fields from steps_instance_sti table
+                if (instanceData.sti_start_time != null) {
+                    updateFields << "sti_start_time = :sti_start_time"
+                    params.sti_start_time = instanceData.sti_start_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_start_time as String)
                 }
-                if (instanceData.sti_assigned_user_id != null) {
-                    updateFields << "sti_assigned_user_id = :sti_assigned_user_id"
-                    params.sti_assigned_user_id = instanceData.sti_assigned_user_id as String
+                if (instanceData.sti_end_time != null) {
+                    updateFields << "sti_end_time = :sti_end_time"
+                    params.sti_end_time = instanceData.sti_end_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_end_time as String)
                 }
-                if (instanceData.sti_assigned_team_id != null) {
-                    updateFields << "sti_assigned_team_id = :sti_assigned_team_id"
-                    params.sti_assigned_team_id = instanceData.sti_assigned_team_id == 'null' ? null : Integer.parseInt(instanceData.sti_assigned_team_id as String)
+                if (instanceData.sti_duration_minutes != null) {
+                    updateFields << "sti_duration_minutes = :sti_duration_minutes"
+                    params.sti_duration_minutes = instanceData.sti_duration_minutes == 'null' ? null : Integer.parseInt(instanceData.sti_duration_minutes as String)
                 }
-                if (instanceData.sti_planned_start_time != null) {
-                    updateFields << "sti_planned_start_time = :sti_planned_start_time"
-                    params.sti_planned_start_time = instanceData.sti_planned_start_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_planned_start_time as String)
-                }
-                if (instanceData.sti_planned_end_time != null) {
-                    updateFields << "sti_planned_end_time = :sti_planned_end_time"
-                    params.sti_planned_end_time = instanceData.sti_planned_end_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_planned_end_time as String)
-                }
-                if (instanceData.sti_actual_start_time != null) {
-                    updateFields << "sti_actual_start_time = :sti_actual_start_time"
-                    params.sti_actual_start_time = instanceData.sti_actual_start_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_actual_start_time as String)
-                }
-                if (instanceData.sti_actual_end_time != null) {
-                    updateFields << "sti_actual_end_time = :sti_actual_end_time"
-                    params.sti_actual_end_time = instanceData.sti_actual_end_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_actual_end_time as String)
-                }
-                if (instanceData.sti_comments != null) {
-                    updateFields << "sti_comments = :sti_comments"
-                    params.sti_comments = instanceData.sti_comments as String
-                }
-                
-                // Always update timestamp
-                updateFields << "sti_last_modified_date = :sti_last_modified_date"
-                params.sti_last_modified_date = new Timestamp(System.currentTimeMillis())
-                updateFields << "sti_last_modified_by = :sti_last_modified_by"
-                params.sti_last_modified_by = 'admin'
+
+                // Always update timestamp with valid schema fields
+                updateFields << "updated_at = CURRENT_TIMESTAMP"
+                updateFields << "updated_by = :updated_by"
+                params.updated_by = 'admin'
                 
                 if (updateFields.isEmpty()) {
                     throw new IllegalArgumentException("No fields to update")

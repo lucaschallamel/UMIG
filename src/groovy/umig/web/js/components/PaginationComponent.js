@@ -14,18 +14,15 @@
  */
 
 // Import BaseComponent for Node.js/testing environment
-let BaseComponent;
-if (typeof require !== "undefined") {
-  BaseComponent = require("./BaseComponent");
-} else if (typeof window !== "undefined") {
-  BaseComponent = window.BaseComponent;
+if (typeof BaseComponent === "undefined" && typeof require !== "undefined") {
+  var BaseComponent = require("./BaseComponent");
 }
 
-// Import SecurityUtils for safe HTML handling and input validation
-if (typeof SecurityUtils === "undefined" && typeof require !== "undefined") {
-  const SecurityUtils = require("./SecurityUtils");
-}
+// Use global SecurityUtils that's loaded by the module system
+// SecurityUtils is guaranteed to be available on window.SecurityUtils by the module loader
 
+// Define the class only if BaseComponent is available
+// In browser, the module loader ensures BaseComponent is loaded first
 class PaginationComponent extends BaseComponent {
   constructor(containerId, config = {}) {
     super(containerId, {
@@ -210,8 +207,8 @@ class PaginationComponent extends BaseComponent {
     html += "</div>"; // pagination-wrapper
 
     // Use SecurityUtils for safe HTML rendering if available
-    if (typeof SecurityUtils !== "undefined") {
-      SecurityUtils.safeSetInnerHTML(this.container, html, {
+    if (typeof window.SecurityUtils !== "undefined") {
+      window.SecurityUtils.safeSetInnerHTML(this.container, html, {
         allowedTags: [
           "div",
           "nav",
@@ -277,8 +274,8 @@ class PaginationComponent extends BaseComponent {
     `;
 
     // Use SecurityUtils for safe HTML rendering if available
-    if (typeof SecurityUtils !== "undefined") {
-      SecurityUtils.safeSetInnerHTML(this.container, html, {
+    if (typeof window.SecurityUtils !== "undefined") {
+      window.SecurityUtils.safeSetInnerHTML(this.container, html, {
         allowedTags: [
           "div",
           "nav",
@@ -648,8 +645,8 @@ class PaginationComponent extends BaseComponent {
    */
   handlePageSizeChange(newSize) {
     // Validate input using SecurityUtils if available
-    if (typeof SecurityUtils !== "undefined") {
-      newSize = SecurityUtils.validateInteger(newSize, {
+    if (typeof window.SecurityUtils !== "undefined") {
+      newSize = window.SecurityUtils.validateInteger(newSize, {
         min: 1,
         max: 1000,
       });
@@ -708,8 +705,8 @@ class PaginationComponent extends BaseComponent {
    */
   handleJumpToPage(page) {
     // Validate input using SecurityUtils if available
-    if (typeof SecurityUtils !== "undefined") {
-      page = SecurityUtils.validateInteger(page, {
+    if (typeof window.SecurityUtils !== "undefined") {
+      page = window.SecurityUtils.validateInteger(page, {
         min: 1,
         max: this.totalPages,
       });

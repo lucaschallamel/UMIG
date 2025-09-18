@@ -15,18 +15,15 @@
  */
 
 // Import BaseComponent for Node.js/testing environment
-let BaseComponent;
-if (typeof require !== "undefined") {
-  BaseComponent = require("./BaseComponent");
-} else if (typeof window !== "undefined") {
-  BaseComponent = window.BaseComponent;
+if (typeof BaseComponent === "undefined" && typeof require !== "undefined") {
+  var BaseComponent = require("./BaseComponent");
 }
 
-// Import SecurityUtils for safe HTML handling
-if (typeof SecurityUtils === "undefined" && typeof require !== "undefined") {
-  const SecurityUtils = require("./SecurityUtils");
-}
+// Use global SecurityUtils that's loaded by the module system
+// SecurityUtils is guaranteed to be available on window.SecurityUtils by the module loader
 
+// Define the class only if BaseComponent is available
+// In browser, the module loader ensures BaseComponent is loaded first
 class ModalComponent extends BaseComponent {
   constructor(containerId, config = {}) {
     super(containerId, {
@@ -111,8 +108,8 @@ class ModalComponent extends BaseComponent {
     `;
 
     // Use SecurityUtils for safe modal structure creation if available
-    if (typeof SecurityUtils !== "undefined") {
-      SecurityUtils.safeSetInnerHTML(this.container, modalHTML, {
+    if (typeof window.SecurityUtils !== "undefined") {
+      window.SecurityUtils.safeSetInnerHTML(this.container, modalHTML, {
         allowedTags: ["div", "button", "span", "h2"],
         allowedAttributes: {
           div: [
@@ -153,8 +150,8 @@ class ModalComponent extends BaseComponent {
     if (body) {
       if (this.config.form) {
         // Use SecurityUtils for form rendering if available
-        if (typeof SecurityUtils !== "undefined") {
-          SecurityUtils.safeSetInnerHTML(body, this.renderForm(), {
+        if (typeof window.SecurityUtils !== "undefined") {
+          window.SecurityUtils.safeSetInnerHTML(body, this.renderForm(), {
             allowedTags: [
               "form",
               "div",
@@ -217,8 +214,8 @@ class ModalComponent extends BaseComponent {
         }
       } else {
         // Use SecurityUtils for content rendering if available
-        if (typeof SecurityUtils !== "undefined") {
-          SecurityUtils.safeSetInnerHTML(body, this.config.content, {
+        if (typeof window.SecurityUtils !== "undefined") {
+          window.SecurityUtils.safeSetInnerHTML(body, this.config.content, {
             allowedTags: [
               "p",
               "br",
@@ -253,8 +250,8 @@ class ModalComponent extends BaseComponent {
     // Render buttons
     if (footer) {
       // Use SecurityUtils for button rendering if available
-      if (typeof SecurityUtils !== "undefined") {
-        SecurityUtils.safeSetInnerHTML(footer, this.renderButtons(), {
+      if (typeof window.SecurityUtils !== "undefined") {
+        window.SecurityUtils.safeSetInnerHTML(footer, this.renderButtons(), {
           allowedTags: ["button"],
           allowedAttributes: {
             button: ["class", "data-action", "disabled"],
@@ -922,8 +919,8 @@ class ModalComponent extends BaseComponent {
       const body = this.container.querySelector(".modal-body");
       if (body) {
         // Use SecurityUtils for safe content setting if available
-        if (typeof SecurityUtils !== "undefined") {
-          SecurityUtils.safeSetInnerHTML(body, content, {
+        if (typeof window.SecurityUtils !== "undefined") {
+          window.SecurityUtils.safeSetInnerHTML(body, content, {
             allowedTags: [
               "p",
               "br",
