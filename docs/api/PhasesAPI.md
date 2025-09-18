@@ -438,7 +438,7 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
       "plm_name": "Data Center Migration",
       "tms_name": "Platform Team",
       // Audit fields
-      "created_at": "2025-01-15T10:30:00Z",
+      "created_at": "2025-07-15T10:30:00Z",
       "created_by": 1001,
       "updated_at": "2025-02-20T14:45:00Z",
       "updated_by": 1002
@@ -1056,7 +1056,7 @@ WHERE phi_id = ?
 GET /phases/master?page=1&size=25&sort=step_count&direction=desc&status=ACTIVE
 
 # Advanced filtering with search
-GET /phases/master?search=validation&ownerId=5&startDateFrom=2025-01-01&startDateTo=2025-12-31
+GET /phases/master?search=validation&ownerId=5&startDateFrom=2025-08-01&startDateTo=2025-12-31
 ```
 
 #### Flexible Status Handling

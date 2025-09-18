@@ -404,8 +404,8 @@ migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { requ
 **Technical Debt Reduction**: Critical  
 **Security Impact**: Critical
 
-**Created**: 2025-01-09  
-**Updated**: 2025-01-09  
+**Created**: 2025-07-09  
+**Updated**: 2025-07-09  
 **Status**: Backlog  
 **Epic Priority**: High  
 **Assignee**: TBD (Senior Full-Stack Developer + Security Specialist)

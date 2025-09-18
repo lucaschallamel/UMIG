@@ -464,7 +464,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams?search=dev&page=1&size=5" \
 - **2025-09-15:** Added Admin GUI pagination support and enhanced association management
 - **2025-07-09:** Added hierarchical filtering query parameters (migrationId, iterationId, planId, sequenceId, phaseId)
 - **2025-07-09:** Fixed field mapping issue (tms_id→id, tms_name→name) and corrected instance→master table relationships
-- **2025-01-15:** Updated specification to use correct database field names (tms_id, tms_name, tms_description, tms_email) and integer IDs instead of UUIDs
+- **2025-07-15:** Updated specification to use correct database field names (tms_id, tms_name, tms_description, tms_email) and integer IDs instead of UUIDs
 
 ---
 

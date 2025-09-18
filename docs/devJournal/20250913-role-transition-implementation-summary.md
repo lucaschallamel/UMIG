@@ -219,7 +219,7 @@ const history = await teamsEntityManager.getRoleHistory("user-456");
 console.log(history);
 // [
 //   {
-//     timestamp: '2025-01-13T10:00:00Z',
+//     timestamp: '2025-07-13T10:00:00Z',
 //     previousRole: 'USER',
 //     newRole: 'ADMIN',
 //     changedBy: 'superadmin-1',

@@ -302,9 +302,9 @@ The following fields are supported for sorting master controls via the `sort` pa
   "ctm_is_critical": true,
   "ctm_code": "DB_BACKUP_CHECK",
   "created_by": "admin",
-  "created_at": "2025-01-15T10:30:00Z",
+  "created_at": "2025-07-15T10:30:00Z",
   "updated_by": "admin",
-  "updated_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-07-15T10:30:00Z",
   "phm_name": "Pre-Cutover Validation",
   "phase_description": "Critical validation phase before production cutover",
   "sqm_id": "456e7890-e12b-34c5-b678-901234567def",
@@ -630,8 +630,8 @@ This reduces redundant type casting and improves query performance.
 
 - **2025-08-25:** Enhanced Admin GUI integration - Added hierarchy fields (plm_name, sqm_name, phm_name, tms_name) to sortable fields for master controls. Added phm_id parameter support in PUT endpoint for Phase Master association updates. Added comprehensive sorting documentation with 16 supported sort fields.
 - **2025-08-06:** Added performance optimizations (validateFilters, buildSuccessResponse) and edge case tests
-- **2025-01-15:** Created comprehensive API specification with validation workflows
-- **2024-12-15:** Initial implementation of Controls API v2
+- **2025-07-15:** Created comprehensive API specification with validation workflows
+- **2025-08-01:** Initial implementation of Controls API v2
 - **Author:** Claude AI Assistant (UMIG Documentation Update)
 
 ---

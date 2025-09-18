@@ -1,7 +1,7 @@
 # ADR-051: UI-Level RBAC Interim Solution for Migration Types Management
 
 **Status:** Accepted  
-**Date:** 2025-01-09  
+**Date:** 2025-08-05  
 **Context:** US-042 Migration Types Management Phase 4  
 **Related:** US-042, ADR-042 (Authentication Context), ADR-049 (Service Layer)  
 **Technical Debt:** Yes - API-level RBAC deferred to Phase 5

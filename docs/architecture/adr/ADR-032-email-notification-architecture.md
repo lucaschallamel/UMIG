@@ -1,7 +1,7 @@
 # ADR-032: Email Notification Architecture
 
 - **Status:** Proposed
-- **Date:** 2025-01-16
+- **Date:** 2025-07-15
 - **Deciders:** UMIG Project Team
 - **Technical Story:** Implementation of email notifications for step status changes and workflow events
 
@@ -164,4 +164,4 @@ Success criteria:
 
 ## Amendment History
 
-- 2025-01-16: Initial proposal for email notification architecture
+- 2025-07-15: Initial proposal for email notification architecture

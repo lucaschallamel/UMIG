@@ -283,7 +283,7 @@ const IterationTypesManager = {
 **Technical Debt Reduction**: High  
 **Security Impact**: High
 
-**Created**: 2025-01-08  
-**Updated**: 2025-01-08  
+**Created**: 2025-07-08  
+**Updated**: 2025-07-08  
 **Status**: Backlog  
 **Assignee**: TBD

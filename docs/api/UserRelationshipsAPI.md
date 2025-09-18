@@ -216,15 +216,15 @@
       "tms_description": "Core development team",
       "tms_active": true,
       "role_name": "Senior Developer",
-      "membership_start_date": "2025-01-10T10:30:00Z",
+      "membership_start_date": "2025-07-10T10:30:00Z",
       "created_by": "admin",
-      "created_at": "2025-01-10T10:30:00Z",
+      "created_at": "2025-07-10T10:30:00Z",
       "updated_by": "admin",
-      "updated_at": "2025-01-10T10:30:00Z"
+      "updated_at": "2025-07-10T10:30:00Z"
     }
   ],
   "totalTeams": 1,
-  "timestamp": "2025-01-13T15:45:23.123Z"
+  "timestamp": "2025-07-13T15:45:23.123Z"
 }
 ```
 
@@ -930,15 +930,15 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams?includeArchived=fa
       "tms_description": "Core development team",
       "tms_active": true,
       "role_name": "Senior Developer",
-      "membership_start_date": "2025-01-10T10:30:00Z",
+      "membership_start_date": "2025-07-10T10:30:00Z",
       "created_by": "admin",
-      "created_at": "2025-01-10T10:30:00Z",
+      "created_at": "2025-07-10T10:30:00Z",
       "updated_by": "admin",
-      "updated_at": "2025-01-10T10:30:00Z"
+      "updated_at": "2025-07-10T10:30:00Z"
     }
   ],
   "totalTeams": 1,
-  "timestamp": "2025-01-13T15:45:23.123Z"
+  "timestamp": "2025-07-13T15:45:23.123Z"
 }
 ```
 
@@ -962,10 +962,10 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams/1/validate" \
     "teamActive": true,
     "roleValid": true,
     "integrityIssues": [],
-    "validationDate": "2025-01-13T15:55:00Z",
-    "lastAuditDate": "2025-01-13T12:00:00Z"
+    "validationDate": "2025-07-13T15:55:00Z",
+    "lastAuditDate": "2025-07-13T12:00:00Z"
   },
-  "timestamp": "2025-01-13T15:55:00.789Z"
+  "timestamp": "2025-07-13T15:55:00.789Z"
 }
 ```
 
@@ -990,7 +990,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/activity?days=30" \
       "description": "Role changed from Developer to Senior Developer",
       "team_id": 1,
       "team_name": "Development Team",
-      "timestamp": "2025-01-12T14:30:00Z",
+      "timestamp": "2025-07-12T14:30:00Z",
       "metadata": {
         "action": "ROLE_UPDATE",
         "old_value": "Developer",
@@ -1005,9 +1005,9 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/activity?days=30" \
     "teamLeft": 0,
     "roleChanged": 1,
     "loginCount": 25,
-    "lastLoginDate": "2025-01-13T08:30:00Z"
+    "lastLoginDate": "2025-07-13T08:30:00Z"
   },
-  "timestamp": "2025-01-13T16:00:00.456Z"
+  "timestamp": "2025-07-13T16:00:00.456Z"
 }
 ```
 
@@ -1051,7 +1051,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/delete-protection" \
     },
     "retentionPeriod": 90
   },
-  "timestamp": "2025-01-13T16:05:00.123Z"
+  "timestamp": "2025-07-13T16:05:00.123Z"
 }
 ```
 
@@ -1081,13 +1081,13 @@ curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role" \
     "newRoleId": 3,
     "oldRoleName": "Senior Developer",
     "newRoleName": "Team Lead",
-    "effectiveDate": "2025-01-13T16:10:00Z",
+    "effectiveDate": "2025-07-13T16:10:00Z",
     "auditRecord": "ROLE_CHANGE_2025_01_13_16_10",
     "affectedTeams": 2,
     "permissionsUpdated": 8
   },
   "message": "User role changed successfully",
-  "timestamp": "2025-01-13T16:10:00.456Z"
+  "timestamp": "2025-07-13T16:10:00.456Z"
 }
 ```
 
@@ -1122,7 +1122,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role/validate" \
       {
         "requirement": "Management Training Completion",
         "fulfilled": true,
-        "description": "Required leadership training completed on 2024-12-15"
+        "description": "Required leadership training completed on 2025-08-01"
       },
       {
         "requirement": "Minimum Experience (3 years)",
@@ -1143,7 +1143,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role/validate" \
       }
     ]
   },
-  "timestamp": "2025-01-13T16:15:00.789Z"
+  "timestamp": "2025-07-13T16:15:00.789Z"
 }
 ```
 
@@ -1182,7 +1182,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/cleanup-orphaned-members" \
     ]
   },
   "message": "Orphaned member cleanup completed",
-  "timestamp": "2025-01-13T16:20:00.123Z"
+  "timestamp": "2025-07-13T16:20:00.123Z"
 }
 ```
 
@@ -1211,7 +1211,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate" \
         "isValid": true,
         "issues": [],
         "teamCount": 2,
-        "lastActivity": "2025-01-13T08:30:00Z"
+        "lastActivity": "2025-07-13T08:30:00Z"
       },
       {
         "userId": 999,
@@ -1230,7 +1230,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate" \
     }
   },
   "message": "Batch user validation completed",
-  "timestamp": "2025-01-13T16:25:00.456Z"
+  "timestamp": "2025-07-13T16:25:00.456Z"
 }
 ```
 
@@ -1292,7 +1292,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate-relationship
       "integrityIssues": 1
     }
   },
-  "timestamp": "2025-01-13T16:30:00.789Z"
+  "timestamp": "2025-07-13T16:30:00.789Z"
 }
 ```
 
@@ -1328,11 +1328,11 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate-relationship
 
 ## 15. Change Log
 
-- **2025-01-13:** Initial API specification created for US-082-C Users Entity Migration
-- **2025-01-13:** Added comprehensive role management with transition validation
-- **2025-01-13:** Implemented activity tracking with 90-day audit retention
-- **2025-01-13:** Added batch operations for large-scale user administration
-- **2025-01-13:** Implemented cascade delete protection with detailed analysis
+- **2025-07-13:** Initial API specification created for US-082-C Users Entity Migration
+- **2025-07-13:** Added comprehensive role management with transition validation
+- **2025-07-13:** Implemented activity tracking with 90-day audit retention
+- **2025-07-13:** Added batch operations for large-scale user administration
+- **2025-07-13:** Implemented cascade delete protection with detailed analysis
 
 ---
 
