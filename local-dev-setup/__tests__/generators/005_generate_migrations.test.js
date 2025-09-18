@@ -8,6 +8,7 @@ import {
   randomDateInRange,
   nextThursday,
 } from "../../scripts/lib/utils.js";
+const MockStatusProvider = require("../../mocks/MockStatusProvider");
 
 // Mock dependencies
 jest.mock("../../scripts/lib/db.js", () => ({ client: { query: jest.fn() } }));
@@ -40,10 +41,15 @@ const CONFIG = {
 };
 
 describe("Migrations Generator (05_generate_migrations.js)", () => {
+  let mockStatusProvider;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
+
+    // Initialize MockStatusProvider for controlled test values (TD-003)
+    mockStatusProvider = new MockStatusProvider();
 
     // Setup default faker mocks
     faker.helpers.arrayElement.mockImplementation((arr) => arr[0]);
@@ -72,8 +78,8 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       ) {
         return Promise.resolve({
           rows: [
-            { sts_id: 1, sts_name: "PLANNING" },
-            { sts_id: 2, sts_name: "IN_PROGRESS" },
+            { sts_id: 1, sts_name: mockStatusProvider.getStatusNameById(1) },
+            { sts_id: 2, sts_name: mockStatusProvider.getStatusNameById(2) }, // IN_PROGRESS from MockStatusProvider
           ],
         });
       }
@@ -86,8 +92,8 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       ) {
         return Promise.resolve({
           rows: [
-            { sts_id: 3, sts_name: "PLANNING" },
-            { sts_id: 4, sts_name: "IN_PROGRESS" },
+            { sts_id: 3, sts_name: mockStatusProvider.getStatusNameById(1) },
+            { sts_id: 4, sts_name: mockStatusProvider.getStatusNameById(2) }, // IN_PROGRESS from MockStatusProvider
           ],
         });
       }
@@ -168,8 +174,8 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         ) {
           return Promise.resolve({
             rows: [
-              { sts_id: 1, sts_name: "PLANNING" },
-              { sts_id: 2, sts_name: "IN_PROGRESS" },
+              { sts_id: 1, sts_name: mockStatusProvider.getStatusNameById(1) },
+              { sts_id: 2, sts_name: mockStatusProvider.getStatusNameById(2) }, // IN_PROGRESS from MockStatusProvider
             ],
           });
         }
@@ -182,8 +188,8 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         ) {
           return Promise.resolve({
             rows: [
-              { sts_id: 3, sts_name: "PLANNING" },
-              { sts_id: 4, sts_name: "IN_PROGRESS" },
+              { sts_id: 3, sts_name: mockStatusProvider.getStatusNameById(1) },
+              { sts_id: 4, sts_name: mockStatusProvider.getStatusNameById(2) }, // IN_PROGRESS from MockStatusProvider
             ],
           });
         }
@@ -274,12 +280,22 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         ) {
           if (values && values[0] === "Migration") {
             return Promise.resolve({
-              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 1,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
           if (values && values[0] === "Iteration") {
             return Promise.resolve({
-              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 3,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
         }
@@ -349,12 +365,22 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         ) {
           if (values && values[0] === "Migration") {
             return Promise.resolve({
-              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 1,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
           if (values && values[0] === "Iteration") {
             return Promise.resolve({
-              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 3,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
         }
@@ -421,12 +447,22 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         ) {
           if (values && values[0] === "Migration") {
             return Promise.resolve({
-              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 1,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
           if (values && values[0] === "Iteration") {
             return Promise.resolve({
-              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 3,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
         }

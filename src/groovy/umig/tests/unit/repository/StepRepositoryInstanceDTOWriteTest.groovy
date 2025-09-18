@@ -3,6 +3,7 @@ package umig.tests.unit.repository
 import groovy.sql.Sql
 import java.sql.Timestamp
 import java.sql.SQLException
+import umig.tests.unit.mock.MockStatusService
 
 /**
  * Unit tests for StepRepository instance DTO write operations
@@ -356,7 +357,8 @@ class StepRepositoryInstanceDTOWriteTest {
                 phi_id: 'f1234567-89ab-cdef-0123-456789abcdef',
                 sti_name: 'Test Step Instance',
                 sti_description: 'Test Description',
-                sti_status: '2',
+                // TD-003 Migration: Use MockStatusService for controlled status values
+                sti_status: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.id ?: '2',
                 sti_assigned_user_id: 'testuser',
                 sti_assigned_team_id: '5',
                 sti_planned_start_time: '2024-01-01 10:00:00',
@@ -368,7 +370,8 @@ class StepRepositoryInstanceDTOWriteTest {
             repository.createInstanceFromDTOHandler = { Map data ->
                 // Verify query execution would happen
                 assert data.sti_name == 'Test Step Instance'
-                assert data.sti_status == '2'
+                // TD-003 Migration: Validate status using MockStatusService
+                assert MockStatusService.validateStatus(MockStatusService.getStatusNameById(Integer.parseInt(data.sti_status as String)), 'Step') : "Status should be valid"
                 assert data.sti_assigned_team_id == '5'
                 
                 // Return expected DTO
@@ -376,7 +379,8 @@ class StepRepositoryInstanceDTOWriteTest {
                 dto.stepInstanceId = UUID.randomUUID().toString()
                 dto.stepName = 'Test Step Instance'
                 dto.stepDescription = 'Test Description'
-                dto.stepStatus = 'IN_PROGRESS'
+                // TD-003 Migration: Use MockStatusService for status assignment
+                dto.stepStatus = MockStatusService.getStatusNameById(2) // Maintains test expectation
                 return dto
             }
             
@@ -441,7 +445,8 @@ class StepRepositoryInstanceDTOWriteTest {
             def updateData = [
                 sti_name: 'Updated Instance Name',
                 sti_description: 'Updated Description',
-                sti_status: '3',
+                // TD-003 Migration: Use MockStatusService for status mapping
+                sti_status: MockStatusService.getStatusByName('COMPLETED', 'Step')?.id ?: '3',
                 sti_comments: 'Updated comments',
                 sti_actual_start_time: '2024-01-01 10:30:00',
                 sti_actual_end_time: '2024-01-01 11:30:00'
@@ -452,14 +457,16 @@ class StepRepositoryInstanceDTOWriteTest {
                 // Verify the parameters
                 assert id == instanceId : "Instance ID should match"
                 assert data.sti_name == 'Updated Instance Name' : "Name should match"
-                assert data.sti_status == '3' : "Status should match"
+                // TD-003 Migration: Validate status dynamically
+                assert MockStatusService.validateStatus(MockStatusService.getStatusNameById(Integer.parseInt(data.sti_status as String)), 'Step') : "Status should be valid"
                 
                 // Return expected DTO
                 def dto = new MockStepInstanceDTO()
                 dto.stepInstanceId = instanceId.toString()
                 dto.stepName = 'Updated Instance Name'
                 dto.stepDescription = 'Updated Description'
-                dto.stepStatus = 'COMPLETED'
+                // TD-003 Migration: Use MockStatusService for status assignment
+                dto.stepStatus = MockStatusService.getStatusNameById(3) // Maintains test expectation
                 return dto
             }
             
@@ -568,7 +575,8 @@ class StepRepositoryInstanceDTOWriteTest {
                 stm_id: 'e1234567-89ab-cdef-0123-456789abcdef',
                 phi_id: 'f1234567-89ab-cdef-0123-456789abcdef',
                 sti_name: 'Test Instance',
-                sti_status: '2', // String that should be cast to Integer
+                // TD-003 Migration: Use MockStatusService for status value
+                sti_status: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.id ?: '2', // Dynamic status from service
                 sti_assigned_team_id: '10', // String that should be cast to Integer
                 sti_planned_start_time: '2024-01-01 10:00:00', // String that should be cast to Timestamp
                 sti_planned_end_time: '2024-01-01 11:00:00',

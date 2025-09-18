@@ -152,7 +152,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         persistent: true,
         filters: [
           {
-            key: "status",
+            name: "status", // Changed from 'key' to 'name' for FilterComponent compatibility
             type: "select",
             label: "Status",
             options: [
@@ -163,14 +163,14 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
             ],
           },
           {
-            key: "memberCountRange",
+            name: "memberCountRange", // Changed from 'key' to 'name' for FilterComponent compatibility
             type: "range",
             label: "Member Count",
             min: 0,
             max: 100,
           },
           {
-            key: "search",
+            name: "search", // Changed from 'key' to 'name' for FilterComponent compatibility
             type: "text",
             label: "Search",
             placeholder: "Search teams...",
@@ -240,21 +240,94 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async initialize(container, options = {}) {
     try {
-      // Get current user role for RBAC
-      await this._getCurrentUserRole();
+      console.log("[TeamsEntityManager] Starting initialization...");
+
+      // Validate container
+      if (!container) {
+        throw new Error(
+          "Container is required for TeamsEntityManager initialization",
+        );
+      }
+
+      // Get current user role for RBAC with fallback
+      try {
+        await this._getCurrentUserRole();
+        console.log("[TeamsEntityManager] User role determined successfully");
+      } catch (roleError) {
+        console.warn(
+          "[TeamsEntityManager] Failed to get user role, using default:",
+          roleError,
+        );
+        this.currentUserRole = {
+          role: "USER",
+          userId: "unknown",
+          username: "unknown",
+        };
+      }
 
       // Configure access controls based on role
-      this._configureAccessControls();
+      try {
+        this._configureAccessControls();
+        console.log("[TeamsEntityManager] Access controls configured");
+      } catch (accessError) {
+        console.warn(
+          "[TeamsEntityManager] Failed to configure access controls:",
+          accessError,
+        );
+        // Continue with default access controls
+      }
 
       // Initialize base entity manager
-      await super.initialize(container, options);
+      try {
+        await super.initialize(container, options);
+        console.log("[TeamsEntityManager] Base entity manager initialized");
+      } catch (baseError) {
+        console.error(
+          "[TeamsEntityManager] Base initialization failed:",
+          baseError,
+        );
+        throw baseError; // Re-throw since this is critical
+      }
 
-      // Setup Teams-specific functionality
-      await this._setupTeamsSpecificFeatures();
+      // Setup Teams-specific functionality with fallback
+      try {
+        await this._setupTeamsSpecificFeatures();
+        console.log("[TeamsEntityManager] Teams-specific features set up");
+      } catch (featuresError) {
+        console.warn(
+          "[TeamsEntityManager] Failed to setup Teams-specific features:",
+          featuresError,
+        );
+        // Continue without Teams-specific features if they fail
+      }
 
       console.log("[TeamsEntityManager] Teams entity manager ready");
     } catch (error) {
       console.error("[TeamsEntityManager] Failed to initialize:", error);
+
+      // Log detailed error information for debugging
+      console.error("[TeamsEntityManager] Error details:", {
+        message: error.message,
+        stack: error.stack,
+        container: container
+          ? { id: container.id, tagName: container.tagName }
+          : null,
+        currentUserRole: this.currentUserRole,
+        isBaseInitialized: this.isInitialized || false,
+      });
+
+      // Try to clean up any partial initialization
+      try {
+        if (this.isInitialized) {
+          await this.destroy();
+        }
+      } catch (cleanupError) {
+        console.error(
+          "[TeamsEntityManager] Error during cleanup:",
+          cleanupError,
+        );
+      }
+
       throw error;
     }
   }
@@ -1050,41 +1123,138 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _getCurrentUserRole() {
     try {
-      // Use existing UserService if available
+      // Use existing UserService if available (primary method)
       if (window.UMIGServices?.userService) {
         this.currentUserRole =
           await window.UMIGServices.userService.getCurrentUser();
-      } else {
-        // Fallback - get from API
-        // CSRF PROTECTION: Add CSRF token to user API call
-        const response = await fetch(
-          "/rest/scriptrunner/latest/custom/users/current",
-          {
+        console.log(
+          "[TeamsEntityManager] Got user role from UserService:",
+          this.currentUserRole?.role,
+        );
+        return;
+      }
+
+      // Fallback chain per ADR-042 authentication context
+      let username = null;
+
+      // Try multiple sources for username
+      if (window.adminGui?.state?.currentUser?.userCode) {
+        username = window.adminGui.state.currentUser.userCode;
+      } else if (window.adminGui?.state?.currentUser?.username) {
+        username = window.adminGui.state.currentUser.username;
+      }
+
+      if (username) {
+        try {
+          // Use the correct Users API endpoint with proper fallback
+          // This endpoint exists and handles authentication properly
+          const url = new URL(
+            "/rest/scriptrunner/latest/custom/users/current",
+            window.location.origin,
+          );
+          url.searchParams.append("username", username);
+
+          console.log(
+            `[TeamsEntityManager] Fetching current user from API with username: ${username}`,
+          );
+
+          const response = await fetch(url.toString(), {
             method: "GET",
             headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
-          },
-        );
+          });
 
-        if (response.ok) {
-          this.currentUserRole = await response.json();
-        } else {
-          // Default fallback
-          this.currentUserRole = { role: "USER", userId: "unknown" };
+          if (response.ok) {
+            const userData = await response.json();
+
+            // Map API response to expected format
+            this.currentUserRole = {
+              role: userData.role || "USER",
+              userId: userData.userId,
+              username: userData.username,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              email: userData.email,
+              isAdmin: userData.isAdmin || false,
+              roleId: userData.roleId,
+              isActive: userData.isActive,
+              source: "users_api",
+            };
+
+            console.log(
+              `[TeamsEntityManager] Successfully fetched user from API:`,
+              {
+                role: this.currentUserRole.role,
+                username: this.currentUserRole.username,
+                userId: this.currentUserRole.userId,
+              },
+            );
+            return;
+          } else {
+            const errorText = await response
+              .text()
+              .catch(() => "Unknown error");
+            console.warn(
+              `[TeamsEntityManager] Users API call failed (${response.status}): ${response.statusText}`,
+              {
+                url: url.toString(),
+                error: errorText,
+              },
+            );
+
+            // Continue to admin-gui fallback below
+          }
+        } catch (apiError) {
+          console.warn(
+            "[TeamsEntityManager] Error calling Users API:",
+            apiError,
+          );
+          // Continue to admin-gui fallback below
         }
+
+        // Admin-gui fallback when API fails
+        console.log(
+          "[TeamsEntityManager] Using admin-gui fallback for user role",
+        );
+        this.currentUserRole = {
+          role: window.adminGui?.state?.currentUser?.role || "USER",
+          userId: window.adminGui?.state?.currentUser?.userId || "unknown",
+          username: username,
+          source: "admin_gui_fallback",
+        };
+      } else {
+        console.warn(
+          "[TeamsEntityManager] No username available from admin-gui state",
+        );
+        // Final fallback
+        this.currentUserRole = {
+          role: "USER",
+          userId: "unknown",
+          username: "unknown",
+          source: "default_fallback",
+        };
       }
 
       console.log(
         "[TeamsEntityManager] Current user role:",
         this.currentUserRole?.role,
+        "for user:",
+        this.currentUserRole?.username || this.currentUserRole?.userId,
+        "source:",
+        this.currentUserRole?.source,
       );
     } catch (error) {
       console.warn(
         "[TeamsEntityManager] Failed to get user role, defaulting to USER:",
         error,
       );
-      this.currentUserRole = { role: "USER", userId: "unknown" };
+      this.currentUserRole = {
+        role: "USER",
+        userId: "unknown",
+        username: "unknown",
+        source: "error_fallback",
+      };
     }
   }
 
@@ -1142,18 +1312,57 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @private
    */
   async _setupTeamsSpecificFeatures() {
-    // Setup member management modal if available
-    if (this.modalComponent) {
-      // Add members tab to modal
-      await this.modalComponent.addTab({
-        id: "members",
-        label: "Members",
-        content: this._createMembersTabContent.bind(this),
-      });
-    }
+    try {
+      console.log("[TeamsEntityManager] Setting up Teams-specific features");
 
-    // Setup Teams-specific event handlers
-    this._setupTeamsEventHandlers();
+      // Setup member management modal if available
+      if (
+        this.modalComponent &&
+        typeof this.modalComponent.addTab === "function"
+      ) {
+        try {
+          // Add members tab to modal
+          await this.modalComponent.addTab({
+            id: "members",
+            label: "Members",
+            content: this._createMembersTabContent.bind(this),
+          });
+          console.log("[TeamsEntityManager] Members tab added to modal");
+        } catch (tabError) {
+          console.warn(
+            "[TeamsEntityManager] Failed to add members tab:",
+            tabError,
+          );
+          // Continue without members tab
+        }
+      } else {
+        console.log(
+          "[TeamsEntityManager] Modal component not available or missing addTab method",
+        );
+      }
+
+      // Setup Teams-specific event handlers
+      try {
+        this._setupTeamsEventHandlers();
+        console.log("[TeamsEntityManager] Event handlers set up");
+      } catch (eventError) {
+        console.warn(
+          "[TeamsEntityManager] Failed to setup event handlers:",
+          eventError,
+        );
+        // Continue without event handlers
+      }
+
+      console.log(
+        "[TeamsEntityManager] Teams-specific features setup completed",
+      );
+    } catch (error) {
+      console.error(
+        "[TeamsEntityManager] Error in _setupTeamsSpecificFeatures:",
+        error,
+      );
+      throw error;
+    }
   }
 
   /**
@@ -2443,6 +2652,195 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `[TeamsEntityManager] Failed to track error:`,
         trackingError,
       );
+    }
+  }
+
+  // ============================================
+  // Required BaseEntityManager Override Methods
+  // ============================================
+
+  /**
+   * Fetch Teams data from API
+   * @param {Object} filters - Filter parameters
+   * @param {Object} sort - Sort configuration
+   * @param {number} page - Page number
+   * @param {number} pageSize - Page size
+   * @returns {Promise<Object>} API response with teams data
+   * @protected
+   */
+  async _fetchEntityData(filters = {}, sort = null, page = 1, pageSize = 20) {
+    try {
+      console.log("[TeamsEntityManager] Fetching teams data", {
+        filters,
+        sort,
+        page,
+        pageSize,
+      });
+
+      // Build query parameters
+      const params = new URLSearchParams();
+
+      // Add pagination
+      params.append("page", page.toString());
+      params.append("size", pageSize.toString());
+
+      // Add sorting
+      if (sort && sort.field) {
+        params.append("sort", sort.field);
+        params.append("direction", sort.direction || "asc");
+      }
+
+      // Add filters
+      Object.keys(filters).forEach((key) => {
+        if (
+          filters[key] !== null &&
+          filters[key] !== undefined &&
+          filters[key] !== ""
+        ) {
+          params.append(key, filters[key]);
+        }
+      });
+
+      // Make API call with CSRF protection
+      const response = await fetch(`${this.apiBaseUrl}?${params.toString()}`, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch teams: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data = await response.json();
+      console.log("[TeamsEntityManager] Teams data fetched:", data);
+
+      // Transform the response to expected format
+      return {
+        data: Array.isArray(data)
+          ? data
+          : data.content || data.data || data.teams || [],
+        total:
+          data.totalElements ||
+          data.total ||
+          (Array.isArray(data) ? data.length : 0),
+        page: data.page || page,
+        pageSize: data.pageSize || pageSize,
+      };
+    } catch (error) {
+      console.error("[TeamsEntityManager] Failed to fetch teams data:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create new team via API
+   * @param {Object} data - Team data
+   * @returns {Promise<Object>} Created team
+   * @protected
+   */
+  async _createEntityData(data) {
+    try {
+      console.log("[TeamsEntityManager] Creating new team:", data);
+
+      // Security validation
+      window.SecurityUtils.validateInput(data);
+
+      const response = await fetch(this.apiBaseUrl, {
+        method: "POST",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create team: ${response.status}`);
+      }
+
+      const createdTeam = await response.json();
+      console.log("[TeamsEntityManager] Team created:", createdTeam);
+
+      return createdTeam;
+    } catch (error) {
+      console.error("[TeamsEntityManager] Failed to create team:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update team via API
+   * @param {string} id - Team ID
+   * @param {Object} data - Updated team data
+   * @returns {Promise<Object>} Updated team
+   * @protected
+   */
+  async _updateEntityData(id, data) {
+    try {
+      console.log("[TeamsEntityManager] Updating team:", id, data);
+
+      // Security validation
+      window.SecurityUtils.validateInput({ id, ...data });
+
+      const response = await fetch(
+        `${this.apiBaseUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(data),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update team: ${response.status}`);
+      }
+
+      const updatedTeam = await response.json();
+      console.log("[TeamsEntityManager] Team updated:", updatedTeam);
+
+      return updatedTeam;
+    } catch (error) {
+      console.error("[TeamsEntityManager] Failed to update team:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete team via API
+   * @param {string} id - Team ID
+   * @returns {Promise<void>}
+   * @protected
+   */
+  async _deleteEntityData(id) {
+    try {
+      console.log("[TeamsEntityManager] Deleting team:", id);
+
+      // Security validation
+      window.SecurityUtils.validateInput({ id });
+
+      const response = await fetch(
+        `${this.apiBaseUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete team: ${response.status}`);
+      }
+
+      console.log("[TeamsEntityManager] Team deleted successfully");
+    } catch (error) {
+      console.error("[TeamsEntityManager] Failed to delete team:", error);
+      throw error;
     }
   }
 }

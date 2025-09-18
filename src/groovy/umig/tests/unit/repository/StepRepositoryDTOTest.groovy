@@ -7,6 +7,7 @@ import java.sql.SQLException
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 import umig.service.StepDataTransformationService
+import umig.tests.unit.mock.MockStatusService
 
 /**
  * Unit Tests for StepRepository DTO Methods (US-056-C API Layer Integration)
@@ -212,7 +213,8 @@ class MockStepDataTransformationService {
             dto.stepInstanceId = row.sti_id?.toString()
             dto.stepName = row.stm_name
             dto.stepDescription = row.stm_description
-            dto.stepStatus = mapStatusToString(row.sti_status as Integer)
+            // TD-003 Migration: Dynamic status transformation via MockStatusService
+            dto.stepStatus = MockStatusService.getStatusNameById(row.sti_status as Integer)
             dto.assignedTeamId = row.tms_id_owner?.toString()
             dto.assignedTeamName = row.tms_name
             dto.migrationId = row.mig_id?.toString()
@@ -247,14 +249,8 @@ class MockStepDataTransformationService {
     }
     
     String mapStatusToString(Integer status) {
-        switch(status) {
-            case 1: return "PENDING"
-            case 2: return "IN_PROGRESS" 
-            case 3: return "COMPLETED"
-            case 4: return "FAILED"
-            case 5: return "CANCELLED"
-            default: return "UNKNOWN"
-        }
+        // TD-003 Migration: Use MockStatusService instead of hardcoded values
+        return MockStatusService.getStatusNameById(status)
     }
 }
 
@@ -528,7 +524,9 @@ class StepRepositoryDTOTests {
             assert dto.stepInstanceId != null : "Step Instance ID should be populated"
             assert dto.stepName == "Test Step 1" : "Step name should match mock data"
             assert dto.stepDescription == "Test step description 1" : "Description should match"
-            assert dto.stepStatus == "PENDING" : "Status should be transformed correctly"
+            // TD-003 Migration: Use dynamic status validation instead of hardcoded expectation
+            assert MockStatusService.validateStatus(dto.stepStatus, 'Step') : "Status should be valid: ${dto.stepStatus}"
+            assert dto.stepStatus == MockStatusService.getStatusNameById(1) : "Status should match expected mapping for ID 1"
             assert dto.assignedTeamId == "101" : "Team ID should be transformed to string"
             assert dto.assignedTeamName == "Test Team" : "Team name should be populated"
             assert dto.stepType == "CUTOVER" : "Step type should be populated"

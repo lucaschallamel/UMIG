@@ -2,6 +2,11 @@
  * ============================================================================
  * UMIG Enhanced Iteration View v2.0 - US-028 Phase 1 Implementation
  * StepsAPI v2 Integration with Performance Optimization & Real-time Updates
+ *
+ * TD-003 Phase 2H: StatusProvider Integration
+ * - Migrated hardcoded status values to dynamic StatusProvider
+ * - Enhanced status validation and fallback patterns
+ * - Integrated centralized status management for UI components
  * ============================================================================
  */
 
@@ -29,7 +34,7 @@ class StepsAPIv2Client {
    */
   async fetchSteps(filters = {}, options = {}) {
     // Validate input parameters
-    this._validateFilters(filters);
+    await this._validateFilters(filters);
     this._validateOptions(options);
 
     const cacheKey = this._generateCacheKey("steps", filters, options);
@@ -268,7 +273,7 @@ class StepsAPIv2Client {
   /**
    * Validate filters parameter
    */
-  _validateFilters(filters) {
+  async _validateFilters(filters) {
     if (!filters || typeof filters !== "object") {
       throw new Error("Filters must be an object");
     }
@@ -317,16 +322,14 @@ class StepsAPIv2Client {
       throw new Error("teamId must be a valid integer");
     }
 
-    // Validate status values
-    if (
-      filters.status &&
-      !["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED", "FAILED"].includes(
-        filters.status,
-      )
-    ) {
-      throw new Error(
-        "Invalid status value. Must be one of: PENDING, IN_PROGRESS, COMPLETED, SKIPPED, FAILED",
-      );
+    // Validate status values (TD-003 Phase 2H: StatusProvider integration with fallback)
+    if (filters.status) {
+      const validStatuses = await this.getValidStatusNames();
+      if (!validStatuses.includes(filters.status)) {
+        throw new Error(
+          `Invalid status value. Must be one of: ${validStatuses.join(", ")}`,
+        );
+      }
     }
   }
 
@@ -408,6 +411,85 @@ class StepsAPIv2Client {
     console.log(
       "StepsAPIv2: Cleanup completed - cleared timeouts, request queue, and cache",
     );
+  }
+
+  /**
+   * Get valid status names from StatusProvider with fallback (TD-003 Phase 2H)
+   * @returns {Promise<Array<string>>} Array of valid status names
+   */
+  async getValidStatusNames() {
+    try {
+      if (window.StatusProvider) {
+        const statuses = await window.StatusProvider.getStatuses("Step");
+        return statuses.map((status) => status.name);
+      }
+    } catch (error) {
+      console.warn(
+        "StepsAPIv2: StatusProvider failed, using fallback statuses:",
+        error,
+      );
+    }
+
+    // Fallback to hardcoded status names if StatusProvider not available
+    return ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED", "FAILED"];
+  }
+
+  /**
+   * Get default status name from StatusProvider with fallback (TD-003 Phase 2H)
+   * @returns {Promise<string>} Default status name
+   */
+  async getDefaultStatusName() {
+    try {
+      if (window.StatusProvider) {
+        const statuses = await window.StatusProvider.getStatuses("Step");
+        if (statuses.length > 0) {
+          // Return the first status as default, or look for PENDING specifically
+          const pendingStatus = statuses.find(
+            (status) => status.name === "PENDING",
+          );
+          if (pendingStatus) {
+            return pendingStatus.name;
+          }
+          return statuses[0].name;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "IterationView: StatusProvider failed for default status, using fallback:",
+        error,
+      );
+    }
+
+    // Fallback to hardcoded default status if StatusProvider not available
+    return "PENDING";
+  }
+
+  /**
+   * Get specific status name from StatusProvider with fallback (TD-003 Phase 2H)
+   * @param {string} statusName - The status name to look for
+   * @param {string} fallbackName - Fallback status name if not found
+   * @returns {Promise<string>} Status name
+   */
+  async getStatusName(statusName, fallbackName = statusName) {
+    try {
+      if (window.StatusProvider) {
+        const statuses = await window.StatusProvider.getStatuses("Step");
+        const foundStatus = statuses.find(
+          (status) => status.name === statusName,
+        );
+        if (foundStatus) {
+          return foundStatus.name;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `IterationView: StatusProvider failed for ${statusName} status, using fallback:`,
+        error,
+      );
+    }
+
+    // Fallback to provided fallback name if StatusProvider not available
+    return fallbackName;
   }
 }
 
@@ -1428,18 +1510,43 @@ class IterationView {
 
     while (retryCount <= maxRetries) {
       try {
-        const response = await fetch(
-          "/rest/scriptrunner/latest/custom/status?entityType=Step",
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const statuses = await response.json();
+        // TD-003 Phase 2H: Use StatusProvider with fallback to direct API call
+        let statuses;
+        if (window.StatusProvider) {
+          console.debug(
+            "fetchStepStatusesWithRetry: Using StatusProvider for status data",
+          );
+          statuses = await window.StatusProvider.getStatuses("Step");
+        } else {
+          console.debug(
+            "fetchStepStatusesWithRetry: StatusProvider not available, using direct API call",
+          );
+          const response = await fetch(
+            "/rest/scriptrunner/latest/custom/status?entityType=Step",
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          const data = await response.json();
 
-        // Ensure we got valid data
-        if (statuses && Array.isArray(statuses) && statuses.length > 0) {
+          // Handle the API response structure correctly
+          if (data && data.statuses && Array.isArray(data.statuses)) {
+            // New API format: { statuses: [...], entityType: "Step", count: N }
+            statuses = data.statuses;
+          } else if (Array.isArray(data)) {
+            // Legacy format: direct array
+            statuses = data;
+          } else {
+            throw new Error("Invalid API response format");
+          }
+        }
+
+        if (statuses && statuses.length > 0) {
+          const source = window.StatusProvider
+            ? "StatusProvider"
+            : "direct API";
           console.log(
-            `fetchStepStatusesWithRetry: Successfully loaded ${statuses.length} statuses on attempt ${retryCount + 1}`,
+            `fetchStepStatusesWithRetry: Successfully loaded ${statuses.length} statuses via ${source} on attempt ${retryCount + 1}`,
           );
           return statuses;
         } else {
@@ -1621,10 +1728,12 @@ class IterationView {
       }
     }
 
-    // Fallback to PENDING if we still don't have a valid status name
+    // Fallback to default status if we still don't have a valid status name (TD-003 Phase 2H)
     if (!currentStatusName) {
-      currentStatusName = "PENDING";
-      console.log("PopulateStatusDropdown - Falling back to PENDING status");
+      currentStatusName = await this.getDefaultStatusName();
+      console.log(
+        `PopulateStatusDropdown - Falling back to default status: ${currentStatusName}`,
+      );
     }
 
     // Store the current status as attributes (both name and ID for compatibility)
@@ -1750,7 +1859,9 @@ class IterationView {
     const newStatus = selectedOption
       ? selectedOption.getAttribute("data-status-name")
       : null;
-    const oldStatus = dropdown.getAttribute("data-old-status") || "PENDING";
+    const oldStatus =
+      dropdown.getAttribute("data-old-status") ||
+      (await this.getDefaultStatusName());
 
     if (!newStatus) {
       console.error(
@@ -2437,7 +2548,8 @@ class IterationView {
       if (this.quickFilters.myTeamSteps) filters.myTeamOnly = true;
       if (this.quickFilters.myAssignedSteps) filters.assignedToMe = true;
       if (this.quickFilters.criticalSteps) filters.priority = "HIGH";
-      if (this.quickFilters.blockedSteps) filters.status = "BLOCKED";
+      if (this.quickFilters.blockedSteps)
+        filters.status = await this.getStatusName("BLOCKED");
 
       // Options for performance optimization
       const options = {
@@ -2708,7 +2820,7 @@ class IterationView {
         const phase = { steps: [] };
         phaseEl.querySelectorAll(".step-row").forEach((stepEl) => {
           const statusEl = stepEl.querySelector(".col-status .status-display");
-          const status = statusEl?.textContent?.trim() || "PENDING";
+          const status = statusEl?.textContent?.trim() || "PENDING"; // TD-003 Phase 2H: Fallback for DOM parsing
           phase.steps.push({ status });
         });
         sequence.phases.push(phase);
@@ -2933,7 +3045,7 @@ class IterationView {
    * Get status display with dynamic color from database
    */
   getStatusDisplay(status) {
-    if (!status) return this.createStatusSpan("PENDING", "PENDING");
+    if (!status) return this.createStatusSpan("PENDING", "PENDING"); // TD-003 Phase 2H: Sync fallback for rendering
 
     const statusUpper = status.toUpperCase();
     const displayText = statusUpper.replace(/_/g, " ");
@@ -3172,6 +3284,7 @@ class IterationView {
   applyCounterColors() {
     if (!this.statusColors) return;
 
+    // TD-003 Phase 2H: Fixed UI element to status mappings (intentionally hardcoded)
     const counterMappings = [
       { elementId: "pending-steps", statusKey: "PENDING" },
       { elementId: "todo-steps", statusKey: "TODO" },

@@ -250,9 +250,23 @@ describe("Teams Entity Edge Cases - Boundary Value Testing", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     jest.clearAllMocks();
+    jest.clearAllTimers();
+
     if (teamsManager) {
       teamsManager.destroy();
+      teamsManager = null;
+    }
+
+    // Clear DOM content
+    if (container) {
+      container.innerHTML = "";
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
     }
   });
 
@@ -628,9 +642,23 @@ describe("Teams Entity Edge Cases - Concurrent Modification", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     jest.clearAllMocks();
+    jest.clearAllTimers();
+
     if (teamsManager) {
       teamsManager.destroy();
+      teamsManager = null;
+    }
+
+    // Clear DOM content
+    if (container) {
+      container.innerHTML = "";
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
     }
   });
 
@@ -753,9 +781,23 @@ describe("Teams Entity Edge Cases - Performance and Memory", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     jest.clearAllMocks();
+    jest.clearAllTimers();
+
     if (teamsManager) {
       teamsManager.destroy();
+      teamsManager = null;
+    }
+
+    // Clear DOM content
+    if (container) {
+      container.innerHTML = "";
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
     }
   });
 

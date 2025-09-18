@@ -1,6 +1,9 @@
 import { client } from "../../scripts/lib/db.js";
 import { generateCoreMetadata } from "../../scripts/generators/001_generate_core_metadata.js";
 
+// Import MockStatusProvider for test isolation (TD-003 Phase 3)
+const MockStatusProvider = require("../mocks/MockStatusProvider");
+
 // Mock the database client to prevent Jest from parsing the actual db.js file
 jest.mock("../../scripts/lib/db", () => ({
   client: {
@@ -9,7 +12,12 @@ jest.mock("../../scripts/lib/db", () => ({
 }));
 
 describe("Core Metadata Generator (01_generate_core_metadata.js)", () => {
+  let mockStatusProvider;
+
   beforeEach(() => {
+    // Initialize MockStatusProvider for test isolation (TD-003 Phase 3)
+    mockStatusProvider = new MockStatusProvider();
+
     // Clear mock history before each test
     client.query.mockReset();
     // Silence console output
@@ -54,7 +62,7 @@ describe("Core Metadata Generator (01_generate_core_metadata.js)", () => {
     // Check another sample status query for Steps
     expect(client.query).toHaveBeenCalledWith(
       "INSERT INTO status_sts (sts_name, sts_color, sts_type) VALUES ($1, $2, $3) ON CONFLICT (sts_name, sts_type) DO NOTHING",
-      ["PENDING", "#DDDDDD", "Step"],
+      [mockStatusProvider.getStatusNameById(1), "#DDDDDD", "Step"],
     );
   });
 

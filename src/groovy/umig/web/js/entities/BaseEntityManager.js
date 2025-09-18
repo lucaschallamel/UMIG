@@ -47,6 +47,18 @@ if (typeof BaseEntityManager === "undefined") {
         ...config,
       };
 
+      // TD-005 Phase 2 compliance: Required interface properties
+      this.id = `entity-manager-${this.entityType}-${Date.now()}`;
+      this.state = {
+        current: "uninitialized",
+        previous: null,
+        data: {},
+      };
+      this.mounted = false;
+      this.initialized = false;
+      this.container = null;
+      this.options = config;
+
       // Store orchestrator class or instance if provided
       this.orchestratorClass = config.orchestrator;
 
@@ -55,14 +67,13 @@ if (typeof BaseEntityManager === "undefined") {
       this.migrationMode = null; // 'legacy', 'new', or 'ab-test'
 
       // Component references
-      this.container = null;
       this.orchestrator = null;
       this.tableComponent = null;
       this.modalComponent = null;
       this.filterComponent = null;
       this.paginationComponent = null;
 
-      // State management
+      // State management (legacy)
       this.isInitialized = false;
       this.currentData = [];
       this.currentFilters = {};
@@ -74,8 +85,17 @@ if (typeof BaseEntityManager === "undefined") {
       this.securityContext = null;
       this.auditLogger = null;
 
+      // TD-005 Phase 2 compliance: Memory management tracking
+      this.eventListeners = new Map();
+      this.timers = new Set();
+      this.componentReferences = new Set();
+
       // Initialize security context
       this._initializeSecurityContext();
+
+      // TD-005 Phase 2: Event emitter compatibility
+      // Add proxy methods to forward events to orchestrator when it's available
+      this._eventProxyInitialized = false;
 
       console.log(
         `[BaseEntityManager] Initialized for entity: ${this.entityType}`,
@@ -84,18 +104,43 @@ if (typeof BaseEntityManager === "undefined") {
 
     /**
      * Initialize the entity manager with DOM container and orchestrator
-     * @param {HTMLElement} container - DOM container element
-     * @param {Object} options - Initialization options
+     * @param {HTMLElement|Object} containerOrOptions - DOM container or options object for backward compatibility
+     * @param {Object} options - Initialization options (when first param is container)
      * @returns {Promise<void>}
      */
-    async initialize(container, options = {}) {
+    async initialize(containerOrOptions = {}, options = {}) {
       try {
         console.log(
           `[BaseEntityManager] Initializing ${this.entityType} entity manager`,
         );
 
-        // Store container reference
-        this.container = container;
+        // Handle both calling patterns for backward compatibility
+        let container = null;
+        let mergedOptions = {};
+
+        if (containerOrOptions instanceof HTMLElement) {
+          // New pattern: initialize(container, options)
+          container = containerOrOptions;
+          mergedOptions = { ...this.options, ...options };
+        } else {
+          // Legacy pattern: initialize(options) - container should be in options or set via setContainer
+          mergedOptions = { ...this.options, ...containerOrOptions };
+          container = mergedOptions.container || this.container;
+        }
+
+        // TD-005 Phase 2 compliance: State management
+        this._setState("initializing");
+        this.options = mergedOptions;
+
+        // CRITICAL: Set container BEFORE orchestrator creation
+        if (container) {
+          this.setContainer(container);
+        } else if (!this.container) {
+          throw new Error(
+            `[BaseEntityManager] No container provided for ${this.entityType} entity manager. ` +
+              "Container must be provided via initialize(container, options) or setContainer(container) or options.container",
+          );
+        }
 
         // Initialize ComponentOrchestrator with enterprise security
         if (this.orchestratorClass) {
@@ -103,7 +148,7 @@ if (typeof BaseEntityManager === "undefined") {
           if (typeof this.orchestratorClass === "function") {
             // If it's a class, instantiate it
             this.orchestrator = new this.orchestratorClass({
-              container: container,
+              container: this.container,
               securityLevel: "enterprise",
               auditMode: true,
               performanceMonitoring: true,
@@ -116,7 +161,7 @@ if (typeof BaseEntityManager === "undefined") {
           // Fallback to creating a new instance if ComponentOrchestrator is available
           if (typeof window.ComponentOrchestrator !== "undefined") {
             this.orchestrator = new window.ComponentOrchestrator({
-              container: container,
+              container: this.container,
               securityLevel: "enterprise",
               auditMode: true,
               performanceMonitoring: true,
@@ -127,6 +172,9 @@ if (typeof BaseEntityManager === "undefined") {
             );
           }
         }
+
+        // TD-005 Phase 2: Setup any deferred event subscriptions
+        this._setupDeferredEventSubscriptions();
 
         // Initialize performance tracker for A/B testing
         await this._initializePerformanceTracking();
@@ -145,15 +193,19 @@ if (typeof BaseEntityManager === "undefined") {
 
         // Mark as initialized
         this.isInitialized = true;
+        this.initialized = true;
+        this._setState("initialized");
 
         console.log(
           `[BaseEntityManager] ${this.entityType} initialization complete`,
         );
       } catch (error) {
+        this._setState("error");
         console.error(
           `[BaseEntityManager] Failed to initialize ${this.entityType}:`,
           error,
         );
+        this.handleError("initialize", error);
         throw error;
       }
     }
@@ -291,6 +343,57 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
+     * Mount the entity manager to its container
+     * @param {HTMLElement} container - DOM container element
+     * @returns {Promise<void>}
+     */
+    async mount(container) {
+      try {
+        console.log(
+          `[BaseEntityManager] Mounting ${this.entityType} entity manager`,
+        );
+
+        if (!container || !(container instanceof HTMLElement)) {
+          throw new Error(
+            "Valid HTMLElement container is required for mounting",
+          );
+        }
+
+        // TD-005 Phase 2 compliance: State management
+        this._setState("mounting");
+        this.container = container;
+
+        // If not initialized, initialize first
+        if (!this.initialized) {
+          await this.initialize();
+        }
+
+        // Update orchestrator container
+        if (
+          this.orchestrator &&
+          typeof this.orchestrator.setContainer === "function"
+        ) {
+          this.orchestrator.setContainer(container);
+        }
+
+        this.mounted = true;
+        this._setState("mounted");
+
+        console.log(
+          `[BaseEntityManager] ${this.entityType} mounted successfully`,
+        );
+      } catch (error) {
+        this._setState("error");
+        console.error(
+          `[BaseEntityManager] Failed to mount ${this.entityType}:`,
+          error,
+        );
+        this.handleError("mount", error);
+        throw error;
+      }
+    }
+
+    /**
      * Render the entity manager components to the container
      * @returns {Promise<void>}
      */
@@ -304,23 +407,107 @@ if (typeof BaseEntityManager === "undefined") {
           throw new Error("Container must be set before rendering");
         }
 
-        if (!this.orchestrator) {
-          throw new Error("Manager must be initialized before rendering");
+        if (!this.mounted) {
+          throw new Error("Manager must be mounted before rendering");
         }
+
+        // TD-005 Phase 2 compliance: State management
+        this._setState("rendering");
 
         // TD-004 FIX: Components self-render via orchestrator event bus
         // Orchestrator is an event bus, not a rendering manager - components handle their own rendering
         // await this.orchestrator.render(); // REMOVED: Interface mismatch resolved
 
+        this._setState("mounted"); // Back to mounted state after rendering
+
         console.log(
           `[BaseEntityManager] ${this.entityType} rendering complete`,
         );
       } catch (error) {
+        this._setState("error");
         console.error(
           `[BaseEntityManager] Failed to render ${this.entityType}:`,
           error,
         );
-        this._trackError("render", error);
+        this.handleError("render", error);
+        throw error;
+      }
+    }
+
+    /**
+     * Update the entity manager with new data
+     * @param {Object} data - Update data
+     * @returns {Promise<void>}
+     */
+    async update(data) {
+      try {
+        console.log(
+          `[BaseEntityManager] Updating ${this.entityType} entity manager`,
+        );
+
+        // TD-005 Phase 2 compliance: State management
+        this._setState("updating");
+
+        // Update current data if provided
+        if (data) {
+          this.state.data = { ...this.state.data, ...data };
+        }
+
+        // Update components with current data
+        await this._updateComponents();
+
+        this._setState("mounted"); // Back to mounted state after updating
+
+        console.log(
+          `[BaseEntityManager] ${this.entityType} updated successfully`,
+        );
+      } catch (error) {
+        this._setState("error");
+        console.error(
+          `[BaseEntityManager] Failed to update ${this.entityType}:`,
+          error,
+        );
+        this.handleError("update", error);
+        throw error;
+      }
+    }
+
+    /**
+     * Unmount the entity manager from its container
+     * @returns {Promise<void>}
+     */
+    async unmount() {
+      try {
+        console.log(
+          `[BaseEntityManager] Unmounting ${this.entityType} entity manager`,
+        );
+
+        // TD-005 Phase 2 compliance: State management
+        this._setState("unmounting");
+
+        // Clear event listeners
+        this.clearEventListeners();
+
+        // Clear timers
+        this.clearTimers();
+
+        // Clear component references
+        this.clearReferences();
+
+        this.mounted = false;
+        this.container = null;
+        this._setState("destroyed");
+
+        console.log(
+          `[BaseEntityManager] ${this.entityType} unmounted successfully`,
+        );
+      } catch (error) {
+        this._setState("error");
+        console.error(
+          `[BaseEntityManager] Failed to unmount ${this.entityType}:`,
+          error,
+        );
+        this.handleError("unmount", error);
         throw error;
       }
     }
@@ -1022,8 +1209,8 @@ if (typeof BaseEntityManager === "undefined") {
               config: this.config.paginationConfig,
             });
             initializationErrors.push(`PaginationComponent: ${error.message}`);
-          // TD-004 FIX: PaginationComponent uses setState pattern - validation removed
-          // Components communicate via orchestrator event bus, no direct method validation needed
+            // TD-004 FIX: PaginationComponent uses setState pattern - validation removed
+            // Components communicate via orchestrator event bus, no direct method validation needed
           } else {
             console.log(
               `[BaseEntityManager] PaginationComponent initialized successfully for ${this.entityType}`,
@@ -1564,6 +1751,365 @@ if (typeof BaseEntityManager === "undefined") {
      */
     _generateSessionId() {
       return `${this.entityType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * Set the current state with state transition tracking
+     * @param {string} newState - New state
+     * @private
+     */
+    _setState(newState) {
+      const previousState = this.state.current;
+      this.state.previous = previousState;
+      this.state.current = newState;
+
+      console.log(
+        `[BaseEntityManager] State transition for ${this.entityType}: ${previousState} → ${newState}`,
+      );
+    }
+
+    // TD-005 Phase 2 compliance: Error handling methods
+
+    /**
+     * Handle errors with comprehensive logging and recovery
+     * @param {string} operation - Operation that failed
+     * @param {Error} error - Error object
+     * @param {Object} context - Additional context
+     */
+    handleError(operation, error, context = {}) {
+      console.error(
+        `[BaseEntityManager] Error in ${this.entityType}.${operation}:`,
+        error,
+      );
+
+      // Log the error
+      this.logError(operation, error, context);
+
+      // Attempt recovery
+      this.recoverFromError(operation, error, context);
+
+      // Track error metrics
+      this._trackError(operation, error);
+
+      // Update state
+      this._setState("error");
+    }
+
+    /**
+     * Log errors with structured information
+     * @param {string} operation - Operation that failed
+     * @param {Error} error - Error object
+     * @param {Object} context - Additional context
+     */
+    logError(operation, error, context = {}) {
+      const errorEntry = {
+        timestamp: new Date().toISOString(),
+        entityType: this.entityType,
+        operation: operation,
+        error: {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        },
+        context: context,
+        state: {
+          current: this.state.current,
+          previous: this.state.previous,
+          initialized: this.initialized,
+          mounted: this.mounted,
+        },
+        sessionId: this.securityContext?.sessionId,
+      };
+
+      console.error("[ErrorLog]", errorEntry);
+
+      // Send to error logging service if available
+      if (window.UMIGServices?.errorLogger) {
+        window.UMIGServices.errorLogger.log(errorEntry);
+      }
+    }
+
+    /**
+     * Attempt to recover from errors
+     * @param {string} operation - Operation that failed
+     * @param {Error} error - Error object
+     * @param {Object} context - Additional context
+     */
+    recoverFromError(operation, error, context = {}) {
+      console.log(
+        `[BaseEntityManager] Attempting recovery for ${this.entityType}.${operation}`,
+      );
+
+      try {
+        switch (operation) {
+          case "initialize":
+          case "mount":
+            // For initialization/mounting errors, reset to uninitialized state
+            this.initialized = false;
+            this.mounted = false;
+            this._setState("uninitialized");
+            break;
+
+          case "render":
+          case "update":
+            // For rendering/update errors, maintain current state but clear problematic data
+            if (this.currentData && Array.isArray(this.currentData)) {
+              this.currentData = [];
+            }
+            break;
+
+          case "loadData":
+          case "createEntity":
+          case "updateEntity":
+          case "deleteEntity":
+            // For data operation errors, refresh data to known good state
+            if (this.mounted && this.initialized) {
+              setTimeout(() => {
+                this.loadData(
+                  this.currentFilters,
+                  this.currentSort,
+                  this.currentPage,
+                ).catch((err) => console.error("Recovery failed:", err));
+              }, 1000);
+            }
+            break;
+
+          default:
+            console.warn(
+              `No specific recovery strategy for operation: ${operation}`,
+            );
+        }
+
+        console.log(
+          `[BaseEntityManager] Recovery attempted for ${this.entityType}.${operation}`,
+        );
+      } catch (recoveryError) {
+        console.error(
+          `[BaseEntityManager] Recovery failed for ${this.entityType}.${operation}:`,
+          recoveryError,
+        );
+      }
+    }
+
+    // TD-005 Phase 2 compliance: Memory management methods
+
+    /**
+     * Clear all event listeners
+     */
+    clearEventListeners() {
+      console.log(
+        `[BaseEntityManager] Clearing event listeners for ${this.entityType}`,
+      );
+
+      try {
+        // Clear tracked event listeners
+        this.eventListeners.forEach((listener, element) => {
+          if (element && typeof element.removeEventListener === "function") {
+            const { type, handler, options } = listener;
+            element.removeEventListener(type, handler, options);
+          }
+        });
+        this.eventListeners.clear();
+
+        // Clear orchestrator event listeners if available
+        if (
+          this.orchestrator &&
+          typeof this.orchestrator.removeAllListeners === "function"
+        ) {
+          this.orchestrator.removeAllListeners();
+        }
+
+        console.log(
+          `[BaseEntityManager] Event listeners cleared for ${this.entityType}`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Error clearing event listeners for ${this.entityType}:`,
+          error,
+        );
+      }
+    }
+
+    /**
+     * Clear all timers
+     */
+    clearTimers() {
+      console.log(`[BaseEntityManager] Clearing timers for ${this.entityType}`);
+
+      try {
+        // Clear tracked timers
+        this.timers.forEach((timerId) => {
+          clearTimeout(timerId);
+          clearInterval(timerId);
+        });
+        this.timers.clear();
+
+        console.log(
+          `[BaseEntityManager] Timers cleared for ${this.entityType}`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Error clearing timers for ${this.entityType}:`,
+          error,
+        );
+      }
+    }
+
+    /**
+     * Clear all component and object references
+     */
+    clearReferences() {
+      console.log(
+        `[BaseEntityManager] Clearing references for ${this.entityType}`,
+      );
+
+      try {
+        // Clear component references
+        this.tableComponent = null;
+        this.modalComponent = null;
+        this.filterComponent = null;
+        this.paginationComponent = null;
+
+        // Clear tracked references
+        this.componentReferences.clear();
+
+        // Clear data references
+        this.currentData = [];
+        this.currentFilters = {};
+        this.currentSort = null;
+
+        // Clear state data
+        this.state.data = {};
+
+        console.log(
+          `[BaseEntityManager] References cleared for ${this.entityType}`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Error clearing references for ${this.entityType}:`,
+          error,
+        );
+      }
+    }
+
+    /**
+     * Add tracked event listener
+     * @param {Element} element - DOM element
+     * @param {string} type - Event type
+     * @param {Function} handler - Event handler
+     * @param {Object} options - Event options
+     */
+    addEventListener(element, type, handler, options = {}) {
+      element.addEventListener(type, handler, options);
+      this.eventListeners.set(element, { type, handler, options });
+    }
+
+    /**
+     * Add tracked timer
+     * @param {Function} callback - Timer callback
+     * @param {number} delay - Timer delay
+     * @param {boolean} isInterval - Whether this is an interval timer
+     * @returns {number} Timer ID
+     */
+    addTimer(callback, delay, isInterval = false) {
+      const timerId = isInterval
+        ? setInterval(callback, delay)
+        : setTimeout(callback, delay);
+      this.timers.add(timerId);
+      return timerId;
+    }
+
+    /**
+     * Add tracked component reference
+     * @param {Object} component - Component to track
+     * @param {string} name - Component name
+     */
+    addComponentReference(component, name) {
+      this.componentReferences.add({ component, name });
+    }
+
+    // ============================================
+    // TD-005 Phase 2: Event Emitter Proxy Methods
+    // ============================================
+
+    /**
+     * Proxy event subscription to orchestrator
+     * Provides compatibility for code expecting manager.on() pattern
+     * @param {string} eventName - Event name to listen for
+     * @param {Function} handler - Event handler function
+     * @returns {void}
+     */
+    on(eventName, handler) {
+      if (this.orchestrator && typeof this.orchestrator.on === "function") {
+        console.log(
+          `[BaseEntityManager] Proxying event subscription for '${eventName}' to orchestrator`,
+        );
+        return this.orchestrator.on(eventName, handler);
+      } else {
+        console.warn(
+          `[BaseEntityManager] Cannot subscribe to '${eventName}' - orchestrator not available yet`,
+        );
+        // Store for later binding when orchestrator becomes available
+        if (!this._deferredEventSubscriptions) {
+          this._deferredEventSubscriptions = [];
+        }
+        this._deferredEventSubscriptions.push({ eventName, handler });
+      }
+    }
+
+    /**
+     * Proxy event unsubscription to orchestrator
+     * @param {string} eventName - Event name to unsubscribe from
+     * @param {Function} handler - Event handler function to remove
+     * @returns {void}
+     */
+    off(eventName, handler) {
+      if (this.orchestrator && typeof this.orchestrator.off === "function") {
+        return this.orchestrator.off(eventName, handler);
+      }
+      // Also remove from deferred subscriptions if present
+      if (this._deferredEventSubscriptions) {
+        this._deferredEventSubscriptions =
+          this._deferredEventSubscriptions.filter(
+            (sub) => !(sub.eventName === eventName && sub.handler === handler),
+          );
+      }
+    }
+
+    /**
+     * Proxy event emission to orchestrator
+     * @param {string} eventName - Event name to emit
+     * @param {any} data - Event data
+     * @returns {void}
+     */
+    emit(eventName, data) {
+      if (this.orchestrator && typeof this.orchestrator.emit === "function") {
+        return this.orchestrator.emit(eventName, data);
+      } else {
+        console.warn(
+          `[BaseEntityManager] Cannot emit '${eventName}' - orchestrator not available`,
+        );
+      }
+    }
+
+    /**
+     * Setup deferred event subscriptions when orchestrator becomes available
+     * Called internally after orchestrator initialization
+     * @private
+     */
+    _setupDeferredEventSubscriptions() {
+      if (this._deferredEventSubscriptions && this.orchestrator) {
+        console.log(
+          `[BaseEntityManager] Setting up ${this._deferredEventSubscriptions.length} deferred event subscriptions`,
+        );
+        this._deferredEventSubscriptions.forEach(({ eventName, handler }) => {
+          if (typeof this.orchestrator.on === "function") {
+            this.orchestrator.on(eventName, handler);
+          }
+        });
+        // Clear the deferred subscriptions
+        this._deferredEventSubscriptions = [];
+      }
     }
 
     /**
@@ -2132,24 +2678,54 @@ if (typeof BaseEntityManager === "undefined") {
 
     /**
      * Cleanup resources
+     * @returns {Promise<void>}
      */
-    destroy() {
-      console.log(
-        `[BaseEntityManager] Destroying ${this.entityType} entity manager`,
-      );
+    async destroy() {
+      try {
+        console.log(
+          `[BaseEntityManager] Destroying ${this.entityType} entity manager`,
+        );
 
-      if (this.orchestrator) {
-        this.orchestrator.destroy();
+        // TD-005 Phase 2 compliance: State management
+        this._setState("destroying");
+
+        // Comprehensive memory cleanup
+        this.clearEventListeners();
+        this.clearTimers();
+        this.clearReferences();
+
+        // Destroy orchestrator
+        if (
+          this.orchestrator &&
+          typeof this.orchestrator.destroy === "function"
+        ) {
+          await this.orchestrator.destroy();
+        }
         this.orchestrator = null;
-      }
 
-      // Clear references
-      this.tableComponent = null;
-      this.modalComponent = null;
-      this.filterComponent = null;
-      this.paginationComponent = null;
-      this.performanceTracker = null;
-      this.securityContext = null;
+        // Clear all remaining references
+        this.performanceTracker = null;
+        this.securityContext = null;
+        this.auditLogger = null;
+
+        // Reset state properties
+        this.initialized = false;
+        this.isInitialized = false;
+        this.mounted = false;
+        this.container = null;
+        this._setState("destroyed");
+
+        console.log(
+          `[BaseEntityManager] ${this.entityType} entity manager destroyed successfully`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Error destroying ${this.entityType} entity manager:`,
+          error,
+        );
+        this.handleError("destroy", error);
+        throw error;
+      }
     }
   }
 

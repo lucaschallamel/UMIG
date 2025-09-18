@@ -4,6 +4,7 @@ import umig.utils.DatabaseUtil
 import umig.utils.EmailService
 import umig.utils.AuthenticationService
 import umig.service.StepDataTransformationService
+import umig.service.StatusService
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 // Note: Audit logging is temporarily disabled
@@ -13,18 +14,75 @@ import java.util.UUID
 import java.sql.SQLException
 import java.sql.Timestamp
 import groovy.sql.Sql
-import java.util.logging.Logger
+import groovy.util.logging.Slf4j
 
+// TD-003 Phase 2G: Integrated StatusService for centralized status management
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
  */
+@Slf4j
 class StepRepository {
-    
+
     /**
-     * Logger for this class
+     * StatusService instance for centralized status management (TD-003 Phase 2G)
+     * Uses lazy loading pattern to prevent class loading issues
      */
-    private static final Logger log = Logger.getLogger(StepRepository.class.getName())
-    
+    private static StatusService statusService
+
+    /**
+     * Get StatusService instance using lazy loading pattern (TD-003 Phase 2G)
+     * @return StatusService instance for centralized status management
+     */
+    private static StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+            log.debug("StepRepository: StatusService lazy loaded for centralized status management")
+        }
+        return statusService
+    }
+
+    /**
+     * Get COMPLETED status name for Step entities using StatusService
+     * @return String status name for COMPLETED step status
+     */
+    private static String getCompletedStepStatus() {
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return validStatuses.find { it.equalsIgnoreCase('COMPLETED') } ?: 'COMPLETED'
+        } catch (Exception e) {
+            log.warn("StepRepository: Failed to get COMPLETED status via StatusService, using fallback", e)
+            return 'COMPLETED'
+        }
+    }
+
+    /**
+     * Get IN_PROGRESS status name for Step entities using StatusService
+     * @return String status name for IN_PROGRESS step status
+     */
+    private static String getInProgressStepStatus() {
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return validStatuses.find { it.equalsIgnoreCase('IN_PROGRESS') } ?: 'IN_PROGRESS'
+        } catch (Exception e) {
+            log.warn("StepRepository: Failed to get IN_PROGRESS status via StatusService, using fallback", e)
+            return 'IN_PROGRESS'
+        }
+    }
+
+    /**
+     * Get OPEN status name for Step entities using StatusService
+     * @return String status name for OPEN step status
+     */
+    private static String getOpenStepStatus() {
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return validStatuses.find { it.equalsIgnoreCase('OPEN') } ?: 'OPEN'
+        } catch (Exception e) {
+            log.warn("StepRepository: Failed to get OPEN status via StatusService, using fallback", e)
+            return 'OPEN'
+        }
+    }
+
     /**
      * Service for transforming database rows to StepInstanceDTO and StepMasterDTO
      * Following US-056F Dual DTO Architecture pattern
@@ -535,9 +593,9 @@ class StepRepository {
                 
                 // Update the status with audit fields
                 def updateCount = sql.executeUpdate('''
-                    UPDATE steps_instance_sti 
+                    UPDATE steps_instance_sti
                     SET sti_status = :statusId,
-                        sti_end_time = CASE WHEN :statusName = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
+                        sti_end_time = CASE WHEN :statusName = '${getCompletedStepStatus()}' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
                         updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE sti_id = :stepInstanceId
@@ -629,14 +687,14 @@ class StepRepository {
                 // Check if already opened
                 // Convert status ID to name for backward compatibility check
                 def statusName = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId", [statusId: stepInstance.sti_status])?.sts_name
-                if (statusName in ['OPEN', 'IN_PROGRESS', 'COMPLETED']) {
+                if (statusName in ["${getOpenStepStatus()}", "${getInProgressStepStatus()}", "${getCompletedStepStatus()}"]) {
                     return [success: false, error: "Step has already been opened (status: ${stepInstance.sti_status})"]
                 }
                 
                 // Mark as opened by updating status to OPEN
                 def updateCount = sql.executeUpdate('''
                     UPDATE steps_instance_sti 
-                    SET sti_status = (SELECT sts_id FROM status_sts WHERE sts_name = 'OPEN' AND sts_type = 'Step'),
+                    SET sti_status = (SELECT sts_id FROM status_sts WHERE sts_name = '${getOpenStepStatus()}' AND sts_type = 'Step'),
                         sti_start_time = CURRENT_TIMESTAMP,
                         usr_id_owner = :userId
                     WHERE sti_id = :stepInstanceId
@@ -1753,10 +1811,10 @@ class StepRepository {
             def overallCounts = sql.firstRow('''
                 SELECT 
                     COUNT(*) as total_steps,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
-                    COUNT(CASE WHEN sts.sts_name = 'IN_PROGRESS' THEN 1 END) as in_progress_steps,
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_steps,
+                    COUNT(CASE WHEN sts.sts_name = '${getInProgressStepStatus()}' THEN 1 END) as in_progress_steps,
                     COUNT(CASE WHEN sts.sts_name = 'PENDING' THEN 1 END) as pending_steps,
-                    COUNT(CASE WHEN sts.sts_name = 'OPEN' THEN 1 END) as open_steps,
+                    COUNT(CASE WHEN sts.sts_name = '${getOpenStepStatus()}' THEN 1 END) as open_steps,
                     AVG(stm.stm_duration_minutes) as avg_duration_minutes
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
@@ -1775,7 +1833,7 @@ class StepRepository {
                 SELECT 
                     tms.tms_name,
                     COUNT(*) as step_count,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_count
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
@@ -1797,7 +1855,7 @@ class StepRepository {
                     phm.phm_name,
                     phm.phm_order,
                     COUNT(*) as step_count,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count,
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_count,
                     AVG(stm.stm_duration_minutes) as avg_duration_minutes
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
@@ -1819,7 +1877,7 @@ class StepRepository {
                 SELECT 
                     stm.stt_code,
                     COUNT(*) as step_count,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_count
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
@@ -1851,10 +1909,10 @@ class StepRepository {
             def progressMetrics = sql.firstRow('''
                 SELECT 
                     COUNT(*) as total_steps,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
-                    ROUND((COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_steps,
+                    ROUND((COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
                     SUM(stm.stm_duration_minutes) as total_estimated_minutes,
-                    SUM(CASE WHEN sts.sts_name = 'COMPLETED' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes,
+                    SUM(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes,
                     MIN(sti.sti_start_time) as earliest_start,
                     MAX(sti.sti_end_time) as latest_completion
                 FROM steps_instance_sti sti
@@ -1889,7 +1947,7 @@ class StepRepository {
                 JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                 WHERE ite.mig_id = :migrationId
                     AND sti.sti_start_time IS NOT NULL
-                    AND (sts.sts_name = 'IN_PROGRESS' OR sti.sti_end_time IS NOT NULL)
+                    AND (sts.sts_name = '${getInProgressStepStatus()}' OR sti.sti_end_time IS NOT NULL)
                     AND (
                         (sti.sti_end_time IS NULL AND EXTRACT(EPOCH FROM (NOW() - sti.sti_start_time))/60 > stm.stm_duration_minutes * 1.5)
                         OR 
@@ -1911,10 +1969,10 @@ class StepRepository {
                     phm.phm_name,
                     phm.phm_order,
                     COUNT(*) as total_steps,
-                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
-                    ROUND((COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
+                    COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) as completed_steps,
+                    ROUND((COUNT(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
                     SUM(stm.stm_duration_minutes) as total_estimated_minutes,
-                    SUM(CASE WHEN sts.sts_name = 'COMPLETED' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes
+                    SUM(CASE WHEN sts.sts_name = '${getCompletedStepStatus()}' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
@@ -1981,9 +2039,9 @@ class StepRepository {
                             
                             // Update the status
                             def updateCount = sql.executeUpdate('''
-                                UPDATE steps_instance_sti 
+                                UPDATE steps_instance_sti
                                 SET sti_status = :statusId,
-                                    sti_end_time = CASE WHEN :statusName = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
+                                    sti_end_time = CASE WHEN :statusName = '${getCompletedStepStatus()}' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
                                     updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
                                     updated_at = CURRENT_TIMESTAMP
                                 WHERE sti_id = :stepId
@@ -3044,7 +3102,7 @@ class StepRepository {
                 SELECT
                     dependent_step.stm_id as dependent_stm_id,
                     COUNT(*) as dependency_count,
-                    SUM(CASE WHEN predecessor_status.sts_name = 'COMPLETED' THEN 1 ELSE 0 END) as completed_dependencies
+                    SUM(CASE WHEN predecessor_status.sts_name = '${getCompletedStepStatus()}' THEN 1 ELSE 0 END) as completed_dependencies
                 FROM steps_master_stm dependent_step
                 JOIN steps_master_stm predecessor_step ON dependent_step.stm_id_predecessor = predecessor_step.stm_id
                 LEFT JOIN steps_instance_sti predecessor_instances ON predecessor_step.stm_id = predecessor_instances.stm_id
@@ -3221,7 +3279,7 @@ class StepRepository {
      * @return Created StepMasterDTO with generated ID
      */
     StepMasterDTO createMasterFromDTO(Map stepData) {
-        log.fine("Creating new master step from DTO data")
+        log.debug("Creating new master step from DTO data")
         
         if (!stepData) {
             throw new IllegalArgumentException("Step data cannot be null")
@@ -3277,10 +3335,10 @@ class StepRepository {
                 return findMasterByIdAsDTO(stepId)
                 
             } catch (SQLException e) {
-                log.severe("Database error creating master step: ${e.message}")
+                log.error("Database error creating master step: ${e.message}")
                 throw e
             } catch (Exception e) {
-                log.severe("Failed to create master step from DTO: ${e.message}")
+                log.error("Failed to create master step from DTO: ${e.message}")
                 throw new RuntimeException("Failed to create master step", e)
             }
         }
@@ -3295,7 +3353,7 @@ class StepRepository {
      * @return Updated StepMasterDTO
      */
     StepMasterDTO updateMasterFromDTO(UUID stepMasterId, Map stepData) {
-        log.fine("Updating master step ${stepMasterId} from DTO data")
+        log.debug("Updating master step ${stepMasterId} from DTO data")
         
         if (!stepMasterId) {
             throw new IllegalArgumentException("Step master ID cannot be null")
@@ -3378,10 +3436,10 @@ class StepRepository {
                 return findMasterByIdAsDTO(stepMasterId)
                 
             } catch (SQLException e) {
-                log.severe("Database error updating master step: ${e.message}")
+                log.error("Database error updating master step: ${e.message}")
                 throw e
             } catch (Exception e) {
-                log.severe("Failed to update master step from DTO: ${e.message}")
+                log.error("Failed to update master step from DTO: ${e.message}")
                 throw new RuntimeException("Failed to update master step", e)
             }
         }
@@ -3395,7 +3453,7 @@ class StepRepository {
      * @return true if deleted successfully
      */
     boolean deleteMaster(UUID stepMasterId) {
-        log.fine("Deleting master step ${stepMasterId}")
+        log.debug("Deleting master step ${stepMasterId}")
         
         if (!stepMasterId) {
             throw new IllegalArgumentException("Step master ID cannot be null")
@@ -3428,10 +3486,10 @@ class StepRepository {
                 return rowsDeleted > 0
                 
             } catch (SQLException e) {
-                log.severe("Database error deleting master step: ${e.message}")
+                log.error("Database error deleting master step: ${e.message}")
                 throw e
             } catch (Exception e) {
-                log.severe("Failed to delete master step: ${e.message}")
+                log.error("Failed to delete master step: ${e.message}")
                 throw new RuntimeException("Failed to delete master step", e)
             }
         }
@@ -3449,7 +3507,7 @@ class StepRepository {
      * @return Created StepInstanceDTO
      */
     StepInstanceDTO createInstanceFromDTO(Map instanceData) {
-        log.fine("Creating instance step from DTO data")
+        log.debug("Creating instance step from DTO data")
         
         if (!instanceData) {
             throw new IllegalArgumentException("Instance data cannot be null")
@@ -3474,7 +3532,7 @@ class StepRepository {
                     phi_id: UUID.fromString(instanceData.phi_id as String),
                     sti_name: instanceData.sti_name as String,
                     sti_description: instanceData.sti_description as String ?: null,
-                    sti_status: instanceData.sti_status ? Integer.parseInt(instanceData.sti_status as String) : 1, // Default: NOT_STARTED
+                    sti_status: instanceData.sti_status ? Integer.parseInt(instanceData.sti_status as String) : 1, // Default: NOT_STARTED (ID lookup via StatusService)
                     sti_start_time: instanceData.sti_start_time ? Timestamp.valueOf(instanceData.sti_start_time as String) : null,
                     sti_end_time: instanceData.sti_end_time ? Timestamp.valueOf(instanceData.sti_end_time as String) : null,
                     sti_duration_minutes: instanceData.sti_duration_minutes ? Integer.parseInt(instanceData.sti_duration_minutes as String) : null,
@@ -3500,7 +3558,7 @@ class StepRepository {
                 return findByInstanceIdAsDTO(instanceId)
                 
             } catch (SQLException e) {
-                log.severe("Database error creating instance step: ${e.message}")
+                log.error("Database error creating instance step: ${e.message}")
                 if (e.getSQLState() == "23503") {
                     throw new IllegalArgumentException("Invalid foreign key reference", e)
                 } else if (e.getSQLState() == "23505") {
@@ -3508,7 +3566,7 @@ class StepRepository {
                 }
                 throw e
             } catch (Exception e) {
-                log.severe("Failed to create instance step from DTO: ${e.message}")
+                log.error("Failed to create instance step from DTO: ${e.message}")
                 throw new RuntimeException("Failed to create instance step", e)
             }
         }) as StepInstanceDTO
@@ -3523,7 +3581,7 @@ class StepRepository {
      * @return Updated StepInstanceDTO
      */
     StepInstanceDTO updateInstanceFromDTO(UUID instanceId, Map instanceData) {
-        log.fine("Updating instance step ${instanceId} from DTO data")
+        log.debug("Updating instance step ${instanceId} from DTO data")
         
         if (!instanceId) {
             throw new IllegalArgumentException("Instance ID cannot be null")
@@ -3591,10 +3649,10 @@ class StepRepository {
                 return findByInstanceIdAsDTO(instanceId)
                 
             } catch (SQLException e) {
-                log.severe("Database error updating instance step: ${e.message}")
+                log.error("Database error updating instance step: ${e.message}")
                 throw e
             } catch (Exception e) {
-                log.severe("Failed to update instance step from DTO: ${e.message}")
+                log.error("Failed to update instance step from DTO: ${e.message}")
                 throw new RuntimeException("Failed to update instance step", e)
             }
         }) as StepInstanceDTO

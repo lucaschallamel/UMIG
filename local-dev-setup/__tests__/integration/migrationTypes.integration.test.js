@@ -1,5 +1,8 @@
 // Import will be mocked in tests
 
+// Import MockStatusProvider for test isolation (TD-003 Phase 3)
+const MockStatusProvider = require("../mocks/MockStatusProvider");
+
 describe("Migration Types Integration Tests", () => {
   let testResults = {
     integrationScenariosValidated: [],
@@ -7,8 +10,12 @@ describe("Migration Types Integration Tests", () => {
     crossSystemValidations: 0,
     performanceValidations: 0,
   };
+  let mockStatusProvider;
 
   beforeEach(async () => {
+    // Initialize MockStatusProvider for test isolation (TD-003 Phase 3)
+    mockStatusProvider = new MockStatusProvider();
+
     // Setup clean test environment
     testResults = {
       integrationScenariosValidated: [],
@@ -158,7 +165,12 @@ describe("Migration Types Integration Tests", () => {
 
           if (sql.includes("SELECT sts_id, sts_name FROM status_sts")) {
             return Promise.resolve({
-              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 1,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
 
@@ -256,7 +268,12 @@ describe("Migration Types Integration Tests", () => {
 
           if (sql.includes("SELECT sts_id, sts_name FROM status_sts")) {
             return Promise.resolve({
-              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+              rows: [
+                {
+                  sts_id: 1,
+                  sts_name: mockStatusProvider.getStatusNameById(1),
+                },
+              ],
             });
           }
 

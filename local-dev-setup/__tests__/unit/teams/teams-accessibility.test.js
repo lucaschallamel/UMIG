@@ -498,7 +498,27 @@ describe("Teams Accessibility Tests - WCAG 2.1 AA Compliance", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     jest.clearAllMocks();
+    jest.clearAllTimers();
+
+    // Clear DOM content
+    if (container) {
+      container.innerHTML = "";
+    }
+
+    // Clear any global references
+    if (teamsManager) {
+      if (teamsManager.destroy) {
+        teamsManager.destroy();
+      }
+      teamsManager = null;
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
   });
 
   describe("ARIA Attributes and Screen Reader Support", () => {

@@ -1241,6 +1241,12 @@
 
     // Load TeamsEntityManager (US-087 Phase 1)
     loadTeamsEntityManager: function () {
+      console.log("[US-087] Checking for TeamsEntityManager class...", {
+        hasClass: Boolean(window.TeamsEntityManager),
+        hasBaseEntityManager: Boolean(window.BaseEntityManager),
+        componentManagers: this.componentManagers,
+      });
+
       if (!window.TeamsEntityManager) {
         console.warn("[US-087] TeamsEntityManager not available");
         return;
@@ -1252,8 +1258,9 @@
         // Create instance with performance tracking
         const startTime = performance.now();
 
+        console.log("[US-087] Creating TeamsEntityManager instance...");
         this.componentManagers.teams = new window.TeamsEntityManager({
-          container: null, // Will be set when switching to teams section
+          // Don't set container here - it will be set during initialize()
           apiBase: this.api.baseUrl,
           endpoints: {
             teams: this.api.endpoints.teams,
@@ -1261,6 +1268,14 @@
           },
           orchestrator: window.ComponentOrchestrator,
           performanceMonitor: this.performanceMonitor,
+        });
+
+        console.log("[US-087] TeamsEntityManager instance created:", {
+          instance: this.componentManagers.teams,
+          hasInitialize:
+            typeof this.componentManagers.teams?.initialize === "function",
+          hasMount: typeof this.componentManagers.teams?.mount === "function",
+          hasRender: typeof this.componentManagers.teams?.render === "function",
         });
 
         const loadTime = performance.now() - startTime;
@@ -1413,19 +1428,146 @@
       this.bindTableEvents();
     },
 
-    // Initialize login page
+    // Initialize automatic RBAC-based authentication (TD-007)
     initializeLogin: function () {
-      const userCodeInput = document.getElementById("userCode");
+      // Skip splash screen and attempt automatic authentication
+      this.automaticAuthentication()
+        .then((user) => {
+          if (user) {
+            // Successfully authenticated
+            this.state.isAuthenticated = true;
+            this.state.currentUser = user;
+            this.state.authTimestamp = new Date().toISOString();
 
-      // Pre-populate with Confluence username if available
-      if (this.config.confluence && this.config.confluence.username) {
-        const username = this.config.confluence.username.toUpperCase();
-        if (username.length === 3) {
-          userCodeInput.value = username;
-        }
+            // Log successful authentication
+            window.SecurityUtils?.logSecurityEvent("automatic_auth_success", {
+              username: user.username,
+              role: user.role,
+              isAdmin: user.isAdmin,
+            });
+
+            console.log("[UMIG] Automatic authentication successful:", {
+              username: user.username,
+              role: user.role,
+              permissions: user.permissions,
+            });
+
+            // Show dashboard directly
+            this.showDashboard();
+            this.loadCurrentSection();
+          } else {
+            // Authentication failed - show error and fallback
+            this.handleAuthenticationFailure();
+          }
+        })
+        .catch((error) => {
+          console.error("[UMIG] Automatic authentication failed:", error);
+          this.handleAuthenticationFailure();
+        });
+    },
+
+    // Automatic authentication using /users/current API (TD-007)
+    automaticAuthentication: function () {
+      return new Promise((resolve, reject) => {
+        const url = `${this.api.baseUrl}/users/current`;
+
+        fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include", // Include session cookies
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`,
+              );
+            }
+            return response.json();
+          })
+          .then((userData) => {
+            // Transform API response to internal user format
+            const user = this.transformUserData(userData);
+            resolve(user);
+          })
+          .catch((error) => {
+            console.error(
+              "[UMIG] Automatic authentication API call failed:",
+              error,
+            );
+            reject(error);
+          });
+      });
+    },
+
+    // Transform user data from API to internal format (TD-007)
+    transformUserData: function (userData) {
+      // Map roles to permissions based on existing logic
+      let permissions = [];
+
+      let role;
+      if (userData.role === "ADMIN" || userData.isAdmin) {
+        // Admin/superadmin gets all permissions
+        role = "superadmin";
+        permissions = [
+          "users",
+          "teams",
+          "environments",
+          "applications",
+          "labels",
+          "migrations",
+          "plans",
+          "iterations",
+        ];
+      } else if (userData.role === "PILOT") {
+        // Pilot gets limited permissions
+        role = "pilot";
+        permissions = ["iterations", "sequences", "phases", "steps"];
+      } else {
+        // Default user gets minimal permissions
+        role = "user";
+        permissions = ["iterations"];
       }
 
-      userCodeInput.focus();
+      return {
+        trigram: userData.username,
+        username: userData.username,
+        name: `${userData.firstName} ${userData.lastName}`,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        role: role,
+        isAdmin: userData.isAdmin,
+        roleId: userData.roleId,
+        permissions: permissions,
+        source: "automatic_auth",
+      };
+    },
+
+    // Handle authentication failure fallback (TD-007)
+    handleAuthenticationFailure: function () {
+      // For now, show an error message and prevent access
+      // In the future, this could implement additional fallback strategies
+      const errorMessage = `
+        <div style="text-align: center; padding: 50px;">
+          <h2>Authentication Required</h2>
+          <p>Unable to authenticate automatically. Please ensure you are logged into Confluence.</p>
+          <p>If you continue to experience issues, please contact your system administrator.</p>
+          <button onclick="location.reload()">Retry</button>
+        </div>
+      `;
+
+      document.getElementById("dashboardPage").innerHTML = errorMessage;
+      document.getElementById("dashboardPage").style.display = "flex";
+      document.getElementById("loginPage").style.display = "none";
+
+      // Log security event
+      window.SecurityUtils?.logSecurityEvent("automatic_auth_failed", {
+        timestamp: new Date().toISOString(),
+        fallback: "error_display",
+      });
     },
 
     // Handle login form submission
@@ -1510,8 +1652,12 @@
                 );
               }
 
-              // Set authentication state
-              this.state.currentUser = user;
+              // Set authentication state with enhanced user context
+              this.state.currentUser = {
+                ...user,
+                username:
+                  user.username || user.name || user.userId || "unknown", // Ensure username is available for TeamsEntityManager
+              };
               this.state.isAuthenticated = true;
               this.state.authTimestamp = new Date().toISOString();
 
@@ -2173,6 +2319,12 @@
 
     // Load section using EntityManager (US-087)
     async loadWithEntityManager(entity) {
+      console.log(`[US-087] Looking for EntityManager for ${entity}`, {
+        componentManagers: this.componentManagers,
+        hasTeams: Boolean(this.componentManagers.teams),
+        teamsManager: this.componentManagers.teams,
+      });
+
       const manager = this.componentManagers[entity];
       if (!manager) {
         console.error(
@@ -2212,12 +2364,27 @@
         }
         const container = document.getElementById("entityManagerContainer");
 
+        // Safety check: Ensure container exists in DOM
+        if (!container) {
+          console.error(
+            "[AdminGUI] Failed to create entityManagerContainer in DOM",
+          );
+          throw new Error(
+            "Failed to create container element for entity manager",
+          );
+        }
+
         // Initialize the manager if not already done
         if (!manager.isInitialized) {
           await manager.initialize(container);
         } else {
           // Update manager's container if already initialized
           manager.setContainer(container);
+        }
+
+        // Mount the manager to the container (CRITICAL: Required before render())
+        if (!manager.mounted) {
+          await manager.mount(container);
         }
 
         // Load data with current state
@@ -2229,7 +2396,7 @@
           direction: this.state.sortDirection,
         });
 
-        // Render the component
+        // Render the component (now safe since manager is mounted)
         await manager.render();
 
         // Hide loading state
@@ -2285,29 +2452,67 @@
 
     // Setup event listeners for EntityManager (US-087)
     setupEntityManagerEventListeners(entity, manager) {
+      // TD-005 Phase 2: Support both direct event methods and orchestrator-based events
+      const eventTarget = manager.on ? manager : manager.orchestrator;
+
+      if (!eventTarget || typeof eventTarget.on !== "function") {
+        console.warn(
+          `[AdminGUI] Manager for ${entity} does not have event handling capability yet`,
+        );
+        return;
+      }
+
+      console.log(
+        `[AdminGUI] Setting up event listeners for ${entity} entity manager using ${manager.on ? "direct" : "orchestrator"} event handling`,
+      );
+
       // Listen for pagination changes
-      manager.on("pageChange", (page) => {
-        this.state.currentPage = page;
+      eventTarget.on("pagination:change", (event) => {
+        console.log(
+          `[AdminGUI] Pagination change event received for ${entity}:`,
+          event,
+        );
+        this.state.currentPage = event.page || event.currentPage || 1;
         this.loadWithEntityManager(entity);
       });
 
-      // Listen for sort changes
-      manager.on("sortChange", ({ field, direction }) => {
-        this.state.sortField = field;
-        this.state.sortDirection = direction;
+      // Listen for table sort changes
+      eventTarget.on("table:sort", (event) => {
+        console.log(
+          `[AdminGUI] Table sort event received for ${entity}:`,
+          event,
+        );
+        if (event.sort) {
+          this.state.sortField = event.sort.field;
+          this.state.sortDirection = event.sort.direction;
+        }
         this.loadWithEntityManager(entity);
       });
 
-      // Listen for search changes
-      manager.on("searchChange", (searchTerm) => {
-        this.state.searchTerm = searchTerm;
-        this.state.currentPage = 1;
+      // Listen for filter changes (search is typically handled as a filter)
+      eventTarget.on("filter:change", (event) => {
+        console.log(
+          `[AdminGUI] Filter change event received for ${entity}:`,
+          event,
+        );
+        if (event.filters) {
+          // Extract search term if it exists in filters
+          this.state.searchTerm =
+            event.filters.search || event.filters.searchTerm || "";
+          this.state.currentPage = 1; // Reset to first page on filter change
+        }
         this.loadWithEntityManager(entity);
       });
 
-      // Listen for selection changes
-      manager.on("selectionChange", (selectedIds) => {
-        this.state.selectedRows = new Set(selectedIds);
+      // Listen for selection changes (table selections)
+      eventTarget.on("table:selection", (event) => {
+        console.log(
+          `[AdminGUI] Table selection event received for ${entity}:`,
+          event,
+        );
+        this.state.selectedRows = new Set(
+          event.selectedIds || event.selection || [],
+        );
       });
     },
 

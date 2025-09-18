@@ -3090,6 +3090,28 @@ class ComponentOrchestrator {
   }
 
   /**
+   * Set container for component creation
+   * @param {HTMLElement} container - Parent container element
+   */
+  setContainer(container) {
+    if (!container) {
+      this.logError("setContainer called with null/undefined container");
+      return;
+    }
+
+    if (!(container instanceof HTMLElement)) {
+      this.logError(
+        "setContainer called with non-HTMLElement:",
+        typeof container,
+      );
+      return;
+    }
+
+    this.config.container = container;
+    this.logDebug(`Container updated: ${container.id || container.tagName}`);
+  }
+
+  /**
    * Clean up memory-efficient structures
    * WeakMap entries are automatically garbage collected when components are removed
    */

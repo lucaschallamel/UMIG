@@ -19,6 +19,11 @@ const config = {
   coverageReporters: ["text", "lcov", "html"],
   verbose: true,
   testTimeout: 30000, // Extended timeout for security tests
+  // Stability optimizations for TD-005 Phase 4
+  detectLeaks: false, // Disabled experimental feature for stable execution
+  maxWorkers: "50%", // Limit resource usage
+  forceExit: true, // Force exit on completion
+  detectOpenHandles: true, // Detect hanging processes
   transform: {
     "^.+\\.js$": "babel-jest",
   },
