@@ -76,6 +76,47 @@ groovy src/groovy/umig/tests/integration/SpecificIntegrationTest.groovy
 **Pattern**: Canonical (`_master_`) templates vs Instance (`_instance_`) execution records
 **Scale**: Handles 5 migrations, 30 iterations, 1,443+ step instances
 
+### Critical Architectural Decisions (Sprint 7)
+
+**ADR-057: JavaScript Module Loading Anti-Pattern**
+
+- **Problem**: IIFE wrappers with availability checks cause race conditions
+- **Solution**: Direct class declaration without IIFE wrapper
+- **Impact**: 100% component loading success (25/25 components)
+
+```javascript
+// ❌ ANTI-PATTERN - DO NOT USE
+(function() {
+    if (typeof BaseComponent === 'undefined') {
+        console.error('BaseComponent not available');
+        return;
+    }
+    class ModalComponent extends BaseComponent { ... }
+})();
+
+// ✅ CORRECT PATTERN - USE THIS
+class ModalComponent extends BaseComponent { ... }
+window.ModalComponent = ModalComponent;
+```
+
+**ADR-058: Global SecurityUtils Access Pattern**
+
+- **Pattern**: `window.SecurityUtils` for cross-component security access
+- **Usage**: XSS protection, CSRF tokens, input sanitization
+- **Requirement**: Load SecurityUtils.js before any components
+
+**ADR-059: SQL Schema-First Development Principle**
+
+- **Rule**: Fix code to match schema, NEVER modify schema to match code
+- **Validation**: Schema is source of truth for all data structures
+- **Impact**: Prevents schema drift and maintains data integrity
+
+**ADR-060: BaseEntityManager Interface Compatibility**
+
+- **Pattern**: Components self-manage interface compliance
+- **Solution**: Dynamic adaptation without modifying BaseEntityManager
+- **Result**: 42% development velocity improvement
+
 ### Revolutionary Self-Contained Test Architecture (TD-001)
 
 ```groovy
@@ -145,6 +186,14 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - `MigrationTypesEntityManager.js` - Migration type configuration
 - `IterationTypesEntityManager.js` - Iteration type workflow configuration
 
+**US-087 Phase 1 Migration Status** (Complete):
+
+- ✅ Teams, Users, Environments, Applications, Labels - 100% migrated
+- ✅ MigrationTypes, IterationTypes - Configuration entities complete
+- ✅ Component loading issues resolved (25/25 components operational)
+- ✅ Pagination fixes applied (ModalComponent, PaginationComponent)
+- ⏳ Phase 2-7 entities pending: Migrations, Iterations, Plans, Sequences, Phases, Steps, Instructions
+
 **Component Patterns**:
 
 ```javascript
@@ -168,14 +217,26 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### Technical Debt Documentation (Revolutionary Achievements)
 
+**Sprint 6 Completions**:
+
 - `docs/roadmap/sprint6/TD-001.md` - Self-contained architecture breakthrough (100% Groovy test pass rate)
 - `docs/roadmap/sprint6/TD-002.md` - Technology-prefixed test infrastructure (100% JavaScript test pass rate)
 - `docs/roadmap/sprint6/US-082-B-component-architecture.md` - Component architecture implementation (100% complete)
+
+**Sprint 7 Completions** (21 of 66 story points - 32% complete):
+
+- `docs/roadmap/sprint7/TD-003-CONSOLIDATED-Status-Field-Normalization.md` - Database status field consolidation (Phase A complete)
+- `docs/roadmap/sprint7/TD-004-CONSOLIDATED-BaseEntityManager-Interface-Resolution.md` - Interface mismatch resolution (42% velocity improvement)
+- `docs/roadmap/sprint7/TD-005-CONSOLIDATED-JavaScript-Test-Infrastructure-Resolution.md` - Test infrastructure fixes (96.2% memory improvement)
+- `docs/roadmap/sprint7/TD-007-admin-gui-component-updates.md` - Admin GUI component standardization
+- `docs/roadmap/sprint7/US-087-phase1-completion-report.md` - Admin GUI Phase 1 complete (Phases 2-7 pending)
 
 ### Component Architecture Documentation
 
 - `docs/devJournal/20250910-03-emergency-component-architecture.md` - Emergency component development with security hardening
 - `ComponentOrchestrator-FINAL-SECURITY-ASSESSMENT.md` - Enterprise security certification (8.5/10 rating)
+- `docs/devJournal/20250917-01-module-loading-fixes-admin-gui.md` - Module loading race condition fixes
+- `docs/devJournal/20250917-02-admin-gui-pagination-fixes-phase1-complete.md` - Pagination component fixes
 
 ### API Templates (Use as Reference)
 
@@ -288,6 +349,10 @@ Relationships: TeamsRelationship, UsersRelationship
 10. **Service Layer**: Unified DTOs with transformation service (ADR-049)
 11. **Component Security**: Enterprise-grade security controls in all components (8.5/10 rating required)
 12. **Entity Managers**: Always extend BaseEntityManager for consistent architecture
+13. **Module Loading**: NEVER use IIFE wrappers - use direct class declaration (ADR-057)
+14. **Global Security**: Use `window.SecurityUtils` for cross-component security (ADR-058)
+15. **Schema Authority**: Database schema is immutable truth - fix code, not schema (ADR-059)
+16. **Interface Adaptation**: Components self-manage BaseEntityManager compatibility (ADR-060)
 
 ## Quick Troubleshooting
 
@@ -307,6 +372,13 @@ Relationships: TeamsRelationship, UsersRelationship
 - Validate cross-component event communication through orchestrator
 - Ensure security controls are active (XSS/CSRF protection, rate limiting)
 - For entity managers: confirm they extend BaseEntityManager properly
+
+### Module Loading Issues
+
+- **Race Condition Symptoms**: Components failing with "BaseComponent not available"
+- **Solution**: Remove IIFE wrapper, use direct class declaration (ADR-057)
+- **Verification**: Check all 25 components load successfully
+- **Loading Order**: SecurityUtils.js must load before components
 
 ### Authentication Issues
 
@@ -328,19 +400,28 @@ Relationships: TeamsRelationship, UsersRelationship
 
 ## Documentation Structure
 
-### Sprint 6 Documentation (Current Sprint)
+### Sprint 7 Documentation (Current Sprint - 32% Complete)
+
+- **Completed Technical Debt**: TD-003A (5pts), TD-004 (2pts), TD-005 (5pts), TD-007 (3pts)
+- **Completed User Story**: US-087 Phase 1 (6pts of 8pts total)
+- **Pending Work**: TD-003B (3pts), US-087 Phases 2-7 (2pts), US-089 (38pts), US-088 (4pts)
+- Sprint overview: `docs/roadmap/unified-roadmap.md`
+- Sprint breakdown: `docs/roadmap/sprint7/sprint7-story-breakdown.md`
+
+### Sprint 6 Documentation (Completed Sprint)
 
 - Technical debt resolution: `docs/roadmap/sprint6/TD-001.md` and `TD-002.md`
 - Component architecture: `docs/roadmap/sprint6/US-082-B-component-architecture.md`
 - Entity migration standard: `docs/roadmap/sprint6/US-082-C-entity-migration-standard.md`
-- Sprint overview: `docs/roadmap/unified-roadmap.md`
 - Development journal: `docs/devJournal/20250909-*.md` and `docs/devJournal/20250910-03-emergency-component-architecture.md`
 
 ### Architecture Documentation
 
 - Central hub: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
-- 49 ADRs covering all major architectural decisions
+- **60 ADRs** covering all major architectural decisions (ADR-001 through ADR-060)
+- Latest ADRs (Sprint 7): ADR-057 through ADR-060
 - API documentation: `docs/api/` with OpenAPI specifications
+- ADR location: `docs/architecture/adr/`
 
 ### Testing Documentation
 

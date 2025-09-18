@@ -63,9 +63,26 @@ You must have **Node.js (v18+), npm, Podman, Ansible, and Groovy 3.0.15** instal
 local machine. Liquibase CLI is no longer a direct prerequisite as it is managed
 by the orchestration layer.
 
-### Groovy 3.0.15 Installation
+### Groovy 3.0.15 Installation & JDBC Integration
 
-Install Groovy version 3.0.15 for command-line testing and development. This specific version is **required** for compatibility with ScriptRunner 9.21.0 and ensures consistency with the containerized ScriptRunner environment.
+**New Integrated JDBC Setup**: The project now includes automated Groovy JDBC integration with Node.js-based management scripts.
+
+**Quick Setup Commands:**
+
+```bash
+# Set up Groovy with JDBC integration
+npm run setup:groovy-jdbc
+
+# Check Groovy classpath status
+npm run groovy:classpath:status
+
+# Configure Groovy classpath (automatic)
+npm run groovy:classpath
+```
+
+#### Manual Groovy Installation (if needed)
+
+Install Groovy version 3.0.15 for command-line testing and development. This specific version is **required** for compatibility with ScriptRunner 9.21.0.
 
 **Why Groovy 3.0.15 Specifically:**
 
@@ -107,9 +124,20 @@ Install Groovy version 3.0.15 for command-line testing and development. This spe
 - **macOS (Homebrew)**: `brew install groovy` (may install latest version, use SDKMAN for version control)
 - **Manual Installation**: Download from [Apache Groovy releases](https://groovy.apache.org/download.html) and configure PATH
 
-**Testing PostgreSQL Integration:**
+**Integrated JDBC Testing (Recommended):**
 
-Once Groovy is installed, you can test database connectivity and repository patterns from the command line:
+The project now includes automated JDBC integration with PostgreSQL driver management in `jdbc-drivers/postgresql-42.7.3.jar`. Use the included scripts:
+
+```bash
+# Run Groovy tests with automatic JDBC integration
+npm run test:groovy:unit
+npm run test:groovy:integration
+
+# Run specific Groovy file with JDBC support
+node scripts/utilities/groovy-with-jdbc.js path/to/your/script.groovy
+```
+
+**Manual JDBC Testing (if needed):**
 
 ```groovy
 // Example: test_db_connection.groovy
@@ -133,13 +161,7 @@ try {
 }
 ```
 
-Run the test:
-
-```bash
-groovy test_db_connection.groovy
-```
-
-This enables testing UMIG repository methods, API patterns, and database operations locally before deploying to ScriptRunner.
+The automated scripts handle JDBC driver paths and classpath configuration automatically.
 
 ### Liquibase CLI Installation
 
@@ -338,10 +360,10 @@ npm run test:js:security           # Component security tests (28 scenarios)
 **Groovy Testing Suite (31/31 tests passing - 100% success rate, 35% performance improvement):**
 
 ```bash
-npm run test:groovy                # All Groovy unit tests (self-contained architecture)
+npm run test:groovy:all            # All Groovy tests (unit + integration + security)
 npm run test:groovy:unit           # Groovy unit tests only
 npm run test:groovy:integration    # Groovy integration tests
-npm run test:groovy:performance    # Groovy performance validation
+npm run test:groovy:security       # Groovy security validation
 ```
 
 **Entity Migration Test Commands (US-082-C Complete):**
@@ -784,26 +806,39 @@ completions, and other workflow events.
 - The EmailService will automatically use this configured mail server for all
   notifications
 
-## Script Organization (Reorganized August 2025)
+## Script Organization (Updated September 2025)
 
-The local development setup now follows a clean architecture with organized script categories:
+The local development setup follows a clean architecture with organized script categories. Recent file reorganization has consolidated all Groovy-related infrastructure into dedicated directories.
 
 ### Scripts Directory Structure
 
 ```
 scripts/
 ├── generators/           # Data generation scripts (001-100)
-├── test-runners/         # Test orchestration scripts
+├── test-runners/         # Test orchestration scripts (24 runners)
+├── infrastructure/       # Infrastructure setup scripts
+│   └── setup-groovy-jdbc.js # Groovy JDBC integration
+├── utilities/            # Standalone utility tools (11 utilities)
+│   ├── groovy-with-jdbc.js     # Groovy execution with JDBC
+│   ├── setup-groovy-classpath.js # Groovy classpath management
+│   └── email-database-sender.js # Email testing utilities
 ├── services/            # Reusable service classes
 │   └── email/          # Email-related services
-├── utilities/           # Standalone utility tools
 ├── lib/                # Shared libraries and utilities
+├── performance/        # Performance monitoring tools
 ├── start.js            # Environment startup
 ├── stop.js             # Environment shutdown
 ├── restart.js          # Environment restart
 ├── umig_generate_fake_data.js  # Main data generation
 └── umig_csv_importer.js        # CSV import functionality
 ```
+
+### Key Infrastructure Additions (September 2025)
+
+- **Groovy JDBC Integration**: Automated setup with `scripts/infrastructure/setup-groovy-jdbc.js`
+- **Classpath Management**: Smart dependency resolution with `scripts/utilities/setup-groovy-classpath.js`
+- **PostgreSQL JDBC Driver**: Managed in `jdbc-drivers/postgresql-42.7.3.jar`
+- **Node.js-based Groovy Execution**: No shell script dependencies for cross-platform compatibility
 
 ### Test Organization Structure
 

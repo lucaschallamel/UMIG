@@ -43,6 +43,19 @@ Due to foreign key dependencies, import entities in this order:
 
 ## Usage
 
+### Via npm Script (Recommended)
+
+```bash
+# Import CSV file using the integrated import script
+npm run import-csv -- --file path/to/your/file.csv
+
+# Examples with these templates
+npm run import-csv -- --file data-utils/CSV_Templates/teams_template.csv
+npm run import-csv -- --file data-utils/CSV_Templates/applications_template.csv
+npm run import-csv -- --file data-utils/CSV_Templates/environments_template.csv
+npm run import-csv -- --file data-utils/CSV_Templates/users_template.csv
+```
+
 ### Via API Endpoints
 
 ```bash
