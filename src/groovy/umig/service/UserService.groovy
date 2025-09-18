@@ -4,6 +4,7 @@ import umig.repository.UserRepository
 import umig.utils.DatabaseUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import com.atlassian.user.User
 
 /**
  * UserService handles the mapping between Confluence users and UMIG application users.
@@ -60,7 +61,7 @@ class UserService {
             throw new IllegalStateException("Unable to determine current Confluence user")
         }
         
-        String confluenceUsername = confluenceUser.getName()
+        String confluenceUsername = (confluenceUser as User).getName() as String
         
         // Check session cache first
         if (userCache.containsKey(confluenceUsername)) {
@@ -74,8 +75,8 @@ class UserService {
         if (umigUser) {
             // Direct mapping found
             userContext = [
-                userId: umigUser.usr_id as Integer,
-                userCode: umigUser.usr_code as String,
+                userId: (umigUser as Map).usr_id as Integer,
+                userCode: (umigUser as Map).usr_code as String,
                 isSystemUser: false,
                 confluenceUsername: confluenceUsername,
                 fallbackReason: null,
@@ -102,8 +103,8 @@ class UserService {
             // Use dedicated Confluence system user or general system user
             def systemUser = getOrCreateConfluenceSystemUser()
             return [
-                userId: systemUser.usr_id as Integer,
-                userCode: systemUser.usr_code as String,
+                userId: (systemUser as Map).usr_id as Integer,
+                userCode: (systemUser as Map).usr_code as String,
                 isSystemUser: true,
                 confluenceUsername: confluenceUsername,
                 fallbackReason: "Confluence system user mapped to UMIG system user",
@@ -117,8 +118,8 @@ class UserService {
             def createdUser = autoCreateUmigUser(confluenceUsername)
             if (createdUser) {
                 return [
-                    userId: createdUser.usr_id as Integer,
-                    userCode: createdUser.usr_code as String,
+                    userId: (createdUser as Map).usr_id as Integer,
+                    userCode: (createdUser as Map).usr_code as String,
                     isSystemUser: false,
                     confluenceUsername: confluenceUsername,
                     fallbackReason: "Auto-created UMIG user from Confluence user",
@@ -131,8 +132,8 @@ class UserService {
         if (USE_SYSTEM_FALLBACK) {
             def systemUser = getOrCreateSystemUser()
             return [
-                userId: systemUser.usr_id as Integer,
-                userCode: systemUser.usr_code as String,
+                userId: (systemUser as Map).usr_id as Integer,
+                userCode: (systemUser as Map).usr_code as String,
                 isSystemUser: true,
                 confluenceUsername: confluenceUsername,
                 fallbackReason: "Unmapped Confluence user, using system fallback",
@@ -151,7 +152,7 @@ class UserService {
     private static Map getOrCreateConfluenceSystemUser() {
         def existingUser = userRepository.findUserByUsername(CONFLUENCE_SYSTEM_USER_CODE)
         if (existingUser) {
-            return existingUser
+            return existingUser as Map
         }
         
         // Create Confluence system user
@@ -169,7 +170,7 @@ class UserService {
         def createdUser = userRepository.createUser(userData)
         if (createdUser) {
             log.info("Created Confluence system user: ${CONFLUENCE_SYSTEM_USER_CODE}")
-            return createdUser
+            return createdUser as Map
         }
         
         // Fallback to general system user if creation fails
@@ -184,15 +185,15 @@ class UserService {
         // Try to get system user by ID first (most common case)
         def existingUser = userRepository.findUserById(DEFAULT_SYSTEM_USER_ID)
         if (existingUser) {
-            return existingUser
+            return existingUser as Map
         }
-        
+
         // Try to find by username
         existingUser = userRepository.findUserByUsername(SYSTEM_USER_CODE)
         if (existingUser) {
-            return existingUser
+            return existingUser as Map
         }
-        
+
         // Create system user
         def userData = [
             usr_code: SYSTEM_USER_CODE,
@@ -204,11 +205,11 @@ class UserService {
             rls_id: getDefaultRoleId(),
             usr_confluence_user_id: "system"
         ]
-        
+
         def createdUser = userRepository.createUser(userData)
         if (createdUser) {
             log.info("Created system user: ${SYSTEM_USER_CODE}")
-            return createdUser
+            return createdUser as Map
         }
         
         // This should never happen, but provide emergency fallback
@@ -223,16 +224,16 @@ class UserService {
         try {
             // Get additional Confluence user details if available
             def confluenceUser = getCurrentConfluenceUser()
-            def fullName = confluenceUser?.getFullName() ?: confluenceUsername
-            def email = confluenceUser?.getEmail() ?: "${confluenceUsername}@domain.local"
+            def fullName = (confluenceUser as User)?.getFullName() as String ?: confluenceUsername
+            def email = (confluenceUser as User)?.getEmail() as String ?: "${confluenceUsername}@domain.local"
             
             // Parse name (simple logic, can be enhanced)
-            def nameParts = fullName.split(' ')
-            def firstName = nameParts[0] ?: confluenceUsername
-            def lastName = nameParts.length > 1 ? nameParts[-1] : "User"
+            def nameParts = (fullName as String).split(' ')
+            def firstName = (nameParts as String[])[0] ?: confluenceUsername
+            def lastName = (nameParts as String[]).length > 1 ? (nameParts as String[])[-1] : "User"
             
             // Generate user code (first letter of first + first letter of last + random)
-            def userCode = generateUniqueUserCode(firstName, lastName)
+            def userCode = generateUniqueUserCode(firstName as String, lastName as String)
             
             def userData = [
                 usr_code: userCode,
@@ -248,7 +249,7 @@ class UserService {
             def createdUser = userRepository.createUser(userData)
             if (createdUser) {
                 log.info("Auto-created UMIG user '${userCode}' for Confluence user '${confluenceUsername}'")
-                return createdUser
+                return createdUser as Map
             }
         } catch (Exception e) {
             log.warn("Failed to auto-create UMIG user for Confluence user '${confluenceUsername}': ${e.message}")
@@ -338,9 +339,9 @@ class UserService {
         
         return [
             hasConfluenceUser: confluenceUser != null,
-            confluenceUsername: confluenceUser?.getName(),
-            confluenceFullName: confluenceUser?.getFullName(),
-            confluenceEmail: confluenceUser?.getEmail(),
+            confluenceUsername: (confluenceUser as User)?.getName() as String,
+            confluenceFullName: (confluenceUser as User)?.getFullName() as String,
+            confluenceEmail: (confluenceUser as User)?.getEmail() as String,
             userContext: userContext,
             cacheStats: getUserCacheStats(),
             timestamp: new Date()

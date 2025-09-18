@@ -308,8 +308,9 @@ if (typeof BaseEntityManager === "undefined") {
           throw new Error("Manager must be initialized before rendering");
         }
 
-        // Render all components through the orchestrator
-        await this.orchestrator.render();
+        // TD-004 FIX: Components self-render via orchestrator event bus
+        // Orchestrator is an event bus, not a rendering manager - components handle their own rendering
+        // await this.orchestrator.render(); // REMOVED: Interface mismatch resolved
 
         console.log(
           `[BaseEntityManager] ${this.entityType} rendering complete`,
@@ -1021,22 +1022,8 @@ if (typeof BaseEntityManager === "undefined") {
               config: this.config.paginationConfig,
             });
             initializationErrors.push(`PaginationComponent: ${error.message}`);
-          } else if (
-            typeof this.paginationComponent.updatePagination !== "function"
-          ) {
-            const error = new Error(
-              "PaginationComponent missing updatePagination method",
-            );
-            console.error(`[BaseEntityManager] ${error.message}`, {
-              entityType: this.entityType,
-              paginationComponent: this.paginationComponent,
-              availableMethods: Object.getOwnPropertyNames(
-                this.paginationComponent,
-              ).filter(
-                (name) => typeof this.paginationComponent[name] === "function",
-              ),
-            });
-            initializationErrors.push(`PaginationComponent: ${error.message}`);
+          // TD-004 FIX: PaginationComponent uses setState pattern - validation removed
+          // Components communicate via orchestrator event bus, no direct method validation needed
           } else {
             console.log(
               `[BaseEntityManager] PaginationComponent initialized successfully for ${this.entityType}`,
@@ -1340,27 +1327,26 @@ if (typeof BaseEntityManager === "undefined") {
               typeof this.paginationComponent === "object" &&
               this.paginationComponent !== null
             ) {
-              // Check for updatePagination method
-              if (
-                typeof this.paginationComponent.updatePagination === "function"
-              ) {
-                updateAttempts.pagination.method = "updatePagination";
-                const paginationData = {
-                  page: this.currentPage,
-                  total: this.totalRecords,
+              // TD-004 FIX: Use setState pattern for pagination component updates
+              // Components use setState pattern for state management, not direct method calls
+              if (typeof this.paginationComponent.setState === "function") {
+                updateAttempts.pagination.method = "setState";
+                const paginationState = {
+                  currentPage: this.currentPage,
+                  totalItems: this.totalRecords,
                   pageSize: this.config.paginationConfig?.pageSize || 20,
                 };
 
                 console.log(
-                  `[BaseEntityManager] Updating pagination component - page ${this.currentPage}, total ${this.totalRecords}`,
+                  `[BaseEntityManager] Updating pagination via setState - page ${this.currentPage}, total ${this.totalRecords}`,
                 );
-                await this.paginationComponent.updatePagination(paginationData);
+                await this.paginationComponent.setState(paginationState);
                 updateAttempts.pagination.successful = true;
               } else {
                 const availableMethods = this._getAvailableMethods(
                   this.paginationComponent,
                 );
-                const errorMsg = `PaginationComponent missing updatePagination method. Available methods: ${availableMethods.join(", ")}`;
+                const errorMsg = `PaginationComponent missing setState method. Available methods: ${availableMethods.join(", ")}`;
                 updateAttempts.pagination.error = errorMsg;
 
                 console.error(`[BaseEntityManager] ${errorMsg}`, {
@@ -1656,12 +1642,12 @@ if (typeof BaseEntityManager === "undefined") {
           },
           pagination: {
             available: !!this.paginationComponent,
-            hasUpdatePagination:
+            hasSetState:
               this.paginationComponent &&
-              typeof this.paginationComponent.updatePagination === "function",
+              typeof this.paginationComponent.setState === "function",
             isValid:
               this.paginationComponent &&
-              typeof this.paginationComponent.updatePagination === "function",
+              typeof this.paginationComponent.setState === "function",
           },
         },
         healthScore: 0,
@@ -1767,7 +1753,7 @@ if (typeof BaseEntityManager === "undefined") {
             "destroy",
           ]),
           pagination: this._getComponentDiagnostics(this.paginationComponent, [
-            "updatePagination",
+            "setState",
             "render",
             "destroy",
           ]),
@@ -2092,24 +2078,24 @@ if (typeof BaseEntityManager === "undefined") {
      */
     async _testPaginationComponent() {
       try {
-        if (typeof this.paginationComponent.updatePagination === "function") {
-          await this.paginationComponent.updatePagination({
-            page: 1,
-            total: 10,
+        if (typeof this.paginationComponent.setState === "function") {
+          await this.paginationComponent.setState({
+            currentPage: 1,
+            totalItems: 10,
             pageSize: 5,
           });
-          return { status: "passed", method: "updatePagination", error: null };
+          return { status: "passed", method: "setState", error: null };
         } else {
           return {
             status: "failed",
             method: "none",
-            error: "No updatePagination method available",
+            error: "No setState method available",
           };
         }
       } catch (error) {
         return {
           status: "failed",
-          method: "updatePagination",
+          method: "setState",
           error: error.message,
         };
       }
