@@ -36,11 +36,14 @@ scripts/
 │   ├── 098_generate_instructions.js
 │   ├── 099_generate_instance_data.js
 │   └── 100_generate_step_instance_comments.js
-├── test-runners/         # Test orchestration layer
+├── infrastructure/       # Infrastructure setup scripts (NEW September 2025)
+│   └── setup-groovy-jdbc.js                   # Automated Groovy JDBC integration
+├── test-runners/         # Test orchestration layer (24 runners)
 │   ├── BaseTestRunner.js                        # Base class for test runners
 │   ├── IntegrationTestRunner.js                 # Integration test coordinator
 │   ├── UnitTestRunner.js                        # Unit test coordinator
 │   ├── UATTestRunner.js                         # User acceptance test runner
+│   ├── run-groovy-test.js                       # Groovy test execution runner
 │   ├── EnhancedEmailTestRunner.js              # Email testing orchestrator
 │   ├── EnhancedIterationViewTestRunner.js      # Enhanced UI test runner
 │   ├── AdminGuiTestRunner.js                   # Admin GUI test coordinator
@@ -53,13 +56,16 @@ scripts/
 ├── services/             # Reusable service classes
 │   └── email/
 │       └── TemplateRetrievalService.js          # Database email template service
-├── utilities/            # Standalone utility tools
+├── utilities/            # Standalone utility tools (11 utilities)
+│   ├── groovy-with-jdbc.js                     # Groovy execution with JDBC support
+│   ├── setup-groovy-classpath.js               # Groovy classpath management
 │   ├── test-mailhog-smtp.js                    # MailHog SMTP testing
 │   ├── email-database-sender.js                # Database-driven email sender
 │   └── demo-enhanced-email.js                  # Interactive email demonstration
 ├── lib/                  # Shared libraries and utilities
 │   ├── db.js            # Database connection utilities
 │   └── utils.js         # Common utility functions
+├── performance/          # Performance monitoring tools
 ├── start.js             # Environment startup orchestrator
 ├── stop.js              # Environment shutdown manager
 ├── restart.js           # Environment restart with options
@@ -67,6 +73,22 @@ scripts/
 ├── umig_csv_importer.js        # CSV import functionality
 └── generate-postman-enhanced.js # Enhanced Postman collection generator
 ```
+
+### Recent Infrastructure Additions (September 2025)
+
+**Groovy JDBC Integration Infrastructure**:
+
+- **`infrastructure/setup-groovy-jdbc.js`** - Automated JDBC driver setup and validation
+- **`utilities/groovy-with-jdbc.js`** - Execute Groovy scripts with automatic JDBC classpath
+- **`utilities/setup-groovy-classpath.js`** - Smart classpath management for PostgreSQL integration
+- **`test-runners/run-groovy-test.js`** - Cross-platform Groovy test execution with JDBC support
+
+**Key Benefits**:
+
+- **No Shell Scripts**: Pure Node.js implementation for Windows/macOS/Linux compatibility
+- **Automatic Driver Management**: PostgreSQL JDBC driver automatically included in classpath
+- **Smart Path Detection**: Automatic detection of project structure from any working directory
+- **Error Handling**: Comprehensive error handling and troubleshooting guidance
 
 ## 🛡️ Foundation Service Security Testing Infrastructure
 
@@ -377,7 +399,8 @@ npm run test:performance:cache:secure       # Cache performance (70% hit rate)
 # Groovy Self-Contained Architecture (TD-001)
 npm run test:groovy:unit                    # Groovy unit tests (35% faster)
 npm run test:groovy:integration             # Groovy integration tests
-npm run test:groovy:all                     # Complete Groovy test suite
+npm run test:groovy:security               # Groovy security validation tests
+npm run test:groovy:all                     # Complete Groovy test suite (unit + integration + security)
 ```
 
 **Cross-Technology Testing**:
@@ -387,6 +410,30 @@ npm run test:groovy:all                     # Complete Groovy test suite
 npm run test:all:comprehensive              # JavaScript + Groovy (376 tests)
 npm run test:all:security                   # All security tests
 npm run test:all:quick                      # Quick validation suite
+```
+
+### 🏗️ Infrastructure & JDBC Management Commands (NEW September 2025)
+
+**Groovy JDBC Integration**:
+
+```bash
+# Automated Groovy Infrastructure Setup
+npm run setup:groovy-jdbc                  # Setup Groovy with JDBC integration
+npm run groovy:classpath                   # Configure Groovy classpath automatically
+npm run groovy:classpath:status            # Check Groovy classpath configuration
+
+# Execute Groovy with JDBC Support
+node scripts/utilities/groovy-with-jdbc.js <script.groovy>
+node scripts/test-runners/run-groovy-test.js <test-directory>
+```
+
+**Infrastructure Validation**:
+
+```bash
+# Infrastructure Health Checks
+npm run health:check                        # Complete system validation including JDBC
+npm run test:groovy:unit                   # Validates JDBC integration in unit tests
+npm run test:groovy:integration           # Database connectivity validation
 ```
 
 **Emergency Pipeline Testing** (2h12m complete pipeline):
