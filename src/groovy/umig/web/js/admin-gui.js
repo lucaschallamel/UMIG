@@ -316,7 +316,7 @@
           onError(error);
         } else {
           // Default error handling - show user-friendly message
-          this.showErrorMessage(
+          this.showError(
             `${context} failed: ${this.getApiErrorMessage(error)}`,
           );
         }
@@ -1169,24 +1169,10 @@
     // Load EntityManagers based on feature flags (US-087)
     loadEntityManagers: function () {
       try {
-        // Check if migration is enabled
-        if (
-          !this.featureToggle ||
-          !this.featureToggle.isEnabled("admin-gui-migration")
-        ) {
-          console.log("[US-087] Admin GUI migration is disabled");
-          return;
-        }
-
-        console.log(
-          "[US-087] Admin GUI migration is enabled - loading EntityManagers",
-        );
-
-        // Teams EntityManager (Phase 1) with error boundary
+        // Teams EntityManager (Always enabled - independent of feature flags)
         try {
-          if (this.featureToggle.isEnabled("teams-component")) {
-            this.loadTeamsEntityManager();
-          }
+          this.loadTeamsEntityManager();
+          console.log("[US-087] Teams EntityManager loaded (always enabled)");
         } catch (teamsError) {
           console.error(
             "[US-087] Failed to load TeamsEntityManager:",
@@ -1208,11 +1194,25 @@
           console.log("[US-087] Continuing with other EntityManagers...");
         }
 
-        // Future phases (placeholder)
-        // if (this.featureToggle.isEnabled('users-component')) {
-        //   this.loadUsersEntityManager();
-        // }
-        // Additional EntityManagers will be added in subsequent phases
+        // Other EntityManagers (still use feature flag protection)
+        if (
+          this.featureToggle &&
+          this.featureToggle.isEnabled("admin-gui-migration")
+        ) {
+          console.log(
+            "[US-087] Admin GUI migration is enabled - loading other EntityManagers",
+          );
+
+          // Future phases (placeholder)
+          // if (this.featureToggle.isEnabled('users-component')) {
+          //   this.loadUsersEntityManager();
+          // }
+          // Additional EntityManagers will be added in subsequent phases
+        } else {
+          console.log(
+            "[US-087] Admin GUI migration is disabled for other entities",
+          );
+        }
 
         console.log("[US-087] EntityManager loading completed");
       } catch (error) {
@@ -1274,15 +1274,19 @@
         }
       } catch (error) {
         console.error("[US-087] Failed to load TeamsEntityManager:", error);
-        // Disable the feature flag on failure
-        if (this.featureToggle) {
-          this.featureToggle.disable("teams-component");
-        }
+        // Note: TeamsEntityManager failure is now a critical error since it's always expected to load
+        throw error; // Re-throw to ensure caller handles the error appropriately
       }
     },
 
     // Wrapper method for dual-mode operation (US-087)
+    // NOTE: Teams entity is handled directly in loadCurrentSection - this method is for other entities only
     shouldUseComponentManager: function (entity) {
+      // Teams always use component manager - handled separately
+      if (entity === "teams") {
+        return false; // This method shouldn't be called for teams anymore
+      }
+
       if (!this.featureToggle) return false;
 
       // Security: Feature flag permission checks with audit logging
@@ -1810,8 +1814,14 @@
         return;
       }
 
-      // US-087: Check if we should use component manager
-      if (this.shouldUseComponentManager(entity)) {
+      // Direct Teams component architecture (simplified from US-087)
+      if (entity === "teams") {
+        console.log(`[US-087] Always using Teams EntityManager`);
+        return this.loadWithEntityManager(entity);
+      }
+
+      // US-087: Check if we should use component manager for other entities
+      if (entity !== "teams" && this.shouldUseComponentManager(entity)) {
         console.log(`[US-087] Using ${entity} EntityManager`);
         return this.loadWithEntityManager(entity);
       }
@@ -1824,7 +1834,7 @@
         const entities = this.entities;
         if (!entities || typeof entities !== "object") {
           console.error(`[UMIG DEBUG] Entities object is invalid:`, entities);
-          this.showErrorMessage(
+          this.showError(
             `Configuration Error: Unable to load entity configurations. Please refresh the page.`,
           );
           return;
@@ -1892,7 +1902,7 @@
             });
           }
 
-          this.showErrorMessage(
+          this.showError(
             `Unknown entity: ${entity}. Available: ${availableEntities.join(", ")}`,
           );
           return;
@@ -1902,7 +1912,7 @@
           `[UMIG DEBUG] Critical error accessing entity config:`,
           error,
         );
-        this.showErrorMessage(
+        this.showError(
           `Critical Configuration Error: ${error.message}. Please refresh the page.`,
         );
         return;
@@ -2149,7 +2159,7 @@
             console.error(`[UMIG DEBUG] Error message:`, error.message);
             console.error(`[UMIG DEBUG] Error stack:`, error.stack);
             this.hideLoadingSpinner();
-            this.showErrorMessage(`Failed to load ${entity}: ${error.message}`);
+            this.showError(`Failed to load ${entity}: ${error.message}`);
           });
       } catch (error) {
         console.error(
@@ -2157,7 +2167,7 @@
         );
         console.error(`[UMIG DEBUG] Outer error:`, error);
         this.hideLoadingSpinner();
-        this.showErrorMessage(`Error loading ${entity}: ${error.message}`);
+        this.showError(`Error loading ${entity}: ${error.message}`);
       }
     },
 
@@ -2202,12 +2212,12 @@
         }
         const container = document.getElementById("entityManagerContainer");
 
-        // Update manager's container
-        manager.setContainer(container);
-
         // Initialize the manager if not already done
         if (!manager.isInitialized) {
-          await manager.initialize();
+          await manager.initialize(container);
+        } else {
+          // Update manager's container if already initialized
+          manager.setContainer(container);
         }
 
         // Load data with current state
@@ -2257,18 +2267,19 @@
         // Hide loading state
         this.hideLoadingSpinner();
 
-        // Show error and offer rollback
-        this.showErrorMessage(`Failed to load ${entity}: ${error.message}`);
+        // Show error with detailed information for debugging
+        this.showError(
+          `Failed to load ${entity}: ${error.message}. ` +
+            `Please check the browser console for detailed error information.`,
+        );
 
-        // Prompt for rollback
-        if (
-          confirm(
-            `Failed to load ${entity} with new component. Rollback to legacy mode?`,
-          )
-        ) {
-          this.featureToggle.disable(`${entity}-component`);
-          this.loadCurrentSection(); // Retry with legacy mode
-        }
+        // Log detailed error information for debugging
+        console.error(`[US-087] Detailed error information:`, {
+          entity,
+          error: error.message,
+          stack: error.stack,
+          timestamp: new Date().toISOString(),
+        });
       }
     },
 
@@ -3049,23 +3060,7 @@
           }
         }
 
-        // Ctrl+Shift+T: Toggle teams component
-        if (e.ctrlKey && e.shiftKey && e.key === "T") {
-          e.preventDefault();
-          if (this.featureToggle) {
-            this.featureToggle.toggle("teams-component");
-            const status = this.featureToggle.isEnabled("teams-component")
-              ? "enabled"
-              : "disabled";
-            this.showNotification(`Teams component ${status}`, "info");
-            console.log(`[US-087] Teams component ${status}`);
-
-            // Reload current section if we're on teams
-            if (this.state.currentEntity === "teams") {
-              this.loadCurrentSection();
-            }
-          }
-        }
+        // Ctrl+Shift+T: Teams component is now always enabled (no toggle needed)
 
         // Ctrl+Shift+P: Show performance report
         if (e.ctrlKey && e.shiftKey && e.key === "P") {
@@ -4589,17 +4584,25 @@
     // Show loading state
     showLoading: function () {
       this.state.loading = true;
-      document.getElementById("loadingState").style.display = "flex";
-      document.getElementById("mainContent").style.display = "none";
-      document.getElementById("errorState").style.display = "none";
+      const loadingState = document.getElementById("loadingState");
+      const mainContent = document.getElementById("mainContent");
+      const errorState = document.getElementById("errorState");
+
+      if (loadingState) loadingState.style.display = "flex";
+      if (mainContent) mainContent.style.display = "none";
+      if (errorState) errorState.style.display = "none";
     },
 
     // Hide loading state
     hideLoading: function () {
       this.state.loading = false;
-      document.getElementById("loadingState").style.display = "none";
-      document.getElementById("mainContent").style.display = "block";
-      document.getElementById("errorState").style.display = "none";
+      const loadingState = document.getElementById("loadingState");
+      const mainContent = document.getElementById("mainContent");
+      const errorState = document.getElementById("errorState");
+
+      if (loadingState) loadingState.style.display = "none";
+      if (mainContent) mainContent.style.display = "block";
+      if (errorState) errorState.style.display = "none";
     },
 
     // Show loading spinner (alias for showLoading)
@@ -4614,10 +4617,20 @@
 
     // Show error state
     showError: function (message) {
-      document.getElementById("errorMessage").textContent = message;
-      document.getElementById("loadingState").style.display = "none";
-      document.getElementById("mainContent").style.display = "none";
-      document.getElementById("errorState").style.display = "flex";
+      const errorMessage = document.getElementById("errorMessage");
+      const loadingState = document.getElementById("loadingState");
+      const mainContent = document.getElementById("mainContent");
+      const errorState = document.getElementById("errorState");
+
+      if (errorMessage) errorMessage.textContent = message;
+      if (loadingState) loadingState.style.display = "none";
+      if (mainContent) mainContent.style.display = "none";
+      if (errorState) errorState.style.display = "flex";
+    },
+
+    // Alias for showError for backward compatibility
+    showErrorMessage: function (message) {
+      return this.showError(message);
     },
 
     // Refresh current section

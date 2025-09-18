@@ -1,8 +1,8 @@
 # Technology Context
 
-**Last Updated**: September 17, 2025
-**Status**: US-087 Admin GUI Phase 1 COMPLETE ✅ | SQL Schema Alignment COMPLETE ✅
-**Key Achievement**: 100% module loading success (25/25 components), SQL integrity restored, IIFE race conditions resolved, SecurityUtils enhanced with safeSetInnerHTML, 8 SQL errors fixed, infrastructure modernised
+**Last Updated**: September 18, 2025
+**Status**: Technical Debt Resolution Phase (TD-003 & TD-004) | Critical Infrastructure Improvements
+**Key Achievement**: Discovered 50+ files with hardcoded statuses, architectural interface mismatches identified, Steps API fixed (0% → 100% success), 71 story points of technical debt documented
 
 ## Core Technology Stack
 
@@ -60,6 +60,42 @@
 - Fixed phantom columns: sti_is_active, sti_priority, sti_created_date
 - Removed unauthorized migration: 031_add_missing_active_columns.sql
 - Result: 100% schema alignment, zero drift
+
+## Technical Debt Discoveries (TD-003 & TD-004)
+
+### TD-003: Status Management Infrastructure
+
+**Problem**: 50+ files with hardcoded status values
+**Discovery**: Steps API 500 errors revealed missing TODO/BLOCKED statuses
+
+**Database Schema**: 31 status records in status_sts table
+
+- Step statuses: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
+- Entity-specific status hierarchies for all 7 entity types
+
+**Solution Architecture**: 4-phase StatusService implementation
+
+- Phase 1: StatusService foundation (API, caching, providers)
+- Phase 2: Critical service layer migration (fix display bugs)
+- Phase 3: Frontend migration (EntityConfig.js, step-view.js)
+- Phase 4: Testing and documentation
+
+### TD-004: Component Interface Alignment
+
+**Problem**: BaseEntityManager expects methods that don't exist in components
+**Root Cause**: Two architectural philosophies without explicit contracts
+
+**Interface Mismatches**:
+
+- orchestrator.render() - doesn't exist
+- paginationComponent.updatePagination() - uses setState() instead
+- API path configurations - incorrect relative paths
+
+**Solution**: Fix BaseEntityManager to match component interfaces (Option B)
+
+- Preserves 8.5/10 security-rated component architecture
+- Maintains single architectural pattern
+- Avoids layering fixes on stable foundation
 
 ### SecurityUtils Enhancement
 

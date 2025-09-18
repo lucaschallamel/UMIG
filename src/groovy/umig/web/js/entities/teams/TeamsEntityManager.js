@@ -25,10 +25,12 @@
 class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
   /**
    * Initialize TeamsEntityManager with Teams-specific configuration
+   * @param {Object} options - Configuration options from admin-gui.js
    */
-  constructor() {
+  constructor(options = {}) {
     super({
       entityType: "teams",
+      ...options, // Pass through all options including orchestrator
       tableConfig: {
         columns: [
           {
@@ -143,6 +145,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         size: "medium",
         validation: true,
         confirmOnClose: true,
+        enableTabs: true, // US-087 Teams enhancement - enable tabbed modal support
       },
       filterConfig: {
         enabled: true,
@@ -175,7 +178,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         ],
       },
       paginationConfig: {
-        pageSize: 20,
+        pageSize: 10,
         showPageSizer: true,
         pageSizeOptions: [10, 20, 50, 100],
       },
@@ -268,14 +271,14 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log(`[TeamsEntityManager] Loading members for team ${teamId}`);
 
       // Security validation
-      SecurityUtils.validateInput({ teamId });
+      window.SecurityUtils.validateInput({ teamId });
 
       // CSRF PROTECTION: Add CSRF token to request headers
       const response = await fetch(
         `${this.membersApiUrl}?teamId=${encodeURIComponent(teamId)}`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -318,11 +321,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ teamId, userId });
+      window.SecurityUtils.validateInput({ teamId, userId });
       this._checkPermission("members");
 
       // CSRF PROTECTION: Add CSRF token and create secure request body
-      const requestBody = SecurityUtils.preventXSS({
+      const requestBody = window.SecurityUtils.preventXSS({
         teamId: teamId,
         userId: userId,
         assignedBy: this.currentUserRole?.userId,
@@ -331,7 +334,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
       const response = await fetch(this.membersApiUrl, {
         method: "POST",
-        headers: SecurityUtils.addCSRFProtection({
+        headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
         body: JSON.stringify(requestBody),
@@ -382,7 +385,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ teamId, userId });
+      window.SecurityUtils.validateInput({ teamId, userId });
       this._checkPermission("members");
 
       // CSRF PROTECTION: Add CSRF token to DELETE request
@@ -390,7 +393,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `${this.membersApiUrl}/${encodeURIComponent(teamId)}/${encodeURIComponent(userId)}`,
         {
           method: "DELETE",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -529,7 +532,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ teamId, userId, newRole, reason });
+      window.SecurityUtils.validateInput({ teamId, userId, newRole, reason });
       this._checkPermission("role_management");
 
       // Get current user role
@@ -558,7 +561,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         previousRole: currentRole,
         newRole,
         changedBy: userContext.userId || this.currentUserRole?.userId,
-        reason: SecurityUtils.sanitizeInput(reason),
+        reason: window.SecurityUtils.sanitizeInput(reason),
         timestamp: new Date().toISOString(),
         validationResult,
       };
@@ -727,7 +730,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ userId });
+      window.SecurityUtils.validateInput({ userId });
       this._checkPermission("role_management");
 
       // Fetch from audit service or local storage
@@ -746,7 +749,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/role-history?limit=${limit}`,
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -804,7 +807,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ operation, teamIds, operationData });
+      window.SecurityUtils.validateInput({ operation, teamIds, operationData });
       this._checkPermission("bulk");
 
       let result;
@@ -887,7 +890,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     // CSRF PROTECTION: Add CSRF token to GET request
     const response = await fetch(url, {
       method: "GET",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
     });
@@ -918,7 +921,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     this._checkPermission("create");
 
     // CSRF PROTECTION: Add CSRF token and sanitize request body
-    const requestBody = SecurityUtils.preventXSS({
+    const requestBody = window.SecurityUtils.preventXSS({
       ...data,
       createdBy: this.currentUserRole?.userId,
       createdDate: new Date().toISOString(),
@@ -926,7 +929,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
     const response = await fetch(this.apiBaseUrl, {
       method: "POST",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(requestBody),
@@ -951,7 +954,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     this._checkPermission("edit");
 
     // CSRF PROTECTION: Add CSRF token and sanitize request body
-    const requestBody = SecurityUtils.preventXSS({
+    const requestBody = window.SecurityUtils.preventXSS({
       ...data,
       modifiedBy: this.currentUserRole?.userId,
       modifiedDate: new Date().toISOString(),
@@ -961,7 +964,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       `${this.apiBaseUrl}/${encodeURIComponent(id)}`,
       {
         method: "PUT",
-        headers: SecurityUtils.addCSRFProtection({
+        headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
         body: JSON.stringify(requestBody),
@@ -990,7 +993,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       `${this.apiBaseUrl}/${encodeURIComponent(id)}`,
       {
         method: "DELETE",
-        headers: SecurityUtils.addCSRFProtection({
+        headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
       },
@@ -1032,7 +1035,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // XSS prevention
-      const sanitized = SecurityUtils.sanitizeInput(data.name);
+      const sanitized = window.SecurityUtils.sanitizeInput(data.name);
       if (sanitized !== data.name) {
         throw new Error("Team name contains invalid characters");
       }
@@ -1058,7 +1061,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           "/rest/scriptrunner/latest/custom/users/current",
           {
             method: "GET",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
           },
@@ -1169,7 +1172,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
     const headerTitle = document.createElement("h4");
     // XSS PROTECTION: Use textContent instead of innerHTML for dynamic data
-    headerTitle.textContent = `Team Members (${SecurityUtils.escapeHtml(teamData.memberCount || 0)})`;
+    headerTitle.textContent = `Team Members (${window.SecurityUtils.escapeHtml(teamData.memberCount || 0)})`;
 
     const addButton = document.createElement("button");
     addButton.type = "button";
@@ -1192,7 +1195,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     // XSS PROTECTION: Escape team ID before setting as attribute
     membersList.setAttribute(
       "data-team-id",
-      SecurityUtils.escapeHtml(teamData.id),
+      window.SecurityUtils.escapeHtml(teamData.id),
     );
 
     const loadingDiv = document.createElement("div");
@@ -1281,7 +1284,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     // SECURITY FIX: Create member elements securely using DOM methods
     members.forEach((member) => {
       // Input validation and sanitization
-      const validationResult = SecurityUtils.validateInput(member, {
+      const validationResult = window.SecurityUtils.validateInput(member, {
         preventXSS: true,
         preventSQLInjection: true,
         sanitizeStrings: true,
@@ -1302,7 +1305,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       // XSS PROTECTION: Escape user ID before setting as attribute
       memberItem.setAttribute(
         "data-user-id",
-        SecurityUtils.escapeHtml(sanitizedMember.userId || ""),
+        window.SecurityUtils.escapeHtml(sanitizedMember.userId || ""),
       );
 
       const memberInfo = document.createElement("div");
@@ -1382,11 +1385,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _bulkDelete(teamIds) {
     // CSRF PROTECTION: Add CSRF token and sanitize bulk delete request
-    const requestBody = SecurityUtils.preventXSS({ teamIds });
+    const requestBody = window.SecurityUtils.preventXSS({ teamIds });
 
     const response = await fetch(`${this.apiBaseUrl}/bulk/delete`, {
       method: "POST",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(requestBody),
@@ -1408,11 +1411,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _bulkExport(teamIds, options) {
     // CSRF PROTECTION: Add CSRF token and sanitize bulk export request
-    const requestBody = SecurityUtils.preventXSS({ teamIds, options });
+    const requestBody = window.SecurityUtils.preventXSS({ teamIds, options });
 
     const response = await fetch(`${this.apiBaseUrl}/bulk/export`, {
       method: "POST",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(requestBody),
@@ -1445,11 +1448,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _bulkSetStatus(teamIds, status) {
     // CSRF PROTECTION: Add CSRF token and sanitize bulk status request
-    const requestBody = SecurityUtils.preventXSS({ teamIds, status });
+    const requestBody = window.SecurityUtils.preventXSS({ teamIds, status });
 
     const response = await fetch(`${this.apiBaseUrl}/bulk/status`, {
       method: "PUT",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(requestBody),
@@ -1497,7 +1500,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `${this.membersApiUrl}/${encodeURIComponent(teamId)}/${encodeURIComponent(userId)}`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1530,7 +1533,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @private
    */
   async _executeRoleChange(teamId, userId, newRole, auditData) {
-    const requestBody = SecurityUtils.preventXSS({
+    const requestBody = window.SecurityUtils.preventXSS({
       teamId,
       userId,
       newRole,
@@ -1543,7 +1546,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
     const response = await fetch(`${this.membersApiUrl}/role`, {
       method: "PUT",
-      headers: SecurityUtils.addCSRFProtection({
+      headers: window.SecurityUtils.addCSRFProtection({
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(requestBody),
@@ -1587,7 +1590,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/role-history`,
           {
             method: "POST",
-            headers: SecurityUtils.addCSRFProtection({
+            headers: window.SecurityUtils.addCSRFProtection({
               "Content-Type": "application/json",
             }),
             body: JSON.stringify(historyEntry),
@@ -1616,7 +1619,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/related-entities?teamId=${encodeURIComponent(teamId)}`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1647,7 +1650,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @private
    */
   async _updateEntityPermissions(entity, userId, permissions) {
-    const requestBody = SecurityUtils.preventXSS({
+    const requestBody = window.SecurityUtils.preventXSS({
       entityType: entity.type,
       entityId: entity.id,
       userId,
@@ -1660,7 +1663,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       `/rest/scriptrunner/latest/custom/permissions/update`,
       {
         method: "PUT",
-        headers: SecurityUtils.addCSRFProtection({
+        headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
         body: JSON.stringify(requestBody),
@@ -1686,7 +1689,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _validateChildEntityPermissions(teamId, userId, newRole) {
     try {
-      const requestBody = SecurityUtils.preventXSS({
+      const requestBody = window.SecurityUtils.preventXSS({
         teamId,
         userId,
         newRole,
@@ -1697,7 +1700,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         "/rest/scriptrunner/latest/custom/permissions/validate-inheritance",
         {
           method: "POST",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
@@ -1744,7 +1747,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log(`[TeamsEntityManager] Loading teams for user ${userId}`);
 
       // Security validation
-      SecurityUtils.validateInput({ userId });
+      window.SecurityUtils.validateInput({ userId });
 
       // Build request URL with parameters
       const params = new URLSearchParams({
@@ -1756,7 +1759,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/teams?${params.toString()}`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1800,7 +1803,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log(`[TeamsEntityManager] Loading users for team ${teamId}`);
 
       // Security validation
-      SecurityUtils.validateInput({ teamId });
+      window.SecurityUtils.validateInput({ teamId });
 
       // Build request URL with parameters
       const params = new URLSearchParams({
@@ -1812,7 +1815,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/users?${params.toString()}`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1858,13 +1861,13 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ teamId, userId });
+      window.SecurityUtils.validateInput({ teamId, userId });
 
       const response = await fetch(
         `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/users/${encodeURIComponent(userId)}/validate`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1918,14 +1921,14 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ teamId });
+      window.SecurityUtils.validateInput({ teamId });
       this._checkPermission("delete");
 
       const response = await fetch(
         `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/delete-protection`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -1977,11 +1980,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log(`[TeamsEntityManager] Soft deleting team ${teamId}`);
 
       // Security validation
-      SecurityUtils.validateInput({ teamId });
+      window.SecurityUtils.validateInput({ teamId });
       this._checkPermission("delete");
 
       // CSRF PROTECTION: Add CSRF token and sanitize request body
-      const requestBody = SecurityUtils.preventXSS({
+      const requestBody = window.SecurityUtils.preventXSS({
         teamId: teamId,
         archivedBy: userContext.userId || this.currentUserRole?.userId,
         reason: userContext.reason || "Soft delete via admin interface",
@@ -1992,7 +1995,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/soft-delete`,
         {
           method: "PUT",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
@@ -2056,11 +2059,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log(`[TeamsEntityManager] Restoring team ${teamId}`);
 
       // Security validation
-      SecurityUtils.validateInput({ teamId });
+      window.SecurityUtils.validateInput({ teamId });
       this._checkPermission("create"); // Restoring requires create permission
 
       // CSRF PROTECTION: Add CSRF token and sanitize request body
-      const requestBody = SecurityUtils.preventXSS({
+      const requestBody = window.SecurityUtils.preventXSS({
         teamId: teamId,
         restoredBy: userContext.userId || this.currentUserRole?.userId,
         reason: userContext.reason || "Restore via admin interface",
@@ -2071,7 +2074,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/restore`,
         {
           method: "PUT",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),
@@ -2139,7 +2142,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/cleanup-orphaned-members`,
         {
           method: "POST",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify({
@@ -2211,7 +2214,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/relationship-statistics`,
         {
           method: "GET",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
         },
@@ -2262,7 +2265,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Security validation
-      SecurityUtils.validateInput({ relationships });
+      window.SecurityUtils.validateInput({ relationships });
       this._checkPermission("view");
 
       // Validate input structure
@@ -2279,7 +2282,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       // CSRF PROTECTION: Add CSRF token and sanitize request body
-      const requestBody = SecurityUtils.preventXSS({
+      const requestBody = window.SecurityUtils.preventXSS({
         relationships: relationships,
         validateBy: this.currentUserRole?.userId,
         timestamp: new Date().toISOString(),
@@ -2289,7 +2292,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `/rest/scriptrunner/latest/custom/teams/batch-validate-relationships`,
         {
           method: "POST",
-          headers: SecurityUtils.addCSRFProtection({
+          headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(requestBody),

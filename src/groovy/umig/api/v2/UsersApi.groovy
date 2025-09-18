@@ -2,6 +2,7 @@ package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.UserRepository
+import umig.service.UserService
 import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -39,12 +40,102 @@ private Integer getUserIdFromPath(HttpServletRequest request) {
     return null
 }
 
-// GET /users and /users/{id}
+// GET /users and /users/{id} and /users/current
 users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+
+    // GET /users/current - Get current authenticated user
+    if (pathParts.size() == 1 && pathParts[0] == 'current') {
+        try {
+            // Try to get username from ThreadLocal (primary method)
+            def currentUser = null
+            def username = null
+
+            try {
+                // Get username from UserService ThreadLocal access (per ADR-042)
+                def userContext = UserService.getCurrentUserContext()
+                username = userContext?.confluenceUsername as String
+                log.info("GET /users/current - Got username from ThreadLocal: ${username}")
+            } catch (Exception e) {
+                log.warn("GET /users/current - ThreadLocal access failed: ${e.message}")
+            }
+
+            // Fallback: check query parameter
+            if (!username) {
+                username = queryParams.getFirst('username') as String
+                log.info("GET /users/current - Using username from query parameter: ${username}")
+            }
+
+            // Additional fallback: check for userCode parameter (legacy support)
+            if (!username) {
+                username = queryParams.getFirst('userCode') as String
+                log.info("GET /users/current - Using userCode from query parameter: ${username}")
+            }
+
+            if (!username) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Unable to determine current user. Username parameter required.",
+                        debug: "ThreadLocal failed, no username or userCode parameter provided"
+                    ]).toString())
+                    .build()
+            }
+
+            // Find user by username
+            currentUser = userRepository.findUserByUsername(username as String)
+
+            if (!currentUser) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([
+                        error: "Current user not found in database",
+                        username: username
+                    ]).toString())
+                    .build()
+            }
+
+            // Return current user with role information
+            def userMap = currentUser as Map
+
+            // Get the role code from the role ID
+            def roleCode = 'USER' // Default
+            if (userMap.rls_id) {
+                switch(userMap.rls_id) {
+                    case 1: roleCode = 'ADMIN'; break
+                    case 2: roleCode = 'USER'; break
+                    case 3: roleCode = 'PILOT'; break
+                    default: roleCode = 'USER'
+                }
+            }
+
+            return Response.ok(new JsonBuilder([
+                userId: userMap.usr_id,
+                username: userMap.usr_code,
+                firstName: userMap.usr_first_name,
+                lastName: userMap.usr_last_name,
+                email: userMap.usr_email,
+                isAdmin: userMap.usr_is_admin ?: false,
+                roleId: userMap.rls_id,
+                role: roleCode,
+                isActive: userMap.usr_active,
+                source: "current_user_endpoint"
+            ]).toString()).build()
+
+        } catch (Exception e) {
+            log.error("GET /users/current - Error getting current user: ${e.message}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([
+                    error: "Failed to get current user information",
+                    details: e.message
+                ]).toString())
+                .build()
+        }
+    }
+
     Integer userId = getUserIdFromPath(request)
 
-    // Handle case where path is /users/{invalid_id}
-    if (getAdditionalPath(request) && userId == null) {
+    // Handle case where path is /users/{invalid_id} (but not /users/current)
+    if (extraPath && pathParts.size() == 1 && pathParts[0] != 'current' && userId == null) {
         return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid User ID format."]).toString()).build()
     }
 
@@ -341,7 +432,7 @@ users(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
 user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
+
     // GET /user/context
     if (pathParts.size() == 1 && pathParts[0] == 'context') {
         try {

@@ -24,21 +24,20 @@
 --changeset lucaschallamel:dto-primary-filtering-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Primary filtering indexes for buildDTOBaseQuery()
 --preconditions onFail:MARK_RAN
---precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'steps_instance_sti' AND indexname = 'idx_dto_sti_active_status_team';
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'steps_instance_sti' AND indexname = 'idx_dto_sti_status_phi';
 
 -- ================================================================================
 -- CRITICAL INDEXES FOR buildDTOBaseQuery() PERFORMANCE
 -- ================================================================================
 
 -- 1. Primary filtering index for steps_instance_sti (most critical)
--- Supports: sti_is_active = true AND sti_status = ? AND assigned_team_id = ?
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_sti_active_status_team
-ON steps_instance_sti (sti_is_active, sti_status, assigned_team_id, sti_priority DESC)
-WHERE sti_is_active = true;
+-- Supports: sti_status = ? filtering and phi_id relationships
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_sti_status_phi
+ON steps_instance_sti (sti_status, phi_id, stm_id);
 
-COMMENT ON INDEX idx_dto_sti_active_status_team IS 'US-056-C DTO: Primary filtering index for active steps with status and team filtering';
+COMMENT ON INDEX idx_dto_sti_status_phi IS 'US-056-C DTO: Primary filtering index for steps with status and hierarchical relationships';
 
---rollback DROP INDEX IF EXISTS idx_dto_sti_active_status_team;
+--rollback DROP INDEX IF EXISTS idx_dto_sti_status_phi;
 
 --changeset lucaschallamel:dto-hierarchical-navigation-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Hierarchical navigation indexes for entity relationships
@@ -48,17 +47,17 @@ COMMENT ON INDEX idx_dto_sti_active_status_team IS 'US-056-C DTO: Primary filter
 -- 2. Hierarchical navigation index for phases_instance_phi
 -- Supports: phi.phi_id = sti.phi_id filtering and sqi_id lookups
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_phi_hierarchy
-ON phases_instance_phi (phi_id, sqi_id, phi_is_active);
+ON phases_instance_phi (phi_id, sqi_id, phi_status);
 
 -- 3. Sequence to plan navigation index
--- Supports: sqi.pli_id = pli.pli_id filtering in hierarchical queries  
+-- Supports: sqi.pli_id = pli.pli_id filtering in hierarchical queries
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_sqi_plan_navigation
-ON sequences_instance_sqi (sqi_id, pli_id, sqi_is_active, sqi_number);
+ON sequences_instance_sqi (sqi_id, pli_id, sqi_status);
 
 -- 4. Plan to migration/iteration lookup index
--- Supports: pli.mig_id and pli.ite_id filtering (most common API filters)
+-- Supports: pli.ite_id filtering (most common API filters)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_pli_context
-ON plans_instance_pli (pli_id, mig_id, ite_id, pli_is_active);
+ON plans_instance_pli (pli_id, ite_id, pli_status);
 
 COMMENT ON INDEX idx_dto_phi_hierarchy IS 'US-056-C DTO: Hierarchical navigation index for phases to sequences relationship';
 COMMENT ON INDEX idx_dto_sqi_plan_navigation IS 'US-056-C DTO: Navigation index for sequence to plan relationships';
@@ -71,63 +70,55 @@ COMMENT ON INDEX idx_dto_pli_context IS 'US-056-C DTO: Context lookup index for 
 --changeset lucaschallamel:dto-lookup-optimization-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Lookup optimization indexes for common queries
 --preconditions onFail:MARK_RAN
---precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'migrations_mig' AND indexname = 'idx_dto_mig_code_lookup';
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'migrations_mig' AND indexname = 'idx_dto_mig_name_lookup';
 
--- 5. Migration code lookup optimization
--- Supports: mig.mig_code = ? filtering (very common in API calls)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_mig_code_lookup
-ON migrations_mig (mig_code, mig_id);
+-- 5. Migration name lookup optimization
+-- Supports: mig.mig_name = ? filtering (very common in API calls)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_mig_name_lookup
+ON migrations_mig (mig_name, mig_id);
 
 -- 6. Team assignment optimization
--- Supports: tms.tms_id = sti.assigned_team_id JOINs
+-- Supports: tms.tms_id = stm.tms_id_owner JOINs (through steps_master_stm)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_team_assignment
 ON teams_tms (tms_id, tms_name);
 
 -- 7. Step master hierarchy optimization
 -- Supports: stm.phm_id = phm.phm_id JOINs and step ordering
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_stm_hierarchy
-ON steps_master_stm (stm_id, phm_id, stt_code, stm_order);
+ON steps_master_stm (stm_id, phm_id, stt_code, stm_number);
 
-COMMENT ON INDEX idx_dto_mig_code_lookup IS 'US-056-C DTO: Migration code lookup optimization for API filtering';
+COMMENT ON INDEX idx_dto_mig_name_lookup IS 'US-056-C DTO: Migration name lookup optimization for API filtering';
 COMMENT ON INDEX idx_dto_team_assignment IS 'US-056-C DTO: Team assignment optimization for JOIN operations';
-COMMENT ON INDEX idx_dto_stm_hierarchy IS 'US-056-C DTO: Step master hierarchy optimization for ordering and relationships';
+COMMENT ON INDEX idx_dto_stm_hierarchy IS 'US-056-C DTO: Step master hierarchy optimization for numbering and relationships';
 
---rollback DROP INDEX IF EXISTS idx_dto_mig_code_lookup;
+--rollback DROP INDEX IF EXISTS idx_dto_mig_name_lookup;
 --rollback DROP INDEX IF EXISTS idx_dto_team_assignment;
 --rollback DROP INDEX IF EXISTS idx_dto_stm_hierarchy;
 
 --changeset lucaschallamel:dto-aggregation-subquery-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Aggregation subquery optimization indexes
 --preconditions onFail:MARK_RAN
---precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'step_dependencies_sde' AND indexname = 'idx_dto_step_dependencies';
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'instructions_instance_ini' AND indexname = 'idx_dto_instructions_count';
 
 -- ================================================================================
 -- AGGREGATION SUBQUERY OPTIMIZATION INDEXES
 -- ================================================================================
 
--- 8. Step dependencies aggregation optimization
--- Supports: dependency count subqueries in buildDTOBaseQuery()
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_step_dependencies
-ON step_dependencies_sde (sti_id, is_active, dependency_status)
-WHERE is_active = true;
-
--- 9. Instructions aggregation optimization  
+-- 8. Instructions aggregation optimization
 -- Supports: instruction count subqueries
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_instructions_count
-ON instructions_instance_ini (sti_id, ini_is_active, ini_status)
-WHERE ini_is_active = true;
+ON instructions_instance_ini (sti_id, ini_is_completed, ini_completed_at);
 
--- 10. Comments aggregation optimization
+-- 9. Comments aggregation optimization
 -- Supports: comment count and latest comment date subqueries
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_comments_aggregation
-ON step_instance_comments_sic (sti_id, is_active, created_at DESC)
-WHERE is_active = true;
+ON step_instance_comments_sic (sti_id, created_at DESC);
 
-COMMENT ON INDEX idx_dto_step_dependencies IS 'US-056-C DTO: Aggregation optimization for step dependencies count subqueries';
+-- Note: step_dependencies_sde table does not exist, so dependency optimization index is skipped
+
 COMMENT ON INDEX idx_dto_instructions_count IS 'US-056-C DTO: Aggregation optimization for instructions count subqueries';
 COMMENT ON INDEX idx_dto_comments_aggregation IS 'US-056-C DTO: Aggregation optimization for comments count and latest date subqueries';
 
---rollback DROP INDEX IF EXISTS idx_dto_step_dependencies;
 --rollback DROP INDEX IF EXISTS idx_dto_instructions_count;
 --rollback DROP INDEX IF EXISTS idx_dto_comments_aggregation;
 
@@ -143,22 +134,21 @@ COMMENT ON INDEX idx_dto_comments_aggregation IS 'US-056-C DTO: Aggregation opti
 -- 11. Single step lookup covering index (avoids table lookups)
 -- Covers most fields needed for single step DTO transformation
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_sti_covering
-ON steps_instance_sti (sti_id) 
-INCLUDE (stm_id, sti_name, sti_description, sti_status, sti_priority, 
-         sti_created_date, sti_last_modified_date, assigned_team_id, phi_id);
+ON steps_instance_sti (sti_id)
+INCLUDE (stm_id, sti_name, sti_description, sti_status,
+         created_at, updated_at, phi_id);
 
--- 12. Team-based step lookup covering index
--- Optimizes "get all steps for team" queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_team_steps_covering  
-ON steps_instance_sti (assigned_team_id, sti_is_active, sti_status)
-INCLUDE (sti_id, stm_id, sti_priority, sti_created_date)
-WHERE sti_is_active = true;
+-- 12. Status-based step lookup covering index
+-- Optimizes "get all steps by status" queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dto_status_steps_covering
+ON steps_instance_sti (sti_status, phi_id)
+INCLUDE (sti_id, stm_id, created_at);
 
 COMMENT ON INDEX idx_dto_sti_covering IS 'US-056-C DTO: Covering index for single step lookups avoiding table access';
-COMMENT ON INDEX idx_dto_team_steps_covering IS 'US-056-C DTO: Covering index for team-based step queries';
+COMMENT ON INDEX idx_dto_status_steps_covering IS 'US-056-C DTO: Covering index for status-based step queries';
 
 --rollback DROP INDEX IF EXISTS idx_dto_sti_covering;
---rollback DROP INDEX IF EXISTS idx_dto_team_steps_covering;
+--rollback DROP INDEX IF EXISTS idx_dto_status_steps_covering;
 
 --changeset lucaschallamel:dto-statistics-update
 --comment: US-056-C DTO Performance: Update table statistics for query planner optimization
@@ -182,7 +172,6 @@ ANALYZE iterations_ite;
 ANALYZE teams_tms;
 
 -- Aggregation tables
-ANALYZE step_dependencies_sde;
 ANALYZE instructions_instance_ini;
 ANALYZE step_instance_comments_sic;
 

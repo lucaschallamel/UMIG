@@ -285,7 +285,12 @@ if (typeof BaseComponent === "undefined") {
      */
     setupErrorBoundary() {
       this.errorBoundaryHandler = (event) => {
-        if (this.container && this.container.contains(event.target)) {
+        // [Security] Use enhanced DOM validation for error boundary
+        if (
+          event &&
+          event.target &&
+          this.safeContains(this.container, event.target)
+        ) {
           this.handleError(event.error, "runtime");
           event.preventDefault();
         }
@@ -390,10 +395,39 @@ if (typeof BaseComponent === "undefined") {
     }
 
     /**
+     * Safely validate DOM element (US-087 DOM Security Enhancement)
+     * @param {*} element - Element to validate
+     * @returns {boolean} True if element is valid DOM node
+     */
+    isValidDOMElement(element) {
+      return (
+        element &&
+        typeof element === "object" &&
+        element instanceof Node &&
+        element.nodeType === Node.ELEMENT_NODE
+      );
+    }
+
+    /**
+     * Safely check if element contains another element
+     * @param {Element} parent - Parent element
+     * @param {Element} child - Child element to check
+     * @returns {boolean} True if parent contains child
+     */
+    safeContains(parent, child) {
+      return (
+        this.isValidDOMElement(parent) &&
+        this.isValidDOMElement(child) &&
+        parent.contains &&
+        parent.contains(child)
+      );
+    }
+
+    /**
      * Accessibility setup
      */
     setupAccessibility() {
-      if (!this.container) return;
+      if (!this.isValidDOMElement(this.container)) return;
 
       // Ensure container is focusable if needed
       if (!this.container.hasAttribute("tabindex")) {
