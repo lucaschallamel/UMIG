@@ -49,55 +49,25 @@ async function setupJdbcDrivers() {
       );
     }
 
-    // Create Groovy classpath script
-    const groovyClasspathScript = `#!/bin/bash
-# Groovy Integration Test JDBC Classpath Setup
-# Usage: source this script before running Groovy integration tests
-
-export GROOVY_CLASSPATH="${POSTGRESQL_JAR}:\$GROOVY_CLASSPATH"
-export CLASSPATH="${POSTGRESQL_JAR}:\$CLASSPATH"
-
-echo "🔗 PostgreSQL JDBC driver added to classpath"
-echo "Driver: ${POSTGRESQL_JAR}"
-`;
-
-    const classpathScriptPath = path.join(JDBC_DIR, "setup-classpath.sh");
-    fs.writeFileSync(classpathScriptPath, groovyClasspathScript);
-    fs.chmodSync(classpathScriptPath, "755");
-    console.log(`📝 Created classpath setup script: ${classpathScriptPath}`);
-
-    // Create wrapper script for running Groovy with JDBC
-    const groovyWrapperScript = `#!/bin/bash
-# Groovy Integration Test Wrapper
-# Automatically includes PostgreSQL JDBC driver in classpath
-
-SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-POSTGRESQL_JAR="\$SCRIPT_DIR/postgresql-${POSTGRESQL_JDBC_VERSION}.jar"
-
-if [ ! -f "\$POSTGRESQL_JAR" ]; then
-    echo "❌ PostgreSQL JDBC driver not found: \$POSTGRESQL_JAR"
-    echo "Run: npm run setup:groovy-jdbc"
-    exit 1
-fi
-
-# Add PostgreSQL JDBC to classpath and run Groovy
-groovy -cp "\$POSTGRESQL_JAR" "\$@"
-`;
-
-    const wrapperScriptPath = path.join(JDBC_DIR, "groovy-with-jdbc");
-    fs.writeFileSync(wrapperScriptPath, groovyWrapperScript);
-    fs.chmodSync(wrapperScriptPath, "755");
-    console.log(`🚀 Created Groovy wrapper script: ${wrapperScriptPath}`);
-
     console.log("");
     console.log("🎉 JDBC setup complete!");
     console.log("");
     console.log("Usage options:");
-    console.log(`1. Source classpath: source ${classpathScriptPath}`);
-    console.log(`2. Use wrapper: ${wrapperScriptPath} your-test.groovy`);
+    console.log(
+      "1. Use Node.js wrapper: node scripts/groovy-with-jdbc.js your-test.groovy",
+    );
+    console.log(
+      "2. Setup classpath: node scripts/setup-groovy-classpath.js setup",
+    );
     console.log(
       '3. Manual: groovy -cp "' + POSTGRESQL_JAR + '" your-test.groovy',
     );
+    console.log("");
+    console.log("Integration with existing test infrastructure:");
+    console.log(
+      "- Groovy tests automatically use JDBC classpath via run-groovy-test.js",
+    );
+    console.log("- No shell scripts required - all Node.js based");
   } catch (error) {
     console.error("❌ JDBC setup failed:", error.message);
     process.exit(1);

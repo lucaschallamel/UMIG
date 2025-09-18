@@ -19,10 +19,10 @@
  * @rollout A/B testing enabled with 50/50 traffic split
  */
 
-import { BaseEntityManager } from "../BaseEntityManager.js";
-import { SecurityUtils } from "../../components/SecurityUtils.js";
+// Browser-compatible version - uses global objects instead of ES6 imports
+// Assumes BaseEntityManager and SecurityUtils are already loaded as globals
 
-export class TeamsEntityManager extends BaseEntityManager {
+class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
   /**
    * Initialize TeamsEntityManager with Teams-specific configuration
    */
@@ -45,6 +45,20 @@ export class TeamsEntityManager extends BaseEntityManager {
             sortable: false,
             searchable: true,
             truncate: 50,
+          },
+          {
+            key: "email",
+            label: "Team Email",
+            sortable: true,
+            searchable: true,
+            type: "email",
+            // Custom renderer for email with secure HTML
+            renderer: (value, row) => {
+              if (!value) return "";
+              // Sanitize email value to prevent XSS
+              const sanitizedEmail = value.replace(/[<>"']/g, "");
+              return `<a href="mailto:${sanitizedEmail}" class="email-link">${sanitizedEmail}</a>`;
+            },
           },
           {
             key: "memberCount",
@@ -2430,4 +2444,9 @@ export class TeamsEntityManager extends BaseEntityManager {
   }
 }
 
-export default TeamsEntityManager;
+// Make available globally for browser compatibility
+if (typeof window !== "undefined") {
+  window.TeamsEntityManager = TeamsEntityManager;
+}
+
+// Already attached to window in previous lines

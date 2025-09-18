@@ -36,10 +36,15 @@
  * @consolidation Zero feature loss, 100% backward compatibility maintained
  */
 
-import { BaseEntityManager } from "../BaseEntityManager.js";
-import { SecurityUtils } from "../../components/SecurityUtils.js";
+// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Dependencies: BaseEntityManager, SecurityUtils (accessed via window.X)
 
-export class EnvironmentsEntityManager extends BaseEntityManager {
+// Utility function to get dependencies safely
+function getDependency(name, fallback = {}) {
+  return window[name] || fallback;
+}
+
+class EnvironmentsEntityManager extends (window.BaseEntityManager || class {}) {
   /**
    * Initialize EnvironmentsEntityManager with Environments-specific configuration
    */
@@ -1171,7 +1176,7 @@ class SecureEnvironmentsAPI {
  *
  * CONSOLIDATED FROM: environments-integration.js initializeEnvironmentsEntity()
  */
-export async function initializeEnvironmentsEntity() {
+async function initializeEnvironmentsEntity() {
   console.log(
     "[Environments Integration] Initializing environments entity management with security hardening",
   );
@@ -1256,7 +1261,7 @@ export async function initializeEnvironmentsEntity() {
  *
  * CONSOLIDATED FROM: environments-integration.js handleEnvironmentsPageNavigation()
  */
-export function handleEnvironmentsPageNavigation() {
+function handleEnvironmentsPageNavigation() {
   console.log(
     "[Environments Integration] Handling environments page navigation",
   );
@@ -1287,7 +1292,7 @@ export function handleEnvironmentsPageNavigation() {
  *
  * CONSOLIDATED FROM: environments-integration.js setupEnvironmentsUtilities()
  */
-export function setupEnvironmentsUtilities() {
+function setupEnvironmentsUtilities() {
   console.warn(
     "[SECURITY WARNING] setupEnvironmentsUtilities is deprecated. Use SecureEnvironmentsAPI instead.",
   );
@@ -1366,7 +1371,7 @@ export function setupEnvironmentsUtilities() {
  *
  * CONSOLIDATED FROM: environments-integration.js secureInitialize()
  */
-export function secureInitialize() {
+function secureInitialize() {
   console.log("[Environments Integration] Secure initialization started");
 
   // Set up secure utilities
@@ -1427,9 +1432,20 @@ if (typeof window !== "undefined") {
 }
 
 // Export all classes and functions for external usage
-export { EnvironmentSecurityManager, SecureEnvironmentsAPI };
+// Attach functions to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.initializeEnvironmentsEntity = initializeEnvironmentsEntity;
+  window.handleEnvironmentsPageNavigation = handleEnvironmentsPageNavigation;
+  window.setupEnvironmentsUtilities = setupEnvironmentsUtilities;
+  window.secureInitialize = secureInitialize;
+  window.EnvironmentSecurityManager = EnvironmentSecurityManager;
+  window.SecureEnvironmentsAPI = SecureEnvironmentsAPI;
+}
 
-export default EnvironmentsEntityManager;
+// Attach to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.EnvironmentsEntityManager = EnvironmentsEntityManager;
+}
 
 // CommonJS export for Jest compatibility
 if (typeof module !== "undefined" && module.exports) {

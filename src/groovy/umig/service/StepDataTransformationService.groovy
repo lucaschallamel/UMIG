@@ -74,23 +74,23 @@ class StepDataTransformationService {
                 
                 // Hierarchical context
                 .migrationId(safeUUIDToString(row.mig_id ?: row.migration_id))
-                .migrationCode(safeString(row.migration_code ?: row.mig_code))
-                .iterationId(safeUUIDToString(row.itr_id ?: row.iteration_id))
-                .iterationCode(safeString(row.iteration_code ?: row.itr_code))
-                .sequenceId(safeUUIDToString(row.seq_id ?: row.sequence_id))
+                .migrationCode(safeString(row.migration_name ?: row.mig_name))  // Using mig_name since mig_code doesn't exist
+                .iterationId(safeUUIDToString(row.ite_id ?: row.iteration_id))
+                .iterationCode(safeString(row.iteration_type ?: row.itt_code))  // Using itt_code since ite_code doesn't exist
+                .sequenceId(safeUUIDToString(row.sqm_id ?: row.sequence_id))
                 .phaseId(safeUUIDToString(row.phm_id ?: row.phase_id))
                 
                 // Temporal fields with proper LocalDateTime conversion
-                .createdDate(safeTimestampToLocalDateTime(row.sti_created_date ?: row.created_date))
-                .lastModifiedDate(safeTimestampToLocalDateTime(row.sti_last_modified_date ?: row.last_modified_date))
-                .isActive(safeBoolean(row.sti_is_active ?: row.is_active, true))
-                .priority(safeInteger(row.sti_priority ?: row.priority, 5))
+                .createdDate(safeTimestampToLocalDateTime(row.created_at))
+                .lastModifiedDate(safeTimestampToLocalDateTime(row.updated_at))
+                // .isActive(safeBoolean(row.is_active, true))  // REMOVED - No sti_is_active column exists
+                // .priority(safeInteger(row.priority, 5))  // REMOVED - No sti_priority column exists
                 
                 // Extended metadata
                 .stepType(safeString(row.stt_code ?: row.step_type))
                 .stepCategory(safeString(row.step_category ?: row.stt_name))
-                .estimatedDuration(safeInteger(row.stm_estimated_duration ?: row.estimated_duration))
-                .actualDuration(safeInteger(row.sti_actual_duration ?: row.actual_duration))
+                .estimatedDuration(safeInteger(row.stm_duration_minutes ?: row.estimated_duration))
+                .actualDuration(safeInteger(row.sti_duration_minutes ?: row.actual_duration))
                 
                 // Progress tracking with safe integer conversion
                 .dependencyCount(safeInteger(row.dependency_count, 0))
@@ -168,9 +168,9 @@ class StepDataTransformationService {
                 .withPhaseId(safeUUIDToString(row.phm_id ?: row.phaseId))
                 
                 // Temporal fields - ISO string format for masters
-                .withCreatedDate(safeTimestampToISOString(row.stm_created_date ?: row.created_date))
-                .withLastModifiedDate(safeTimestampToISOString(row.stm_last_modified_date ?: row.last_modified_date))
-                .withIsActive(safeBoolean(row.stm_is_active ?: row.is_active, true))
+                .withCreatedDate(safeTimestampToISOString(row.created_at))
+                .withLastModifiedDate(safeTimestampToISOString(row.updated_at))
+                // .withIsActive(safeBoolean(row.stm_is_active ?: row.is_active, true))  // REMOVED - Neither stm_is_active nor is_active columns exist
                 
                 // Computed metadata fields
                 .withInstructionCount(safeInteger(row.instruction_count, 0))
@@ -321,15 +321,15 @@ class StepDataTransformationService {
             params.seq_id = safeStringToUUID(dto.sequenceId)
             params.phm_id = safeStringToUUID(dto.phaseId)
             
-            // Temporal fields
-            params.sti_created_date = safeLocalDateTimeToTimestamp(dto.createdDate)
-            params.sti_last_modified_date = safeLocalDateTimeToTimestamp(dto.lastModifiedDate)
-            params.sti_is_active = dto.isActive
-            params.sti_priority = dto.priority
-            
-            // Extended metadata
-            params.stm_estimated_duration = dto.estimatedDuration
-            params.sti_actual_duration = dto.actualDuration
+            // Temporal fields - using standard column names
+            params.created_at = safeLocalDateTimeToTimestamp(dto.createdDate)
+            params.updated_at = safeLocalDateTimeToTimestamp(dto.lastModifiedDate)
+            // params.sti_is_active = dto.isActive  -- column doesn't exist in schema
+            // params.sti_priority = dto.priority  -- column doesn't exist in schema
+
+            // Extended metadata - using correct column names
+            params.stm_duration_minutes = dto.estimatedDuration
+            params.sti_duration_minutes = dto.actualDuration
             
             // Remove null values to avoid database constraint issues
             return params.findAll { key, value -> value != null }

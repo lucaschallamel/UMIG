@@ -28,7 +28,7 @@ def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
 
 // Version string for JavaScript files (update when deploying changes)
 // Using a stable version instead of System.currentTimeMillis() for better caching
-def jsVersion = "2.4.0"
+def jsVersion = "3.0.0"
 
 // Performance configuration constants
 def PERFORMANCE_CONFIG = [
@@ -735,194 +735,851 @@ return """
 <link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css" media="print" onload="this.media='all'; this.onload=null;">
 <noscript><link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css"></noscript>
 
-<!-- Optimized JavaScript loading with lazy loading and bundling -->
-<!-- Critical modules loaded synchronously for immediate functionality -->
+<!-- Revolutionary Module Loading System with Dependency Resolution and Visual Feedback -->
 <script>
-// Intelligent script loader with performance optimization
+/**
+ * UMIG Advanced Module Loader v3.0
+ *
+ * Features:
+ * - Dependency tree resolution with topological sorting
+ * - Retry logic with exponential backoff
+ * - Visual loading progress with detailed feedback
+ * - Timeout and fallback strategies
+ * - Comprehensive error recovery
+ * - Module validation and health checks
+ */
 (function() {
   'use strict';
-  
+
   const basePath = '${webResourcesPath}/js/';
   const version = '${jsVersion}';
-  
-  // Critical modules needed for initial render (load immediately)
-  const criticalModules = [
-    'StatusColorService.js',
-    'EntityConfig.js',
-    'UiUtils.js',
-    'AdminGuiState.js'
-  ];
 
-  // Load admin-gui.js after critical modules (the main controller)
-  const mainModule = 'admin-gui.js';
-  
-  // Deferred modules loaded after critical path (lazy load)
-  // REMOVED: TableManager.js and AdminGuiController.js (conflict with admin-gui.js)
-  const deferredModules = [
-    'ApiClient.js',
-    'AuthenticationManager.js', 
-    'ModalManager.js'
-  ];
-  
-  // Load script with caching and error handling
-  function loadScript(src, callback) {
-    const script = document.createElement('script');
-    script.src = basePath + src + '?v=' + version;
-    script.async = false; // Preserve execution order
-    
-    script.onload = callback;
-    script.onerror = function() {
-      console.error('Failed to load:', src);
-      if (callback) callback();
-    };
-    
-    document.head.appendChild(script);
-  }
-  
-  // Load modules in batches for optimal performance
-  function loadModuleBatch(modules, callback) {
-    let loaded = 0;
-    const total = modules.length;
-    
-    if (total === 0) {
-      callback && callback();
-      return;
-    }
-    
-    modules.forEach(function(module) {
-      loadScript(module, function() {
-        loaded++;
-        if (loaded === total && callback) {
-          callback();
+  // Advanced Module Loader Class
+  class ModuleLoader {
+    constructor() {
+      this.basePath = basePath;
+      this.version = version;
+      this.loadedModules = new Set();
+      this.failedModules = new Set();
+      this.loadingQueue = new Map();
+      this.retryAttempts = new Map();
+      this.maxRetries = 3;
+      this.retryDelay = 1000; // Base delay for exponential backoff
+      this.globalTimeout = 30000; // 30 second total timeout
+      this.startTime = performance.now();
+
+      // Initialize visual progress
+      this.initProgressIndicator();
+
+      // Module dependency graph
+      this.modules = {
+        // Foundation modules (no dependencies)
+        'StatusColorService.js': {
+          dependencies: [],
+          exports: 'StatusColorService',
+          critical: true,
+          timeout: 5000
+        },
+        'UiUtils.js': {
+          dependencies: [],
+          exports: 'UiUtils',
+          critical: true,
+          timeout: 5000
+        },
+        'AdminGuiState.js': {
+          dependencies: [],
+          exports: 'AdminGuiState',
+          critical: true,
+          timeout: 5000
+        },
+        'EntityConfig.js': {
+          dependencies: [],
+          exports: 'EntityConfig',
+          critical: true,
+          timeout: 5000
+        },
+        'utils/FeatureToggle.js': {
+          dependencies: [],
+          exports: 'FeatureToggle',
+          critical: false,
+          timeout: 3000
+        },
+        'utils/PerformanceMonitor.js': {
+          dependencies: [],
+          exports: 'PerformanceMonitor',
+          critical: false,
+          timeout: 3000
+        },
+
+        // Component system (depends on foundation)
+        'components/SecurityUtils.js': {
+          dependencies: ['UiUtils.js'],
+          exports: 'SecurityUtils',
+          critical: true,
+          timeout: 5000
+        },
+        'components/BaseComponent.js': {
+          dependencies: ['UiUtils.js', 'AdminGuiState.js'],
+          exports: 'BaseComponent',
+          critical: true,
+          timeout: 5000
+        },
+        'components/ComponentOrchestrator.js': {
+          dependencies: ['components/BaseComponent.js', 'components/SecurityUtils.js'],
+          exports: 'ComponentOrchestrator',
+          critical: true,
+          timeout: 8000
+        },
+        'components/TableComponent.js': {
+          dependencies: ['components/BaseComponent.js'],
+          exports: 'TableComponent',
+          critical: true,
+          timeout: 5000
+        },
+        'components/ModalComponent.js': {
+          dependencies: ['components/BaseComponent.js'],
+          exports: 'ModalComponent',
+          critical: true,
+          timeout: 5000
+        },
+        'components/FilterComponent.js': {
+          dependencies: ['components/BaseComponent.js'],
+          exports: 'FilterComponent',
+          critical: true,
+          timeout: 5000
+        },
+        'components/PaginationComponent.js': {
+          dependencies: ['components/BaseComponent.js'],
+          exports: 'PaginationComponent',
+          critical: true,
+          timeout: 5000
+        },
+
+        // Entity system (depends on components)
+        'entities/BaseEntityManager.js': {
+          dependencies: ['components/ComponentOrchestrator.js', 'components/SecurityUtils.js'],
+          exports: 'BaseEntityManager',
+          critical: true,
+          timeout: 8000
+        },
+        'entities/teams/TeamsEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'TeamsEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/users/UsersEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'UsersEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/environments/EnvironmentsEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'EnvironmentsEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/applications/ApplicationsEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'ApplicationsEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/labels/LabelsEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'LabelsEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/migration-types/MigrationTypesEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'MigrationTypesEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+        'entities/iteration-types/IterationTypesEntityManager.js': {
+          dependencies: ['entities/BaseEntityManager.js'],
+          exports: 'IterationTypesEntityManager',
+          critical: true,
+          timeout: 5000
+        },
+
+        // Main controller (depends on everything)
+        'admin-gui.js': {
+          dependencies: [
+            'entities/teams/TeamsEntityManager.js',
+            'entities/users/UsersEntityManager.js',
+            'entities/environments/EnvironmentsEntityManager.js',
+            'entities/applications/ApplicationsEntityManager.js',
+            'entities/labels/LabelsEntityManager.js'
+          ],
+          exports: 'adminGui',
+          critical: true,
+          timeout: 10000
+        },
+
+        // Deferred modules (non-critical)
+        'ApiClient.js': {
+          dependencies: ['UiUtils.js'],
+          exports: 'ApiClient',
+          critical: false,
+          timeout: 3000
+        },
+        'AuthenticationManager.js': {
+          dependencies: ['UiUtils.js'],
+          exports: 'AuthenticationManager',
+          critical: false,
+          timeout: 3000
+        },
+        'ModalManager.js': {
+          dependencies: ['UiUtils.js'],
+          exports: 'ModalManager',
+          critical: false,
+          timeout: 3000
         }
-      });
-    });
-  }
-  
-  // Load critical modules first
-  loadModuleBatch(criticalModules, function() {
-    console.log('✅ Critical modules loaded');
-    
-    // Load the main admin-gui.js controller
-    loadScript(mainModule, function() {
-      console.log('✅ Main controller (admin-gui.js) loaded');
-      
-      // Show interface after main controller is ready
-      const container = document.getElementById('umig-admin-gui-root');
-      if (container) {
-        container.classList.add('loaded');
-      }
-      
-      // Start deferred loading after a short delay to prevent blocking
-      setTimeout(function() {
-        loadModuleBatch(deferredModules, function() {
-          console.log('✅ All modules loaded');
-          
-          // Trigger performance logging
-          if (window.UMIG_LOADER) {
-            window.UMIG_LOADER.logPerformance();
+      };
+    }
+
+    initProgressIndicator() {
+      // Create loading overlay with progress bar
+      const overlay = document.createElement('div');
+      overlay.id = 'umig-module-loader';
+      overlay.innerHTML = `
+        <div class="umig-loader-overlay">
+          <div class="umig-loader-content">
+            <div class="umig-loader-header">
+              <h3>🚀 UMIG Admin Console</h3>
+              <p>Loading enterprise components...</p>
+            </div>
+
+            <div class="umig-progress-container">
+              <div class="umig-progress-bar">
+                <div class="umig-progress-fill" id="umig-progress-fill"></div>
+              </div>
+              <div class="umig-progress-text">
+                <span id="umig-progress-percent">0%</span>
+                <span id="umig-progress-module">Initializing...</span>
+              </div>
+            </div>
+
+            <div class="umig-loader-details">
+              <div class="umig-loader-stats">
+                <span id="umig-loaded-count">0</span>/<span id="umig-total-count">0</span> modules loaded
+              </div>
+              <div class="umig-loader-current" id="umig-current-module">
+                Starting module loader...
+              </div>
+            </div>
+
+            <div class="umig-loader-errors" id="umig-loader-errors" style="display: none;">
+              <h4>⚠️ Loading Issues:</h4>
+              <ul id="umig-error-list"></ul>
+              <button class="umig-retry-btn" id="umig-retry-btn">Retry Failed Modules</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add styles
+      overlay.innerHTML += `
+        <style>
+          .umig-loader-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           }
-          
-          // Mark fully loaded for any waiting components
-          document.body.setAttribute('data-umig-ready', 'true');
+          .umig-loader-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-width: 400px;
+            max-width: 500px;
+          }
+          .umig-loader-header h3 {
+            margin: 0 0 0.5rem 0;
+            color: #0052cc;
+            font-size: 1.5rem;
+          }
+          .umig-loader-header p {
+            margin: 0 0 1.5rem 0;
+            color: #6b778c;
+          }
+          .umig-progress-container {
+            margin-bottom: 1.5rem;
+          }
+          .umig-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f4f5f7;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+          }
+          .umig-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0052cc, #4c9aff);
+            width: 0%;
+            transition: width 0.3s ease;
+          }
+          .umig-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b778c;
+          }
+          .umig-loader-details {
+            padding-top: 1rem;
+            border-top: 1px solid #f4f5f7;
+          }
+          .umig-loader-stats {
+            font-weight: 600;
+            color: #172b4d;
+            margin-bottom: 0.5rem;
+          }
+          .umig-loader-current {
+            font-size: 0.875rem;
+            color: #6b778c;
+            font-style: italic;
+          }
+          .umig-loader-errors {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #ffebe6;
+            border-radius: 4px;
+            border-left: 4px solid #de350b;
+          }
+          .umig-loader-errors h4 {
+            margin: 0 0 0.5rem 0;
+            color: #de350b;
+          }
+          .umig-loader-errors ul {
+            margin: 0 0 1rem 0;
+            padding-left: 1.5rem;
+          }
+          .umig-loader-errors li {
+            color: #172b4d;
+            margin-bottom: 0.25rem;
+          }
+          .umig-retry-btn {
+            background: #de350b;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+          }
+          .umig-retry-btn:hover {
+            background: #bf2600;
+          }
+        </style>
+      `;
+
+      document.body.appendChild(overlay);
+
+      // Bind retry button
+      const retryBtn = document.getElementById('umig-retry-btn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+          this.retryFailedModules();
         });
-      }, 10);
+      }
+    }
+
+    updateProgress(loaded, total, currentModule = '') {
+      const percent = Math.round((loaded / total) * 100);
+
+      const fillEl = document.getElementById('umig-progress-fill');
+      const percentEl = document.getElementById('umig-progress-percent');
+      const moduleEl = document.getElementById('umig-progress-module');
+      const loadedEl = document.getElementById('umig-loaded-count');
+      const totalEl = document.getElementById('umig-total-count');
+      const currentEl = document.getElementById('umig-current-module');
+
+      if (fillEl) fillEl.style.width = percent + '%';
+      if (percentEl) percentEl.textContent = percent + '%';
+      if (moduleEl) moduleEl.textContent = currentModule || 'Processing...';
+      if (loadedEl) loadedEl.textContent = loaded;
+      if (totalEl) totalEl.textContent = total;
+      if (currentEl) currentEl.textContent = currentModule ? `Loading: \${currentModule}` : 'Processing dependencies...';
+    }
+
+    showError(module, error) {
+      const errorsEl = document.getElementById('umig-loader-errors');
+      const errorListEl = document.getElementById('umig-error-list');
+
+      if (errorsEl && errorListEl) {
+        errorsEl.style.display = 'block';
+
+        const listItem = document.createElement('li');
+        listItem.textContent = `\${module}: \${error}`;
+        errorListEl.appendChild(listItem);
+      }
+    }
+
+    hideLoader() {
+      const loader = document.getElementById('umig-module-loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          loader.remove();
+        }, 500);
+      }
+    }
+
+    // Topological sort for dependency resolution
+    getLoadOrder() {
+      const visited = new Set();
+      const visiting = new Set();
+      const order = [];
+
+      const visit = (module) => {
+        if (visiting.has(module)) {
+          throw new Error(`Circular dependency detected involving: \${module}`);
+        }
+        if (visited.has(module)) return;
+
+        visiting.add(module);
+
+        const moduleInfo = this.modules[module];
+        if (moduleInfo && moduleInfo.dependencies) {
+          for (const dep of moduleInfo.dependencies) {
+            if (this.modules[dep]) {
+              visit(dep);
+            }
+          }
+        }
+
+        visiting.delete(module);
+        visited.add(module);
+        order.push(module);
+      };
+
+      // Visit all modules
+      for (const module of Object.keys(this.modules)) {
+        visit(module);
+      }
+
+      return order;
+    }
+
+    /**
+     * Wait for an export to become available with polling and comprehensive debugging
+     */
+    waitForExport(exportName, timeout = 1000, pollInterval = 20) {
+      return new Promise((resolve, reject) => {
+        const startTime = performance.now();
+        let pollCount = 0;
+        const maxPolls = Math.ceil(timeout / pollInterval);
+
+        console.log(`[UMIG] 🔍 Starting export verification for \${exportName} (timeout: \${timeout}ms, interval: \${pollInterval}ms)`);
+
+        const checkExport = () => {
+          pollCount++;
+          const elapsed = performance.now() - startTime;
+
+          // Check if export exists
+          if (window[exportName]) {
+            console.log(`[UMIG] ✅ Export verified: \${exportName} (found after \${pollCount} polls, \${elapsed.toFixed(1)}ms)`);
+            resolve();
+            return;
+          }
+
+          // Log progress every 10 polls or at timeout
+          if (pollCount % 10 === 0 || elapsed >= timeout * 0.8) {
+            console.log(`[UMIG] 🔍 Still waiting for \${exportName}... (poll \${pollCount}/\${maxPolls}, \${elapsed.toFixed(1)}ms elapsed)`);
+
+            // Debug: Check what's available on window
+            const windowKeys = Object.keys(window).filter(key => key.includes('Component')).slice(0, 5);
+            console.log(`[UMIG] 🐛 Available *Component keys on window:`, windowKeys);
+          }
+
+          // Timeout check
+          if (elapsed >= timeout) {
+            console.error(`[UMIG] ❌ Export timeout: \${exportName} not available after \${timeout}ms (\${pollCount} polls)`);
+
+            // Final debug dump
+            const allComponents = Object.keys(window).filter(key => key.includes('Component'));
+            console.log(`[UMIG] 🐛 All *Component exports on window:`, allComponents);
+            console.log(`[UMIG] 🐛 Checking window.\${exportName}:`, typeof window[exportName], window[exportName]);
+
+            reject(new Error(`Export \${exportName} not available after \${timeout}ms (\${pollCount} polling attempts)`));
+            return;
+          }
+
+          // Continue polling
+          setTimeout(checkExport, pollInterval);
+        };
+
+        // Start checking immediately, then poll
+        checkExport();
+      });
+    }
+
+    async loadScript(module) {
+      return new Promise(async (resolve, reject) => {
+        const moduleInfo = this.modules[module];
+        const scriptUrl = `\${this.basePath}\${module}?v=\${this.version}`;
+
+        // CRITICAL: Check if script is already loaded to prevent duplicates
+        const existingScript = document.querySelector(`script[src="\${scriptUrl}"]`);
+        if (existingScript) {
+          console.log(`[UMIG] ♻️ Module already loaded, skipping: \${module}`);
+
+          // Still verify export is available with polling
+          if (moduleInfo.exports) {
+            try {
+              await this.waitForExport(moduleInfo.exports, 500, 10);
+              resolve();
+            } catch (error) {
+              reject(new Error(`Module \${module} script exists but \${moduleInfo.exports} not available: \${error.message}`));
+            }
+            return;
+          } else {
+            resolve(); // No export to check
+            return;
+          }
+        }
+
+        // Also check if module export already exists (script may have loaded differently)
+        if (moduleInfo.exports && window[moduleInfo.exports]) {
+          console.log(`[UMIG] ⚡ Module export already available: \${module} (\${moduleInfo.exports})`);
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = scriptUrl;
+        script.async = false;
+
+        const loadTimeout = setTimeout(() => {
+          reject(new Error(`Timeout loading \${module} after \${moduleInfo.timeout}ms`));
+        }, moduleInfo.timeout || 5000);
+
+        script.onload = async () => {
+          clearTimeout(loadTimeout);
+
+          // If no export expected, resolve immediately
+          if (!moduleInfo.exports) {
+            console.log(`[UMIG] ✅ Module loaded (no export expected): \${module}`);
+            resolve();
+            return;
+          }
+
+          // Use polling to wait for export availability with enhanced debugging
+          try {
+            console.log(`[UMIG] 🔍 Waiting for export: \${moduleInfo.exports} from module \${module}`);
+
+            // Add script execution debugging
+            console.log(`[UMIG] 🐛 Script onload triggered for \${module}, DOM readyState: \${document.readyState}`);
+
+            await this.waitForExport(moduleInfo.exports, 1500, 25); // Increased timeout and interval
+            console.log(`[UMIG] ✅ Module loaded and verified: \${module}`);
+            resolve();
+          } catch (error) {
+            console.error(`[UMIG] ❌ Export verification failed for \${module}:`, error);
+
+            // Enhanced error debugging
+            console.log(`[UMIG] 🐛 Script debugging for \${module}:`);
+            console.log(`[UMIG] 🐛 - Script src: \${script.src}`);
+            console.log(`[UMIG] 🐛 - Script loaded: \${script.readyState || 'unknown'}`);
+            console.log(`[UMIG] 🐛 - Expected export: \${moduleInfo.exports}`);
+            console.log(`[UMIG] 🐛 - Actual window[\${moduleInfo.exports}]:`, window[moduleInfo.exports]);
+
+            reject(new Error(`Module \${module} loaded but \${moduleInfo.exports} not available: \${error.message}`));
+          }
+        };
+
+        script.onerror = () => {
+          clearTimeout(loadTimeout);
+          reject(new Error(`Failed to load script: \${script.src}`));
+        };
+
+        document.head.appendChild(script);
+      });
+    }
+
+    async loadModuleWithRetry(module) {
+      const moduleInfo = this.modules[module];
+
+      // Check if already loaded successfully
+      if (this.loadedModules.has(module)) {
+        console.log(`[UMIG] ✅ Module already loaded successfully: \${module}`);
+        return true;
+      }
+
+      // Check if module export already exists
+      if (moduleInfo.exports && window[moduleInfo.exports]) {
+        console.log(`[UMIG] ⚡ Module export detected, marking as loaded: \${module}`);
+        this.loadedModules.add(module);
+        return true;
+      }
+
+      let attempts = 0;
+
+      while (attempts < this.maxRetries) {
+        try {
+          await this.loadScript(module);
+          this.loadedModules.add(module);
+          this.retryAttempts.delete(module);
+          console.log(`[UMIG] ✅ Module successfully loaded and tracked: \${module}`);
+          return true;
+        } catch (error) {
+          attempts++;
+          this.retryAttempts.set(module, attempts);
+
+          console.warn(`[UMIG] ⚠️ Failed to load \${module} (attempt \${attempts}/\${this.maxRetries}):`, error.message);
+
+          if (attempts >= this.maxRetries) {
+            this.failedModules.add(module);
+            this.showError(module, error.message);
+
+            // If it's a critical module, this is serious
+            if (moduleInfo.critical) {
+              console.error(`[UMIG] 🚨 Critical module failed: \${module}`);
+              return false;
+            } else {
+              console.warn(`[UMIG] 🤷 Non-critical module failed: \${module}`);
+              return true; // Continue for non-critical modules
+            }
+          }
+
+          // Exponential backoff
+          const delay = this.retryDelay * Math.pow(2, attempts - 1);
+          console.log(`[UMIG] 🔄 Retrying \${module} in \${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+
+      return false;
+    }
+
+    async retryFailedModules() {
+      const failed = Array.from(this.failedModules);
+      this.failedModules.clear();
+
+      // Clear error display
+      const errorListEl = document.getElementById('umig-error-list');
+      if (errorListEl) {
+        errorListEl.innerHTML = '';
+      }
+
+      console.log(`[UMIG] 🔄 Retrying \${failed.length} failed modules...`);
+
+      for (const module of failed) {
+        await this.loadModuleWithRetry(module);
+      }
+
+      // Hide errors if all resolved
+      if (this.failedModules.size === 0) {
+        const errorsEl = document.getElementById('umig-loader-errors');
+        if (errorsEl) {
+          errorsEl.style.display = 'none';
+        }
+      }
+    }
+
+    async load() {
+      try {
+        console.log('[UMIG] 🚀 Starting Advanced Module Loader v3.0');
+
+        const loadOrder = this.getLoadOrder();
+        const totalModules = loadOrder.length;
+        let loadedCount = 0;
+
+        this.updateProgress(0, totalModules, 'Computing dependencies...');
+
+        console.log('[UMIG] 📋 Load order:', loadOrder);
+
+        // Set global timeout
+        const globalTimeoutId = setTimeout(() => {
+          console.error('[UMIG] ⏰ Global timeout reached - some modules may not have loaded');
+          this.finalizeLoading();
+        }, this.globalTimeout);
+
+        // Load modules in dependency order
+        for (const module of loadOrder) {
+          const moduleInfo = this.modules[module];
+
+          // Skip if already loaded
+          if (this.loadedModules.has(module)) {
+            loadedCount++;
+            this.updateProgress(loadedCount, totalModules, `\${module} (already loaded)`);
+            continue;
+          }
+
+          this.updateProgress(loadedCount, totalModules, module);
+
+          // Wait for dependencies - check both loading status AND export availability
+          const depCheckStartTime = performance.now();
+          while (moduleInfo.dependencies.some(dep => {
+            const depInfo = this.modules[dep];
+            const isLoaded = this.loadedModules.has(dep);
+            const exportAvailable = !depInfo.exports || window[depInfo.exports];
+
+            if (!isLoaded || !exportAvailable) {
+              console.log(`[UMIG] ⏳ Waiting for dependency \${dep}: loaded=\${isLoaded}, export(\${depInfo.exports})=\${!!exportAvailable}`);
+            }
+
+            return !isLoaded || !exportAvailable;
+          })) {
+            if (performance.now() - depCheckStartTime > 5000) {
+              console.error(`[UMIG] ⏰ Dependency timeout for \${module}`);
+              // Log which dependencies are missing
+              moduleInfo.dependencies.forEach(dep => {
+                const depInfo = this.modules[dep];
+                const isLoaded = this.loadedModules.has(dep);
+                const exportAvailable = !depInfo.exports || window[depInfo.exports];
+                if (!isLoaded || !exportAvailable) {
+                  console.error(`[UMIG] ❌ Missing dependency: \${dep} - loaded=\${isLoaded}, export=\${!!exportAvailable}`);
+                }
+              });
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+
+          // Load the module
+          const success = await this.loadModuleWithRetry(module);
+          if (success) {
+            loadedCount++;
+            this.updateProgress(loadedCount, totalModules, module);
+          }
+        }
+
+        clearTimeout(globalTimeoutId);
+
+        // Finalize loading
+        await this.finalizeLoading();
+
+      } catch (error) {
+        console.error('[UMIG] 💥 Fatal error in module loader:', error);
+        this.showError('System', error.message);
+      }
+    }
+
+    async finalizeLoading() {
+      const loadTime = performance.now() - this.startTime;
+      const successfulModules = this.loadedModules.size;
+      const failedModules = this.failedModules.size;
+      const totalModules = Object.keys(this.modules).length;
+
+      console.group('🎯 Module Loading Summary');
+      console.log(`⏱️  Total time: \${loadTime.toFixed(2)}ms`);
+      console.log(`✅ Successful: \${successfulModules}/\${totalModules}`);
+      console.log(`❌ Failed: \${failedModules}`);
+      console.log(`🔄 Retries attempted: \${Array.from(this.retryAttempts.values()).reduce((a, b) => a + b, 0)}`);
+
+      // Detailed module status
+      console.log('📋 Loaded modules:', Array.from(this.loadedModules));
+      if (this.failedModules.size > 0) {
+        console.log('💥 Failed modules:', Array.from(this.failedModules));
+      }
+
+      console.groupEnd();
+
+      // Check if critical modules loaded
+      const criticalModules = Object.entries(this.modules)
+        .filter(([_, info]) => info.critical)
+        .map(([name, _]) => name);
+
+      const failedCritical = criticalModules.filter(module => this.failedModules.has(module));
+
+      if (failedCritical.length === 0) {
+        console.log('[UMIG] 🎉 All critical modules loaded successfully!');
+
+        // Update progress to 100%
+        this.updateProgress(totalModules, totalModules, 'Complete!');
+
+        // Show the interface
+        const container = document.getElementById('umig-admin-gui-root');
+        if (container) {
+          container.classList.add('loaded');
+        }
+
+        // Mark as ready
+        document.body.setAttribute('data-umig-ready', 'true');
+
+        // Hide loader after short delay
+        setTimeout(() => {
+          this.hideLoader();
+        }, 1000);
+
+        // Create global reference for debugging
+        window.UMIG_MODULE_LOADER = this;
+
+      } else {
+        console.error('[UMIG] 🚨 Critical modules failed to load:', failedCritical);
+        this.showError('Critical System', `Essential modules failed: \${failedCritical.join(', ')}`);
+
+        // Update progress to show failure
+        this.updateProgress(successfulModules, totalModules, `Failed: \${failedCritical.length} critical modules`);
+
+        // Keep loader visible for retry
+      }
+    }
+  }
+
+  // Initialize and start loading
+  const loader = new ModuleLoader();
+
+  // Cache verification: Ensure v3.0.0 is properly loaded
+  console.log(`[UMIG] 🔄 Advanced Module Loader v3.0 initialized`);
+  console.log(`[UMIG] 📦 Cache version: \${version}`);
+  console.log(`[UMIG] 🕐 Load timestamp: \${new Date().toISOString()}`);
+
+  // Mark loader as active for admin-gui.js detection
+  document.body.setAttribute('data-umig-loader-active', 'true');
+  document.body.setAttribute('data-umig-loader-version', version);
+
+  // Start loading when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('[UMIG] 🚀 DOM ready, starting module loading...');
+      loader.load();
     });
-  });
-  
+  } else {
+    console.log('[UMIG] 🚀 DOM already ready, starting module loading immediately...');
+    loader.load();
+  }
+
 })();
 </script>
 
 <!-- Preload hints for faster subsequent requests -->
 <link rel="preload" href="${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}" as="script">
+<link rel="preload" href="${webResourcesPath}/js/components/ComponentOrchestrator.js?v=${jsVersion}" as="script">
+<link rel="preload" href="${webResourcesPath}/js/entities/BaseEntityManager.js?v=${jsVersion}" as="script">
+<link rel="preload" href="${webResourcesPath}/js/entities/teams/TeamsEntityManager.js?v=${jsVersion}" as="script">
 <link rel="preload" href="${webResourcesPath}/js/admin-gui.js?v=${jsVersion}" as="script">
 
-<!-- Early warning suppression and performance optimization -->
+<!-- Preserved Warning Suppression for Confluence Compatibility -->
 <script>
-// CRITICAL: Suppress warnings IMMEDIATELY before any other scripts load
+// Minimal warning suppression for Confluence compatibility
 (function() {
   'use strict';
-  
-  const perfStart = performance.now();
-  let suppressCount = 0;
-  
-  // Aggressive warning suppression - must run before Confluence scripts
+
+  // Only suppress specific known Confluence warnings that add noise
   if (window.console && console.warn) {
     const originalWarn = console.warn;
-    const originalError = console.error;
-    
+
     console.warn = function() {
       const message = arguments[0];
       if (message && typeof message === 'string') {
-        // Suppress all Confluence deprecation warnings that slow down loading
-        if (message.includes('AJS.params') || 
-            message.includes('window._') || 
-            message.includes('Dialog') ||
-            message.includes('AJS.debounce') ||
-            message.includes('deprecated') ||
-            message.includes('AJS.') ||
-            message.match(/AUI\\s*\\d+\\.\\d+/)) {
-          suppressCount++;
-          return; // Silent suppression for performance
+        // Only suppress very specific AJS.params warnings
+        if (message.includes('AJS.params is deprecated')) {
+          return; // Silent suppression for this specific warning
         }
       }
       originalWarn.apply(console, arguments);
     };
-    
-    // Also suppress related errors that can slow down initialization
-    console.error = function() {
-      const message = arguments[0];
-      if (message && typeof message === 'string' && message.includes('AJS.')) {
-        suppressCount++;
-        return;
-      }
-      originalError.apply(console, arguments);
-    };
   }
-  
-  // Create optimized loader with intelligent module bundling
-  window.UMIG_LOADER = {
-    loadStart: perfStart,
-    suppressCount: suppressCount,
-    loadedModules: [],
-    criticalModules: ['StatusColorService', 'EntityConfig', 'UiUtils', 'AdminGuiState'],
-    deferredModules: ['ApiClient', 'AuthenticationManager', 'ModalManager'],
-    
-    // Load modules with priority and bundling
-    loadModules: function(modules, callback) {
-      let loadedCount = 0;
-      const total = modules.length;
-      
-      modules.forEach(function(module, index) {
-        setTimeout(function() {
-          // Module is already loaded via script tags, just track completion
-          loadedCount++;
-          if (loadedCount === total && callback) {
-            callback();
-          }
-        }, index * 2); // Stagger by 2ms to prevent blocking
-      });
-    },
-    
-    // Enhanced performance logging
-    logPerformance: function() {
-      const loadEnd = performance.now();
-      const totalTime = loadEnd - this.loadStart;
-      
-      // Only log in development or when performance is poor
-      if (totalTime > 1000 || window.location.href.includes('localhost')) {
-        console.group('🚀 UMIG Performance Metrics');
-        console.log('📊 Load time:', totalTime.toFixed(2) + 'ms');
-        console.log('🤫 Warnings suppressed:', this.suppressCount);
-        console.log('📦 Modules loaded:', this.loadedModules.length);
-        if (totalTime > 2000) {
-          console.warn('⚠️  Slow load detected. Consider clearing browser cache.');
-        }
-        console.groupEnd();
-      }
-    }
-  };
-  
 })();
 </script>
 """
