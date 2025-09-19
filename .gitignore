@@ -170,3 +170,4 @@ local-dev-setup/test-results/*
 
 # Playwright MCP
 .playwright-mcp/
+.kiro/
