@@ -151,10 +151,8 @@ mega-linter.tmp/
 # Linting containers (if you ever output to a local dir)
 tmp/lint/
 
-# Kiro AI settings (user-specific)
-.kiro/settings/mcp.json
-
-#Claude
+# AI Assistants
+.kiro/
 .claude/
 .claude_bak/
 .screenshots/
@@ -167,6 +165,8 @@ tmp/lint/
 # Backup files (prevent accidental commit of large backup archives)
 **/local-dev-setup_confluence_data.tar.gz
 **/local-dev-setup_postgres_data.tar.gz
-.kiro/settings/mcp.json
 test-results/.last-run.json
 local-dev-setup/test-results/*
+
+# Playwright MCP
+.playwright-mcp/
