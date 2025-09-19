@@ -41,12 +41,12 @@ class UserRepository {
     def findUserByUsername(String username) {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
-                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, 
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email,
                        u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at,
                        r.rls_code as role_code, r.rls_description as role_description
                 FROM users_usr u
                 LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
-                WHERE u.usr_code = :username
+                WHERE LOWER(u.usr_code) = LOWER(:username) OR LOWER(u.usr_confluence_user_id) = LOWER(:username)
             """, [username: username])
             
             if (!user) return null

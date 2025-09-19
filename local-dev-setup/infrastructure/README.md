@@ -18,6 +18,22 @@ infrastructure/
     └── upgrade-confluence.sh # Confluence upgrade orchestrator
 ```
 
+**Related Infrastructure** (from `/local-dev-setup/scripts/infrastructure/`):
+
+```
+../scripts/infrastructure/
+└── setup-groovy-jdbc.js   # Groovy JDBC integration automation (NEW September 2025)
+```
+
+**Related Utilities** (from `/local-dev-setup/scripts/utilities/`):
+
+```
+../scripts/utilities/
+├── groovy-with-jdbc.js         # Execute Groovy with JDBC support
+├── setup-groovy-classpath.js   # Groovy classpath management
+└── ../jdbc-drivers/postgresql-42.7.3.jar  # Managed PostgreSQL JDBC driver
+```
+
 ## Quick Start
 
 ### Daily Operations
@@ -32,6 +48,22 @@ infrastructure/
 # Check system health
 podman ps -a
 podman volume ls
+```
+
+### Development Infrastructure Operations (NEW September 2025)
+
+```bash
+# From local-dev-setup directory
+cd ../local-dev-setup
+
+# Set up Groovy JDBC integration
+npm run setup:groovy-jdbc
+
+# Check Groovy environment status
+npm run groovy:classpath:status
+
+# Validate Groovy testing infrastructure
+npm run test:groovy:unit
 ```
 
 ### Upgrade Operations

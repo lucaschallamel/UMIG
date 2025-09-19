@@ -723,7 +723,7 @@ This story is designed for post-MVP implementation when:
 
 | Date       | Version | Changes                | Author |
 | ---------- | ------- | ---------------------- | ------ |
-| 2025-01-09 | 1.0     | Initial story creation | System |
+| 2025-07-09 | 1.0     | Initial story creation | System |
 
 ---
 

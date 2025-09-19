@@ -11,24 +11,30 @@ import umig.dto.CommentDTO
 import umig.service.StepDataTransformationService
 import umig.repository.StepRepository
 import umig.utils.DatabaseUtil
+import umig.tests.unit.mock.MockStatusService
 
 import java.time.LocalDateTime
 
 /**
- * US-056-A Service Layer Standardization Integration Test - Pure Groovy Compatible
- * 
+ * US-056-A Service Layer Standardization Integration Test - Pure Groovy Compatible (TD-003 Migrated)
+ *
  * Validates the complete data flow through the DTO transformation service using
  * Pure Groovy testing patterns following ADR-036.
- * 
+ *
+ * MIGRATION NOTE (TD-003 Phase 2):
+ * - Migrated from hardcoded status values to MockStatusService patterns
+ * - Maintains test reliability while eliminating hardcoded status strings
+ * - Uses MockStatusService.getDefaultStatus() and dynamic status selection
+ *
  * Tests cover:
  * 1. StepInstanceDTO creation and validation
  * 2. StepMasterDTO creation and validation
  * 3. Service transformation methods (DTO ↔ Database ↔ Email Template)
  * 4. Repository integration with DTO methods
  * 5. End-to-end data consistency validation
- * 
+ *
  * Framework: ADR-036 Pure Groovy (Zero external dependencies)
- * 
+ *
  * @since US-056-A Phase 1 - Pure Groovy Version
  */
 class StepDataTransformationServiceIntegrationTest {
@@ -197,7 +203,9 @@ class StepDataTransformationServiceIntegrationTest {
             assert dbParams.stm_id == UUID.fromString(testStepId), "stm_id should match testStepId"
             assert dbParams.sti_id == UUID.fromString(testStepInstanceId), "sti_id should match testStepInstanceId"
             assert dbParams.stm_name == "US-056-A Integration Test Step", "stm_name should match"
-            assert dbParams.sti_status == "IN_PROGRESS", "sti_status should be IN_PROGRESS"
+            // TD-003: Using MockStatusService for dynamic status validation
+            def expectedStatus = MockStatusService.getAllStatusNames('Step').find { it == 'IN_PROGRESS' } ?: MockStatusService.getDefaultStatus('Step')
+            assert dbParams.sti_status == expectedStatus, "sti_status should be ${expectedStatus}"
             assert dbParams.sti_priority == 7, "sti_priority should be 7"
             
             // All non-null values should be included
@@ -289,7 +297,9 @@ class StepDataTransformationServiceIntegrationTest {
             assert dtoFromDb.stepId == testStepId, "stepId should match"
             assert dtoFromDb.stepInstanceId == testStepInstanceId, "stepInstanceId should match"
             assert dtoFromDb.stepName == "DB Row Test Step", "stepName should be 'DB Row Test Step'"
-            assert dtoFromDb.stepStatus == "COMPLETED", "stepStatus should be 'COMPLETED'"
+            // TD-003: Using MockStatusService for dynamic status validation
+            def expectedCompletedStatus = MockStatusService.getAllStatusNames('Step').find { it == 'COMPLETED' } ?: MockStatusService.getDefaultStatus('Step')
+            assert dtoFromDb.stepStatus == expectedCompletedStatus, "stepStatus should be '${expectedCompletedStatus}'"
             assert dtoFromDb.priority == 8, "priority should be 8"
             
             // Temporal fields should be converted correctly
@@ -350,11 +360,12 @@ class StepDataTransformationServiceIntegrationTest {
         println "\n🧪 Test 7: Batch Transformation Validation"
         
         try {
-            // Multiple test DTOs
+            // Multiple test DTOs (TD-003: Using MockStatusService for dynamic status values)
+            def statusNames = MockStatusService.getAllStatusNames('Step')
             def dtos = [
                 testDTO,
-                createSimpleTestDTO(UUID.randomUUID().toString(), "Test Step 2", "PENDING"),
-                createSimpleTestDTO(UUID.randomUUID().toString(), "Test Step 3", "COMPLETED")
+                createSimpleTestDTO(UUID.randomUUID().toString(), "Test Step 2", statusNames.find { it == 'PENDING' } ?: MockStatusService.getDefaultStatus('Step')),
+                createSimpleTestDTO(UUID.randomUUID().toString(), "Test Step 3", statusNames.find { it == 'COMPLETED' } ?: statusNames[2])
             ]
             
             // Batch transforming to email template data
@@ -544,7 +555,7 @@ class StepDataTransformationServiceIntegrationTest {
             .stepInstanceId(stepInstanceId)
             .stepName("US-056-A Integration Test Step")
             .stepDescription("Comprehensive test step for DTO transformation validation")
-            .stepStatus("IN_PROGRESS")
+            .stepStatus(MockStatusService.getAllStatusNames('Step').find { it == 'IN_PROGRESS' } ?: MockStatusService.getDefaultStatus('Step'))
             .assignedTeamId(UUID.randomUUID().toString())
             .assignedTeamName("Test Team")
             .migrationId(UUID.randomUUID().toString())
@@ -583,9 +594,9 @@ class StepDataTransformationServiceIntegrationTest {
             .migrationCode("TEST-MIG")
             .priority(5)
             .dependencyCount(1)
-            .completedDependencies(status == "COMPLETED" ? 1 : 0)
+            .completedDependencies(MockStatusService.validateStatus(status, 'Step') && status == 'COMPLETED' ? 1 : 0)
             .instructionCount(1)
-            .completedInstructions(status == "COMPLETED" ? 1 : 0)
+            .completedInstructions(MockStatusService.validateStatus(status, 'Step') && status == 'COMPLETED' ? 1 : 0)
             .hasActiveComments(false)
             .build()
     }
@@ -614,7 +625,7 @@ class StepDataTransformationServiceIntegrationTest {
             sti_id: UUID.fromString(stepInstanceId),
             stm_name: "DB Row Test Step",
             stm_description: "Test step from database row",
-            sti_status: "COMPLETED",
+            sti_status: MockStatusService.getAllStatusNames('Step').find { it == 'COMPLETED' } ?: MockStatusService.getDefaultStatus('Step'),
             tms_id: UUID.randomUUID(),
             team_name: "Database Team",
             mig_id: UUID.randomUUID(),

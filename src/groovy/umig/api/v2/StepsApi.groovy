@@ -4,7 +4,6 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
-import umig.service.UserService
 import umig.utils.DatabaseUtil
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
@@ -1019,38 +1018,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def statusId = requestData.statusId as Integer
             
-            // Get user context using UserService for intelligent fallback handling
-            def userContext
-            Integer userId = null
-            
-            try {
-                userContext = UserService.getCurrentUserContext()
-                userId = userContext.userId as Integer
-                
-                // Log the user context for debugging
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi: Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userId})"
-                }
-            } catch (Exception e) {
-                // If UserService fails, try to use frontend-provided userId
-                println "StepsApi: UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
-            }
-            
-            // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
-            if (!userId && requestData.userId) {
-                try {
-                    userId = requestData.userId as Integer
-                    println "StepsApi: Using frontend-provided userId: ${userId}"
-                } catch (Exception e) {
-                    println "StepsApi: Invalid frontend userId: ${requestData.userId}"
-                }
-            }
-            
-            // Final fallback log
-            if (!userId) {
-                println "StepsApi: WARNING - No valid userId available for audit trail"
-            }
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
             StatusRepository statusRepository = getStatusRepository()
@@ -1296,19 +1265,8 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            // Get user context using UserService
-            def userContext
-            try {
-                userContext = UserService.getCurrentUserContext()
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi (open): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
-                }
-            } catch (Exception e) {
-                println "StepsApi (open): UserService failed (${e.message}), using null userId"
-                userContext = [userId: null]
-            }
-            
-            Integer userId = userContext?.userId as Integer
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = (requestData && requestData.userId) ? (requestData.userId as Integer) : null
             
             // Mark step as opened and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1349,35 +1307,8 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            // Get user context using UserService
-            def userContext
-            Integer userId = null
-            
-            try {
-                userContext = UserService.getCurrentUserContext()
-                userId = userContext.userId as Integer
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi (complete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
-                }
-            } catch (Exception e) {
-                println "StepsApi (complete): UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
-            }
-            
-            // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
-            if (!userId && requestData.userId) {
-                try {
-                    userId = requestData.userId as Integer
-                    println "StepsApi (complete): Using frontend-provided userId: ${userId}"
-                } catch (Exception e) {
-                    println "StepsApi (complete): Invalid frontend userId: ${requestData.userId}"
-                }
-            }
-            
-            // Final fallback log
-            if (!userId) {
-                println "StepsApi (complete): WARNING - No valid userId available for audit trail"
-            }
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // Complete instruction and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1423,35 +1354,8 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            // Get user context using UserService
-            def userContext
-            Integer userId = null
-            
-            try {
-                userContext = UserService.getCurrentUserContext()
-                userId = userContext.userId as Integer
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi (incomplete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
-                }
-            } catch (Exception e) {
-                println "StepsApi (incomplete): UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
-            }
-            
-            // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
-            if (!userId && requestData.userId) {
-                try {
-                    userId = requestData.userId as Integer
-                    println "StepsApi (incomplete): Using frontend-provided userId: ${userId}"
-                } catch (Exception e) {
-                    println "StepsApi (incomplete): Invalid frontend userId: ${requestData.userId}"
-                }
-            }
-            
-            // Final fallback log
-            if (!userId) {
-                println "StepsApi (incomplete): WARNING - No valid userId available for audit trail"
-            }
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // Mark instruction as incomplete and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1632,37 +1536,8 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
             
-            // Get user context using UserService for intelligent fallback handling
-            def userContext
-            Integer userId = null
-            
-            try {
-                userContext = UserService.getCurrentUserContext()
-                userId = userContext.userId as Integer
-                
-                // Log the user context for debugging
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi (POST /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
-                }
-            } catch (Exception e) {
-                println "StepsApi (POST /comments): UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
-            }
-            
-            // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
-            if (!userId && requestData.userId) {
-                try {
-                    userId = requestData.userId as Integer
-                    println "StepsApi (POST /comments): Using frontend-provided userId: ${userId}"
-                } catch (Exception e) {
-                    println "StepsApi (POST /comments): Invalid frontend userId: ${requestData.userId}"
-                }
-            }
-            
-            // Final fallback log
-            if (!userId) {
-                println "StepsApi (POST /comments): WARNING - No valid userId available for audit trail"
-            }
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1729,22 +1604,8 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
             
-            // Get user context using UserService for intelligent fallback handling
-            def userContext
-            try {
-                userContext = UserService.getCurrentUserContext()
-                
-                // Log the user context for debugging
-                if (userContext.isSystemUser || userContext.fallbackReason) {
-                    println "StepsApi (PUT /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
-                }
-            } catch (Exception e) {
-                // If UserService fails, fall back to null userId (acceptable for repository)
-                println "StepsApi (PUT /comments): UserService failed (${e.message}), proceeding with null userId for audit"
-                userContext = [userId: null, confluenceUsername: "unknown"]
-            }
-            
-            Integer userId = userContext?.userId as Integer
+            // Simple authentication pattern like TeamsApi/UsersApi
+            Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)

@@ -2,7 +2,7 @@
 
 **Project**: UMIG | **Story Points**: 3-4 | **Priority**: Medium  
 **Epic**: Data Management Standardization | **Sprint**: 6  
-**Team Kickoff**: 2025-01-09 | **Status**: READY TO START  
+**Team Kickoff**: 2025-07-09 | **Status**: READY TO START  
 **Expected Duration**: 6-8 days | **Risk Level**: LOW
 
 ---

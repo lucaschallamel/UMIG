@@ -1,6 +1,8 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
+import umig.service.StatusService
+import groovy.util.logging.Slf4j
 import java.util.UUID
 
 /**
@@ -8,8 +10,150 @@ import java.util.UUID
  * Handles operations for both master phases (phases_master_phm) and phase instances (phases_instance_phi).
  * Following the canonical-first approach with consolidated operations.
  * Implements ordering logic, dependency management, hierarchical filtering, and control point validation.
+ *
+ * TD-003 Phase 2D: Integrated StatusService for centralized status management
  */
+@Slf4j
 class PhaseRepository {
+
+    // ========================================
+    // TD-003 PHASE 2D: STATUS SERVICE INTEGRATION
+    // ========================================
+
+    /** StatusService for centralized status management (lazy loading) */
+    private static StatusService statusService
+
+    /**
+     * Get StatusService instance with lazy loading pattern
+     * @return StatusService instance
+     */
+    private static StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+            log.debug("PhaseRepository: StatusService lazy loaded for centralized status management")
+        }
+        return statusService
+    }
+
+    /**
+     * Get PASSED status name for Control entities using StatusService
+     * @return String status name for PASSED control status
+     */
+    private static String getPassedControlStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Control')
+            return validStatuses.find { it.equalsIgnoreCase('PASSED') } ?: 'PASSED'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get PASSED status via StatusService, using fallback", e)
+            return 'PASSED'
+        }
+    }
+
+    /**
+     * Get FAILED status name for Control entities using StatusService
+     * @return String status name for FAILED control status
+     */
+    private static String getFailedControlStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Control')
+            return validStatuses.find { it.equalsIgnoreCase('FAILED') } ?: 'FAILED'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get FAILED status via StatusService, using fallback", e)
+            return 'FAILED'
+        }
+    }
+
+    /**
+     * Get PENDING status name for Control entities using StatusService
+     * @return String status name for PENDING control status
+     */
+    private static String getPendingControlStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Control')
+            return validStatuses.find { it.equalsIgnoreCase('PENDING') } ?: 'PENDING'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get PENDING status via StatusService, using fallback", e)
+            return 'PENDING'
+        }
+    }
+
+    /**
+     * Get COMPLETED status name for Step entities using StatusService
+     * @return String status name for COMPLETED step status
+     */
+    private static String getCompletedStepStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return validStatuses.find { it.equalsIgnoreCase('COMPLETED') } ?: 'COMPLETED'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get COMPLETED status via StatusService, using fallback", e)
+            return 'COMPLETED'
+        }
+    }
+
+    /**
+     * Get SKIPPED status name for Step entities using StatusService
+     * @return String status name for SKIPPED step status
+     */
+    private static String getSkippedStepStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return validStatuses.find { it.equalsIgnoreCase('SKIPPED') } ?: 'SKIPPED'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get SKIPPED status via StatusService, using fallback", e)
+            return 'SKIPPED'
+        }
+    }
+
+    /**
+     * Get IN_PROGRESS status name for Phase entities using StatusService
+     * @return String status name for IN_PROGRESS phase status
+     */
+    private static String getInProgressPhaseStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Phase')
+            return validStatuses.find { it.equalsIgnoreCase('IN_PROGRESS') } ?: 'IN_PROGRESS'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get IN_PROGRESS status via StatusService, using fallback", e)
+            return 'IN_PROGRESS'
+        }
+    }
+
+    /**
+     * Get COMPLETED status name for Phase entities using StatusService
+     * @return String status name for COMPLETED phase status
+     */
+    private static String getCompletedPhaseStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Phase')
+            return validStatuses.find { it.equalsIgnoreCase('COMPLETED') } ?: 'COMPLETED'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get COMPLETED status via StatusService, using fallback", e)
+            return 'COMPLETED'
+        }
+    }
+
+    /**
+     * Get PLANNING status name for Phase entities using StatusService
+     * @return String status name for PLANNING phase status
+     */
+    private static String getPlanningPhaseStatus() {
+        // TD-003 Phase 2D: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Phase')
+            return validStatuses.find { it.equalsIgnoreCase('PLANNING') } ?: 'PLANNING'
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to get PLANNING status via StatusService, using fallback", e)
+            return 'PLANNING'
+        }
+    }
 
     // ==================== MASTER PHASE OPERATIONS ====================
     
@@ -648,8 +792,8 @@ class PhaseRepository {
                         predecessorInstanceId = predecessorInstance?.phi_id as UUID
                     }
                     
-                    // Resolve status string to status ID
-                    String statusName = (overrides.phi_status ?: 'PLANNING') as String
+                    // Resolve status string to status ID (TD-003 Phase 2D: Use StatusService for default)
+                    String statusName = (overrides.phi_status ?: getStatusService().getDefaultStatus('Phase')) as String
                     def statusId = resolvePhaseStatusId(sql, statusName)
                     
                     def instanceData = [
@@ -857,11 +1001,12 @@ class PhaseRepository {
             """, [phaseId: phaseId])
             
             def totalControls = controls.size()
-            def passedControls = controls.count { it.cti_status == 'PASSED' }
-            def failedControls = controls.count { it.cti_status == 'FAILED' }
-            def pendingControls = controls.count { it.cti_status == 'PENDING' }
+            // TD-003 Phase 2D: Use StatusService for control status names
+            def passedControls = controls.count { it.cti_status == getPassedControlStatus() }
+            def failedControls = controls.count { it.cti_status == getFailedControlStatus() }
+            def pendingControls = controls.count { it.cti_status == getPendingControlStatus() }
             def criticalControls = controls.findAll { it.cti_is_critical }
-            def failedCriticalControls = criticalControls.findAll { it.cti_status == 'FAILED' }
+            def failedCriticalControls = criticalControls.findAll { it.cti_status == getFailedControlStatus() }
             
             def allControlsPassed = (passedControls == totalControls)
             def noCriticalFailures = (failedCriticalControls.size() == 0)
@@ -898,7 +1043,8 @@ class PhaseRepository {
                     setClauses.add("cti_status = :cti_status")
                     queryParams.put("cti_status", status.cti_status as String)
                     
-                    if (status.cti_status in ['PASSED', 'FAILED']) {
+                    // TD-003 Phase 2D: Use StatusService for validation status check
+                    if (status.cti_status in [getPassedControlStatus(), getFailedControlStatus()]) {
                         setClauses.add("cti_validated_at = CURRENT_TIMESTAMP")
                     }
                 }
@@ -943,9 +1089,10 @@ class PhaseRepository {
             try {
                 // Note: This assumes override fields exist in the schema
                 // If not, this would need to be implemented via a separate override table
+                // TD-003 Phase 2D: Use StatusService for control override status
                 def rowsUpdated = sql.executeUpdate("""
-                    UPDATE controls_instance_cti 
-                    SET cti_status = 'PASSED',
+                    UPDATE controls_instance_cti
+                    SET cti_status = '${getPassedControlStatus()}',
                         cti_validated_at = CURRENT_TIMESTAMP,
                         updated_by = :overrideBy,
                         updated_at = CURRENT_TIMESTAMP
@@ -1141,11 +1288,12 @@ class PhaseRepository {
      */
     def calculatePhaseProgress(UUID phaseId) {
         DatabaseUtil.withSql { sql ->
+            // TD-003 Phase 2D: Use StatusService for step status names in progress calculation
             def stats = sql.firstRow("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_steps,
-                    COUNT(CASE WHEN sti.sti_status = 'COMPLETED' THEN 1 END) as completed_steps,
-                    COUNT(CASE WHEN sti.sti_status = 'SKIPPED' THEN 1 END) as skipped_steps
+                    COUNT(CASE WHEN sti.sti_status = '${getCompletedStepStatus()}' THEN 1 END) as completed_steps,
+                    COUNT(CASE WHEN sti.sti_status = '${getSkippedStepStatus()}' THEN 1 END) as skipped_steps
                 FROM steps_instance_sti sti
                 WHERE sti.phi_id = :phaseId
             """, [phaseId: phaseId])
@@ -1259,11 +1407,11 @@ class PhaseRepository {
                 
                 if (isInstanceSequence) {
                     def stats = sql.firstRow("""
-                        SELECT 
+                        SELECT
                             COUNT(*) as total_phases,
-                            COUNT(CASE WHEN phi_status = 'PLANNING' THEN 1 END) as planning,
-                            COUNT(CASE WHEN phi_status = 'IN_PROGRESS' THEN 1 END) as in_progress,
-                            COUNT(CASE WHEN phi_status = 'COMPLETED' THEN 1 END) as completed,
+                            COUNT(CASE WHEN phi_status = '${getPlanningPhaseStatus()}' THEN 1 END) as planning,
+                            COUNT(CASE WHEN phi_status = '${getInProgressPhaseStatus()}' THEN 1 END) as in_progress,
+                            COUNT(CASE WHEN phi_status = '${getCompletedPhaseStatus()}' THEN 1 END) as completed,
                             MIN(created_at) as first_created,
                             MAX(updated_at) as last_updated
                         FROM phases_instance_phi
@@ -1344,14 +1492,15 @@ class PhaseRepository {
      * @return Integer status ID for 'PLANNING' Phase status
      */
     private Integer getDefaultPhaseInstanceStatusId(groovy.sql.Sql sql) {
+        // TD-003 Phase 2D: Use StatusService for default phase status lookup
         Map defaultStatus = sql.firstRow("""
-            SELECT sts_id 
-            FROM status_sts 
-            WHERE sts_name = 'PLANNING' AND sts_type = 'Phase'
+            SELECT sts_id
+            FROM status_sts
+            WHERE sts_name = '${getPlanningPhaseStatus()}' AND sts_type = 'Phase'
             LIMIT 1
         """) as Map
-        
-        // Fallback to any Phase status if PLANNING not found
+
+        // Fallback to any Phase status if default not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
                 SELECT sts_id 
@@ -1374,7 +1523,19 @@ class PhaseRepository {
         if (!statusName) {
             return getDefaultPhaseInstanceStatusId(sql)
         }
-        
+
+        // TD-003 Phase 2D: Validate status name using StatusService
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Phase')
+            if (!validStatuses.contains(statusName.toUpperCase())) {
+                log.warn("PhaseRepository: Invalid phase status '${statusName}', using default")
+                return getDefaultPhaseInstanceStatusId(sql)
+            }
+        } catch (Exception e) {
+            log.warn("PhaseRepository: Failed to validate status via StatusService: ${e.message}")
+            // Continue with database lookup as fallback
+        }
+
         try {
             Map status = sql.firstRow("""
                 SELECT sts_id 

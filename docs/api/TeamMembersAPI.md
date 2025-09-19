@@ -166,7 +166,7 @@
     "usr_email": "john.doe@company.com",
     "usr_code": "JDOE",
     "rls_id": 2,
-    "created_at": "2025-01-15T10:30:00Z",
+    "created_at": "2025-07-15T10:30:00Z",
     "created_by": "admin_user"
   },
   {
@@ -175,7 +175,7 @@
     "usr_email": "jane.smith@company.com",
     "usr_code": "JSMITH",
     "rls_id": 1,
-    "created_at": "2025-01-15T11:00:00Z",
+    "created_at": "2025-07-15T11:00:00Z",
     "created_by": "admin_user"
   }
 ]
@@ -209,7 +209,7 @@
     "tms_name": "IT_CUTOVER",
     "tms_description": "Team for IT Cutover activities",
     "tms_email": "it_cutover@umig.com",
-    "created_at": "2025-01-15T10:30:00Z",
+    "created_at": "2025-07-15T10:30:00Z",
     "created_by": "admin_user"
   }
 ]
@@ -439,7 +439,7 @@
 
 ## 13. Changelog
 
-### 2025-01-15
+### 2025-07-15
 
 - **Change:** Initial API specification created
 - **Author:** Claude AI Assistant (gendev-documentation-generator)

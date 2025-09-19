@@ -11,17 +11,21 @@
  * - Security-first design
  */
 
-// Ensure BaseComponent is available
-let BaseComponent;
-if (typeof require !== "undefined") {
-  try {
-    BaseComponent = require("./BaseComponent");
-  } catch (e) {
-    // BaseComponent may be loaded globally
-  }
-}
-if (!BaseComponent && typeof window !== "undefined") {
-  BaseComponent = window.BaseComponent;
+// Import BaseComponent for Node.js/testing environment
+if (typeof BaseComponent === "undefined") {
+  var BaseComponent = (function () {
+    if (typeof require !== "undefined") {
+      try {
+        return require("./BaseComponent");
+      } catch (e) {
+        // BaseComponent not available in this environment
+        return null;
+      }
+    } else if (typeof window !== "undefined") {
+      return window.BaseComponent;
+    }
+    return null;
+  })();
 }
 
 class FilterComponent extends BaseComponent {
@@ -58,12 +62,14 @@ class FilterComponent extends BaseComponent {
    */
   validateFilters() {
     this.filters = this.filters.filter((filter) => {
-      if (!filter.name || !filter.type) {
+      // Support both 'name' and 'key' for backward compatibility
+      const filterIdentifier = filter.name || filter.key;
+      if (!filterIdentifier || !filter.type) {
         this.logWarning("Invalid filter configuration:", filter);
         return false;
       }
 
-      // Validate filter type
+      // Validate filter type - added 'range' support
       const validTypes = [
         "text",
         "select",
@@ -72,10 +78,16 @@ class FilterComponent extends BaseComponent {
         "daterange",
         "number",
         "boolean",
+        "range", // Added support for range filters
       ];
       if (!validTypes.includes(filter.type)) {
         this.logWarning(`Invalid filter type: ${filter.type}`);
         return false;
+      }
+
+      // Normalize filter identifier (ensure 'name' property exists)
+      if (!filter.name && filter.key) {
+        filter.name = filter.key;
       }
 
       // Sanitize filter name and label
@@ -89,6 +101,18 @@ class FilterComponent extends BaseComponent {
           return false;
         }
         filter.options = this.sanitizeOptions(filter.options);
+      }
+
+      // Validate range filters
+      if (filter.type === "range") {
+        if (typeof filter.min !== "number" || typeof filter.max !== "number") {
+          this.logWarning("Range filter missing min/max values:", filter);
+          return false;
+        }
+        if (filter.min >= filter.max) {
+          this.logWarning("Range filter min must be less than max:", filter);
+          return false;
+        }
       }
 
       return true;

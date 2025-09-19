@@ -6,6 +6,7 @@ import java.util.UUID
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 import umig.service.StepDataTransformationService
+import umig.tests.unit.mock.MockStatusService
 
 /**
  * Unit Tests for StepDataTransformationService (US-056-C API Layer Integration)
@@ -48,7 +49,8 @@ class StepDataTransformationServiceTest {
             sti_id: UUID.randomUUID(),
             stm_id: UUID.randomUUID(),
             phm_id: UUID.randomUUID(),
-            sti_status: "IN_PROGRESS",
+            // TD-003 Migration: Use MockStatusService for controlled status values
+            sti_status: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name ?: 'IN_PROGRESS',
             sti_actual_start_time: new Date(),
             sti_actual_end_time: new Date(),
             sti_assigned_user_id: "testuser",
@@ -56,7 +58,8 @@ class StepDataTransformationServiceTest {
             stm_name: "Test Step",
             stm_description: "Test Description",
             phi_name: "Test Phase",
-            status_name: "IN_PROGRESS"
+            // TD-003 Migration: Dynamic status name from MockStatusService
+            status_name: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name ?: 'IN_PROGRESS'
         ] as Map<String, Object>
         
         // Act - Use correct method name from service
@@ -67,7 +70,9 @@ class StepDataTransformationServiceTest {
         assert result.stepInstanceId == rawData.sti_id.toString() : "Step instance ID should match"
         assert result.stepId == rawData.stm_id.toString() : "Step master ID should match" 
         assert result.phaseId == rawData.phm_id.toString() : "Phase ID should match"
-        assert result.stepStatus == rawData.sti_status : "Status should match"
+        // TD-003 Migration: Validate status using MockStatusService instead of hardcoded comparison
+        assert MockStatusService.validateStatus(result.stepStatus, 'Step') : "Status should be valid: ${result.stepStatus}"
+        assert result.stepStatus == MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name : "Status should match expected value from service"
         assert result.stepName == rawData.stm_name : "Step name should match"
         assert result.stepDescription == rawData.stm_description : "Step description should match"
         
@@ -85,10 +90,12 @@ class StepDataTransformationServiceTest {
             sti_id: UUID.randomUUID(),
             stm_id: UUID.randomUUID(),
             phm_id: UUID.randomUUID(),
-            sti_status: "NOT_STARTED",
+            // TD-003 Migration: Use MockStatusService for status value
+            sti_status: MockStatusService.getDefaultStatus('Step'),
             stm_name: "Test Step",
             phi_name: "Test Phase",
-            status_name: "NOT_STARTED"
+            // TD-003 Migration: Dynamic status name
+            status_name: MockStatusService.getDefaultStatus('Step')
             // Intentionally omitting optional fields
         ] as Map<String, Object>
         
@@ -173,13 +180,15 @@ class StepDataTransformationServiceTest {
         // Arrange - Mix of proper and string types to test casting with explicit type
         Map<String, Object> rawData = [
             sti_id: UUID.randomUUID(),
-            stm_id: UUID.randomUUID(), 
+            stm_id: UUID.randomUUID(),
             phm_id: UUID.randomUUID(),
-            sti_status: "IN_PROGRESS", // String status value
+            // TD-003 Migration: Use MockStatusService for test status
+            sti_status: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name ?: 'IN_PROGRESS', // Dynamic status value
             sti_priority: "7", // String instead of Integer for priority
             stm_name: "Test Step",
             phi_name: "Test Phase",
-            status_name: "IN_PROGRESS"
+            // TD-003 Migration: Consistent status naming
+            status_name: MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name ?: 'IN_PROGRESS'
         ] as Map<String, Object>
         
         // Act
@@ -187,8 +196,10 @@ class StepDataTransformationServiceTest {
         
         // Assert - Should handle type casting per ADR-031
         assert result != null : "DTO should not be null"
+        // TD-003 Migration: Dynamic status validation instead of hardcoded checks
         assert result.stepStatus instanceof String : "Status should remain as String"
-        assert result.stepStatus == "IN_PROGRESS" : "Status value should be correct"
+        assert MockStatusService.validateStatus(result.stepStatus, 'Step') : "Status should be valid: ${result.stepStatus}"
+        assert result.stepStatus == MockStatusService.getStatusByName('IN_PROGRESS', 'Step')?.name : "Status value should be correct from service"
         assert result.priority instanceof Integer : "Priority should be cast to Integer"
         assert result.priority == 7 : "Priority value should be correctly cast"
         

@@ -155,9 +155,25 @@ describe("IterationTypesEntityManager Unit Tests", () => {
   });
 
   afterEach(() => {
-    // Clean up
+    // Enhanced cleanup for TD-005 memory leak prevention
     if (entityManager) {
       entityManager._clearCaches();
+      // Ensure complete cleanup
+      if (entityManager.destroy) {
+        entityManager.destroy();
+      }
+      entityManager = null;
+    }
+
+    // Clear any remaining timers/intervals
+    jest.clearAllTimers();
+
+    // Clear mocks to prevent memory accumulation
+    jest.clearAllMocks();
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
     }
   });
 

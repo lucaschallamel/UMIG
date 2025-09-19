@@ -30,13 +30,33 @@ describe("ModalComponent", () => {
   });
 
   afterEach(() => {
-    // Clean up
+    // Enhanced cleanup for TD-005 memory leak prevention
     if (component) {
       component.destroy();
       component = null;
     }
-    document.body.removeChild(container);
+
+    // Clean up DOM
+    if (container && container.parentNode) {
+      document.body.removeChild(container);
+    }
     document.body.classList.remove("modal-open");
+
+    // Clear any remaining timers/intervals
+    jest.clearAllTimers();
+
+    // Clear mocks to prevent memory accumulation
+    jest.clearAllMocks();
+
+    // Clear global references
+    if (global.BaseComponent) {
+      // Don't null this as it may be needed by other tests
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
   });
 
   describe("Initialization", () => {

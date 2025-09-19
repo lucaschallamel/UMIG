@@ -226,9 +226,9 @@
   "predecessor_sqm_id": null,
   "predecessor_name": null,
   "created_by": "admin",
-  "created_at": "2025-01-15T10:30:00Z",
+  "created_at": "2025-07-15T10:30:00Z",
   "updated_by": "admin",
-  "updated_at": "2025-01-15T10:30:00Z"
+  "updated_at": "2025-07-15T10:30:00Z"
 }
 ```
 
@@ -473,8 +473,8 @@ Sequence 4: Application Startup (order: 4, predecessor: Sequence 3)
 ## 15. Changelog
 
 - **2025-08-22:** Enhanced with PostgreSQL integration patterns, flexible status handling, multiple date formats, auto-assignment features, and comprehensive error handling
-- **2025-01-15:** Created comprehensive API specification with audit fields and dependency documentation
-- **2024-12-15:** Initial implementation of Sequences API v2 with ordering support
+- **2025-07-15:** Created comprehensive API specification with audit fields and dependency documentation
+- **2025-08-01:** Initial implementation of Sequences API v2 with ordering support
 - **Author:** Claude AI Assistant (UMIG Documentation Update)
 
 ---

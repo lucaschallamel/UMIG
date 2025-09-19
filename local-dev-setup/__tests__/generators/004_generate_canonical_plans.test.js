@@ -5,6 +5,9 @@ import {
 } from "../../scripts/generators/004_generate_canonical_plans.js";
 import { faker } from "../../scripts/lib/utils.js";
 
+// Import MockStatusProvider for test isolation (TD-003 Phase 3)
+const MockStatusProvider = require("../mocks/MockStatusProvider");
+
 // Mock dependencies
 jest.mock("../../scripts/lib/db.js", () => ({
   client: {
@@ -35,8 +38,13 @@ const CONFIG = {
 };
 
 describe("Canonical Plans Generator (04_generate_canonical_plans.js)", () => {
+  let mockStatusProvider;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Initialize MockStatusProvider for test isolation (TD-003 Phase 3)
+    mockStatusProvider = new MockStatusProvider();
 
     // Silence console output
     jest.spyOn(console, "log").mockImplementation(() => {});
@@ -79,8 +87,8 @@ describe("Canonical Plans Generator (04_generate_canonical_plans.js)", () => {
       ) {
         return Promise.resolve({
           rows: [
-            { sts_id: 1, sts_name: "PLANNING" },
-            { sts_id: 2, sts_name: "ACTIVE" },
+            { sts_id: 1, sts_name: mockStatusProvider.getStatusNameById(1) },
+            { sts_id: 2, sts_name: mockStatusProvider.getStatusNameById(2) },
           ],
         });
       }
@@ -211,8 +219,8 @@ describe("Canonical Plans Generator (04_generate_canonical_plans.js)", () => {
         ) {
           return Promise.resolve({
             rows: [
-              { sts_id: 1, sts_name: "PLANNING" },
-              { sts_id: 2, sts_name: "ACTIVE" },
+              { sts_id: 1, sts_name: mockStatusProvider.getStatusNameById(1) },
+              { sts_id: 2, sts_name: mockStatusProvider.getStatusNameById(2) },
             ],
           });
         }

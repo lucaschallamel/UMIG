@@ -1277,8 +1277,26 @@ describe("Teams Entity Migration - Integration Tests", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     if (teamsManager) {
       teamsManager.destroy();
+      teamsManager = null;
+    }
+
+    // Clear any remaining timers/intervals
+    jest.clearAllTimers();
+
+    // Clear mocks to prevent memory accumulation
+    jest.clearAllMocks();
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+
+    // Clear DOM if present
+    if (container) {
+      container.innerHTML = "";
     }
   });
 
@@ -1413,8 +1431,26 @@ describe("Teams Entity Migration - Performance Integration", () => {
   });
 
   afterEach(() => {
+    // Enhanced cleanup for TD-005 memory leak prevention
     if (teamsManager) {
       teamsManager.destroy();
+      teamsManager = null;
+    }
+
+    // Clear any remaining timers/intervals
+    jest.clearAllTimers();
+
+    // Clear mocks to prevent memory accumulation
+    jest.clearAllMocks();
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+
+    // Clear DOM if present
+    if (container) {
+      container.innerHTML = "";
     }
   });
 

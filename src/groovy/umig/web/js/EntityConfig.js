@@ -3,10 +3,100 @@
  *
  * Defines entity configurations including fields, table columns, sort mappings,
  * filters, and permissions for all admin GUI entities.
+ *
+ * TD-003 Enhanced: Integrated StatusProvider for dynamic status management
  */
 
 (function () {
   "use strict";
+
+  // ===== TD-003 Phase 2H: StatusProvider Integration =====
+
+  /**
+   * Generate dynamic status options for dropdown fields
+   * @param {string} entityType - Entity type for StatusProvider (e.g., 'Iteration', 'Step')
+   * @param {Array} fallbackOptions - Fallback options if StatusProvider fails
+   * @returns {Array} Status options for dropdown
+   */
+  function generateStatusOptions(entityType, fallbackOptions = []) {
+    // Return promise-based function that will be resolved when dropdown is populated
+    return {
+      dynamic: true,
+      entityType: entityType,
+      fallback: fallbackOptions,
+      getOptions: async function () {
+        try {
+          if (window.StatusProvider) {
+            console.debug(
+              `EntityConfig: Using StatusProvider for ${entityType} options`,
+            );
+            return await window.StatusProvider.getDropdownOptions(entityType);
+          }
+        } catch (error) {
+          console.warn(
+            `EntityConfig: StatusProvider failed for ${entityType}, using fallback:`,
+            error,
+          );
+        }
+
+        console.debug(`EntityConfig: Using fallback options for ${entityType}`);
+        return fallbackOptions;
+      },
+    };
+  }
+
+  /**
+   * Get status options with fallback - for immediate synchronous access
+   * @param {string} entityType - Entity type
+   * @param {Array} fallbackOptions - Fallback hardcoded options
+   * @returns {Array} Status options
+   */
+  function getStatusOptionsSync(entityType, fallbackOptions = []) {
+    // For immediate access during config initialization
+    // The actual dropdown population will be handled asynchronously
+    return fallbackOptions;
+  }
+
+  /**
+   * Create dynamic status mapping for numeric ID to name conversion
+   * @param {string} entityType - Entity type for StatusProvider
+   * @param {Object} fallbackMap - Fallback mapping object
+   * @returns {Object} Status mapping object
+   */
+  function createStatusMapping(entityType, fallbackMap = {}) {
+    // Return object with fallback data but dynamic lookup capability
+    return {
+      dynamic: true,
+      entityType: entityType,
+      fallback: fallbackMap,
+      getStatusName: async function (statusId) {
+        try {
+          if (window.StatusProvider) {
+            const statuses =
+              await window.StatusProvider.getStatuses(entityType);
+            const status = statuses.find((s) => s.id === statusId);
+            if (status) {
+              return status.name;
+            }
+          }
+        } catch (error) {
+          console.warn(
+            `EntityConfig: StatusProvider lookup failed for ${entityType} ID ${statusId}, using fallback:`,
+            error,
+          );
+        }
+
+        // Use fallback mapping
+        return fallbackMap[statusId] || `STATUS_${statusId}`;
+      },
+      // For immediate synchronous access during render
+      [1]: "PLANNING",
+      [9]: "PLANNING",
+      [10]: "IN_PROGRESS",
+      [11]: "COMPLETED",
+      [12]: "CANCELLED",
+    };
+  }
 
   // Entity configurations
   const ENTITY_CONFIG = {
@@ -425,12 +515,12 @@
           key: "ite_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Iteration", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         {
           key: "mig_id",
@@ -575,13 +665,13 @@
           }
           // Handle numeric status values - map to string equivalents
           else if (typeof value === "number") {
-            const statusMap = {
+            const statusMap = createStatusMapping("Iteration", {
               1: "PLANNING",
               9: "PLANNING",
               10: "IN_PROGRESS",
               11: "COMPLETED",
               12: "CANCELLED",
-            };
+            });
             statusName = statusMap[value] || `STATUS_${value}`;
           }
           // Legacy handling for object status values
@@ -689,12 +779,12 @@
           key: "mig_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Migration", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         {
           key: "mig_type",
@@ -875,12 +965,12 @@
           icon: "🔄",
           requiresInput: true,
           inputType: "select",
-          inputOptions: [
+          inputOptions: generateStatusOptions("Migration", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         {
           id: "export_selected",
@@ -920,12 +1010,12 @@
           key: "plm_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Plan", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         {
           key: "sequence_count",
@@ -1479,12 +1569,12 @@
           key: "sqm_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Sequence", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         { key: "sqm_order", label: "Order", type: "number", required: true },
         {
@@ -1859,12 +1949,12 @@
           key: "stm_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Step", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         // Computed fields pattern
         {
@@ -2009,12 +2099,12 @@
           key: "inm_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Instruction", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         // Computed fields pattern
         {
@@ -2726,12 +2816,12 @@
           key: "ctm_status",
           label: "Status",
           type: "select",
-          options: [
+          options: generateStatusOptions("Control", [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
             { value: "CANCELLED", label: "Cancelled" },
-          ],
+          ]),
         },
         // Computed fields pattern
         {

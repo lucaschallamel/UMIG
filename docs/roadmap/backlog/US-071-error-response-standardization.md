@@ -213,7 +213,7 @@ class StandardErrorResponse {
 {
   "errorCode": "VALIDATION_ERROR",
   "message": "Invalid input provided for migration creation",
-  "timestamp": "2025-01-09T10:30:00.000Z",
+  "timestamp": "2025-07-09T10:30:00.000Z",
   "path": "/rest/scriptrunner/latest/custom/migrations",
   "context": {
     "field": "migrationName",
@@ -233,7 +233,7 @@ class StandardErrorResponse {
 {
   "errorCode": "RESOURCE_NOT_FOUND",
   "message": "Migration not found",
-  "timestamp": "2025-01-09T10:30:00.000Z",
+  "timestamp": "2025-07-09T10:30:00.000Z",
   "path": "/rest/scriptrunner/latest/custom/migrations/123e4567-e89b-12d3-a456-426614174000",
   "context": {
     "resourceType": "Migration",
@@ -250,7 +250,7 @@ class StandardErrorResponse {
 
 | Date       | Version | Changes                                          | Author |
 | ---------- | ------- | ------------------------------------------------ | ------ |
-| 2025-01-09 | 1.0     | Initial story creation for error standardization | System |
+| 2025-07-09 | 1.0     | Initial story creation for error standardization | System |
 
 ---
 

@@ -26,6 +26,11 @@ const config = {
   moduleFileExtensions: ["js", "json"],
   clearMocks: true,
   resetMocks: true,
+  // Stability optimizations for TD-005 Phase 4
+  detectLeaks: false, // Disabled experimental feature for stable execution
+  maxWorkers: "50%", // Limit resource usage
+  forceExit: true, // Force exit on completion
+  detectOpenHandles: true, // Detect hanging processes
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   transform: {
     "^.+\.js$": "babel-jest",

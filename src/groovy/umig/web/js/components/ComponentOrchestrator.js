@@ -255,6 +255,145 @@ class ComponentOrchestrator {
   }
 
   /**
+   * Create and register a component instance
+   * @param {string} componentType - Type of component to create (table, modal, filter, pagination)
+   * @param {Object} config - Component configuration
+   * @returns {Promise<Object>} Created component instance
+   */
+  async createComponent(componentType, config = {}) {
+    try {
+      this.logDebug(`Creating component: ${componentType}`);
+
+      // Validate input
+      if (!componentType || typeof componentType !== "string") {
+        throw new Error("Component type is required and must be a string");
+      }
+
+      // Generate unique component ID
+      const componentId = this.generateComponentId(componentType, config);
+
+      // Check if component already exists
+      if (this.components.has(componentId)) {
+        this.logDebug(`Returning existing component: ${componentId}`);
+        return this.components.get(componentId).instance;
+      }
+
+      // Create component instance based on type
+      let componentInstance;
+      const containerId =
+        config.containerId || this.generateContainerId(componentType);
+
+      // Create DOM container if it doesn't exist
+      this.ensureContainerExists(containerId, componentType);
+
+      switch (componentType.toLowerCase()) {
+        case "table":
+          if (typeof window.TableComponent === "undefined") {
+            throw new Error("TableComponent is not available");
+          }
+          componentInstance = new window.TableComponent(containerId, config);
+          break;
+
+        case "modal":
+          if (typeof window.ModalComponent === "undefined") {
+            throw new Error("ModalComponent is not available");
+          }
+          componentInstance = new window.ModalComponent(containerId, config);
+          break;
+
+        case "filter":
+          if (typeof window.FilterComponent === "undefined") {
+            throw new Error("FilterComponent is not available");
+          }
+          componentInstance = new window.FilterComponent(containerId, config);
+          break;
+
+        case "pagination":
+          if (typeof window.PaginationComponent === "undefined") {
+            throw new Error("PaginationComponent is not available");
+          }
+          componentInstance = new window.PaginationComponent(
+            containerId,
+            config,
+          );
+          break;
+
+        default:
+          throw new Error(`Unknown component type: ${componentType}`);
+      }
+
+      // Initialize the component if it has an initialize method
+      if (
+        componentInstance &&
+        typeof componentInstance.initialize === "function"
+      ) {
+        await componentInstance.initialize();
+      }
+
+      // Register the component
+      this.registerComponent(componentId, componentInstance);
+
+      this.logDebug(`Component created and registered: ${componentId}`);
+      return componentInstance;
+    } catch (error) {
+      this.logError(`Failed to create component ${componentType}:`, error);
+      this.handleComponentError(componentType, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate unique component ID
+   * @private
+   */
+  generateComponentId(componentType, config) {
+    const entityType = config.entityType || "unknown";
+    const timestamp = Date.now();
+    return `${componentType}-${entityType}-${timestamp}`;
+  }
+
+  /**
+   * Generate container ID for component
+   * @private
+   */
+  generateContainerId(componentType) {
+    const timestamp = Date.now();
+    return `${componentType}-container-${timestamp}`;
+  }
+
+  /**
+   * Ensure DOM container exists for component
+   * @private
+   */
+  ensureContainerExists(containerId, componentType) {
+    // Check if container already exists
+    let container = document.getElementById(containerId);
+    if (container) {
+      this.logDebug(`Container already exists: ${containerId}`);
+      return container;
+    }
+
+    // Container doesn't exist, create it
+    if (!this.config.container) {
+      throw new Error(`No parent container available to create ${containerId}`);
+    }
+
+    container = document.createElement("div");
+    container.id = containerId;
+    container.className = `component-container ${componentType}-container`;
+
+    // Set up basic structure and accessibility
+    container.setAttribute("role", "region");
+    container.setAttribute("aria-label", `${componentType} component`);
+
+    // Add to parent container
+    this.config.container.appendChild(container);
+
+    this.logDebug(`Created DOM container: ${containerId}`);
+    return container;
+  }
+
+  /**
    * Unregister a component
    */
   unregisterComponent(componentId) {
@@ -2951,6 +3090,28 @@ class ComponentOrchestrator {
   }
 
   /**
+   * Set container for component creation
+   * @param {HTMLElement} container - Parent container element
+   */
+  setContainer(container) {
+    if (!container) {
+      this.logError("setContainer called with null/undefined container");
+      return;
+    }
+
+    if (!(container instanceof HTMLElement)) {
+      this.logError(
+        "setContainer called with non-HTMLElement:",
+        typeof container,
+      );
+      return;
+    }
+
+    this.config.container = container;
+    this.logDebug(`Container updated: ${container.id || container.tagName}`);
+  }
+
+  /**
    * Clean up memory-efficient structures
    * WeakMap entries are automatically garbage collected when components are removed
    */
@@ -2989,6 +3150,11 @@ class ComponentOrchestrator {
       suspensionTimestampsNote: "WeakMap entries auto-cleaned by GC",
     };
   }
+}
+
+// Make available globally for browser compatibility
+if (typeof window !== "undefined") {
+  window.ComponentOrchestrator = ComponentOrchestrator;
 }
 
 // Export for use in other components

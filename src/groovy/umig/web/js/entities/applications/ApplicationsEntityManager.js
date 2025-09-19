@@ -15,19 +15,20 @@
  * @since US-082-C Entity Migration Standard
  */
 
-import BaseEntityManager from "../BaseEntityManager.js";
-import ComponentOrchestrator from "../../components/ComponentOrchestrator.js";
-import SecurityUtils from "../../components/SecurityUtils.js";
-import TableComponent from "../../components/TableComponent.js";
-import ModalComponent from "../../components/ModalComponent.js";
-import FilterComponent from "../../components/FilterComponent.js";
-import PaginationComponent from "../../components/PaginationComponent.js";
+// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Dependencies: BaseEntityManager, ComponentOrchestrator, SecurityUtils, TableComponent,
+// ModalComponent, FilterComponent, PaginationComponent (accessed via window.X)
+
+// Utility function to get dependencies safely
+function getDependency(name, fallback = {}) {
+  return window[name] || fallback;
+}
 
 /**
  * ApplicationsEntityManager - Production-ready implementation
  * Manages application entities with enterprise-grade features
  */
-class ApplicationsEntityManager extends BaseEntityManager {
+class ApplicationsEntityManager extends (window.BaseEntityManager || class {}) {
   constructor(containerId, options = {}) {
     // Configure ApplicationsEntityManager with comprehensive settings
     const applicationConfig = this.buildApplicationConfig();
@@ -72,21 +73,30 @@ class ApplicationsEntityManager extends BaseEntityManager {
           label: "Application Code",
           sortable: true,
           width: "150px",
-          formatter: (value) => SecurityUtils.sanitizeHtml(value),
+          formatter: (value) =>
+            window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(value)
+              : value,
         },
         {
           key: "app_name",
           label: "Application Name",
           sortable: true,
           searchable: true,
-          formatter: (value) => SecurityUtils.sanitizeHtml(value),
+          formatter: (value) =>
+            window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(value)
+              : value,
         },
         {
           key: "app_description",
           label: "Description",
           sortable: false,
           truncate: 100,
-          formatter: (value) => SecurityUtils.sanitizeHtml(value || ""),
+          formatter: (value) =>
+            window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(value || "")
+              : value || "",
         },
         {
           key: "environment_count",
@@ -95,7 +105,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
           width: "120px",
           align: "center",
           formatter: (value) =>
-            `<span class="badge">${SecurityUtils.sanitizeHtml(value || 0)}</span>`,
+            `<span class="badge">${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(value || 0) : value || 0}</span>`,
         },
         {
           key: "team_name",
@@ -103,7 +113,9 @@ class ApplicationsEntityManager extends BaseEntityManager {
           sortable: true,
           searchable: true,
           formatter: (value) =>
-            SecurityUtils.sanitizeHtml(value || "Unassigned"),
+            window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(value || "Unassigned")
+              : value || "Unassigned",
         },
         {
           key: "label_count",
@@ -166,7 +178,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
         deprecated: "aui-lozenge-current",
         retired: "aui-lozenge-error",
       }[status] || "aui-lozenge-default";
-    return `<span class="aui-lozenge ${statusClass}">${SecurityUtils.sanitizeHtml(status)}</span>`;
+    return `<span class="aui-lozenge ${statusClass}">${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(status) : status}</span>`;
   }
 
   /**
@@ -518,7 +530,9 @@ class ApplicationsEntityManager extends BaseEntityManager {
       const teams = await response.json();
       const options = teams.map((team) => ({
         value: team.tms_id,
-        label: SecurityUtils.sanitizeHtml(team.tms_name),
+        label: window.SecurityUtils?.sanitizeHtml
+          ? window.SecurityUtils.sanitizeHtml(team.tms_name)
+          : team.tms_name,
       }));
 
       if (includeAll) {
@@ -724,7 +738,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
       const allEnvs = await this.loadAllEnvironments();
 
       // Create environment management modal
-      const modal = new ModalComponent({
+      const modal = new (window.ModalComponent || class {})({
         title: `Manage Environments for ${application.app_name}`,
         content: this.createEnvironmentManagementContent(allEnvs, currentEnvs),
         buttons: [
@@ -818,9 +832,9 @@ class ApplicationsEntityManager extends BaseEntityManager {
                    value="${env.env_id}"
                    ${currentIds.has(env.env_id) ? "checked" : ""}>
             <label for="env_${env.env_id}">
-              ${SecurityUtils.sanitizeHtml(env.env_name)}
+              ${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(env.env_name) : env.env_name}
               <span class="aui-lozenge aui-lozenge-${env.env_type === "production" ? "error" : "success"}">
-                ${SecurityUtils.sanitizeHtml(env.env_type)}
+                ${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(env.env_type) : env.env_type}
               </span>
             </label>
           </div>
@@ -879,7 +893,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
     try {
       const teams = await this.loadTeamOptions();
 
-      const modal = new ModalComponent({
+      const modal = new (window.ModalComponent || class {})({
         title: `Assign Team to ${application.app_name}`,
         fields: [
           {
@@ -1011,7 +1025,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
                 .slice(0, 5)
                 .map(
                   (entity) =>
-                    `<li>${SecurityUtils.sanitizeHtml(entity.name || entity.code || entity.id)}</li>`,
+                    `<li>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(entity.name || entity.code || entity.id) : entity.name || entity.code || entity.id}</li>`,
                 )
                 .join("")}
               ${entities.length > 5 ? `<li>... and ${entities.length - 5} more</li>` : ""}
@@ -1024,7 +1038,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
       <p>Please remove these relationships before deleting the application.</p>
     `;
 
-    const modal = new ModalComponent({
+    const modal = new (window.ModalComponent || class {})({
       title: "Cannot Delete Application",
       content: content,
       buttons: [
@@ -1098,7 +1112,7 @@ class ApplicationsEntityManager extends BaseEntityManager {
     const notification = document.createElement("div");
     notification.className = `aui-message aui-message-${type}`;
     notification.innerHTML = `
-      <p>${SecurityUtils.sanitizeHtml(message)}</p>
+      <p>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(message) : message}</p>
       <span class="aui-icon icon-close" role="button" tabindex="0"></span>
     `;
 
@@ -1138,7 +1152,9 @@ class ApplicationsEntityManager extends BaseEntityManager {
           const user = source();
           if (user && typeof user === "string" && user !== "anonymous") {
             // Validate and sanitize user identifier
-            const sanitizedUser = SecurityUtils.sanitizeHtml(user);
+            const sanitizedUser = window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(user)
+              : user;
             if (
               sanitizedUser &&
               sanitizedUser.length > 0 &&
@@ -1148,7 +1164,9 @@ class ApplicationsEntityManager extends BaseEntityManager {
             }
           }
           if (typeof user === "object" && user?.username) {
-            return SecurityUtils.sanitizeHtml(user.username);
+            return window.SecurityUtils?.sanitizeHtml
+              ? window.SecurityUtils.sanitizeHtml(user.username)
+              : user.username;
           }
         } catch (sourceError) {
           // Continue to next source if this one fails
@@ -1392,7 +1410,10 @@ class ApplicationsEntityManager extends BaseEntityManager {
 }
 
 // Export for use in other modules
-export default ApplicationsEntityManager;
+// Attach to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.ApplicationsEntityManager = ApplicationsEntityManager;
+}
 
 // CommonJS compatibility for Jest testing
 if (typeof module !== "undefined" && module.exports) {

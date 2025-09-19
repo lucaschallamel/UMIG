@@ -6,6 +6,7 @@ import umig.tests.utils.BaseIntegrationTest
 import umig.repository.StepRepository
 import umig.repository.PhaseRepository
 import umig.utils.DatabaseUtil
+import umig.tests.unit.mock.MockStatusService
 import javax.ws.rs.core.Response
 
 /**
@@ -67,7 +68,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             phi_id: testPhaseInstanceId.toString(),
             sti_name: 'Integration Test Step Instance',
             sti_description: 'Created via US-056C Phase 2 instance test',
-            sti_status: '1', // NOT_STARTED
+            sti_status: MockStatusService.getStatusByIdAndType(1)?.id, // PENDING
             sti_assigned_user_id: 'testuser',
             sti_assigned_team_id: '1',
             sti_planned_start_time: '2024-06-01 10:00:00',
@@ -104,7 +105,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
         }
         assert dbInstance != null
         assert dbInstance.sti_name == 'Integration Test Step Instance'
-        assert dbInstance.sti_status == 1
+        assert dbInstance.sti_status == Integer.parseInt(MockStatusService.getStatusByIdAndType(1)?.id)
     }
     
     /**
@@ -139,7 +140,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             phi_id: testPhaseInstanceId.toString(),
             sti_name: 'Original Instance Name',
             sti_description: 'Original Description',
-            sti_status: '1', // NOT_STARTED
+            sti_status: MockStatusService.getStatusByIdAndType(1)?.id, // PENDING
             sti_comments: 'Original comment'
         ]
         
@@ -151,7 +152,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
         def updateData = [
             sti_name: 'Updated Instance Name via DTO',
             sti_description: 'Updated Description via US-056C Phase 2',
-            sti_status: '2', // IN_PROGRESS
+            sti_status: MockStatusService.getStatusByIdAndType(2)?.id, // IN_PROGRESS
             sti_actual_start_time: '2024-06-01 10:15:00',
             sti_comments: 'Updated via integration test'
         ]
@@ -181,7 +182,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             sql.firstRow('SELECT * FROM steps_instance_sti WHERE sti_id = ?', [createdInstanceId])
         }
         assert dbInstance.sti_name == 'Updated Instance Name via DTO'
-        assert dbInstance.sti_status == 2 // IN_PROGRESS
+        assert dbInstance.sti_status == Integer.parseInt(MockStatusService.getStatusByIdAndType(2)?.id) // IN_PROGRESS
         assert dbInstance.sti_actual_start_time != null
     }
     
@@ -215,7 +216,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             stm_id: testStepMasterId.toString(),
             phi_id: testPhaseInstanceId.toString(),
             sti_name: 'Status Transition Test',
-            sti_status: '1' // NOT_STARTED
+            sti_status: MockStatusService.getStatusByIdAndType(1)?.id // PENDING
         ]
         
         def createdDTO = stepRepository.createInstanceFromDTO(instanceData)
@@ -223,10 +224,10 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
         
         // Test status transitions
         def statusTransitions = [
-            ['2', 'IN_PROGRESS'],
-            ['3', 'COMPLETED'],
-            ['4', 'FAILED'],
-            ['5', 'BLOCKED']
+            [MockStatusService.getStatusByIdAndType(2)?.id, 'IN_PROGRESS'],
+            [MockStatusService.getStatusByIdAndType(3)?.id, 'COMPLETED'],
+            [MockStatusService.getStatusByIdAndType(4)?.id, 'FAILED'],
+            [MockStatusService.getStatusByIdAndType(6)?.id, 'BLOCKED']
         ]
         
         for (transition in statusTransitions) {
@@ -259,7 +260,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             phi_id: testPhaseInstanceId.toString(),
             sti_name: 'Lifecycle Test Instance',
             sti_description: 'Testing complete instance lifecycle',
-            sti_status: '1', // NOT_STARTED
+            sti_status: MockStatusService.getStatusByIdAndType(1)?.id, // PENDING
             sti_planned_start_time: '2024-06-01 09:00:00',
             sti_planned_end_time: '2024-06-01 17:00:00'
         ]
@@ -274,7 +275,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
         
         // Step 2: Start work (update to IN_PROGRESS)
         def startData = [
-            sti_status: '2', // IN_PROGRESS
+            sti_status: MockStatusService.getStatusByIdAndType(2)?.id, // IN_PROGRESS
             sti_actual_start_time: '2024-06-01 09:15:00',
             sti_comments: 'Work started'
         ]
@@ -285,7 +286,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
         
         // Step 3: Complete work
         def completeData = [
-            sti_status: '3', // COMPLETED
+            sti_status: MockStatusService.getStatusByIdAndType(3)?.id, // COMPLETED
             sti_actual_end_time: '2024-06-01 16:30:00',
             sti_comments: 'Work completed successfully'
         ]
@@ -303,7 +304,7 @@ class StepsApiInstanceActionsIntegrationTest extends BaseIntegrationTest {
             sql.firstRow('SELECT * FROM steps_instance_sti WHERE sti_id = ?', 
                 [createdInstanceId])
         }
-        assert dbInstance.sti_status == 3 // COMPLETED
+        assert dbInstance.sti_status == Integer.parseInt(MockStatusService.getStatusByIdAndType(3)?.id) // COMPLETED
         assert dbInstance.sti_actual_start_time != null
         assert dbInstance.sti_actual_end_time != null
     }

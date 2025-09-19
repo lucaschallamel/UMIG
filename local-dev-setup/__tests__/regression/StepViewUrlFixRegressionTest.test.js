@@ -22,7 +22,10 @@
  * Test Framework: JavaScript/Jest with fetch mocking
  * Created: 2025-08-27 (Converted from manual test)
  * Author: Claude Code (Test Suite Generator)
+ * Migrated: TD-003 Phase 3 - Uses MockStatusProvider for test isolation
  */
+
+const MockStatusProvider = require("../mocks/MockStatusProvider");
 
 // Mock global fetch for test isolation
 global.fetch = jest.fn();
@@ -32,8 +35,12 @@ describe("StepView URL Construction Fix - Regression Prevention", () => {
   const SCRIPTRUNNER_BASE = "/rest/scriptrunner/latest/custom";
 
   let mockFetch;
+  let mockStatusProvider;
 
   beforeEach(() => {
+    // Initialize MockStatusProvider for controlled test values (TD-003)
+    mockStatusProvider = new MockStatusProvider();
+
     // Reset mock fetch
     mockFetch = jest.fn();
     global.fetch = mockFetch;
@@ -143,7 +150,7 @@ describe("StepView URL Construction Fix - Regression Prevention", () => {
             id: "iter-002",
             name: "Iteration2forPlan", // Previously concatenated incorrectly
             code: "IT2-PLAN",
-            status: "PENDING",
+            status: mockStatusProvider.getStatusNameById(1), // PENDING from MockStatusProvider
           },
         ],
       });

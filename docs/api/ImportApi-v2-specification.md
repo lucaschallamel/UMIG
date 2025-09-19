@@ -548,8 +548,8 @@ team_name,team_description,team_lead
       "importType": "JSON_IMPORT",
       "status": "COMPLETED",
       "userId": "admin",
-      "startTime": "2025-01-15T10:30:00Z",
-      "endTime": "2025-01-15T10:32:15Z",
+      "startTime": "2025-07-15T10:30:00Z",
+      "endTime": "2025-07-15T10:32:15Z",
       "statistics": {
         "recordsProcessed": 25,
         "successCount": 25,
@@ -1551,10 +1551,10 @@ curl -X GET /rest/scriptrunner/latest/custom/import-resources \
 
 ## 16. Change Log
 
-- **2025-01-15:** Initial API specification created for Sprint 6 - US-034 implementation
-- **2025-01-15:** Added comprehensive error handling and SQL state mapping
-- **2025-01-15:** Documented staging table architecture and validation workflows
-- **2025-01-15:** Added batch rollback and status update functionality
+- **2025-07-15:** Initial API specification created for Sprint 6 - US-034 implementation
+- **2025-07-15:** Added comprehensive error handling and SQL state mapping
+- **2025-07-15:** Documented staging table architecture and validation workflows
+- **2025-07-15:** Added batch rollback and status update functionality
 - **2025-09-03:** ✅ **COMPLETE IMPLEMENTATION UPDATE**
   - Updated to reflect actual implemented API state
   - Added CSV import endpoints for base entities (teams, users, applications, environments)

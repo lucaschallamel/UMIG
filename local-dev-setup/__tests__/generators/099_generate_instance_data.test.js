@@ -5,6 +5,9 @@ import {
 } from "../../scripts/generators/099_generate_instance_data.js";
 import { faker } from "../../scripts/lib/utils.js";
 
+// Import MockStatusProvider for test isolation (TD-003 Phase 3)
+const MockStatusProvider = require("../mocks/MockStatusProvider");
+
 // Mock dependencies
 jest.mock("../../scripts/lib/db.js", () => ({
   client: {
@@ -33,8 +36,13 @@ jest.mock("../../scripts/lib/utils.js", () => ({
 const CONFIG = {};
 
 describe("Instance Data Generator (99_generate_instance_data.js)", () => {
+  let mockStatusProvider;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Initialize MockStatusProvider for test isolation (TD-003 Phase 3)
+    mockStatusProvider = new MockStatusProvider();
 
     // Silence console output
     jest.spyOn(console, "log").mockImplementation(() => {});
@@ -58,32 +66,32 @@ describe("Instance Data Generator (99_generate_instance_data.js)", () => {
     const mockStatuses = {
       plan: {
         rows: [
-          { sts_id: 1, sts_name: "PLANNING" },
-          { sts_id: 2, sts_name: "IN_PROGRESS" },
+          { sts_id: 1, sts_name: mockStatusProvider.getStatusNameById(1) },
+          { sts_id: 2, sts_name: mockStatusProvider.getStatusNameById(2) },
         ],
       },
       sequence: {
         rows: [
-          { sts_id: 3, sts_name: "PLANNING" },
-          { sts_id: 4, sts_name: "IN_PROGRESS" },
+          { sts_id: 3, sts_name: mockStatusProvider.getStatusNameById(1) },
+          { sts_id: 4, sts_name: mockStatusProvider.getStatusNameById(2) },
         ],
       },
       phase: {
         rows: [
-          { sts_id: 5, sts_name: "PLANNING" },
-          { sts_id: 6, sts_name: "IN_PROGRESS" },
+          { sts_id: 5, sts_name: mockStatusProvider.getStatusNameById(1) },
+          { sts_id: 6, sts_name: mockStatusProvider.getStatusNameById(2) },
         ],
       },
       step: {
         rows: [
-          { sts_id: 7, sts_name: "PENDING" },
-          { sts_id: 8, sts_name: "TODO" },
+          { sts_id: 7, sts_name: mockStatusProvider.getStatusNameById(1) },
+          { sts_id: 8, sts_name: mockStatusProvider.getStatusNameById(7) },
         ],
       },
       control: {
         rows: [
-          { sts_id: 9, sts_name: "TODO" },
-          { sts_id: 10, sts_name: "PASSED" },
+          { sts_id: 9, sts_name: mockStatusProvider.getStatusNameById(7) },
+          { sts_id: 10, sts_name: mockStatusProvider.getStatusNameById(3) },
         ],
       },
     };

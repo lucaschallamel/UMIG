@@ -1,6 +1,8 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
+import umig.service.StatusService
+import groovy.util.logging.Slf4j
 import java.util.UUID
 
 /**
@@ -8,8 +10,75 @@ import java.util.UUID
  * Handles operations for both master sequences (sequences_master_sqm) and sequence instances (sequences_instance_sqi).
  * Following the canonical-first approach with consolidated operations.
  * Implements ordering logic, dependency management, and hierarchical filtering.
+ *
+ * TD-003 Phase 2E: Integrated StatusService for centralized status management
  */
+@Slf4j
 class SequenceRepository {
+
+    // ========================================
+    // TD-003 PHASE 2E: STATUS SERVICE INTEGRATION
+    // ========================================
+
+    /** StatusService for centralized status management (lazy loading) */
+    private static StatusService statusService
+
+    /**
+     * Get StatusService instance with lazy loading pattern
+     * @return StatusService instance
+     */
+    private static StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+            log.debug("SequenceRepository: StatusService lazy loaded for centralized status management")
+        }
+        return statusService
+    }
+
+    /**
+     * Get IN_PROGRESS status name for Sequence entities using StatusService
+     * @return String status name for IN_PROGRESS sequence status
+     */
+    private static String getInProgressSequenceStatus() {
+        // TD-003 Phase 2E: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Sequence')
+            return validStatuses.find { it.equalsIgnoreCase('IN_PROGRESS') } ?: 'IN_PROGRESS'
+        } catch (Exception e) {
+            log.warn("SequenceRepository: Failed to get IN_PROGRESS status via StatusService, using fallback", e)
+            return 'IN_PROGRESS'
+        }
+    }
+
+    /**
+     * Get COMPLETED status name for Sequence entities using StatusService
+     * @return String status name for COMPLETED sequence status
+     */
+    private static String getCompletedSequenceStatus() {
+        // TD-003 Phase 2E: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Sequence')
+            return validStatuses.find { it.equalsIgnoreCase('COMPLETED') } ?: 'COMPLETED'
+        } catch (Exception e) {
+            log.warn("SequenceRepository: Failed to get COMPLETED status via StatusService, using fallback", e)
+            return 'COMPLETED'
+        }
+    }
+
+    /**
+     * Get PLANNING status name for Sequence entities using StatusService
+     * @return String status name for PLANNING sequence status
+     */
+    private static String getPlanningSequenceStatus() {
+        // TD-003 Phase 2E: Use StatusService with fallback for reliability
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Sequence')
+            return validStatuses.find { it.equalsIgnoreCase('PLANNING') } ?: 'PLANNING'
+        } catch (Exception e) {
+            log.warn("SequenceRepository: Failed to get PLANNING status via StatusService, using fallback", e)
+            return 'PLANNING'
+        }
+    }
 
     // ==================== MASTER SEQUENCE OPERATIONS ====================
     
@@ -776,15 +845,15 @@ class SequenceRepository {
                 SET sqi_status = :statusId,
                     updated_by = 'system',
                     updated_at = CURRENT_TIMESTAMP,
-                    sqi_start_time = CASE 
-                        WHEN :statusName = 'IN_PROGRESS' AND sqi_start_time IS NULL 
-                        THEN CURRENT_TIMESTAMP 
-                        ELSE sqi_start_time 
+                    sqi_start_time = CASE
+                        WHEN :statusName = '${getInProgressSequenceStatus()}' AND sqi_start_time IS NULL
+                        THEN CURRENT_TIMESTAMP
+                        ELSE sqi_start_time
                     END,
-                    sqi_end_time = CASE 
-                        WHEN :statusName = 'COMPLETED' 
-                        THEN CURRENT_TIMESTAMP 
-                        ELSE NULL 
+                    sqi_end_time = CASE
+                        WHEN :statusName = '${getCompletedSequenceStatus()}'
+                        THEN CURRENT_TIMESTAMP
+                        ELSE NULL
                     END
                 WHERE sqi_id = :instanceId
             """, [instanceId: instanceId, statusId: statusId, statusName: statusName])
@@ -1068,9 +1137,9 @@ class SequenceRepository {
             def stats = sql.firstRow("""
                 SELECT 
                     COUNT(*) as total_sequences,
-                    COUNT(CASE WHEN ${statusColumn} = 'PLANNING' THEN 1 END) as planning,
-                    COUNT(CASE WHEN ${statusColumn} = 'IN_PROGRESS' THEN 1 END) as in_progress,
-                    COUNT(CASE WHEN ${statusColumn} = 'COMPLETED' THEN 1 END) as completed,
+                    COUNT(CASE WHEN ${statusColumn} = '${getPlanningSequenceStatus()}' THEN 1 END) as planning,
+                    COUNT(CASE WHEN ${statusColumn} = '${getInProgressSequenceStatus()}' THEN 1 END) as in_progress,
+                    COUNT(CASE WHEN ${statusColumn} = '${getCompletedSequenceStatus()}' THEN 1 END) as completed,
                     MIN(created_at) as first_created,
                     MAX(updated_at) as last_updated
                 FROM ${tableName}
@@ -1148,7 +1217,7 @@ class SequenceRepository {
         Map defaultStatus = sql.firstRow("""
             SELECT sts_id 
             FROM status_sts 
-            WHERE sts_name = 'PLANNING' AND sts_type = 'Sequence'
+            WHERE sts_name = '${getPlanningSequenceStatus()}' AND sts_type = 'Sequence'
             LIMIT 1
         """) as Map
         

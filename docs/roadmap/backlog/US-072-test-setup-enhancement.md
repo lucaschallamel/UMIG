@@ -251,7 +251,7 @@ protected void cleanupTestData() {
 
 | Date       | Version | Changes                                    | Author |
 | ---------- | ------- | ------------------------------------------ | ------ |
-| 2025-01-09 | 1.0     | Initial story creation for test setup gaps | System |
+| 2025-07-09 | 1.0     | Initial story creation for test setup gaps | System |
 
 ---
 

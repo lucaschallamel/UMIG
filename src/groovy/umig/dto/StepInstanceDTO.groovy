@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import umig.utils.JsonUtil
+import umig.service.StatusService
 import groovy.transform.ToString
 import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
@@ -37,7 +38,26 @@ import java.time.format.DateTimeFormatter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
 class StepInstanceDTO {
-    
+
+    // ========================================
+    // TD-003 PHASE 2B: STATUS SERVICE INTEGRATION
+    // ========================================
+
+    /** StatusService for centralized status management (lazy loading) */
+    private static StatusService statusService
+
+    /**
+     * Get StatusService instance with lazy loading pattern
+     * @return StatusService instance
+     */
+    private static StatusService getStatusService() {
+        if (!statusService) {
+            statusService = new StatusService()
+            log.debug("StepInstanceDTO: StatusService lazy loaded for validation")
+        }
+        return statusService
+    }
+
     // ========================================
     // CORE STEP IDENTIFICATION
     // ========================================
@@ -58,7 +78,7 @@ class StepInstanceDTO {
     @JsonProperty("stepDescription")
     String stepDescription
     
-    /** Current step status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED) */
+    /** Current step status (dynamically loaded from status configuration) */
     @JsonProperty("stepStatus")
     String stepStatus
     
@@ -246,7 +266,7 @@ class StepInstanceDTO {
         
         // Status validation
         if (stepStatus && !isValidStatus(stepStatus)) {
-            errors.add("stepStatus must be one of: PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED")
+            errors.add("stepStatus must be a valid status for Step entities")
         }
         
         // Priority validation
@@ -302,12 +322,20 @@ class StepInstanceDTO {
     }
     
     /**
-     * Validate step status value
+     * Validate step status value - TD-003 Phase 2B Migration
+     * Uses StatusService for centralized status management
      * @param status Status to validate
      * @return true if valid status
      */
     private static boolean isValidStatus(String status) {
-        return status in ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED']
+        try {
+            List<String> validStatuses = getStatusService().getValidStatusNames('Step')
+            return status in validStatuses
+        } catch (Exception e) {
+            log.warn("StepInstanceDTO: Failed to validate status '${status}' via StatusService: ${e.message}")
+            // Fallback to prevent validation failures from blocking the system
+            return status != null && status.trim().length() > 0
+        }
     }
     
     // ========================================

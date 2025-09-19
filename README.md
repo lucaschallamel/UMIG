@@ -1,7 +1,7 @@
 # UMIG - Unified Migration Implementation Guide
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Development Status](<https://img.shields.io/badge/Status-US--082--C%20Entity%20Migration%20COMPLETE%20(100%25%20Success)-brightgreen.svg>)]()
+[![Development Status](<https://img.shields.io/badge/Status-US--087%20Phase%201%20Foundation%20COMPLETE%20(Infrastructure%20Excellence)-brightgreen.svg>)]()
 [![Test Success Rate](<https://img.shields.io/badge/Test%20Success%20Rate-300%2B%20Tests%20Passing%20(95%2B%25%20Coverage)-brightgreen.svg>)]()
 [![Security Coverage](<https://img.shields.io/badge/Security%20Coverage-9.2%2F10%20Enterprise%20Rating%20(CSP%2C%20Session%2C%20CSRF%2C%20XSS)-brightgreen.svg>)]()
 [![Performance](<https://img.shields.io/badge/Performance-%3C150ms%20Response%20Times%20(25%25%20Better%20Than%20Target)-brightgreen.svg>)]()
@@ -209,9 +209,19 @@ UMIG/
 │   └── script.js                     # Mockup JavaScript (zero dependencies)
 ├── local-dev-setup/                  # Node.js development environment
 │   ├── README.md                     # Development setup documentation
-│   ├── scripts/                      # Data generation and utilities
+│   ├── scripts/                      # Organized development scripts (Sept 18, 2025 reorganization)
 │   │   ├── generators/               # Individual data generators (001-101)
 │   │   ├── lib/                      # Shared utilities (db.js, utils.js)
+│   │   ├── infrastructure/           # Infrastructure management scripts
+│   │   │   ├── README.md             # Infrastructure script documentation
+│   │   │   └── setup-groovy-jdbc.js  # Groovy JDBC setup
+│   │   ├── test-runners/             # Specialized test execution scripts
+│   │   │   ├── README.md             # Test runner documentation
+│   │   │   └── run-groovy-test.js    # Groovy test runner
+│   │   ├── utilities/                # Development utility scripts
+│   │   │   ├── README.md             # Utility script documentation
+│   │   │   ├── groovy-with-jdbc.js   # Groovy JDBC utilities
+│   │   │   └── setup-groovy-classpath.js # Groovy classpath setup
 │   │   ├── start.js, stop.js, restart.js # Environment management
 │   │   ├── umig_generate_fake_data.js # Main data generation script
 │   │   └── umig_csv_importer.js      # CSV import utility
@@ -383,12 +393,14 @@ npm run import-csv -- --file path/to/your/file.csv
 # Run all tests
 npm test
 
-# Technology-Prefixed Testing Framework (Revolutionary TD-001/TD-002 - September 10, 2025)
-# JavaScript Testing Suite (345/345 tests passing - 100% success rate)
+# Technology-Prefixed Testing Framework (Enhanced Infrastructure - September 18, 2025)
+# JavaScript Testing Suite (US-087 Phase 1 Foundation Ready)
 npm run test:js             # All JavaScript tests (Jest framework)
 npm run test:js:unit        # JavaScript unit tests
 npm run test:js:integration # JavaScript integration tests
 npm run test:js:e2e         # JavaScript end-to-end tests
+npm run test:js:infrastructure # Infrastructure validation tests
+npm run test:js:security    # Security test suite
 
 # Foundation Service Layer Testing (US-082-A COMPLETE)
 npm run test:js:services    # Foundation service layer tests (196/196 passing)
@@ -511,6 +523,22 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - Atlassian AUI styling
 
 ## Current Development Status
+
+### US-087 Phase 1 Foundation Infrastructure Complete (September 18, 2025)
+
+**Infrastructure Excellence**: Critical folder duplication resolution and comprehensive project reorganization achieving production-ready development environment
+
+- **Infrastructure Fixes**: Resolved critical folder duplication issue in local-dev-setup where scripts were incorrectly nested
+- **Script Reorganization**: Relocated 4 Groovy-related scripts to proper locations:
+  - `setup-groovy-jdbc.js` → `scripts/infrastructure/`
+  - `run-groovy-test.js` → `scripts/test-runners/`
+  - `groovy-with-jdbc.js` → `scripts/utilities/`
+  - `setup-groovy-classpath.js` → `scripts/utilities/`
+- **Package.json Optimization**: Cleaned up archived script references and fixed missing `cd ..` prefixes for proper command execution
+- **Documentation Enhancement**: Updated 8 README files and created 3 new ones for comprehensive documentation coverage
+- **Test Documentation**: Relocated 771-line comprehensive test documentation to correct location at `local-dev-setup/__tests__/README.md`
+- **ADR Documentation**: Added 4 new Architecture Decision Records (ADR-057 through ADR-060) covering module loading, security patterns, and schema development
+- **Branch Status**: Currently on `feature/US-087-phase1-foundation` with significant infrastructure improvements staged for commit
 
 ### US-082-C Entity Migration Standard Complete (September 16, 2025)
 
