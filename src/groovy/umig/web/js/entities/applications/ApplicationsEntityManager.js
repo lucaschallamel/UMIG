@@ -33,7 +33,7 @@ class ApplicationsEntityManager extends (window.BaseEntityManager || class {}) {
     // Initialize parent with proper config including entityType
     super({
       entityType: "applications",
-      ...options
+      ...options,
     });
 
     // Configure ApplicationsEntityManager with comprehensive settings after super()
@@ -1302,10 +1302,8 @@ class ApplicationsEntityManager extends (window.BaseEntityManager || class {}) {
       this.performCacheCleanup();
     }, 300000); // Every 5 minutes
 
-    // Cleanup on window unload
-    window.addEventListener("beforeunload", () => {
-      this.cleanup();
-    });
+    // Simple cleanup on page unload if needed
+    // Note: Most cleanup happens automatically when page unloads
 
     // Cleanup on visibility change (tab switch)
     document.addEventListener("visibilitychange", () => {

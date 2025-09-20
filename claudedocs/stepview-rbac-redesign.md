@@ -3,12 +3,14 @@
 ## Current Security Issues Identified
 
 ### Critical Vulnerabilities
+
 1. **Development Role Override Hack**: URL parameter `?role=ADMIN` allows privilege escalation in production
 2. **Missing Backend Integration**: No proper API integration for user role detection from `/users/current`
 3. **Incomplete Team-Based Permissions**: Team membership checks not implemented
 4. **ADMIN Read-Only Bug**: ADMIN users incorrectly getting read-only access
 
 ### Current Implementation Problems
+
 - Role detection relies on `window.UMIG_STEP_CONFIG.user.role` which may not be populated
 - Fallback to `null` role causes all users to get read-only access
 - No integration with existing `/users/current` API endpoint
@@ -18,31 +20,35 @@
 ## Correct RBAC Policy Requirements
 
 ### User Roles
+
 - **ADMIN**: Full administrative access (rls_id = 1)
 - **PILOT**: Advanced user with elevated permissions (rls_id = 3)
 - **USER**: Standard user permissions (rls_id = 2)
 
 ### Team-Based Permissions
+
 - **Assigned Team Members**: Members of step's owner team (`tms_id_owner`)
 - **Impacted Team Members**: Members of teams affected by the step
 
 ### Allowed Actions by Role/Team
-| Action | ADMIN | PILOT | USER | Assigned Team | Impacted Team |
-|--------|-------|-------|------|---------------|---------------|
-| View step details | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Add comments | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Change status | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Complete instructions | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Edit comments | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Bulk operations | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Email step details | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Debug panel | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+| Action                | ADMIN | PILOT | USER | Assigned Team | Impacted Team |
+| --------------------- | ----- | ----- | ---- | ------------- | ------------- |
+| View step details     | ✅    | ✅    | ✅   | ✅            | ✅            |
+| Add comments          | ✅    | ✅    | ✅   | ✅            | ✅            |
+| Change status         | ✅    | ✅    | ❌   | ✅            | ✅            |
+| Complete instructions | ✅    | ✅    | ❌   | ✅            | ✅            |
+| Edit comments         | ✅    | ✅    | ❌   | ✅            | ❌            |
+| Bulk operations       | ✅    | ✅    | ❌   | ❌            | ❌            |
+| Email step details    | ✅    | ✅    | ❌   | ❌            | ❌            |
+| Debug panel           | ✅    | ❌    | ❌   | ❌            | ❌            |
 
 ## Proposed Solution Architecture
 
 ### 1. Backend API Integration
 
 #### New StepView User Context API
+
 ```groovy
 // Add to stepViewApi.groovy
 stepViewApi(httpMethod: "GET", groups: ["confluence-users"]) { ... ->
@@ -88,6 +94,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users"]) { ... ->
 ### 2. Team Membership Resolution
 
 #### Step Team Context Query
+
 ```sql
 SELECT
     stm.tms_id_owner as assigned_team_id,
@@ -118,6 +125,7 @@ WHERE stm.stt_code = :stt_code AND stm.stm_number = :stm_number
 ```
 
 #### User Team Memberships Query
+
 ```sql
 SELECT
     tm.tms_id,
@@ -131,167 +139,189 @@ WHERE tm.usr_id = :usr_id AND tm.tme_active = true
 ### 3. Frontend Permission Engine Redesign
 
 #### Enhanced RBAC System
+
 ```javascript
 class StepViewRBAC {
-    constructor(stepView) {
-        this.stepView = stepView;
-        this.userContext = null;
-        this.permissions = null;
-        this.stepTeams = null;
+  constructor(stepView) {
+    this.stepView = stepView;
+    this.userContext = null;
+    this.permissions = null;
+    this.stepTeams = null;
+  }
+
+  async initialize(stepCode) {
+    try {
+      // Fetch user context from backend API
+      const response = await fetch(
+        `${this.stepView.config.api.baseUrl}/stepViewApi/userContext?stepCode=${stepCode}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`User context API failed: ${response.status}`);
+      }
+
+      this.userContext = await response.json();
+      this.permissions = this.userContext.permissions;
+      this.stepTeams = this.userContext.stepContext;
+
+      console.log("🔐 StepView RBAC: User context loaded:", {
+        userId: this.userContext.userId,
+        role: this.userContext.role,
+        teams: this.userContext.teamMemberships,
+        permissions: Object.keys(this.permissions).filter(
+          (p) => this.permissions[p],
+        ),
+      });
+
+      return true;
+    } catch (error) {
+      console.error("🚨 StepView RBAC: Failed to load user context:", error);
+
+      // Secure fallback - minimal permissions
+      this.userContext = {
+        userId: null,
+        username: null,
+        role: null,
+        isAdmin: false,
+        teamMemberships: [],
+        stepContext: {},
+        permissions: this.getMinimalPermissions(),
+      };
+      this.permissions = this.userContext.permissions;
+
+      return false;
+    }
+  }
+
+  calculateUserPermissions(role, userTeams, stepTeams) {
+    const permissions = {
+      view_step_details: true, // Always allowed
+      add_comments: true, // Always allowed
+      update_step_status: false,
+      complete_instructions: false,
+      edit_comments: false,
+      bulk_operations: false,
+      email_step_details: false,
+      advanced_controls: false,
+      extended_shortcuts: false,
+      debug_panel: false,
+      force_refresh_cache: false,
+      security_logging: false,
+    };
+
+    // Role-based permissions
+    if (role === "ADMIN") {
+      Object.keys(permissions).forEach((key) => (permissions[key] = true));
+    } else if (role === "PILOT") {
+      permissions.update_step_status = true;
+      permissions.complete_instructions = true;
+      permissions.edit_comments = true;
+      permissions.bulk_operations = true;
+      permissions.email_step_details = true;
+      permissions.advanced_controls = true;
+      permissions.extended_shortcuts = true;
+      permissions.force_refresh_cache = true;
     }
 
-    async initialize(stepCode) {
-        try {
-            // Fetch user context from backend API
-            const response = await fetch(
-                `${this.stepView.config.api.baseUrl}/stepViewApi/userContext?stepCode=${stepCode}`,
-                {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "same-origin"
-                }
-            );
+    // Team-based permissions
+    const userTeamIds = userTeams.map((t) => t.tms_id);
+    const assignedTeamId = stepTeams.assigned_team_id;
+    const impactedTeamIds = stepTeams.impacted_team_ids || [];
 
-            if (!response.ok) {
-                throw new Error(`User context API failed: ${response.status}`);
-            }
+    const isAssignedTeamMember =
+      assignedTeamId && userTeamIds.includes(assignedTeamId);
+    const isImpactedTeamMember = impactedTeamIds.some((id) =>
+      userTeamIds.includes(id),
+    );
 
-            this.userContext = await response.json();
-            this.permissions = this.userContext.permissions;
-            this.stepTeams = this.userContext.stepContext;
-
-            console.log("🔐 StepView RBAC: User context loaded:", {
-                userId: this.userContext.userId,
-                role: this.userContext.role,
-                teams: this.userContext.teamMemberships,
-                permissions: Object.keys(this.permissions).filter(p => this.permissions[p])
-            });
-
-            return true;
-        } catch (error) {
-            console.error("🚨 StepView RBAC: Failed to load user context:", error);
-
-            // Secure fallback - minimal permissions
-            this.userContext = {
-                userId: null,
-                username: null,
-                role: null,
-                isAdmin: false,
-                teamMemberships: [],
-                stepContext: {},
-                permissions: this.getMinimalPermissions()
-            };
-            this.permissions = this.userContext.permissions;
-
-            return false;
-        }
+    if (isAssignedTeamMember) {
+      permissions.update_step_status = true;
+      permissions.complete_instructions = true;
+      permissions.edit_comments = true;
     }
 
-    calculateUserPermissions(role, userTeams, stepTeams) {
-        const permissions = {
-            view_step_details: true, // Always allowed
-            add_comments: true,      // Always allowed
-            update_step_status: false,
-            complete_instructions: false,
-            edit_comments: false,
-            bulk_operations: false,
-            email_step_details: false,
-            advanced_controls: false,
-            extended_shortcuts: false,
-            debug_panel: false,
-            force_refresh_cache: false,
-            security_logging: false
-        };
-
-        // Role-based permissions
-        if (role === "ADMIN") {
-            Object.keys(permissions).forEach(key => permissions[key] = true);
-        } else if (role === "PILOT") {
-            permissions.update_step_status = true;
-            permissions.complete_instructions = true;
-            permissions.edit_comments = true;
-            permissions.bulk_operations = true;
-            permissions.email_step_details = true;
-            permissions.advanced_controls = true;
-            permissions.extended_shortcuts = true;
-            permissions.force_refresh_cache = true;
-        }
-
-        // Team-based permissions
-        const userTeamIds = userTeams.map(t => t.tms_id);
-        const assignedTeamId = stepTeams.assigned_team_id;
-        const impactedTeamIds = stepTeams.impacted_team_ids || [];
-
-        const isAssignedTeamMember = assignedTeamId && userTeamIds.includes(assignedTeamId);
-        const isImpactedTeamMember = impactedTeamIds.some(id => userTeamIds.includes(id));
-
-        if (isAssignedTeamMember) {
-            permissions.update_step_status = true;
-            permissions.complete_instructions = true;
-            permissions.edit_comments = true;
-        }
-
-        if (isImpactedTeamMember) {
-            permissions.update_step_status = true;
-            permissions.complete_instructions = true;
-            // Note: Impacted teams can't edit comments, only assigned team
-        }
-
-        return permissions;
+    if (isImpactedTeamMember) {
+      permissions.update_step_status = true;
+      permissions.complete_instructions = true;
+      // Note: Impacted teams can't edit comments, only assigned team
     }
 
-    hasPermission(feature) {
-        if (!this.permissions) {
-            console.warn("🚨 RBAC: Permissions not initialized, denying access to:", feature);
-            return false;
-        }
+    return permissions;
+  }
 
-        const hasAccess = this.permissions[feature] === true;
-
-        if (!hasAccess) {
-            console.log(`🔒 RBAC: Permission denied for feature '${feature}' (user: ${this.userContext?.role})`);
-            this.logSecurityEvent("permission_denied", { feature, role: this.userContext?.role });
-        }
-
-        return hasAccess;
+  hasPermission(feature) {
+    if (!this.permissions) {
+      console.warn(
+        "🚨 RBAC: Permissions not initialized, denying access to:",
+        feature,
+      );
+      return false;
     }
 
-    getMinimalPermissions() {
-        return {
-            view_step_details: true,
-            add_comments: true,
-            update_step_status: false,
-            complete_instructions: false,
-            edit_comments: false,
-            bulk_operations: false,
-            email_step_details: false,
-            advanced_controls: false,
-            extended_shortcuts: false,
-            debug_panel: false,
-            force_refresh_cache: false,
-            security_logging: false
-        };
+    const hasAccess = this.permissions[feature] === true;
+
+    if (!hasAccess) {
+      console.log(
+        `🔒 RBAC: Permission denied for feature '${feature}' (user: ${this.userContext?.role})`,
+      );
+      this.logSecurityEvent("permission_denied", {
+        feature,
+        role: this.userContext?.role,
+      });
     }
 
-    logSecurityEvent(event, details) {
-        // Security audit logging
-        console.log("🔍 RBAC Security Event:", { event, details, timestamp: new Date().toISOString() });
-    }
+    return hasAccess;
+  }
 
-    getUserDisplayInfo() {
-        return {
-            role: this.userContext?.role || "UNKNOWN",
-            username: this.userContext?.username || "anonymous",
-            assignedTeams: this.userContext?.teamMemberships?.map(t => t.tms_name) || [],
-            effectivePermissions: Object.keys(this.permissions || {}).filter(p => this.permissions[p])
-        };
-    }
+  getMinimalPermissions() {
+    return {
+      view_step_details: true,
+      add_comments: true,
+      update_step_status: false,
+      complete_instructions: false,
+      edit_comments: false,
+      bulk_operations: false,
+      email_step_details: false,
+      advanced_controls: false,
+      extended_shortcuts: false,
+      debug_panel: false,
+      force_refresh_cache: false,
+      security_logging: false,
+    };
+  }
+
+  logSecurityEvent(event, details) {
+    // Security audit logging
+    console.log("🔍 RBAC Security Event:", {
+      event,
+      details,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  getUserDisplayInfo() {
+    return {
+      role: this.userContext?.role || "UNKNOWN",
+      username: this.userContext?.username || "anonymous",
+      assignedTeams:
+        this.userContext?.teamMemberships?.map((t) => t.tms_name) || [],
+      effectivePermissions: Object.keys(this.permissions || {}).filter(
+        (p) => this.permissions[p],
+      ),
+    };
+  }
 }
 ```
 
 ### 4. UI Integration Changes
 
 #### Remove Development Hacks
+
 ```javascript
 // REMOVE THIS BLOCK ENTIRELY from step-view.js lines 2719-2734:
 // RBAC: Development role override (temporary testing capability)
@@ -315,55 +345,59 @@ if (
 ```
 
 #### Replace with Secure Initialization
+
 ```javascript
 // Replace the constructor initialization
 class StepView {
-    constructor() {
-        this.config = window.UMIG_STEP_CONFIG || {
-            api: { baseUrl: "/rest/scriptrunner/latest/custom" },
-        };
+  constructor() {
+    this.config = window.UMIG_STEP_CONFIG || {
+      api: { baseUrl: "/rest/scriptrunner/latest/custom" },
+    };
 
-        // Initialize RBAC system - will load from backend
-        this.rbac = new StepViewRBAC(this);
-        this.userContext = null;
-        this.permissions = null;
+    // Initialize RBAC system - will load from backend
+    this.rbac = new StepViewRBAC(this);
+    this.userContext = null;
+    this.permissions = null;
 
-        // Legacy properties for backward compatibility
-        this.userRole = null;
-        this.isAdmin = false;
-        this.userId = null;
+    // Legacy properties for backward compatibility
+    this.userRole = null;
+    this.isAdmin = false;
+    this.userId = null;
+  }
+
+  async initializeStep(migrationName, iterationName, stepCode) {
+    // Initialize RBAC first
+    const rbacSuccess = await this.rbac.initialize(stepCode);
+
+    if (rbacSuccess) {
+      // Update legacy properties for backward compatibility
+      this.userContext = this.rbac.userContext;
+      this.userRole = this.userContext.role;
+      this.isAdmin = this.userContext.isAdmin;
+      this.userId = this.userContext.userId;
+      this.permissions = this.rbac.permissions;
+    } else {
+      console.error(
+        "🚨 StepView: RBAC initialization failed, using minimal permissions",
+      );
     }
 
-    async initializeStep(migrationName, iterationName, stepCode) {
-        // Initialize RBAC first
-        const rbacSuccess = await this.rbac.initialize(stepCode);
+    // Continue with step loading...
+    await this.loadStepData(migrationName, iterationName, stepCode);
+    this.renderStep();
+    this.applyRBACControls();
+  }
 
-        if (rbacSuccess) {
-            // Update legacy properties for backward compatibility
-            this.userContext = this.rbac.userContext;
-            this.userRole = this.userContext.role;
-            this.isAdmin = this.userContext.isAdmin;
-            this.userId = this.userContext.userId;
-            this.permissions = this.rbac.permissions;
-        } else {
-            console.error("🚨 StepView: RBAC initialization failed, using minimal permissions");
-        }
-
-        // Continue with step loading...
-        await this.loadStepData(migrationName, iterationName, stepCode);
-        this.renderStep();
-        this.applyRBACControls();
-    }
-
-    hasPermission(feature) {
-        return this.rbac ? this.rbac.hasPermission(feature) : false;
-    }
+  hasPermission(feature) {
+    return this.rbac ? this.rbac.hasPermission(feature) : false;
+  }
 }
 ```
 
 ### 5. Production Security Measures
 
 #### Security Validation
+
 ```javascript
 // Add to step-view.js initialization
 validateProductionSecurity() {
@@ -393,24 +427,28 @@ validateProductionSecurity() {
 ## Implementation Plan
 
 ### Phase 1: Backend API Development
+
 1. ✅ Add `/stepViewApi/userContext` endpoint
 2. ✅ Implement team membership queries
 3. ✅ Create permission calculation logic
 4. ✅ Add security audit logging
 
 ### Phase 2: Frontend RBAC Engine
+
 1. ✅ Create StepViewRBAC class
 2. ✅ Implement secure initialization
 3. ✅ Remove development hacks
 4. ✅ Add production security validation
 
 ### Phase 3: Integration & Testing
+
 1. ⏳ Update StepView constructor
 2. ⏳ Test all permission scenarios
 3. ⏳ Validate team-based access
 4. ⏳ Security penetration testing
 
 ### Phase 4: Production Deployment
+
 1. ⏳ Remove all development overrides
 2. ⏳ Enable security audit logging
 3. ⏳ Monitor for security violations
@@ -419,6 +457,7 @@ validateProductionSecurity() {
 ## Security Testing Requirements
 
 ### Test Scenarios
+
 1. **Role-Based Access**: Verify ADMIN/PILOT/USER permissions
 2. **Team-Based Access**: Test assigned and impacted team member access
 3. **Permission Inheritance**: Validate correct permission combinations
@@ -427,6 +466,7 @@ validateProductionSecurity() {
 6. **URL Parameter Security**: Verify no development hacks work in production
 
 ### Security Validation Checklist
+
 - [ ] No URL parameter role overrides work
 - [ ] Backend user context API properly validates user sessions
 - [ ] Team membership correctly restricts access
@@ -440,6 +480,7 @@ validateProductionSecurity() {
 ## Monitoring & Audit
 
 ### Security Event Logging
+
 - Permission denied attempts
 - Suspicious URL parameters
 - Role escalation attempts
@@ -448,6 +489,7 @@ validateProductionSecurity() {
 - System initialization failures
 
 ### Performance Metrics
+
 - RBAC initialization time
 - Permission check latency
 - Team membership query performance

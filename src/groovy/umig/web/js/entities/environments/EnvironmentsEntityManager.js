@@ -51,7 +51,7 @@ class EnvironmentsEntityManager extends (window.BaseEntityManager || class {}) {
   constructor(options = {}) {
     super({
       entityType: "environments",
-      ...options,  // Include apiBase, endpoints, orchestrator, performanceMonitor
+      ...options, // Include apiBase, endpoints, orchestrator, performanceMonitor
       tableConfig: {
         columns: [
           {
@@ -1375,8 +1375,8 @@ function setupEnvironmentsUtilities() {
 function secureInitialize() {
   console.log("[Environments Integration] Secure initialization started");
 
-  // Set up secure utilities
-  setupEnvironmentsUtilities();
+  // SecureEnvironmentsAPI is already available via window.SecureEnvironmentsAPI
+  // setupEnvironmentsUtilities() removed - use SecureEnvironmentsAPI directly
 
   // Initialize security manager
   EnvironmentSecurityManager.generateSecurityToken();

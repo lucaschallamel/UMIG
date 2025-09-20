@@ -3,6 +3,7 @@
 ## ✅ Security Issues Resolved
 
 ### Critical Vulnerabilities Fixed
+
 1. **🚨 Development Role Override Hack**: Removed URL parameter `?role=ADMIN` privilege escalation
    - Replaced with security validation that logs suspicious URL parameters
    - Production-hardened against privilege escalation attempts
@@ -24,6 +25,7 @@
 ## 🏗️ Implementation Components
 
 ### Backend API (stepViewApi.groovy)
+
 ```groovy
 // New endpoint: GET /stepViewApi/userContext?stepCode=XXX-nnn
 - Fetches current user via UserService (ADR-042 compliant)
@@ -34,6 +36,7 @@
 ```
 
 ### Security Features
+
 - **Authentication**: Uses UserService.getCurrentUserContext() with fallback
 - **Team Resolution**: Queries `team_members_tme` and `steps_master_stm.tms_id_owner`
 - **Permission Matrix**: Role-based + team-based permission calculation
@@ -41,6 +44,7 @@
 - **Fallback Security**: Minimal read-only permissions on failure
 
 ### Frontend RBAC Engine (StepViewRBAC.js)
+
 ```javascript
 class StepViewRBAC {
     - async initialize(stepCode): Loads user context from backend
@@ -52,6 +56,7 @@ class StepViewRBAC {
 ```
 
 ### Security Hardening
+
 - **Zero URL Overrides**: No development hacks in production
 - **Suspicious Parameter Detection**: Logs attempts to use banned parameters
 - **Secure Fallback**: Read-only permissions when backend fails
@@ -61,18 +66,20 @@ class StepViewRBAC {
 ## 📋 Correct RBAC Policy Implementation
 
 ### User Roles & Permissions
-| Action | ADMIN | PILOT | USER | Assigned Team | Notes |
-|--------|-------|-------|------|---------------|-------|
-| View step details | ✅ | ✅ | ✅ | ✅ | Always allowed |
-| Add comments | ✅ | ✅ | ✅ | ✅ | Basic permission |
-| Change status | ✅ | ✅ | ❌ | ✅ | Elevated action |
-| Complete instructions | ✅ | ✅ | ❌ | ✅ | Team responsibility |
-| Edit comments | ✅ | ✅ | ❌ | ✅ | Team ownership |
-| Bulk operations | ✅ | ✅ | ❌ | ❌ | PILOT+ only |
-| Email step details | ✅ | ✅ | ❌ | ❌ | PILOT+ only |
-| Debug panel | ✅ | ❌ | ❌ | ❌ | ADMIN only |
+
+| Action                | ADMIN | PILOT | USER | Assigned Team | Notes               |
+| --------------------- | ----- | ----- | ---- | ------------- | ------------------- |
+| View step details     | ✅    | ✅    | ✅   | ✅            | Always allowed      |
+| Add comments          | ✅    | ✅    | ✅   | ✅            | Basic permission    |
+| Change status         | ✅    | ✅    | ❌   | ✅            | Elevated action     |
+| Complete instructions | ✅    | ✅    | ❌   | ✅            | Team responsibility |
+| Edit comments         | ✅    | ✅    | ❌   | ✅            | Team ownership      |
+| Bulk operations       | ✅    | ✅    | ❌   | ❌            | PILOT+ only         |
+| Email step details    | ✅    | ✅    | ❌   | ❌            | PILOT+ only         |
+| Debug panel           | ✅    | ❌    | ❌   | ❌            | ADMIN only          |
 
 ### Team-Based Access
+
 - **Assigned Team Members**: Full step management permissions
 - **Step Owner Team**: Team specified in `steps_master_stm.tms_id_owner`
 - **Team Membership**: Validated through `team_members_tme` table
@@ -81,6 +88,7 @@ class StepViewRBAC {
 ## 🔒 Security Implementation Details
 
 ### Permission Calculation Logic
+
 ```javascript
 // Base permissions: view + add comments (all users)
 // Role permissions: ADMIN=all, PILOT=elevated, USER=basic
@@ -89,12 +97,14 @@ class StepViewRBAC {
 ```
 
 ### Backend Security Measures
+
 - Uses DatabaseUtil.withSql pattern for SQL injection protection
 - Explicit type casting for all parameters (ADR-031 compliance)
 - UserService integration follows ADR-042 authentication hierarchy
 - Comprehensive error handling with actionable messages
 
 ### Frontend Security Measures
+
 - Validates all backend responses
 - Implements secure fallback on API failure
 - Logs all security events for audit
@@ -104,6 +114,7 @@ class StepViewRBAC {
 ## 🛡️ Security Validation
 
 ### Development Hack Removal
+
 ```javascript
 // REMOVED: URL parameter role override
 // OLD: ?role=ADMIN (privilege escalation)
@@ -111,6 +122,7 @@ class StepViewRBAC {
 ```
 
 ### Production Hardening
+
 - No URL parameter overrides allowed
 - Suspicious parameter detection and logging
 - Secure fallback permissions
@@ -118,6 +130,7 @@ class StepViewRBAC {
 - Session-based security validation
 
 ### API Security
+
 - Authentication required for all endpoints
 - User context validation
 - Database-backed permission calculation
@@ -127,6 +140,7 @@ class StepViewRBAC {
 ## 📊 Testing & Validation
 
 ### Required Test Scenarios
+
 1. **Role-Based Access**: Verify ADMIN/PILOT/USER permissions work correctly
 2. **Team-Based Access**: Test assigned team member access
 3. **Permission Inheritance**: Validate role + team permission combination
@@ -135,6 +149,7 @@ class StepViewRBAC {
 6. **URL Parameter Security**: Verify no development hacks work
 
 ### Security Audit Points
+
 - [ ] No URL parameter role overrides work in production
 - [ ] Backend API properly validates user sessions
 - [ ] Team membership correctly grants/restricts access
@@ -148,18 +163,21 @@ class StepViewRBAC {
 ## 🚀 Deployment Instructions
 
 ### Phase 1: Backend Deployment
+
 1. Deploy updated `stepViewApi.groovy` with userContext endpoint
 2. Verify `/stepViewApi/userContext?stepCode=XXX-nnn` works
 3. Test user role detection and team membership queries
 4. Validate permission calculation logic
 
 ### Phase 2: Frontend Integration
+
 1. Deploy `StepViewRBAC.js` class
 2. Update step-view.js to use new RBAC system
 3. Remove all development override code
 4. Test production security validation
 
 ### Phase 3: Validation & Monitoring
+
 1. Run security validation tests
 2. Monitor for suspicious URL parameter attempts
 3. Verify audit logging is working
@@ -168,18 +186,21 @@ class StepViewRBAC {
 ## 📈 Expected Outcomes
 
 ### Security Improvements
+
 - **Eliminated**: All privilege escalation vulnerabilities
 - **Implemented**: Enterprise-grade RBAC with team-based permissions
 - **Added**: Complete security audit logging
 - **Hardened**: Production deployment against development hacks
 
 ### User Experience
+
 - **ADMIN users**: Now get full access (fixes read-only bug)
 - **PILOT users**: Get appropriate elevated permissions
 - **Team members**: Get step management permissions for their teams
 - **Regular users**: Get appropriate read-only access with clear feedback
 
 ### Operational Benefits
+
 - **Security Audit Trail**: Complete logging of all security events
 - **Backend Integration**: Proper API-based user context resolution
 - **Team Management**: Automatic permission based on team membership

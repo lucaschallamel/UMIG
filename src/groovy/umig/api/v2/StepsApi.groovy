@@ -40,6 +40,7 @@ import java.sql.SQLException
  * Results are ordered by sequence number, phase number, and step number.
  */
 steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    System.err.println("=== StepsApi GET endpoint called ===")
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
@@ -57,7 +58,13 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // Parse and validate query parameters for filtering with type safety (ADR-031) - inline
     def parseAndValidateFilters = { MultivaluedMap qParams ->
         def filters = [:]
-        
+
+        // Log incoming query parameters for debugging
+        System.err.println("StepsApi.parseAndValidateFilters called with queryParams: ${qParams.keySet().collect { key -> "$key=${qParams.getFirst(key)}" }.join(', ')}")
+
+        // Parameters to ignore (not filters)
+        def ignoredParams = ['sort', 'limit', 'offset', 'enhanced', 'page', 'size', 'direction', 'format']
+
         // UUID parameters with explicit casting and validation
         if (qParams.getFirst("migrationId")) {
             try {
@@ -132,7 +139,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             filters.status = status.toUpperCase()
         }
-        
+
+        System.err.println("StepsApi.parseAndValidateFilters generated filters: ${filters}")
         return filters
     }
     
@@ -492,21 +500,62 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             def pagination = validatePaginationParams(queryParams)
             
             // Check if this is a simple list request or enhanced filtering
-            def useEnhancedMethod = queryParams.getFirst("enhanced") == "true" || 
-                                   queryParams.getFirst("limit") || 
-                                   queryParams.getFirst("offset")
+            def useEnhancedMethod = queryParams.getFirst("enhanced") == "true" ||
+                                   queryParams.getFirst("limit") ||
+                                   queryParams.getFirst("offset") ||
+                                   queryParams.getFirst("sort")
             
             StepRepository stepRepository = getStepRepository()
             
             if (useEnhancedMethod) {
+                // Parse sort parameter
+                def sortField = 'created_date'  // default
+                def sortDirection = 'desc'  // default
+
+                if (queryParams.getFirst("sort")) {
+                    def sortParam = queryParams.getFirst("sort") as String
+                    // Handle comma-separated sort fields for hierarchical ordering
+                    def sortFields = sortParam.split(',')
+                    if (sortFields.length > 0) {
+                        // Map frontend sort field names to repository-supported field names
+                        // Use fields that align with buildDTOBaseQuery() in StepRepository
+                        def fieldMapping = [
+                            'sequence_number': 'sqi_order',       // Use instance sequence order (COALESCE with master)
+                            'phase_number': 'phi_order',          // Use instance phase order (COALESCE with master)
+                            'step_number': 'stm.stm_number',      // Use actual step number from database
+                            'created_date': 'sti.created_at',     // Use step instance creation time
+                            'updated_date': 'sti.updated_at',     // Use step instance modification time
+                            'name': 'stm_name',                   // Use step name from select clause
+                            'status': 'step_status',              // Use step status from select clause
+                            'team': 'team_name'                   // Use team name from select clause
+                        ]
+
+                        // For hierarchical sorting, build composite sort clause
+                        if (sortFields.contains('sequence_number') && sortFields.contains('phase_number') && sortFields.contains('step_number')) {
+                            // Special case: hierarchical ordering requested - use instance order fields
+                            sortField = 'sqi_order, phi_order, stm.stm_number'
+                        } else {
+                            // Single field sorting
+                            sortField = fieldMapping[sortFields[0]] ?: 'sti.created_at'
+                        }
+                    }
+                }
+
                 // Use enhanced repository method with pagination and DTO transformation
+                System.err.println("StepsApi calling findStepsWithFiltersAsDTO with filters: ${filters}, pageNumber: 1, pageSize: ${pagination.limit}, sortField: ${sortField}, sortDirection: ${sortDirection}")
+
                 def result = stepRepository.findStepsWithFiltersAsDTO(
-                    filters, 
-                    1, // pageNumber 
+                    filters,
+                    1, // pageNumber
                     pagination.limit as Integer,
-                    'created_date',
-                    'desc'
+                    sortField,
+                    sortDirection
                 )
+
+                // Type-safe access to result data with explicit casting (ADR-031)
+                Map resultMap = result as Map
+                List dataList = resultMap.data as List
+                System.err.println("StepsApi received result with ${dataList?.size() ?: 0} items from findStepsWithFiltersAsDTO")
                 
                 return Response.ok(new JsonBuilder(result).toString()).build()
             } else {

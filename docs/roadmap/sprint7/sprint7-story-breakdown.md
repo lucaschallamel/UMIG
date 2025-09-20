@@ -6,9 +6,9 @@
 **Sprint Start Date**: September 15, 2025 (Monday) **STARTED**
 **Sprint End Date**: September 24, 2025 (Wednesday)
 **Sprint Duration**: 8 working days (shortened sprint)
-**Total Story Points**: 66 points COMMITTED + 13 points STRETCH = 79 total points
-**Stories Completed**: 21 of 66 points (32% committed scope complete - US-082-C complete, 5 TDs complete, US-087 Phase 1 only)
-**Target Velocity**: 8.25 points/day (66 points ÷ 8 days)
+**Total Story Points**: 73.5 points COMMITTED + 5.5 points STRETCH = 79 total points (US-035-P1 moved to committed scope)
+**Stories Completed**: 23.7 of 73.5 points (32% committed scope complete - US-082-C complete, 5 TDs complete, US-087 Phase 1, US-035-P1 foundation)
+**Target Velocity**: 9.2 points/day (73.5 points ÷ 8 days)
 **Previous Sprint Velocity**: 13.3 points/day (Sprint 6 - 120+ points delivered)
 **Capacity Available**: 64-80 points (8 days × 8-10 points/day)
 
@@ -20,37 +20,39 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 
 ### COMMITTED SCOPE (User Final Decisions - MUST DELIVER)
 
-| Story ID      | Story Title                               | Points | Priority | Dependencies        | Risk   | Status          |
-| ------------- | ----------------------------------------- | ------ | -------- | ------------------- | ------ | --------------- |
-| US-082-C      | Entity Migration Standard                 | 6      | P1       | US-082-B Complete   | LOW    | ✅ COMPLETE     |
-| US-087        | Admin GUI Component Migration             | 8      | P1       | US-082-C Complete   | LOW    | 🔄 PHASE 1 DONE |
-| US-058        | EmailService Refactoring                  | 9      | P1       | Current Email Infra | MEDIUM | READY           |
-| US-088        | Build Process & Deployment for UAT        | 5      | P1       | Current Infra       | MEDIUM | READY           |
-| US-049        | StepView Email Integration                | 5      | P2       | EmailService        | MEDIUM | READY           |
-| US-041B       | PILOT Instance Management                 | 3      | P2       | Current System      | LOW    | READY           |
-| US-084        | Plans-as-Templates Hierarchy Fix          | 5      | P2       | Plans Entity        | MEDIUM | READY           |
-| US-041A       | Audit Logging Infrastructure              | 5      | P2       | Current Infra       | MEDIUM | READY           |
-| TD-003A       | Eliminate Hardcoded Status Values         | 5      | P2       | Production Code     | LOW    | ✅ COMPLETE     |
-| TD-003B       | Test Suite Migration Plan                 | 3      | P2       | TD-003A Complete    | LOW    | PENDING         |
-| TD-004        | BaseEntityManager Interface Resolution    | 2      | P2       | Entity Architecture | LOW    | ✅ COMPLETE     |
-| TD-005        | JavaScript Test Infrastructure Resolution | 5      | P2       | Test Framework      | LOW    | ✅ COMPLETE     |
-| TD-007        | Remove Redundant Admin Splash Login       | 3      | P2       | Admin Interface     | LOW    | ✅ COMPLETE     |
-| **COMMITTED** |                                           | **66** |          |                     |        |                 |
+| Story ID      | Story Title                               | Points   | Priority | Dependencies        | Risk   | Status              |
+| ------------- | ----------------------------------------- | -------- | -------- | ------------------- | ------ | ------------------- |
+| US-082-C      | Entity Migration Standard                 | 6        | P1       | US-082-B Complete   | LOW    | ✅ COMPLETE         |
+| US-087        | Admin GUI Component Migration             | 8        | P1       | US-082-C Complete   | LOW    | 🔄 PHASE 1 DONE     |
+| US-035-P1     | IterationView API Migration               | 7.5      | P1       | US-082-C Complete   | LOW    | 🔄 FOUNDATION (36%) |
+| US-058        | EmailService Refactoring                  | 9        | P1       | Current Email Infra | MEDIUM | READY               |
+| US-088        | Build Process & Deployment for UAT        | 5        | P1       | Current Infra       | MEDIUM | READY               |
+| US-049        | StepView Email Integration                | 5        | P2       | EmailService        | MEDIUM | READY               |
+| US-041B       | PILOT Instance Management                 | 3        | P2       | Current System      | LOW    | READY               |
+| US-084        | Plans-as-Templates Hierarchy Fix          | 5        | P2       | Plans Entity        | MEDIUM | READY               |
+| US-041A       | Audit Logging Infrastructure              | 5        | P2       | Current Infra       | MEDIUM | READY               |
+| TD-003A       | Eliminate Hardcoded Status Values         | 5        | P2       | Production Code     | LOW    | ✅ COMPLETE         |
+| TD-003B       | Test Suite Migration Plan                 | 3        | P2       | TD-003A Complete    | LOW    | PENDING             |
+| TD-004        | BaseEntityManager Interface Resolution    | 2        | P2       | Entity Architecture | LOW    | ✅ COMPLETE         |
+| TD-005        | JavaScript Test Infrastructure Resolution | 5        | P2       | Test Framework      | LOW    | ✅ COMPLETE         |
+| TD-007        | Remove Redundant Admin Splash Login       | 3        | P2       | Admin Interface     | LOW    | ✅ COMPLETE         |
+| **COMMITTED** |                                           | **73.5** |          |                     |        |                     |
 
 ### STRETCH GOALS (If Capacity Allows)
 
-| Story ID    | Story Title                    | Points | Priority | Dependencies      | Risk   | Status  |
-| ----------- | ------------------------------ | ------ | -------- | ----------------- | ------ | ------- |
-| US-082-D    | Complex Migration Optimization | 8      | P3       | US-082-C Complete | HIGH   | STRETCH |
-| US-035-P1   | IterationView API Migration    | 5      | P3       | Current API       | MEDIUM | STRETCH |
-| **STRETCH** |                                | **13** |          |                   |        |         |
+| Story ID    | Story Title                    | Points  | Priority | Dependencies      | Risk | Status  |
+| ----------- | ------------------------------ | ------- | -------- | ----------------- | ---- | ------- |
+| US-082-D    | Complex Migration Optimization | 5.5     | P3       | US-082-C Complete | HIGH | STRETCH |
+| **STRETCH** |                                | **5.5** |          |                   |      |         |
+
+**Note**: US-035-P1 moved from stretch to committed scope due to significant progress (36% complete with foundation established)
 
 ### TOTAL SPRINT SCOPE
 
 | Category  | Stories | Points | Percentage | Notes                              |
 | --------- | ------- | ------ | ---------- | ---------------------------------- |
-| Committed | 13      | 66     | 84%        | Must deliver - user final decision |
-| Stretch   | 2       | 13     | 16%        | If capacity allows                 |
+| Committed | 14      | 73.5   | 93%        | Must deliver - user final decision |
+| Stretch   | 1       | 5.5    | 7%         | If capacity allows                 |
 | **TOTAL** | **15**  | **79** | **100%**   | Against 64-80 point capacity       |
 
 ### Sprint 6 Velocity Analysis
@@ -79,7 +81,7 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 
 ## Executive Summary
 
-Sprint 7 represents a **significantly expanded sprint** based on user final decisions and substantial technical debt completion, building on Sprint 6's revolutionary achievements (120+ story points at 400% velocity). With US-082-C Entity Migration Standard **completed on Day 1** and **5 technical debt items completed**, we've achieved 21 of 66 committed points (32%) with US-087 Phase 1 foundation only (major component integration work still remaining) and 7 other committed stories.
+Sprint 7 represents a **significantly expanded sprint** based on user final decisions and substantial technical debt completion, building on Sprint 6's revolutionary achievements (120+ story points at 400% velocity). With US-082-C Entity Migration Standard **completed on Day 1**, **5 technical debt items completed**, and **US-035-P1 foundation breakthrough achieved**, we've achieved 23.7 of 73.5 committed points (32%) with major component integration work progressing across multiple stories.
 
 **Key Sprint Characteristics**:
 
@@ -89,13 +91,14 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 - **Production Focus**: UAT deployment, email infrastructure, and core system enhancements
 - **Quality Balance**: Stretch goals ensure focus on committed scope first
 
-### Current Status (Updated January 18, 2025)
+### Current Status (Updated September 20, 2025)
 
 - ✅ **US-082-C Complete**: Entity Migration Standard foundation established (6 points)
 - 🔄 **US-087 Phase 1 Only**: Admin GUI component migration infrastructure established (Phase 1 of 7 - major work remaining)
+- 🔄 **US-035-P1 Foundation Complete**: IterationView API Migration 36% complete (2.7 points) - critical blockers resolved
 - ✅ **Technical Debt Complete**: 5 TD items resolved (TD-003A: 5pts, TD-004: 2pts, TD-005: 5pts, TD-007: 3pts = 15 points)
-- 📋 **Remaining Committed**: 8 stories (45 points remaining from US-087 phases 2-7) + 7 other stories - significant work remaining
-- 📋 **Stretch Available**: 2 stories (13 points) if capacity allows
+- 📋 **Remaining Committed**: 7 stories (49.8 points remaining from US-087 phases 2-7, US-035-P1 completion) + 7 other stories
+- 📋 **Stretch Available**: 1 story (5.5 points) if capacity allows
 - 📊 **Technical Debt Pending**: TD-003B Test Suite Migration Plan (3 points)
 
 ## Detailed Story Breakdown
@@ -124,9 +127,9 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 
 ---
 
-### 🔄 US-087: Admin GUI Component Migration (PHASE 1 COMPLETE)
+### 🔄 US-087: Admin GUI Component Migration (PHASE 2 IN PROGRESS)
 
-**Status**: 🔄 PHASE 1 COMPLETE - PHASE 2-7 REMAINING (January 18, 2025)
+**Status**: 🔄 PHASE 1 COMPLETE - PHASE 2 IN PROGRESS WITH ISSUES (January 20, 2025)
 **Points**: 8 (distributed across 7 phases)
 **Owner**: Frontend Development
 **Phase 1 Completion Date**: January 18, 2025
@@ -150,11 +153,19 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 - ✅ Emergency rollback functional and tested
 - ✅ Performance monitoring operational
 
+**Phase 2 Current Issues**:
+
+- ❌ Modal display/rendering issues blocking Add/Edit functionality
+- ⚠️ CRUD operations implemented but untested
+- ⏳ Teams activation pending Users completion
+
 **REMAINING WORK FOR FULL US-087 COMPLETION**:
 
 **Phase 2-7 Still Required** (Major component integration work):
 
-- 🔄 **Phase 2**: Component Integration (TeamsEntityManager, UsersEntityManager integration)
+- ⚠️ **Phase 2 IN PROGRESS**: Component Integration
+  - Users: Table works, modal broken, CRUD untested
+  - Teams: Not yet activated
 - 🔄 **Phase 3**: Security and Performance Integration (ComponentOrchestrator integration)
 - 🔄 **Phase 4**: Testing and Validation (comprehensive component testing)
 - 🔄 **Phase 5**: Legacy Code Cleanup (reduce admin-gui.js from 2,800+ to <500 lines)
@@ -279,23 +290,34 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 
 ---
 
-### 📋 US-035-P1: IterationView API Migration
+### 🔄 US-035-P1: IterationView API Migration
 
-**Status**: READY
-**Points**: 5
+**Status**: IN PROGRESS - Foundation Complete (36% Complete)
+**Points**: 7.5 (Updated scope assessment)
 **Owner**: Backend + Frontend Development
-**Timeline**: Days 3-6 (parallel with US-087)
+**Timeline**: Days 3-8 (extended due to expanded scope)
+**Points Completed**: 2.7 out of 7.5 (36% Complete)
 
 **Key Deliverables**:
 
-- Modernize IterationView API to current standards
-- Update data flow and transformations
-- Ensure backward compatibility during transition
-- Comprehensive testing of user workflows
-- Performance benchmarking and optimization
+- [x] Enhanced StepsAPI integration with database fixes (COMPLETE)
+- [x] RBAC backend integration and security validation (COMPLETE)
+- [x] Performance validation (<500ms step loading, <3s page loads) (COMPLETE)
+- [ ] EntityManager integration with ComponentOrchestrator (15% Complete)
+- [ ] Security hardening (CSRF, XSS, rate limiting) (60% Complete)
+- [ ] Component lifecycle optimization and caching (40% Complete)
 
-**Dependencies**: Current API infrastructure
-**Risk**: MEDIUM - API integration complexity, data model alignment
+**Dependencies**: Current API infrastructure ✅, US-082-C Complete ✅
+**Risk**: LOW (reduced from MEDIUM - critical blockers resolved September 20, 2025)
+
+**Major Achievements September 20, 2025**:
+
+- Resolved critical Steps API 500 errors and database JOIN issues
+- Implemented enhanced=true parameter for proper DTO usage
+- Fixed flat-to-nested data transformation architecture
+- Complete RBAC backend integration with audit logging
+- Eliminated forEach undefined errors and API response issues
+- Established stable foundation for component migration
 
 ---
 
@@ -439,22 +461,26 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 
 ---
 
-### 🎯 US-035-P1: IterationView API Migration (STRETCH)
+### 🔄 US-035-P1: IterationView API Migration (MOVED TO COMMITTED SCOPE)
 
-**Status**: STRETCH GOAL
-**Points**: 5
+**Status**: IN PROGRESS - Foundation Complete (36% Complete)
+**Points**: 7.5 (Moved from stretch to committed scope due to progress)
 **Owner**: Backend + Frontend Development
-**Timeline**: Days 6-8 (only if committed scope complete)
+**Timeline**: Days 3-8 (foundation complete, component integration in progress)
 
 **Key Deliverables**:
 
-- Modernize IterationView API to current standards
-- Update data flow and transformations
-- Ensure backward compatibility during transition
-- Performance benchmarking and optimization
+- [x] Enhanced StepsAPI integration complete with database fixes
+- [x] RBAC backend integration and security validation complete
+- [x] Performance benchmarking validated (targets met)
+- [ ] EntityManager integration with ComponentOrchestrator (in progress)
+- [ ] Security hardening completion (CSRF, XSS, rate limiting)
+- [ ] Component lifecycle optimization and intelligent caching
 
-**Dependencies**: Current API infrastructure
-**Risk**: MEDIUM - API integration complexity
+**Dependencies**: Current API infrastructure ✅ (foundation complete)
+**Risk**: LOW (reduced from MEDIUM - critical blockers resolved)
+
+**Note**: This story has been moved from stretch goals to committed scope due to significant progress achieved and foundation completion. 36% complete with stable foundation established.
 
 ## Daily Breakdown & Execution Strategy
 

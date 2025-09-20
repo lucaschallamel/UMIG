@@ -2324,10 +2324,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 WHERE stm.stm_id = :stepMasterId
@@ -2352,10 +2351,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 ORDER BY stm.stt_code, stm.stm_number
@@ -2381,10 +2379,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 WHERE stm.phm_id = :phaseId
@@ -2667,14 +2664,13 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
                        phm.phm_name,
                        sqm.sqm_name,
                        plm.plm_name,
                        tms.tms_name as owner_team_name,
-                       (SELECT COUNT(*) FROM instructions_master_inm inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
@@ -3051,8 +3047,15 @@ class StepRepository {
                 itt.itt_code as iteration_type,
                 sqm.sqm_id as sequence_id,
                 sqm.sqm_name as sequence_name,
+                sqm.sqm_order,  -- Added for hierarchical sorting
                 phm.phm_id as phase_id,
                 phm.phm_name as phase_name,
+                phm.phm_order,  -- Added for hierarchical sorting
+                stm.stm_number, -- Added for hierarchical sorting
+
+                -- Instance hierarchy order fields (required by transformation service)
+                COALESCE(sqi.sqi_order, sqm.sqm_order) as sqi_order,
+                COALESCE(phi.phi_order, phm.phm_order) as phi_order,
                 
                 -- Temporal fields
                 sti.created_at as created_date,
@@ -3087,12 +3090,12 @@ class StepRepository {
             JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
             
             -- Instance hierarchy for proper filtering
-            LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
-            LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-            LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-            
+            JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+            JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+            JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+
             -- Migration and iteration context
-            LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+            JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
             LEFT JOIN iteration_types_itt itt ON ite.itt_code = itt.itt_code
             LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
             
@@ -3148,67 +3151,107 @@ class StepRepository {
         DatabaseUtil.withSql { sql ->
             pageNumber = Math.max(1, pageNumber)
             pageSize = Math.min(100, Math.max(1, pageSize))
-            
+
+            // Log incoming filters for debugging
+            log.info("StepRepository.findStepsWithFiltersAsDTO called with filters: ${filters}")
+            log.info("Pagination: pageNumber=${pageNumber}, pageSize=${pageSize}, sortField=${sortField}, sortDirection=${sortDirection}")
+
             def whereConditions = []
             def params = [:]
-            
+
             // Build dynamic WHERE clause
             if (filters.migrationId) {
                 whereConditions << "mig.mig_id = :migrationId"
                 params.migrationId = UUID.fromString(filters.migrationId as String)
+                log.info("Added migration filter: mig.mig_id = ${params.migrationId}")
             }
-            
+
             if (filters.iterationId) {
                 whereConditions << "ite.ite_id = :iterationId"
                 params.iterationId = UUID.fromString(filters.iterationId as String)
+                log.info("Added iteration filter: ite.ite_id = ${params.iterationId}")
             }
             
             if (filters.assignedTeamId) {
                 whereConditions << "tms.tms_id = :assignedTeamId"
                 params.assignedTeamId = UUID.fromString(filters.assignedTeamId as String)
+                log.info("Added team filter: tms.tms_id = ${params.assignedTeamId}")
             }
-            
+
             if (filters.status) {
                 whereConditions << "sti.sti_status = :status"
                 params.status = filters.status as String
+                log.info("Added status filter: sti.sti_status = ${params.status}")
             }
-            
+
             if (filters.stepType) {
                 whereConditions << "stt.stt_code = :stepType"
                 params.stepType = filters.stepType as String
+                log.info("Added step type filter: stt.stt_code = ${params.stepType}")
             }
-            
+
             // Priority filtering disabled - column doesn't exist in database
             // if (filters.priority) {
             //     whereConditions << "sti.sti_priority = :priority"
             //     params.priority = Integer.parseInt(filters.priority as String)
             // }
-            
+
             if (filters.hasActiveComments) {
                 if (filters.hasActiveComments as Boolean) {
                     whereConditions << "comment_counts.comment_count > 0"
+                    log.info("Added active comments filter: comment_count > 0")
                 } else {
                     whereConditions << "(comment_counts.comment_count IS NULL OR comment_counts.comment_count = 0)"
+                    log.info("Added no comments filter: comment_count IS NULL OR = 0")
                 }
             }
-            
+
             // No is_active filter - column doesn't exist in schema
-            
+
             def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
+            log.info("Generated WHERE clause: ${whereClause}")
+            log.info("Query parameters: ${params}")
             
             // Build ORDER BY clause with safe field mapping
             def sortFieldMap = [
                 'created_date': 'sti.created_at',
-                'modified_date': 'sti.updated_at', 
+                'modified_date': 'sti.updated_at',
                 'name': 'stm_name',
-                'status': 'sti.sti_status',
+                'status': 'sts.sts_name',  // Fixed: Use status name from JOIN, not raw ID
                 // 'priority': 'sti.sti_priority', // Column doesn't exist
-                'team': 'tms.tms_name'
+                'team': 'tms.tms_name',
+                // Frontend-to-backend field mappings (matching StepsApi field mapping)
+                'sequence_number': 'sqi_order',    // Use instance order (COALESCE with master)
+                'phase_number': 'phi_order',       // Use instance order (COALESCE with master)
+                'step_number': 'stm.stm_number',
+                // Hierarchical sorting fields (aliased from buildDTOBaseQuery)
+                'sqi_order': 'sqi_order',
+                'phi_order': 'phi_order',
+                'stm.stm_number': 'stm.stm_number',
+                'sti.created_at': 'sti.created_at',
+                'sti.updated_at': 'sti.updated_at',
+                'stm_name': 'stm_name',
+                'step_status': 'sts.sts_name',
+                'team_name': 'tms.tms_name'
             ]
-            
-            def actualSortField = sortFieldMap[sortField] ?: 'sti.created_at'
+
+            // Handle composite sort field (comma-separated)
             def actualSortDirection = (sortDirection?.toLowerCase() == 'asc') ? 'ASC' : 'DESC'
-            def orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
+            def orderByClause
+
+            if (sortField.contains(',')) {
+                // Composite sort field - split and map each field
+                def sortFields = sortField.split(',').collect { field ->
+                    def mappedField = sortFieldMap[field.trim()] ?: field.trim()
+                    return "${mappedField} ${actualSortDirection}"
+                }
+                def actualSortField = sortFields.join(', ')
+                orderByClause = "ORDER BY ${actualSortField}"
+            } else {
+                // Single sort field
+                def actualSortField = sortFieldMap[sortField] ?: 'sti.created_at'
+                orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
+            }
             
             // Execute count query for pagination
             def countQuery = """
@@ -3216,39 +3259,49 @@ class StepRepository {
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+                JOIN status_sts sts ON sti.sti_status = sts.sts_id AND sts.sts_type = 'Step'
                 JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-                LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
-                LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-                LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-                LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                 LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
                 LEFT JOIN (
                     SELECT sti_id, COUNT(*) as comment_count
                     FROM step_instance_comments_sic
-                    WHERE is_active = true
                     GROUP BY sti_id
                 ) comment_counts ON sti.sti_id = comment_counts.sti_id
                 ${whereClause}
             """
-            
+
+            log.info("Executing COUNT query: ${countQuery}")
+            log.info("COUNT query parameters: ${params}")
+
             def totalCount = sql.firstRow(countQuery, params)[0] as Integer
+            log.info("COUNT query returned: ${totalCount} rows")
             def totalPages = Math.ceil(totalCount / (double) pageSize) as Integer
             
-            // Execute main query with pagination  
+            // Execute main query with pagination
             def offset = (pageNumber - 1) * pageSize
             params.limit = pageSize
             params.offset = offset
-            
+
             def dataQuery = buildDTOBaseQuery() + """
                 ${whereClause}
                 ${orderByClause}
                 LIMIT :limit OFFSET :offset
             """
-            
+
+            log.info("Executing MAIN query: ${dataQuery}")
+            log.info("MAIN query parameters: ${params}")
+
             def rows = sql.rows(dataQuery, params)
+            log.info("MAIN query returned: ${rows.size()} rows")
+
             def dtos = transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+            log.info("Transformed to ${dtos.size()} DTOs")
             
             return [
                 data: dtos,

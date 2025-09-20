@@ -2525,7 +2525,7 @@ class StepView {
     if (typeof this.permissions[feature] === "boolean") {
       // New format: permissions are boolean values from backend
       const hasAccess = this.permissions[feature];
-      
+
       if (!hasAccess) {
         this.logSecurityEvent("permission_denied", {
           feature: feature,
@@ -2534,10 +2534,10 @@ class StepView {
           stackTrace: new Error().stack,
         });
       }
-      
+
       return hasAccess;
     }
-    
+
     // Legacy format: permissions are arrays of allowed roles
     const allowed = this.permissions[feature] || [];
     const hasAccess = allowed.includes(this.userRole);
@@ -2705,7 +2705,8 @@ class StepView {
         this.userRole = context.role || this.userRole;
         this.isAdmin = context.isAdmin || this.isAdmin;
         this.userId = context.userId || this.userId;
-        this.permissions = context.permissions || this.getEmergencyPermissions();
+        this.permissions =
+          context.permissions || this.getEmergencyPermissions();
 
         // Store full context
         this.userContext = context;
@@ -2713,20 +2714,27 @@ class StepView {
         // Re-initialize RBAC system with new permissions
         if (context.permissions) {
           Object.freeze(this.permissions);
-          console.log("🔒 StepView: Permissions updated from backend:", this.permissions);
+          console.log(
+            "🔒 StepView: Permissions updated from backend:",
+            this.permissions,
+          );
         }
 
         // Re-apply RBAC controls with new permissions
         this.applyRBACControls();
       } else {
         const errorText = await response.text();
-        console.warn("Failed to load user context:", response.status, errorText);
+        console.warn(
+          "Failed to load user context:",
+          response.status,
+          errorText,
+        );
         console.log("🔄 StepView: Using fallback user context from config");
         this.userContext = {
           userId: this.userId,
           role: this.userRole,
           username: this.config.user?.username,
-          isAdmin: this.isAdmin
+          isAdmin: this.isAdmin,
         };
       }
     } catch (error) {
@@ -2736,7 +2744,7 @@ class StepView {
         userId: this.userId,
         role: this.userRole,
         username: this.config.user?.username,
-        isAdmin: this.isAdmin
+        isAdmin: this.isAdmin,
       };
     }
   }
@@ -2745,40 +2753,52 @@ class StepView {
    * Apply RBAC controls to UI elements based on permissions
    */
   applyRBACControls() {
-    console.log("🔒 StepView: Applying RBAC controls with permissions:", this.permissions);
-    
+    console.log(
+      "🔒 StepView: Applying RBAC controls with permissions:",
+      this.permissions,
+    );
+
     // Re-render step details if they're already loaded to apply permission-based UI changes
     if (this.currentStepCode) {
       const container = document.getElementById("umig-step-view-root");
       if (container) {
         // Re-apply visibility rules to existing elements
-        const statusDropdowns = document.querySelectorAll('[id^="step-status-dropdown"]');
-        statusDropdowns.forEach(dropdown => {
+        const statusDropdowns = document.querySelectorAll(
+          '[id^="step-status-dropdown"]',
+        );
+        statusDropdowns.forEach((dropdown) => {
           if (this.hasPermission("update_step_status")) {
             dropdown.style.display = "";
             dropdown.disabled = false;
-            console.log("✅ StepView: Status dropdown enabled for user with update_step_status permission");
+            console.log(
+              "✅ StepView: Status dropdown enabled for user with update_step_status permission",
+            );
           } else {
             dropdown.style.display = "none";
             dropdown.disabled = true;
-            console.log("❌ StepView: Status dropdown hidden - no update_step_status permission");
+            console.log(
+              "❌ StepView: Status dropdown hidden - no update_step_status permission",
+            );
           }
         });
-        
+
         // Apply instruction checkbox permissions
-        const instructionCheckboxes = document.querySelectorAll('.instruction-checkbox');
-        instructionCheckboxes.forEach(checkbox => {
+        const instructionCheckboxes = document.querySelectorAll(
+          ".instruction-checkbox",
+        );
+        instructionCheckboxes.forEach((checkbox) => {
           if (this.hasPermission("complete_instructions")) {
             checkbox.disabled = false;
           } else {
             checkbox.disabled = true;
-            checkbox.title = "You need elevated permissions to complete instructions";
+            checkbox.title =
+              "You need elevated permissions to complete instructions";
           }
         });
-        
+
         // Apply comment form visibility
-        const commentForms = document.querySelectorAll('.comment-form');
-        commentForms.forEach(form => {
+        const commentForms = document.querySelectorAll(".comment-form");
+        commentForms.forEach((form) => {
           if (this.hasPermission("add_comments")) {
             form.style.display = "";
           } else {
@@ -2799,15 +2819,17 @@ class StepView {
     const stepId = params.get("stepid");
 
     // Security validation: Check for suspicious URL parameters
-    const suspiciousParams = ['role', 'admin', 'debug', 'override'];
-    suspiciousParams.forEach(param => {
+    const suspiciousParams = ["role", "admin", "debug", "override"];
+    suspiciousParams.forEach((param) => {
       if (params.has(param)) {
-        console.error(`🚨 SECURITY VIOLATION: Suspicious URL parameter '${param}' detected`);
+        console.error(
+          `🚨 SECURITY VIOLATION: Suspicious URL parameter '${param}' detected`,
+        );
         this.logSecurityEvent("suspicious_url_parameter", {
           parameter: param,
           value: params.get(param),
           url: window.location.href,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
     });
@@ -2850,10 +2872,7 @@ class StepView {
     // Start real-time synchronization
     this.startRealTimeSync();
 
-    // Add cleanup on page unload
-    window.addEventListener("beforeunload", () => {
-      this.cleanup();
-    });
+    // Simple cleanup - page unload handles most cleanup automatically
   }
 
   async refreshStepDetails() {

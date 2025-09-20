@@ -1,12 +1,177 @@
 # System Patterns
 
-**Last Updated**: September 18, 2025
-**Status**: Technical Debt Excellence & Revolutionary Pattern Implementation
-**Key Achievement**: TD-003A, TD-004, TD-005, TD-007 COMPLETE - enterprise-grade patterns established with US-087 Phase 1 foundation
-**Revolutionary Patterns**: StatusService infrastructure, Component interface standardisation, Database-first schema alignment, IIFE-free module loading
-**Security Architecture**: 8.5/10 enterprise rating maintained through architectural consistency preservation
-**Performance Excellence**: 15-20% improvement through @CompileStatic annotation, enterprise caching strategies
-**Business Impact**: Systematic technical debt prevention patterns with proven resolution methodologies and migration acceleration
+**Last Updated**: September 20, 2025
+**Status**: Technical Debt Excellence & Revolutionary Pattern Implementation + Crisis Management Mastery
+**Key Achievement**: TD-003A, TD-004, TD-005, TD-007 COMPLETE + 2-day crisis management breakthrough establishing proven debugging patterns and RBAC enterprise implementation
+**Revolutionary Patterns**: StatusService infrastructure, Component interface standardisation, Database-first schema alignment, IIFE-free module loading, Crisis resolution methodologies, Progressive debugging strategies
+**Security Architecture**: 8.5/10 enterprise rating maintained + RBAC multi-user system implementation
+**Performance Excellence**: 15-20% improvement through @CompileStatic annotation, enterprise caching strategies, API crisis resolution patterns
+**Business Impact**: Systematic technical debt prevention patterns + proven crisis management methodologies preventing future similar issues
+
+## Crisis Management & Debugging Patterns (September 18-20, 2025)
+
+### Crisis Management Methodology Pattern
+
+**Pattern**: Systematic crisis resolution through progressive debugging and structured problem-solving
+**Achievement**: 2-day intensive debugging period resolving multiple critical failures
+**Documentation**: Complete pattern capture in `docs/devJournal/20250920-01.md`
+
+#### 1. API Crisis Resolution Pattern
+
+**Pattern**: Database JOIN strategy fixes for API reliability failures
+
+```groovy
+// ANTI-PATTERN - Missing JOIN causing 500 errors
+sql.rows('''
+    SELECT si.*, sp.*, sq.*
+    FROM step_instances_sti si
+    LEFT JOIN sequence_phases_sph sp ON si.sph_id = sp.sph_id
+    LEFT JOIN sequences_sq sq ON sp.sq_id = sq.sq_id
+    -- Missing status JOIN - returns IDs instead of names
+''')
+
+// CORRECT PATTERN - Complete JOIN strategy
+sql.rows('''
+    SELECT si.*, sp.*, sq.*, sts.sts_name as status_name
+    FROM step_instances_sti si
+    LEFT JOIN sequence_phases_sph sp ON si.sph_id = sp.sph_id
+    LEFT JOIN sequences_sq sq ON sp.sq_id = sq.sq_id
+    LEFT JOIN status_sts sts ON si.sti_status_id = sts.sts_id  -- Critical JOIN
+    WHERE si.itt_id = ?
+''')
+```
+
+**Crisis Resolution Timeline**: Discovered and resolved within 2 hours
+**Impact**: API restored from 0% → 100% operational
+
+#### 2. Flat-to-Nested Data Transformation Pattern
+
+**Pattern**: Critical frontend data structure alignment for hierarchical displays
+
+```javascript
+// CRISIS PROBLEM - Frontend expects nested structure, API returns flat
+const flatApiData = [
+  { sequence_name: "Seq1", phase_name: "Phase1", step_name: "Step1" },
+  { sequence_name: "Seq1", phase_name: "Phase1", step_name: "Step2" },
+  { sequence_name: "Seq1", phase_name: "Phase2", step_name: "Step3" },
+];
+
+// SOLUTION PATTERN - Recursive transformation logic
+function transformFlatToNested(flatData) {
+  const nested = {};
+
+  flatData.forEach((item) => {
+    if (!nested[item.sequence_name]) {
+      nested[item.sequence_name] = { phases: {} };
+    }
+
+    if (!nested[item.sequence_name].phases[item.phase_name]) {
+      nested[item.sequence_name].phases[item.phase_name] = { steps: [] };
+    }
+
+    nested[item.sequence_name].phases[item.phase_name].steps.push({
+      name: item.step_name,
+      // Use INSTANCE order fields for execution display
+      order: item.sqi_order, // NOT sqm_order (master)
+      phase_order: item.phi_order, // NOT phm_order (master)
+    });
+  });
+
+  return nested;
+}
+```
+
+**Key Insight**: Always use instance fields (`sqi_order`, `phi_order`) for execution, NOT master fields (`sqm_order`, `phm_order`)
+
+#### 3. Progressive Debugging Methodology Pattern
+
+**Pattern**: Systematic validation sequence preventing assumption-based errors
+
+```bash
+# Progressive Debugging Workflow
+1. DATABASE_VERIFICATION:
+   - Confirm table structure matches expectations
+   - Validate foreign key relationships
+   - Check actual vs assumed field names
+
+2. API_TESTING:
+   - Test endpoint in isolation
+   - Validate response structure
+   - Check error handling
+
+3. FRONTEND_ANALYSIS:
+   - Verify data transformation logic
+   - Check component rendering expectations
+   - Validate event handling
+
+4. INTEGRATION_VALIDATION:
+   - End-to-end functionality testing
+   - Cross-browser compatibility
+   - Performance validation
+```
+
+**Value**: Prevents hours of assumption-based debugging by systematic verification
+
+#### 4. RBAC Implementation Pattern
+
+**Pattern**: Enterprise Role-Based Access Control system implementation
+
+```javascript
+// Complete RBAC Implementation
+class RBACManager {
+  constructor() {
+    this.roles = {
+      ADMIN: ["read", "write", "delete", "configure"],
+      MANAGER: ["read", "write"],
+      USER: ["read"],
+    };
+  }
+
+  hasPermission(userRole, action) {
+    return this.roles[userRole]?.includes(action) || false;
+  }
+
+  enforceRBAC(component, userRole) {
+    // Stepview RBAC enforcement
+    if (component === "stepview") {
+      return this.hasPermission(userRole, "write");
+    }
+
+    // Iteration view read-only banner for ADMIN
+    if (component === "iteration-view" && userRole === "ADMIN") {
+      this.showReadOnlyBanner();
+    }
+
+    return this.hasPermission(userRole, "read");
+  }
+}
+```
+
+**Achievement**: Complete multi-user security system with backend API integration
+
+#### 5. ScriptRunner/Confluence Specific Patterns
+
+**Pattern**: Platform-specific debugging considerations
+
+```groovy
+// ScriptRunner Pattern - Table name verification
+// ANTI-PATTERN - Assuming logical names
+def tableName = "step_instances" // ❌ Assumption
+
+// CORRECT PATTERN - Verify actual table names
+def tableName = "step_instances_sti" // ✅ Verified in schema
+
+// Database verification before API implementation
+DatabaseUtil.withSql { sql ->
+    // Verify table exists and structure matches
+    def tableInfo = sql.rows("SELECT * FROM information_schema.tables WHERE table_name = ?", [tableName])
+    if (!tableInfo) {
+        throw new RuntimeException("Table ${tableName} not found - verify schema")
+    }
+}
+```
+
+**ScriptRunner Lesson**: Always verify database table names vs logical assumptions
 
 ## Core Architectural Patterns
 

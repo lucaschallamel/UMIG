@@ -45,7 +45,10 @@ return """
     console.log('IterationView: Configuration loaded', window.UMIG_ITERATION_CONFIG);
 </script>
 
-<!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
+<!-- SecurityUtils for enterprise security - Load BEFORE StatusProvider (ADR-058) -->
+<script src=\"${webRoot}/js/components/SecurityUtils.js\"></script>
+
+<!-- StatusProvider for TD-003 status management - Load AFTER SecurityUtils -->
 <script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
 
 <!-- Main JavaScript file - Load AFTER configuration and dependencies -->

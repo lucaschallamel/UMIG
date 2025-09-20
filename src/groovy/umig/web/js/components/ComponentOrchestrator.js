@@ -31,8 +31,14 @@ class ComponentOrchestrator {
       stateHistory: 10,
       performanceMonitoring: true,
       errorIsolation: true,
+      container: null, // Explicitly initialize container
       ...config,
     };
+
+    // Validate and set container if provided
+    if (config.container) {
+      this.setContainer(config.container);
+    }
 
     // Component registry
     this.components = new Map();
@@ -269,6 +275,36 @@ class ComponentOrchestrator {
         throw new Error("Component type is required and must be a string");
       }
 
+      // CRITICAL: Validate container availability before component creation
+      if (!this.config.container) {
+        const errorMsg = `Cannot create ${componentType} component: No parent container set. Call setContainer() first.`;
+        console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+          componentType: componentType,
+          config: config,
+          hasContainer: !!this.config.container,
+          configKeys: Object.keys(this.config),
+        });
+        throw new Error(errorMsg);
+      }
+
+      if (!(this.config.container instanceof HTMLElement)) {
+        const errorMsg = `Cannot create ${componentType} component: Parent container is not a valid HTMLElement.`;
+        console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+          componentType: componentType,
+          containerType: typeof this.config.container,
+          container: this.config.container,
+        });
+        throw new Error(errorMsg);
+      }
+
+      console.log(
+        `[ComponentOrchestrator] Creating ${componentType} component with container:`,
+        {
+          containerId: this.config.container.id,
+          containerTag: this.config.container.tagName,
+        },
+      );
+
       // Generate unique component ID
       const componentId = this.generateComponentId(componentType, config);
 
@@ -373,24 +409,58 @@ class ComponentOrchestrator {
       return container;
     }
 
-    // Container doesn't exist, create it
+    // Validate parent container before creating new container
     if (!this.config.container) {
-      throw new Error(`No parent container available to create ${containerId}`);
+      const errorMsg = `No parent container available to create ${containerId}. Ensure ComponentOrchestrator.setContainer() is called before creating components.`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        configContainer: this.config.container,
+        configKeys: Object.keys(this.config),
+      });
+      throw new Error(errorMsg);
     }
 
-    container = document.createElement("div");
-    container.id = containerId;
-    container.className = `component-container ${componentType}-container`;
+    if (!(this.config.container instanceof HTMLElement)) {
+      const errorMsg = `Parent container is not a valid HTMLElement. Got: ${typeof this.config.container}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        container: this.config.container,
+      });
+      throw new Error(errorMsg);
+    }
 
-    // Set up basic structure and accessibility
-    container.setAttribute("role", "region");
-    container.setAttribute("aria-label", `${componentType} component`);
+    // Container doesn't exist, create it
+    try {
+      container = document.createElement("div");
+      container.id = containerId;
+      container.className = `component-container ${componentType}-container`;
 
-    // Add to parent container
-    this.config.container.appendChild(container);
+      // Set up basic structure and accessibility
+      container.setAttribute("role", "region");
+      container.setAttribute("aria-label", `${componentType} component`);
 
-    this.logDebug(`Created DOM container: ${containerId}`);
-    return container;
+      // Add to parent container
+      this.config.container.appendChild(container);
+
+      this.logDebug(
+        `Created DOM container: ${containerId} in parent: ${this.config.container.id || this.config.container.tagName}`,
+      );
+      return container;
+    } catch (error) {
+      const errorMsg = `Failed to create container ${containerId}: ${error.message}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        parentContainer: this.config.container,
+        originalError: error,
+      });
+      throw new Error(errorMsg);
+    }
   }
 
   /**
@@ -2903,9 +2973,9 @@ class ComponentOrchestrator {
     // Redirect after short delay
     setTimeout(() => {
       if (typeof window !== "undefined") {
-        // Try different redirect strategies
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login?reason=timeout";
+        // Redirect to base URL for simple logout behavior
+        if (window.location.pathname !== "/") {
+          window.location.href = "/";
         } else {
           // Already on login page, just reload
           window.location.reload();
@@ -3095,20 +3165,38 @@ class ComponentOrchestrator {
    */
   setContainer(container) {
     if (!container) {
-      this.logError("setContainer called with null/undefined container");
-      return;
+      const errorMsg = "setContainer called with null/undefined container";
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`);
+      return false;
     }
 
     if (!(container instanceof HTMLElement)) {
-      this.logError(
-        "setContainer called with non-HTMLElement:",
-        typeof container,
-      );
-      return;
+      const errorMsg = `setContainer called with non-HTMLElement: ${typeof container}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        container: container,
+        containerType: typeof container,
+        isElement: container instanceof Element,
+        isHTMLElement: container instanceof HTMLElement,
+      });
+      return false;
     }
 
     this.config.container = container;
-    this.logDebug(`Container updated: ${container.id || container.tagName}`);
+    this.logDebug(`Container updated: ${container.id || container.tagName}`, {
+      containerId: container.id,
+      containerClass: container.className,
+      containerTag: container.tagName,
+    });
+
+    console.log(`[ComponentOrchestrator] Container successfully set:`, {
+      id: container.id,
+      tagName: container.tagName,
+      className: container.className,
+    });
+
+    return true;
   }
 
   /**

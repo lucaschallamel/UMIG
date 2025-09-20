@@ -435,3 +435,9 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+- to connect to the database use .env credentials, and umig_app_db abd umig_app_usr
+- to call UMIG apis with CURL you need to use basic auth with credentials in .env, so that you are a authenticated user.
+- You don't need to start or restart the stack, if you think you do, just ask me. But most of the time, teh stack is already up, and I can refresh the scriptrunner cache manually
+- Never git add or commit on your own initiative. You always need to ask to user.
+- to restart the stack use "npm restart". if you need to reset data, use "npm run restart:erase:umig" and then "npm run generate-data"
