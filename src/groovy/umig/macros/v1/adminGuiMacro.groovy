@@ -269,12 +269,9 @@ return """
         if (adminGui) {
           adminGui.style.display = 'block';
           
-          // Now load the scripts - ONLY admin-gui.js (removed conflicting AdminGuiController.js)
-          const scripts = [
-            '${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}',
-            '${webResourcesPath}/js/ModalManager.js?v=${jsVersion}',
-            '${webResourcesPath}/js/admin-gui.js?v=${jsVersion}'
-          ];
+          // Scripts will be loaded by ModuleLoader - removed direct loading to prevent race conditions
+          // ModuleLoader handles all dependencies properly including EntityManagers
+          console.log('[UMIG] ModuleLoader will handle all script loading with proper dependencies');
           
           let loadedCount = 0;
           scripts.forEach(function(src) {
@@ -357,10 +354,8 @@ return """
     window.UMIG_CONFIG = parent.UMIG_CONFIG;
     console.log('[UMIG] Running in isolated context - no Confluence overhead');
   </script>
-  <!-- Load modules in isolation - ONLY admin-gui.js (removed conflicting AdminGuiController.js) -->
-  <script src="${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}"></script>
-  <script src="${webResourcesPath}/js/ModalManager.js?v=${jsVersion}"></script>
-  <script src="${webResourcesPath}/js/admin-gui.js?v=${jsVersion}"></script>
+  <!-- Modules are loaded by ModuleLoader with proper dependency resolution -->
+  <!-- Direct script tags removed to prevent race conditions -->
 </body>
 </html>
 </script>
@@ -908,11 +903,15 @@ return """
         // Main controller (depends on everything)
         'admin-gui.js': {
           dependencies: [
+            'EntityConfig.js',
+            'ModalManager.js',
             'entities/teams/TeamsEntityManager.js',
             'entities/users/UsersEntityManager.js',
             'entities/environments/EnvironmentsEntityManager.js',
             'entities/applications/ApplicationsEntityManager.js',
-            'entities/labels/LabelsEntityManager.js'
+            'entities/labels/LabelsEntityManager.js',
+            'entities/migration-types/MigrationTypesEntityManager.js',
+            'entities/iteration-types/IterationTypesEntityManager.js'
           ],
           exports: 'adminGui',
           critical: true,

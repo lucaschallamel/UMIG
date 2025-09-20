@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const TEST_URL = 'http://localhost:8090/confluence/plugins/servlet/umig/adminGui';
+const TEST_URL = 'http://localhost:8090/rest/scriptrunner/latest/custom/adminGui';
 const TIMEOUT = 30000;
 
 // Confluence credentials from .env or defaults

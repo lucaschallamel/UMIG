@@ -11,9 +11,9 @@ async function testAdminGUI() {
   page.on('pageerror', err => console.error(`Page error: ${err}`));
 
   try {
-    // Navigate directly to admin GUI
-    console.log('Navigating to admin GUI...');
-    const response = await page.goto('http://localhost:8090/confluence/plugins/servlet/umig/adminGui', {
+    // Navigate directly to admin GUI REST endpoint
+    console.log('Navigating to admin GUI REST endpoint...');
+    const response = await page.goto('http://localhost:8090/rest/scriptrunner/latest/custom/adminGui', {
       waitUntil: 'domcontentloaded',
       timeout: 30000
     });
