@@ -793,7 +793,7 @@ return """
           timeout: 5000
         },
         'EntityConfig.js': {
-          dependencies: [],
+          dependencies: ['utils/StatusProvider.js'],
           exports: 'EntityConfig',
           critical: true,
           timeout: 5000
@@ -917,6 +917,14 @@ return """
           exports: 'adminGui',
           critical: true,
           timeout: 10000
+        },
+
+        // StatusProvider (depends on SecurityUtils)
+        'utils/StatusProvider.js': {
+          dependencies: ['components/SecurityUtils.js'],
+          exports: 'StatusProvider',
+          critical: true,
+          timeout: 5000
         },
 
         // Deferred modules (non-critical)
@@ -1513,6 +1521,26 @@ return """
 
         // Create global reference for debugging
         window.UMIG_MODULE_LOADER = this;
+
+        // Initialize the Admin GUI now that all modules are loaded
+        // This is critical - without this, EntityManagers won't be initialized
+        if (window.adminGui && typeof window.adminGui.init === 'function') {
+          console.log('[UMIG] 🚀 Starting Admin GUI initialization...');
+          // Use setTimeout to ensure all module-level code has completed
+          setTimeout(() => {
+            try {
+              window.adminGui.init();
+              console.log('[UMIG] ✅ Admin GUI initialized successfully');
+            } catch (error) {
+              console.error('[UMIG] ❌ Admin GUI initialization failed:', error);
+              // Show error but don't block the UI
+              this.showError('Initialization Error', 'Admin interface may have limited functionality');
+            }
+          }, 100);
+        } else {
+          console.error('[UMIG] ❌ Admin GUI not available for initialization');
+          console.log('[UMIG] Available on window:', Object.keys(window).filter(k => k.includes('admin')));
+        }
 
       } else {
         console.error('[UMIG] 🚨 Critical modules failed to load:', failedCritical);

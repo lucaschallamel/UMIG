@@ -4,6 +4,8 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
 import umig.repository.StepRepository
+import umig.repository.UserRepository
+import umig.service.UserService
 import umig.utils.DatabaseUtil
 
 import javax.servlet.http.HttpServletRequest
@@ -18,21 +20,215 @@ import java.util.UUID
 // is applied, so it cannot resolve CustomEndpointDelegate methods. This warning is harmless
 // and should be ignored - the script functions correctly in production.
 
-// Lazy load repository to avoid class loading issues
-final Closure<StepRepository> getStepRepository = { ->
-    return new StepRepository()
-}
+// Initialize repositories (following TeamsApi pattern)
+final StepRepository stepRepository = new StepRepository()
+final UserRepository userRepository = new UserRepository()
 
 /**
  * Step View API - Returns step instance data for standalone step view
- * 
+ *
  * Endpoints:
  * - GET /stepViewApi/instance?stepCode=XXX-nnn - Returns active step instance data
+ * - GET /stepViewApi/userContext?stepCode=XXX-nnn - Returns user context with permissions for RBAC
  */
 stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
+
+    // GET /stepViewApi/userContext?stepCode=XXX-nnn - Returns user context with RBAC permissions
+    // Also supports calls without stepCode for general RBAC checks (iteration-view)
+    if (pathParts.size() == 1 && pathParts[0] == 'userContext') {
+        final String stepCode = queryParams.getFirst("stepCode")
+        
+        // Allow userContext without stepCode for general RBAC checks (iteration-view)
+        boolean hasStepCode = stepCode && stepCode.contains('-')
+        
+        // Variables for step context (only used if stepCode provided)
+        String sttCode = null
+        Integer stmNumber = null
+        
+        if (hasStepCode) {
+            try {
+                final List<String> parts = stepCode.toUpperCase().tokenize('-')
+                sttCode = parts[0]
+                final String stmNumberStr = parts[1]
+                stmNumber = stmNumberStr as Integer
+            } catch (Exception e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid 'stepCode' parameter. Expected format: XXX-nnn"]).toString())
+                    .build()
+            }
+        }
+        
+        try {
+
+            // Get current user from UserService (per ADR-042 authentication hierarchy)
+            def currentUser = null
+            def username = null
+
+            try {
+                def userContext = UserService.getCurrentUserContext()
+                username = userContext?.confluenceUsername as String
+            } catch (Exception e) {
+                // Fallback: check query parameter for frontend-provided context
+                username = queryParams.getFirst('username') as String
+            }
+
+            if (!username) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Unable to determine current user for RBAC context",
+                        debug: "Authentication context required"
+                    ]).toString())
+                    .build()
+            }
+
+            // Get user details with role information
+            currentUser = userRepository.findUserByUsername(username as String)
+
+            if (!currentUser) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([
+                        error: "User not found in database",
+                        username: username
+                    ]).toString())
+                    .build()
+            }
+
+            // Get role code from role ID (ADR-031: explicit type casting)
+            def roleCode = 'USER' // Default
+            if (currentUser['rls_id']) {
+                def roleId = currentUser['rls_id'] as Integer
+                switch(roleId) {
+                    case 1: roleCode = 'ADMIN'; break
+                    case 2: roleCode = 'USER'; break
+                    case 3: roleCode = 'PILOT'; break
+                    default: roleCode = 'USER'
+                }
+            }
+
+            // Get step team context (only if stepCode was provided)
+            def stepTeams = null
+            if (hasStepCode) {
+                stepTeams = DatabaseUtil.withSql { sql ->
+                    return sql.firstRow('''
+                        SELECT
+                            stm.stm_id,
+                            stm.tms_id_owner as assigned_team_id,
+                            owner_team.tms_name as assigned_team_name
+                        FROM steps_master_stm stm
+                        LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                        WHERE stm.stt_code = :sttCode AND stm.stm_number = :stmNumber
+                        LIMIT 1
+                    ''', [sttCode: sttCode, stmNumber: stmNumber])
+                }
+
+                if (!stepTeams) {
+                    return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new JsonBuilder([
+                        error: "Step not found for code: ${stepCode}"
+                    ]).toString())
+                    .build()
+                }
+            }
+
+            // Get user team memberships
+            def userTeamMemberships = DatabaseUtil.withSql { sql ->
+                return sql.rows('''
+                    SELECT
+                        tm.tms_id,
+                        t.tms_name,
+                        tm.tme_role
+                    FROM team_members_tme tm
+                    JOIN teams_tms t ON tm.tms_id = t.tms_id
+                    WHERE tm.usr_id = :usr_id AND tm.tme_active = true
+                ''', [usr_id: currentUser['usr_id'] as Integer])
+            }
+
+            // Calculate permissions based on role and team membership
+            def permissions = [:]
+
+            // Base permissions for all authenticated users
+            permissions.view_step_details = true
+            permissions.add_comments = true
+            permissions.update_step_status = false
+            permissions.complete_instructions = false
+            permissions.edit_comments = false
+            permissions.bulk_operations = false
+            permissions.email_step_details = false
+            permissions.advanced_controls = false
+            permissions.extended_shortcuts = false
+            permissions.debug_panel = false
+            permissions.force_refresh_cache = false
+            permissions.security_logging = false
+
+            // Role-based permissions
+            if (roleCode == "ADMIN") {
+                permissions.keySet().each { key -> permissions[key] = true }
+            } else if (roleCode == "PILOT") {
+                permissions.update_step_status = true
+                permissions.complete_instructions = true
+                permissions.edit_comments = true
+                permissions.bulk_operations = true
+                permissions.email_step_details = true
+                permissions.advanced_controls = true
+                permissions.extended_shortcuts = true
+                permissions.force_refresh_cache = true
+            }
+
+            // Team-based permissions (only if step context available)
+            if (stepTeams) {
+                def userTeamIds = userTeamMemberships.collect { it.tms_id }
+                def assignedTeamId = stepTeams.assigned_team_id
+
+                if (assignedTeamId && userTeamIds.contains(assignedTeamId)) {
+                    // User is member of assigned team
+                    permissions.update_step_status = true
+                    permissions.complete_instructions = true
+                    permissions.edit_comments = true
+                }
+            }
+
+            // TODO: Add impacted team logic when requirements are clarified
+
+            def response = [
+                userId: currentUser['usr_id'] as Integer,
+                username: currentUser['usr_code'] as String,
+                firstName: currentUser['usr_first_name'] as String,
+                lastName: currentUser['usr_last_name'] as String,
+                role: roleCode,
+                isAdmin: (currentUser['usr_is_admin'] as Boolean) ?: (roleCode == 'ADMIN'),
+                teamMemberships: userTeamMemberships.collect { [
+                    teamId: it.tms_id,
+                    teamName: it.tms_name,
+                    role: it.tme_role
+                ] },
+                permissions: permissions,
+                source: "stepview_user_context",
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]
+            
+            // Only include stepContext if step information was provided
+            if (stepTeams) {
+                response.stepContext = [
+                    stepId: stepTeams.stm_id,
+                    assignedTeamId: stepTeams.assigned_team_id,
+                    assignedTeamName: stepTeams.assigned_team_name
+                ]
+            }
+            
+            return Response.ok(new JsonBuilder(response).toString()).build()
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([
+                    error: "Failed to load user context for RBAC",
+                    details: e.message
+                ]).toString())
+                .build()
+        }
+    }
+
     // GET /stepViewApi/instance?migrationName=xxx&iterationName=xxx&stepCode=XXX-nnn
     if (pathParts.size() == 1 && pathParts[0] == 'instance') {
         final String migrationName = queryParams.getFirst("migrationName")
@@ -118,7 +314,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
             }
             
             // Use the same method as iteration view to get complete step details
-            def stepDetails = getStepRepository().findStepInstanceDetailsById(UUID.fromString(stepInstance['sti_id'] as String))
+            def stepDetails = stepRepository.findStepInstanceDetailsById(UUID.fromString(stepInstance['sti_id'] as String))
             
             if (!stepDetails) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

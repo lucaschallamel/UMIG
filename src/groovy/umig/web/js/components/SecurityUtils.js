@@ -182,6 +182,68 @@ if (typeof SecurityUtils === "undefined") {
         .replace(/expression\(/gi, "");
     }
 
+    /**
+     * Comprehensive input sanitization
+     * @param {any} input - Input to sanitize
+     * @param {Object} options - Sanitization options
+     * @returns {any} Sanitized input
+     */
+    static sanitizeInput(input, options = {}) {
+      if (input === null || input === undefined) {
+        return input;
+      }
+
+      if (typeof input === 'string') {
+        return SecurityUtils.sanitizeXSS(input, options);
+      }
+
+      if (Array.isArray(input)) {
+        return input.map(item => SecurityUtils.sanitizeInput(item, options));
+      }
+
+      if (typeof input === 'object') {
+        const sanitized = {};
+        for (const [key, value] of Object.entries(input)) {
+          const sanitizedKey = SecurityUtils.sanitizeXSS(key, { allowHTML: false });
+          sanitized[sanitizedKey] = SecurityUtils.sanitizeInput(value, options);
+        }
+        return sanitized;
+      }
+
+      return input;
+    }
+
+    /**
+     * HTML content sanitization for display
+     * @param {string} input - HTML content to sanitize
+     * @param {Object} options - Sanitization options
+     * @returns {string} Sanitized HTML
+     */
+    static sanitizeHtml(input, options = {}) {
+      if (!input || typeof input !== 'string') {
+        return '';
+      }
+
+      const config = {
+        allowBasicHTML: false,
+        allowedTags: [],
+        ...options
+      };
+
+      if (config.allowBasicHTML) {
+        // Allow basic safe HTML tags
+        return SecurityUtils.sanitizeXSS(input, {
+          allowHTML: true,
+          allowAttributes: false,
+          allowScripts: false,
+          encodeEntities: true
+        });
+      } else {
+        // Full HTML entity encoding for safe display
+        return SecurityUtils.sanitizeForHTML(input);
+      }
+    }
+
     // ===== CSRF Protection =====
 
     /**
@@ -1297,25 +1359,28 @@ if (typeof SecurityUtils === "undefined") {
   // Attach to window for browser compatibility
   if (typeof window !== "undefined") {
     window.SecurityUtils = SecurityUtils;
-    // Make static methods directly callable
-    if (!window.SecurityUtils.logSecurityEvent) {
-      window.SecurityUtils.logSecurityEvent = SecurityUtils.logSecurityEvent;
-    }
-    if (!window.SecurityUtils.generateNonce) {
-      window.SecurityUtils.generateNonce = SecurityUtils.generateNonce;
-    }
-    if (!window.SecurityUtils.generateSecureToken) {
-      window.SecurityUtils.generateSecureToken =
-        SecurityUtils.generateSecureToken;
-    }
-    if (!window.SecurityUtils.safeSetInnerHTML) {
-      window.SecurityUtils.safeSetInnerHTML = SecurityUtils.safeSetInnerHTML;
-    }
-    if (!window.SecurityUtils.setTextContent) {
-      window.SecurityUtils.setTextContent = SecurityUtils.setTextContent;
-    }
-    if (!window.SecurityUtils.addCSRFProtection) {
-      window.SecurityUtils.addCSRFProtection = SecurityUtils.addCSRFProtection;
-    }
+    // Ensure all static methods are directly callable - force assignment
+    window.SecurityUtils.logSecurityEvent = SecurityUtils.logSecurityEvent;
+    window.SecurityUtils.generateNonce = SecurityUtils.generateNonce;
+    window.SecurityUtils.generateSecureToken = SecurityUtils.generateSecureToken;
+    window.SecurityUtils.safeSetInnerHTML = SecurityUtils.safeSetInnerHTML;
+    window.SecurityUtils.setTextContent = SecurityUtils.setTextContent;
+    window.SecurityUtils.addCSRFProtection = SecurityUtils.addCSRFProtection;
+    window.SecurityUtils.sanitizeInput = SecurityUtils.sanitizeInput;
+    window.SecurityUtils.sanitizeHtml = SecurityUtils.sanitizeHtml;
+    window.SecurityUtils.validateInput = SecurityUtils.validateInput;
+
+    // Log successful exposure
+    console.log("[SecurityUtils] All methods exposed to window:", {
+      logSecurityEvent: typeof window.SecurityUtils.logSecurityEvent === 'function',
+      generateNonce: typeof window.SecurityUtils.generateNonce === 'function',
+      generateSecureToken: typeof window.SecurityUtils.generateSecureToken === 'function',
+      safeSetInnerHTML: typeof window.SecurityUtils.safeSetInnerHTML === 'function',
+      setTextContent: typeof window.SecurityUtils.setTextContent === 'function',
+      addCSRFProtection: typeof window.SecurityUtils.addCSRFProtection === 'function',
+      sanitizeInput: typeof window.SecurityUtils.sanitizeInput === 'function',
+      sanitizeHtml: typeof window.SecurityUtils.sanitizeHtml === 'function',
+      validateInput: typeof window.SecurityUtils.validateInput === 'function'
+    });
   }
 } // End of SecurityUtils undefined check

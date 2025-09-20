@@ -93,7 +93,11 @@ class StepDataTransformationService {
                 .iterationId(safeUUIDToString(row.iteration_id))
                 .iterationCode(safeString(row.iteration_type))
                 .sequenceId(safeUUIDToString(row.sequence_id))
+                .sequenceName(safeString(row.sequence_name))
+                .sequenceNumber(safeInteger(row.sqi_order, 1))
                 .phaseId(safeUUIDToString(row.phase_id))
+                .phaseName(safeString(row.phase_name))
+                .phaseNumber(safeInteger(row.phi_order, 1))
                 
                 // Temporal fields with proper LocalDateTime conversion
                 .createdDate(safeTimestampToLocalDateTime(row.created_date))

@@ -48,9 +48,10 @@ class EnvironmentsEntityManager extends (window.BaseEntityManager || class {}) {
   /**
    * Initialize EnvironmentsEntityManager with Environments-specific configuration
    */
-  constructor() {
+  constructor(options = {}) {
     super({
       entityType: "environments",
+      ...options,  // Include apiBase, endpoints, orchestrator, performanceMonitor
       tableConfig: {
         columns: [
           {

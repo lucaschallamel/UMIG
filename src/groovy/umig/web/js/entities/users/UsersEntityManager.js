@@ -14,67 +14,18 @@
  * @pattern BaseEntityManager extension with component architecture
  */
 
-(function () {
-  "use strict";
+/**
+ * Users Entity Manager - Enterprise Component Architecture Implementation
+ * Fixed: Removed IIFE wrapper per ADR-057, fixed constructor to accept options
+ */
 
-  // Get dependencies from global scope or create fallbacks
-  var BaseEntityManager = window.BaseEntityManager || class {};
-
-  var SecurityUtils = window.SecurityUtils || {
-    addCSRFProtection: function (headers) {
-      return headers || {};
-    },
-    validateInput: function () {
-      return { isValid: true };
-    },
-    sanitizeInput: function (input) {
-      return input;
-    },
-    sanitizeHtml: function (input) {
-      return input;
-    },
-    escapeHtml: function (input) {
-      return input;
-    },
-    preventXSS: function (obj) {
-      return obj;
-    },
-    validateEmail: function () {
-      return true;
-    },
-    generateNonce: function (length) {
-      return (
-        "mock-nonce-" +
-        Math.random()
-          .toString(36)
-          .substr(2, length || 16)
-      );
-    },
-    logSecurityEvent: function () {
-      console.log("[Security]", arguments);
-    },
-    generateSecureToken: function () {
-      return "token-" + Date.now();
-    },
-    SecurityException: class extends Error {},
-    ValidationException: class extends Error {},
-  };
-
-  var ComponentOrchestrator = window.ComponentOrchestrator || {
-    emit: function () {
-      console.log("[ComponentOrchestrator fallback] emit:", arguments);
-    },
-  };
-
-  /**
-   * Users Entity Manager implementing enterprise patterns
-   * @extends BaseEntityManager
-   */
-  class UsersEntityManager extends BaseEntityManager {
-    constructor() {
-      // Fix: BaseEntityManager expects a config object, not a string
+class UsersEntityManager extends (window.BaseEntityManager || class {}) {
+  constructor(options = {}) {
+      // Fix: BaseEntityManager expects a config object with entityType
+      // Merge options from admin-gui.js with entity-specific config
       super({
         entityType: "users",
+        ...options,  // Include apiBase, endpoints, orchestrator, performanceMonitor
         tableConfig: {
           columns: [
             { field: "usr_code", label: "User Code", sortable: true },
@@ -179,30 +130,96 @@
      * Validate input parameters with comprehensive security checks
      * @private
      * @param {Object} params - Parameters to validate
-     * @param {Object} rules - Validation rules
+     * @param {Object} rules - Validation rules (field-specific validation config)
      * @throws {Error} If validation fails
      */
     _validateInputs(params, rules) {
-      // Use SecurityUtils for comprehensive validation
-      const validationResult = SecurityUtils.validateInput(params, rules);
+      // Use SecurityUtils for comprehensive validation with enhanced options
+      const validationOptions = {
+        preventXSS: true,
+        preventSQLInjection: true,
+        sanitizeStrings: true,
+        allowEmpty: true,
+        recursiveValidation: true,
+        maxStringLength: 10000
+      };
+
+      const validationResult = SecurityUtils.validateInput(params, validationOptions);
 
       if (!validationResult.isValid) {
-        const errors = validationResult.errors.map((e) => e.message).join(", ");
+        const errors = validationResult.errors.join(", ");
         throw new SecurityUtils.ValidationException(
           `Input validation failed: ${errors}`,
-          validationResult.errors[0]?.field,
-          validationResult.errors[0]?.value,
+          "validation",
+          params,
         );
       }
 
-      // Additional XSS prevention for string inputs
-      Object.keys(params).forEach((key) => {
-        if (typeof params[key] === "string" && rules[key]?.type === "string") {
-          params[key] = SecurityUtils.sanitizeInput(params[key]);
-        }
-      });
+      // Additional field-specific validation based on rules
+      const fieldErrors = [];
+      if (rules && typeof rules === 'object') {
+        Object.keys(params).forEach((key) => {
+          const rule = rules[key];
+          const value = params[key];
 
-      return params;
+          if (rule) {
+            // Check required fields
+            if (rule.required && (value === null || value === undefined || value === '')) {
+              fieldErrors.push(`${key} is required`);
+            }
+
+            // Check string length
+            if (rule.maxLength && typeof value === 'string' && value.length > rule.maxLength) {
+              fieldErrors.push(`${key} exceeds maximum length of ${rule.maxLength}`);
+            }
+
+            // Check number ranges
+            if (rule.min !== undefined && typeof value === 'number' && value < rule.min) {
+              fieldErrors.push(`${key} must be at least ${rule.min}`);
+            }
+            if (rule.max !== undefined && typeof value === 'number' && value > rule.max) {
+              fieldErrors.push(`${key} must not exceed ${rule.max}`);
+            }
+
+            // Check type validation
+            if (rule.type) {
+              switch (rule.type) {
+                case 'string':
+                  if (value !== null && value !== undefined && typeof value !== 'string') {
+                    fieldErrors.push(`${key} must be a string`);
+                  }
+                  break;
+                case 'integer':
+                  if (value !== null && value !== undefined && (!Number.isInteger(Number(value)))) {
+                    fieldErrors.push(`${key} must be an integer`);
+                  }
+                  break;
+                case 'boolean':
+                  if (value !== null && value !== undefined && typeof value !== 'boolean') {
+                    fieldErrors.push(`${key} must be a boolean`);
+                  }
+                  break;
+              }
+            }
+
+            // Check pattern validation
+            if (rule.pattern && typeof value === 'string' && !rule.pattern.test(value)) {
+              fieldErrors.push(`${key} format is invalid`);
+            }
+          }
+        });
+      }
+
+      if (fieldErrors.length > 0) {
+        throw new SecurityUtils.ValidationException(
+          `Field validation failed: ${fieldErrors.join(", ")}`,
+          "field_validation",
+          params,
+        );
+      }
+
+      // Return sanitized data from SecurityUtils
+      return validationResult.sanitizedData || params;
     }
 
     /**
@@ -365,8 +382,21 @@
       }
 
       try {
+        // Enhanced SecurityUtils validation with error checking
+        if (!window.SecurityUtils) {
+          throw new Error("SecurityUtils not available - module loading issue");
+        }
+
+        if (typeof window.SecurityUtils.sanitizeInput !== 'function') {
+          throw new Error("SecurityUtils.sanitizeInput method not available");
+        }
+
+        if (typeof window.SecurityUtils.addCSRFProtection !== 'function') {
+          throw new Error("SecurityUtils.addCSRFProtection method not available");
+        }
+
         // Apply security validation
-        const sanitizedFilters = SecurityUtils.sanitizeInput(filters);
+        const sanitizedFilters = window.SecurityUtils.sanitizeInput(filters);
 
         const response = await fetch(this.usersApiUrl, {
           method: "POST",
@@ -1704,15 +1734,12 @@
         console.error("[UsersEntityManager] Error during destroy:", error);
       }
     }
-  }
+}
 
-  // Attach to window for browser compatibility
-  if (typeof window !== "undefined") {
-    window.UsersEntityManager = UsersEntityManager;
-  }
+// Attach to window for browser compatibility (ADR-057 compliant)
+window.UsersEntityManager = UsersEntityManager;
 
-  // CommonJS export for Jest compatibility
-  if (typeof module !== "undefined" && module.exports) {
-    module.exports = UsersEntityManager;
-  }
-})(); // End IIFE
+// CommonJS export for Jest compatibility
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = UsersEntityManager;
+}

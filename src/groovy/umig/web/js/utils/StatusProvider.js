@@ -53,7 +53,7 @@
 
       // Security utilities reference
       this.securityUtils =
-        typeof SecurityUtils !== "undefined" ? SecurityUtils : null;
+        typeof window !== "undefined" && window.SecurityUtils ? window.SecurityUtils : null;
       if (!this.securityUtils) {
         console.warn(
           "[StatusProvider] SecurityUtils not available - using fallback security measures",

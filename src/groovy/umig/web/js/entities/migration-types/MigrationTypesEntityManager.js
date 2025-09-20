@@ -51,18 +51,22 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
    * @param {Object} config - Configuration object
    */
   constructor(config = {}) {
-    // Define migration-types-specific configuration
-    const migrationTypesConfig = {
+    // Initialize parent with proper config including entityType
+    super({
       entityType: "migration-types",
+      ...config
+    });
+
+    // Define migration-types-specific configuration after super()
+    const migrationTypesConfig = {
       tableConfig: this._getTableConfig(),
       modalConfig: this._getModalConfig(),
       filterConfig: this._getFilterConfig(),
       paginationConfig: this._getPaginationConfig(),
-      // Merge with any additional config
-      ...config,
     };
 
-    super(migrationTypesConfig);
+    // Merge configuration into this instance (config is already initialized by super())
+    Object.assign(this.config, migrationTypesConfig);
 
     // Migration Types specific properties
     this.apiEndpoint = "/rest/scriptrunner/latest/custom/migration-types";

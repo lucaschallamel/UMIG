@@ -118,9 +118,25 @@ class StepInstanceDTO {
     @JsonProperty("sequenceId")
     String sequenceId
     
+    /** Parent sequence name */
+    @JsonProperty("sequenceName")
+    String sequenceName
+
+    /** Sequence order number (from sqi_order) */
+    @JsonProperty("sequenceNumber")
+    Integer sequenceNumber
+
     /** Parent phase identifier */
     @JsonProperty("phaseId")
     String phaseId
+
+    /** Parent phase name */
+    @JsonProperty("phaseName")
+    String phaseName
+
+    /** Phase order number (from phi_order) */
+    @JsonProperty("phaseNumber")
+    Integer phaseNumber
     
     // ========================================
     // TEMPORAL AND STATUS FIELDS
@@ -383,7 +399,11 @@ class StepInstanceDTO {
         map.iterationId = iterationId
         map.iterationCode = iterationCode ?: ""
         map.sequenceId = sequenceId
+        map.sequenceName = sequenceName
+        map.sequenceNumber = sequenceNumber
         map.phaseId = phaseId
+        map.phaseName = phaseName
+        map.phaseNumber = phaseNumber
         
         // Timestamps (formatted for display)
         map.createdDate = createdDate?.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -459,7 +479,11 @@ class StepInstanceDTO {
         Builder iterationId(String iterationId) { dto.iterationId = iterationId; return this }
         Builder iterationCode(String iterationCode) { dto.iterationCode = iterationCode; return this }
         Builder sequenceId(String sequenceId) { dto.sequenceId = sequenceId; return this }
+        Builder sequenceName(String sequenceName) { dto.sequenceName = sequenceName; return this }
+        Builder sequenceNumber(Integer sequenceNumber) { dto.sequenceNumber = sequenceNumber; return this }
         Builder phaseId(String phaseId) { dto.phaseId = phaseId; return this }
+        Builder phaseName(String phaseName) { dto.phaseName = phaseName; return this }
+        Builder phaseNumber(Integer phaseNumber) { dto.phaseNumber = phaseNumber; return this }
         Builder priority(Integer priority) { dto.priority = priority; return this }
         Builder stepType(String stepType) { dto.stepType = stepType; return this }
         Builder stepCategory(String stepCategory) { dto.stepCategory = stepCategory; return this }

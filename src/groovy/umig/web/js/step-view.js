@@ -2521,6 +2521,24 @@ class StepView {
       this.initializeRBACSystem();
     }
 
+    // Check if we have boolean permissions from backend API
+    if (typeof this.permissions[feature] === "boolean") {
+      // New format: permissions are boolean values from backend
+      const hasAccess = this.permissions[feature];
+      
+      if (!hasAccess) {
+        this.logSecurityEvent("permission_denied", {
+          feature: feature,
+          userRole: this.userRole,
+          timestamp: new Date().toISOString(),
+          stackTrace: new Error().stack,
+        });
+      }
+      
+      return hasAccess;
+    }
+    
+    // Legacy format: permissions are arrays of allowed roles
     const allowed = this.permissions[feature] || [];
     const hasAccess = allowed.includes(this.userRole);
 
@@ -2654,33 +2672,23 @@ class StepView {
   }
 
   async loadUserContext() {
-    // Load full user context for email/audit operations (matches IterationView pattern)
+    // Load full user context with RBAC permissions from backend
     try {
-      const username =
-        this.config.confluence?.username || this.config.user?.username;
-      if (!username) {
-        console.warn("No username available for user context loading");
+      // Get the step code from URL parameters
+      const params = new URLSearchParams(window.location.search);
+      const stepCode = params.get("stepid");
+
+      if (!stepCode) {
+        console.warn("No step code available for user context loading");
         this.userContext = { userId: this.userId, role: this.userRole };
         return;
       }
 
-      // TEMPORARY: Skip API call until endpoint is implemented
-      // TODO: Implement /user/context endpoint in future sprint
-      console.log(
-        "🔄 StepView: Using fallback user context (endpoint not implemented)",
-      );
-      this.userContext = {
-        userId: this.userId,
-        role: this.userRole,
-        username: username,
-        isAdmin: this.isAdmin,
-      };
-      return;
+      console.log("🔒 StepView: Loading user context for step:", stepCode);
 
-      // Original API call commented out to prevent 404 errors:
-      /*
+      // Call the new userContext API endpoint
       const response = await fetch(
-        `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(username)}`,
+        `${this.config.api.baseUrl}/stepViewApi/userContext?stepCode=${encodeURIComponent(stepCode)}`,
         {
           headers: {
             "X-Atlassian-Token": "no-check",
@@ -2690,20 +2698,94 @@ class StepView {
       );
 
       if (response.ok) {
-        this.userContext = await response.json();
+        const context = await response.json();
+        console.log("✅ StepView: User context loaded successfully:", context);
+
         // Update local properties with context data
-        this.userRole = this.userContext.role || this.userRole;
-        this.isAdmin = this.userContext.isAdmin || this.isAdmin;
-        this.userId = this.userContext.userId || this.userId;
-        console.log("User context loaded successfully:", this.userContext);
+        this.userRole = context.role || this.userRole;
+        this.isAdmin = context.isAdmin || this.isAdmin;
+        this.userId = context.userId || this.userId;
+        this.permissions = context.permissions || this.getEmergencyPermissions();
+
+        // Store full context
+        this.userContext = context;
+
+        // Re-initialize RBAC system with new permissions
+        if (context.permissions) {
+          Object.freeze(this.permissions);
+          console.log("🔒 StepView: Permissions updated from backend:", this.permissions);
+        }
+
+        // Re-apply RBAC controls with new permissions
+        this.applyRBACControls();
       } else {
-        console.warn("Failed to load user context, using fallback");
-        this.userContext = { userId: this.userId, role: this.userRole };
+        const errorText = await response.text();
+        console.warn("Failed to load user context:", response.status, errorText);
+        console.log("🔄 StepView: Using fallback user context from config");
+        this.userContext = {
+          userId: this.userId,
+          role: this.userRole,
+          username: this.config.user?.username,
+          isAdmin: this.isAdmin
+        };
       }
-      */
     } catch (error) {
       console.error("Error loading user context:", error);
-      this.userContext = { userId: this.userId, role: this.userRole };
+      console.log("🔄 StepView: Using fallback user context from config");
+      this.userContext = {
+        userId: this.userId,
+        role: this.userRole,
+        username: this.config.user?.username,
+        isAdmin: this.isAdmin
+      };
+    }
+  }
+
+  /**
+   * Apply RBAC controls to UI elements based on permissions
+   */
+  applyRBACControls() {
+    console.log("🔒 StepView: Applying RBAC controls with permissions:", this.permissions);
+    
+    // Re-render step details if they're already loaded to apply permission-based UI changes
+    if (this.currentStepCode) {
+      const container = document.getElementById("umig-step-view-root");
+      if (container) {
+        // Re-apply visibility rules to existing elements
+        const statusDropdowns = document.querySelectorAll('[id^="step-status-dropdown"]');
+        statusDropdowns.forEach(dropdown => {
+          if (this.hasPermission("update_step_status")) {
+            dropdown.style.display = "";
+            dropdown.disabled = false;
+            console.log("✅ StepView: Status dropdown enabled for user with update_step_status permission");
+          } else {
+            dropdown.style.display = "none";
+            dropdown.disabled = true;
+            console.log("❌ StepView: Status dropdown hidden - no update_step_status permission");
+          }
+        });
+        
+        // Apply instruction checkbox permissions
+        const instructionCheckboxes = document.querySelectorAll('.instruction-checkbox');
+        instructionCheckboxes.forEach(checkbox => {
+          if (this.hasPermission("complete_instructions")) {
+            checkbox.disabled = false;
+          } else {
+            checkbox.disabled = true;
+            checkbox.title = "You need elevated permissions to complete instructions";
+          }
+        });
+        
+        // Apply comment form visibility
+        const commentForms = document.querySelectorAll('.comment-form');
+        commentForms.forEach(form => {
+          if (this.hasPermission("add_comments")) {
+            form.style.display = "";
+          } else {
+            form.style.display = "none";
+          }
+        });
+      }
     }
   }
 
@@ -2716,24 +2798,19 @@ class StepView {
     const iterationName = params.get("ite");
     const stepId = params.get("stepid");
 
-    // RBAC: Development role override (temporary testing capability)
-    const urlRoleOverride = params.get("role");
-    if (
-      urlRoleOverride &&
-      ["NORMAL", "PILOT", "ADMIN"].includes(urlRoleOverride.toUpperCase())
-    ) {
-      console.warn(
-        "🧪 StepView: Development role override active:",
-        urlRoleOverride.toUpperCase(),
-      );
-      this.userRole = urlRoleOverride.toUpperCase();
-      this.isAdmin = this.userRole === "ADMIN";
-      this.logSecurityEvent("role_override", {
-        originalRole: this.config.user?.role || "NORMAL",
-        overrideRole: this.userRole,
-        timestamp: new Date().toISOString(),
-      });
-    }
+    // Security validation: Check for suspicious URL parameters
+    const suspiciousParams = ['role', 'admin', 'debug', 'override'];
+    suspiciousParams.forEach(param => {
+      if (params.has(param)) {
+        console.error(`🚨 SECURITY VIOLATION: Suspicious URL parameter '${param}' detected`);
+        this.logSecurityEvent("suspicious_url_parameter", {
+          parameter: param,
+          value: params.get(param),
+          url: window.location.href,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
 
     const container = document.getElementById("umig-step-view-root");
 

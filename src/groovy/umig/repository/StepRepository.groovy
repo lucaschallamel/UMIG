@@ -391,9 +391,9 @@ class StepRepository {
     List<Map> findFilteredStepInstances(Map filters) {
         DatabaseUtil.withSql { sql ->
             def query = '''
-                SELECT 
+                SELECT
                     -- Step instance data
-                    sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status, 
+                    sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status,
                     sti.sti_duration_minutes, stm.tms_id_owner,
                     -- Master step data
                     stm.stm_id, stm.stm_name as master_name,
@@ -402,8 +402,8 @@ class StepRepository {
                     phm.phm_id, phm.phm_name, phm.phm_order,
                     -- Plan hierarchy
                     plm.plm_id, plm.plm_name,
-                    -- Instance hierarchy
-                    pli.pli_id, sqi.sqi_id, phi.phi_id,
+                    -- Instance hierarchy with order fields
+                    pli.pli_id, sqi.sqi_id, sqi.sqi_order, phi.phi_id, phi.phi_order,
                     -- Team owner information
                     tms.tms_name as owner_team_name,
                     -- Iteration and migration context
@@ -3050,7 +3050,9 @@ class StepRepository {
                 ite.ite_id as iteration_id,
                 itt.itt_code as iteration_type,
                 sqm.sqm_id as sequence_id,
+                sqm.sqm_name as sequence_name,
                 phm.phm_id as phase_id,
+                phm.phm_name as phase_name,
                 
                 -- Temporal fields
                 sti.created_at as created_date,

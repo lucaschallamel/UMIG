@@ -15,71 +15,31 @@
  * @since US-082-C Entity Migration Standard
  */
 
-(function () {
-  "use strict";
+/**
+ * LabelsEntityManager - Production-ready implementation
+ * Manages label entities with enterprise-grade features
+ */
+class LabelsEntityManager extends (window.BaseEntityManager || class {}) {
+  constructor(options = {}) {
+    // Initialize parent with proper config including entityType
+    super({
+      entityType: "labels",
+      ...options
+    });
 
-  // Get dependencies from global scope or create fallbacks
-  var BaseEntityManager = window.BaseEntityManager || class {};
+    // Configure LabelsEntityManager with comprehensive settings after super()
+    const labelConfig = this.buildLabelConfig();
 
-  var ModalComponent =
-    window.ModalComponent ||
-    class {
-      constructor(options = {}) {
-        console.warn(
-          "[LabelsEntityManager] ModalComponent not loaded, using fallback",
-        );
-        this.options = options;
-      }
-      show() {
-        console.log("[ModalComponent Fallback] show() called");
-      }
-      hide() {
-        console.log("[ModalComponent Fallback] hide() called");
-      }
-      destroy() {
-        console.log("[ModalComponent Fallback] destroy() called");
-      }
-    };
+    // Merge configuration into this instance (config is already initialized by super())
+    Object.assign(this.config, labelConfig);
 
-  var FilterComponent =
-    window.FilterComponent ||
-    class {
-      constructor() {
-        console.warn(
-          "[LabelsEntityManager] FilterComponent not loaded, using fallback",
-        );
-      }
-    };
-
-  var PaginationComponent =
-    window.PaginationComponent ||
-    class {
-      constructor() {
-        console.warn(
-          "[LabelsEntityManager] PaginationComponent not loaded, using fallback",
-        );
-      }
-    };
-
-  /**
-   * LabelsEntityManager - Production-ready implementation
-   * Manages label entities with enterprise-grade features
-   */
-  class LabelsEntityManager extends BaseEntityManager {
-    constructor(containerId, options = {}) {
-      // Configure LabelsEntityManager with comprehensive settings
-      const labelConfig = this.buildLabelConfig();
-
-      // Merge with user options and initialize
-      super(containerId, { ...labelConfig, ...options });
-
-      // Initialize label-specific features
-      this.initializeLabelFeatures();
-      this.setupRelationshipManagement();
-      this.configurePerformanceMonitoring();
-      this.initializeCacheCleanup();
-      this.setupColorPicker();
-    }
+    // Initialize label-specific features
+    this.initializeLabelFeatures();
+    this.setupRelationshipManagement();
+    this.configurePerformanceMonitoring();
+    this.initializeCacheCleanup();
+    this.setupColorPicker();
+  }
 
     /**
      * Build complete label configuration
@@ -128,13 +88,25 @@
           sortable: true,
           searchable: true,
           width: "200px",
-          formatter: SecurityUtils.sanitizeHtml,
+          formatter: (value) => {
+            if (!window.SecurityUtils || typeof window.SecurityUtils.sanitizeHtml !== 'function') {
+              console.warn("[LabelsEntityManager] SecurityUtils.sanitizeHtml not available, using fallback");
+              return String(value || '').replace(/[<>&"']/g, '');
+            }
+            return window.SecurityUtils.sanitizeHtml(value);
+          },
         }),
         this.createColumnConfig("lbl_description", "Description", {
           sortable: false,
           searchable: true,
           truncate: 100,
-          formatter: (value) => SecurityUtils.sanitizeHtml(value || ""),
+          formatter: (value) => {
+            if (!window.SecurityUtils || typeof window.SecurityUtils.sanitizeHtml !== 'function') {
+              console.warn("[LabelsEntityManager] SecurityUtils.sanitizeHtml not available, using fallback");
+              return String(value || '').replace(/[<>&"']/g, '');
+            }
+            return window.SecurityUtils.sanitizeHtml(value || "");
+          },
         }),
         this.createColumnConfig("lbl_color", "Color", {
           sortable: true,
@@ -2569,14 +2541,13 @@
     }
   }
 
-  // Export for use in other modules
-  // Attach to window for browser compatibility
-  if (typeof window !== "undefined") {
-    window.LabelsEntityManager = LabelsEntityManager;
-  }
+// Export for use in other modules
+// Attach to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.LabelsEntityManager = LabelsEntityManager;
+}
 
-  // CommonJS compatibility for Jest testing
-  if (typeof module !== "undefined" && module.exports) {
-    module.exports = LabelsEntityManager;
-  }
-})(); // End IIFE
+// CommonJS compatibility for Jest testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = LabelsEntityManager;
+}

@@ -885,30 +885,67 @@ class IterationView {
       // TODO: Implement /user/context endpoint in future sprint
       const username = this.config.confluence.username;
 
-      // Direct admin detection based on username
-      if (username === "admin" || username === "guq") {
-        console.log("Admin user detected (username-based detection)");
-        this.userRole = "ADMIN";
-        this.isAdmin = true;
-        this.applyRoleBasedControls();
-      } else {
-        // For non-admin users, check if we need user context from backend
-        // Currently using default NORMAL role
-        this.userRole = "NORMAL";
-        this.isAdmin = false;
-        console.log("Standard user detected:", username);
-
-        // Apply role-based UI controls once DOM is ready
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", () =>
-            this.applyRoleBasedControls(),
-          );
+      // Try to get user context from backend API
+      try {
+        const response = await fetch(
+          `${this.config.api.baseUrl}/stepViewApi/userContext`,
+          {
+            headers: {
+              "X-Atlassian-Token": "no-check",
+            },
+            credentials: "same-origin",
+          }
+        );
+        
+        if (response.ok) {
+          const context = await response.json();
+          console.log("User context loaded from backend:", context);
+          
+          this.userRole = context.role || "NORMAL";
+          this.isAdmin = context.isAdmin || false;
+          this.userContext = context;
+          
+          // Apply role-based UI controls once DOM is ready
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () =>
+              this.applyRoleBasedControls(),
+            );
+          } else {
+            this.applyRoleBasedControls();
+          }
         } else {
+          // Fallback to username-based detection for backwards compatibility
+          console.warn("Failed to load user context from API, falling back to username detection");
+          
+          if (username === "admin" || username === "guq" || username === "adm") {
+            console.log("Admin user detected (username-based fallback)");
+            this.userRole = "ADMIN";
+            this.isAdmin = true;
+          } else {
+            this.userRole = "NORMAL";
+            this.isAdmin = false;
+            console.log("Standard user detected:", username);
+          }
+          
           this.applyRoleBasedControls();
         }
+      } catch (error) {
+        console.error("Error loading user context:", error);
+        
+        // Fallback to username-based detection
+        if (username === "admin" || username === "guq" || username === "adm") {
+          console.log("Admin user detected (error fallback)");
+          this.userRole = "ADMIN";
+          this.isAdmin = true;
+        } else {
+          this.userRole = "NORMAL";
+          this.isAdmin = false;
+        }
+        
+        this.applyRoleBasedControls();
       }
 
-      // ORIGINAL CODE COMMENTED OUT - endpoint doesn't exist yet
+      // ORIGINAL CODE REMOVED - now using the API call above
       /*
       const response = await fetch(
         `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(this.config.confluence.username)}`,

@@ -29,12 +29,18 @@ function getDependency(name, fallback = {}) {
  * Manages application entities with enterprise-grade features
  */
 class ApplicationsEntityManager extends (window.BaseEntityManager || class {}) {
-  constructor(containerId, options = {}) {
-    // Configure ApplicationsEntityManager with comprehensive settings
+  constructor(options = {}) {
+    // Initialize parent with proper config including entityType
+    super({
+      entityType: "applications",
+      ...options
+    });
+
+    // Configure ApplicationsEntityManager with comprehensive settings after super()
     const applicationConfig = this.buildApplicationConfig();
 
-    // Merge with user options and initialize
-    super(containerId, { ...applicationConfig, ...options });
+    // Merge configuration into this instance (config is already initialized by super())
+    Object.assign(this.config, applicationConfig);
 
     // Initialize application-specific features
     this.initializeApplicationFeatures();

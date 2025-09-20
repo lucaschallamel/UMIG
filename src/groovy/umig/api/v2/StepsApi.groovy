@@ -445,8 +445,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                         Integer durationMinutes = stepDTO.estimatedDuration ?: stepDTO.actualDuration ?: 0
                         String createdDate = stepDTO.createdDate?.toString() ?: ''
                         String lastModifiedDate = stepDTO.lastModifiedDate?.toString() ?: ''
-                        String sequenceName = stepDTO.sequenceId ?: '' // Note: sequenceName not available in DTO
-                        String phaseName = stepDTO.phaseId ?: '' // Note: phaseName not available in DTO
+                        String sequenceName = stepDTO.sequenceName ?: '' // Now using actual sequence name from DTO
+                        String phaseName = stepDTO.phaseName ?: '' // Now using actual phase name from DTO
                         
                         List<String> line = [
                             "\"${stepDTO.stepInstanceId ?: ''}\"".toString(),
@@ -526,11 +526,11 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                         ownerTeamId: stepDTO.assignedTeamId,
                         ownerTeamName: stepDTO.assignedTeamName ?: 'Unassigned',
                         sequenceId: stepDTO.sequenceId, // Corrected property name
-                        sequenceNumber: 1, // sequenceNumber not available in DTO, using default
-                        sequenceName: stepDTO.sequenceId ?: '', // sequenceName not available in DTO, using sequenceId
+                        sequenceNumber: stepDTO.sequenceNumber ?: 1, // Now using actual sequence order from DTO
+                        sequenceName: stepDTO.sequenceName ?: '', // Now using actual sequence name from DTO
                         phaseId: stepDTO.phaseId, // Corrected property name
-                        phaseNumber: 1, // phaseNumber not available in DTO, using default
-                        phaseName: stepDTO.phaseId ?: '' // phaseName not available in DTO, using phaseId
+                        phaseNumber: stepDTO.phaseNumber ?: 1, // Now using actual phase order from DTO
+                        phaseName: stepDTO.phaseName ?: '' // Now using actual phase name from DTO
                     ] as Map<String, Object>
                 }
             

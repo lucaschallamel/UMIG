@@ -253,6 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
 <script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
 
+<!-- StepViewRBAC for enhanced RBAC management -->
+<script src=\"${webRoot}/js/stepview/StepViewRBAC.js\"></script>
+
 <!-- Include main step view JavaScript -->
 <script type=\"text/javascript\" src=\"${webRoot}/js/step-view.js\"></script>
 """

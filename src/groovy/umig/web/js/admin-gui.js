@@ -15,8 +15,7 @@
  * - Modal forms
  */
 
-(function () {
-  "use strict";
+"use strict";
 
   // Security Utils availability checker
   function isSecurityUtilsAvailable(methodName = null) {
@@ -692,6 +691,9 @@
 
         console.log("[UMIG] All required modules loaded successfully");
 
+        // Parse URL parameters for direct entity navigation
+        this.parseUrlParameters();
+        
         // Initialize Component Migration Features (US-087)
         this.initializeComponentMigration();
 
@@ -1048,6 +1050,98 @@
       }
     },
 
+    // Parse URL parameters for direct entity navigation (US-087 Resilience Feature)
+    parseUrlParameters: function () {
+      try {
+        console.log("[US-087] Checking for URL parameters...");
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const entityParam = urlParams.get('e') || urlParams.get('entity');
+
+        if (entityParam) {
+          console.log(`[US-087] Direct entity navigation requested: ${entityParam}`);
+
+          // Store the requested entity for navigation after initialization
+          this.requestedEntity = entityParam.toLowerCase();
+
+          // Schedule navigation after UI is ready
+          setTimeout(() => {
+            try {
+              console.log(`[US-087] Attempting to navigate to entity: ${this.requestedEntity}`);
+
+              // Try to navigate to the entity
+              if (this.loadCurrentSection) {
+                // Set the current entity
+                this.currentEntity = this.requestedEntity;
+
+                // Attempt to load the section
+                this.loadCurrentSection();
+
+                console.log(`[US-087] Successfully initiated navigation to ${this.requestedEntity}`);
+
+                // Update the menu to show selection if menu is available
+                try {
+                  const menuItems = document.querySelectorAll('.entity-menu-item');
+                  if (menuItems && menuItems.length > 0) {
+                    menuItems.forEach(item => {
+                      // Add null checking for item and its properties
+                      if (item && item.dataset && item.classList) {
+                        if (item.dataset.entity === this.requestedEntity) {
+                          item.classList.add('active');
+                        } else {
+                          item.classList.remove('active');
+                        }
+                      }
+                    });
+                  } else {
+                    console.debug("[US-087] No menu items found for selection update");
+                  }
+                } catch (menuError) {
+                  console.warn("[US-087] Could not update menu selection:", menuError);
+                }
+
+              } else {
+                console.warn("[US-087] loadCurrentSection not available, trying direct navigation...");
+
+                // Fallback: Try to directly show the entity dashboard
+                if (this.showDashboard) {
+                  this.currentEntity = this.requestedEntity;
+                  this.showDashboard();
+                }
+              }
+
+              // Show notification if UI utilities are available
+              if (window.UiUtils && window.UiUtils.showNotification) {
+                window.UiUtils.showNotification(
+                  `Navigated to ${this.requestedEntity}`,
+                  "success",
+                  3000
+                );
+              }
+
+            } catch (navError) {
+              console.error(`[US-087] Failed to navigate to ${this.requestedEntity}:`, navError);
+
+              // Show error notification if possible
+              if (window.UiUtils && window.UiUtils.showNotification) {
+                window.UiUtils.showNotification(
+                  `Failed to navigate to ${this.requestedEntity}: ${navError.message}`,
+                  "error"
+                );
+              }
+            }
+          }, 1500); // Give time for UI and components to initialize
+
+        } else {
+          console.log("[US-087] No entity parameter found in URL");
+        }
+
+      } catch (error) {
+        console.error("[US-087] Error parsing URL parameters:", error);
+      }
+    },
+
     // Initialize Component Migration Features (US-087 Phase 1)
     initializeComponentMigration: function () {
       try {
@@ -1194,24 +1288,79 @@
           console.log("[US-087] Continuing with other EntityManagers...");
         }
 
-        // Other EntityManagers (still use feature flag protection)
-        if (
-          this.featureToggle &&
-          this.featureToggle.isEnabled("admin-gui-migration")
-        ) {
-          console.log(
-            "[US-087] Admin GUI migration is enabled - loading other EntityManagers",
+        // Other EntityManagers (US-087 Phase 2 - Enable all base entities)
+        // These are now enabled by default to complete the migration
+        console.log("[US-087] Loading all base entity EntityManagers...");
+
+        // Ensure SecurityUtils methods are available before loading EntityManagers
+        if (window.SecurityUtils) {
+          const requiredMethods = ['sanitizeInput', 'sanitizeHtml', 'addCSRFProtection'];
+          const missingMethods = requiredMethods.filter(method =>
+            typeof window.SecurityUtils[method] !== 'function'
           );
 
-          // Future phases (placeholder)
-          // if (this.featureToggle.isEnabled('users-component')) {
-          //   this.loadUsersEntityManager();
-          // }
-          // Additional EntityManagers will be added in subsequent phases
-        } else {
-          console.log(
-            "[US-087] Admin GUI migration is disabled for other entities",
-          );
+          if (missingMethods.length > 0) {
+            console.error("[US-087] SecurityUtils missing required methods:", missingMethods);
+            console.log("[US-087] Attempting to restore missing methods...");
+
+            // Try to restore methods from the class
+            if (typeof SecurityUtils !== 'undefined') {
+              missingMethods.forEach(method => {
+                if (typeof SecurityUtils[method] === 'function') {
+                  window.SecurityUtils[method] = SecurityUtils[method];
+                  console.log(`[US-087] Restored SecurityUtils.${method}`);
+                }
+              });
+            }
+          }
+        }
+
+        // Load Users EntityManager
+        try {
+          this.loadUsersEntityManager();
+          console.log("[US-087] Users EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load UsersEntityManager:", error);
+        }
+
+        // Load Environments EntityManager
+        try {
+          this.loadEnvironmentsEntityManager();
+          console.log("[US-087] Environments EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load EnvironmentsEntityManager:", error);
+        }
+
+        // Load Applications EntityManager
+        try {
+          this.loadApplicationsEntityManager();
+          console.log("[US-087] Applications EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load ApplicationsEntityManager:", error);
+        }
+
+        // Load Labels EntityManager
+        try {
+          this.loadLabelsEntityManager();
+          console.log("[US-087] Labels EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load LabelsEntityManager:", error);
+        }
+
+        // Load MigrationTypes EntityManager
+        try {
+          this.loadMigrationTypesEntityManager();
+          console.log("[US-087] MigrationTypes EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load MigrationTypesEntityManager:", error);
+        }
+
+        // Load IterationTypes EntityManager
+        try {
+          this.loadIterationTypesEntityManager();
+          console.log("[US-087] IterationTypes EntityManager loaded");
+        } catch (error) {
+          console.error("[US-087] Failed to load IterationTypesEntityManager:", error);
         }
 
         console.log("[US-087] EntityManager loading completed");
@@ -1294,6 +1443,220 @@
       }
     },
 
+    // Load UsersEntityManager (US-087 Phase 2)
+    loadUsersEntityManager: function () {
+      console.log("[US-087] Loading UsersEntityManager...");
+
+      // Enhanced debugging for module loading issues
+      console.log("[US-087] Pre-load state check:", {
+        hasUsersEntityManager: Boolean(window.UsersEntityManager),
+        hasBaseEntityManager: Boolean(window.BaseEntityManager),
+        hasSecurityUtils: Boolean(window.SecurityUtils),
+        hasSecurityUtilsMethods: {
+          sanitizeInput: Boolean(window.SecurityUtils && typeof window.SecurityUtils.sanitizeInput === 'function'),
+          sanitizeHtml: Boolean(window.SecurityUtils && typeof window.SecurityUtils.sanitizeHtml === 'function'),
+          addCSRFProtection: Boolean(window.SecurityUtils && typeof window.SecurityUtils.addCSRFProtection === 'function')
+        }
+      });
+
+      if (!window.UsersEntityManager) {
+        console.error("[US-087] UsersEntityManager class not available - module loading failed");
+        return;
+      }
+
+      if (!window.BaseEntityManager) {
+        console.error("[US-087] BaseEntityManager dependency not available");
+        return;
+      }
+
+      if (!window.SecurityUtils) {
+        console.error("[US-087] SecurityUtils dependency not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.users = new window.UsersEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            users: this.api.endpoints.users,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        // Verify the manager was created successfully
+        if (!this.componentManagers.users) {
+          throw new Error("UsersEntityManager instance creation failed");
+        }
+
+        console.log("[US-087] UsersEntityManager instance verification:", {
+          instance: Boolean(this.componentManagers.users),
+          hasInitialize: typeof this.componentManagers.users?.initialize === "function",
+          hasMount: typeof this.componentManagers.users?.mount === "function",
+          hasRender: typeof this.componentManagers.users?.render === "function",
+          entityType: this.componentManagers.users?.entityType
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] UsersEntityManager loaded successfully in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load UsersEntityManager:", error);
+        console.error("[US-087] Error details:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        // Don't rethrow - continue with other managers
+      }
+    },
+
+    // Load EnvironmentsEntityManager (US-087 Phase 2)
+    loadEnvironmentsEntityManager: function () {
+      console.log("[US-087] Loading EnvironmentsEntityManager...");
+
+      if (!window.EnvironmentsEntityManager) {
+        console.warn("[US-087] EnvironmentsEntityManager not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.environments = new window.EnvironmentsEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            environments: this.api.endpoints.environments,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] EnvironmentsEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load EnvironmentsEntityManager:", error);
+        throw error;
+      }
+    },
+
+    // Load ApplicationsEntityManager (US-087 Phase 2)
+    loadApplicationsEntityManager: function () {
+      console.log("[US-087] Loading ApplicationsEntityManager...");
+
+      if (!window.ApplicationsEntityManager) {
+        console.warn("[US-087] ApplicationsEntityManager not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.applications = new window.ApplicationsEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            applications: this.api.endpoints.applications,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] ApplicationsEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load ApplicationsEntityManager:", error);
+        throw error;
+      }
+    },
+
+    // Load LabelsEntityManager (US-087 Phase 2)
+    loadLabelsEntityManager: function () {
+      console.log("[US-087] Loading LabelsEntityManager...");
+
+      if (!window.LabelsEntityManager) {
+        console.warn("[US-087] LabelsEntityManager not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.labels = new window.LabelsEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            labels: this.api.endpoints.labels,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] LabelsEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load LabelsEntityManager:", error);
+        throw error;
+      }
+    },
+
+    // Load MigrationTypesEntityManager (US-087 Phase 2)
+    loadMigrationTypesEntityManager: function () {
+      console.log("[US-087] Loading MigrationTypesEntityManager...");
+
+      if (!window.MigrationTypesEntityManager) {
+        console.warn("[US-087] MigrationTypesEntityManager not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.migrationTypes = new window.MigrationTypesEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            migrationTypes: this.api.endpoints.migrationTypes,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] MigrationTypesEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load MigrationTypesEntityManager:", error);
+        throw error;
+      }
+    },
+
+    // Load IterationTypesEntityManager (US-087 Phase 2)
+    loadIterationTypesEntityManager: function () {
+      console.log("[US-087] Loading IterationTypesEntityManager...");
+
+      if (!window.IterationTypesEntityManager) {
+        console.warn("[US-087] IterationTypesEntityManager not available");
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+
+        this.componentManagers.iterationTypes = new window.IterationTypesEntityManager({
+          apiBase: this.api.baseUrl,
+          endpoints: {
+            iterationTypes: this.api.endpoints.iterationTypes,
+          },
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+        const loadTime = performance.now() - startTime;
+        console.log(`[US-087] IterationTypesEntityManager loaded in ${loadTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error("[US-087] Failed to load IterationTypesEntityManager:", error);
+        throw error;
+      }
+    },
+
     // Wrapper method for dual-mode operation (US-087)
     // NOTE: Teams entity is handled directly in loadCurrentSection - this method is for other entities only
     shouldUseComponentManager: function (entity) {
@@ -1356,13 +1719,7 @@
 
     // Bind all event listeners
     bindEvents: function () {
-      // Login form
-      const loginForm = document.getElementById("loginForm");
-      if (loginForm) {
-        loginForm.addEventListener("submit", this.handleLogin.bind(this));
-      }
-
-      // Logout button
+      // Logout button (for session management only)
       const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
         logoutBtn.addEventListener("click", this.handleLogout.bind(this));
@@ -1462,7 +1819,7 @@
         })
         .catch((error) => {
           console.error("[UMIG] Automatic authentication failed:", error);
-          this.handleAuthenticationFailure();
+          this.handleAuthenticationFailure(error);
         });
     },
 
@@ -1504,10 +1861,33 @@
 
     // Transform user data from API to internal format (TD-007)
     transformUserData: function (userData) {
+      // CRITICAL: RBAC Validation - Only PILOT, ADMIN, or SUPERADMIN allowed
+      const allowedRoles = ["ADMIN", "PILOT", "SUPERADMIN"];
+      const userRole = userData.role;
+      const isAdmin = userData.isAdmin;
+
+      // Check if user has sufficient privileges
+      if (!allowedRoles.includes(userRole) && !isAdmin) {
+        console.warn(`[UMIG] Access denied - insufficient privileges. User role: ${userRole}, isAdmin: ${isAdmin}`);
+
+        // Log security event for unauthorized access attempt
+        if (window.SecurityUtils) {
+          window.SecurityUtils.logSecurityEvent("unauthorized_access_attempt", {
+            username: userData.username,
+            role: userRole,
+            isAdmin: isAdmin,
+            reason: "insufficient_privileges"
+          });
+        }
+
+        // Throw error to trigger authentication failure
+        throw new Error(`Access denied: Insufficient privileges. Required roles: ${allowedRoles.join(', ')}. Your role: ${userRole}`);
+      }
+
       // Map roles to permissions based on existing logic
       let permissions = [];
-
       let role;
+
       if (userData.role === "ADMIN" || userData.isAdmin) {
         // Admin/superadmin gets all permissions
         role = "superadmin";
@@ -1526,9 +1906,9 @@
         role = "pilot";
         permissions = ["iterations", "sequences", "phases", "steps"];
       } else {
-        // Default user gets minimal permissions
+        // This should never happen due to validation above, but defensive programming
         role = "user";
-        permissions = ["iterations"];
+        permissions = [];
       }
 
       return {
@@ -1547,33 +1927,92 @@
     },
 
     // Handle authentication failure fallback (TD-007)
-    handleAuthenticationFailure: function () {
-      // For now, show an error message and prevent access
-      // In the future, this could implement additional fallback strategies
-      const errorMessage = `
-        <div style="text-align: center; padding: 50px;">
-          <h2>Authentication Required</h2>
-          <p>Unable to authenticate automatically. Please ensure you are logged into Confluence.</p>
-          <p>If you continue to experience issues, please contact your system administrator.</p>
-          <button onclick="location.reload()">Retry</button>
-        </div>
-      `;
+    handleAuthenticationFailure: function (error = null) {
+      let errorMessage;
+
+      // Check if this is an insufficient privileges error
+      if (error && error.message && error.message.includes("Access denied: Insufficient privileges")) {
+        errorMessage = `
+          <div style="text-align: center; padding: 50px; max-width: 600px; margin: 0 auto;">
+            <div style="background: #ffebe6; border: 1px solid #de350b; border-radius: 8px; padding: 30px;">
+              <h2 style="color: #de350b; margin-top: 0;">🚫 Access Denied</h2>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                <strong>Insufficient Privileges</strong>
+              </p>
+              <p style="margin-bottom: 20px;">
+                This UMIG Administration Console is restricted to authorized personnel only.
+              </p>
+              <p style="margin-bottom: 20px;">
+                <strong>Required Roles:</strong> PILOT, ADMIN, or SUPERADMIN
+              </p>
+              <p style="margin-bottom: 30px;">
+                If you believe you should have access, please contact your system administrator.
+              </p>
+              <button onclick="location.reload()" style="background: #0052cc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Retry Authentication
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        // General authentication failure
+        errorMessage = `
+          <div style="text-align: center; padding: 50px; max-width: 600px; margin: 0 auto;">
+            <div style="background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 8px; padding: 30px;">
+              <h2 style="color: #42526e; margin-top: 0;">🔐 Authentication Required</h2>
+              <p style="margin-bottom: 20px;">
+                Unable to authenticate automatically. Please ensure you are logged into Confluence.
+              </p>
+              <p style="margin-bottom: 30px;">
+                If you continue to experience issues, please contact your system administrator.
+              </p>
+              <button onclick="location.reload()" style="background: #0052cc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Retry Authentication
+              </button>
+            </div>
+          </div>
+        `;
+      }
 
       document.getElementById("dashboardPage").innerHTML = errorMessage;
       document.getElementById("dashboardPage").style.display = "flex";
-      document.getElementById("loginPage").style.display = "none";
 
-      // Log security event
-      window.SecurityUtils?.logSecurityEvent("automatic_auth_failed", {
+      // Hide any login page elements that might exist (defensive)
+      const loginPage = document.getElementById("loginPage");
+      if (loginPage) {
+        loginPage.style.display = "none";
+      }
+
+      // Log security event with proper classification
+      const eventType = error && error.message && error.message.includes("Access denied")
+        ? "access_denied_insufficient_privileges"
+        : "automatic_auth_failed";
+
+      window.SecurityUtils?.logSecurityEvent(eventType, {
         timestamp: new Date().toISOString(),
         fallback: "error_display",
+        errorMessage: error ? error.message : "Authentication failed"
       });
     },
 
-    // Handle login form submission
+    // Legacy handleLogin method - NO LONGER USED
+    // Login functionality has been replaced with automatic authentication via Confluence context
+    // This method is preserved for compatibility but should not be called
     handleLogin: function (e) {
       e.preventDefault();
+      console.warn("[UMIG] handleLogin called but login form is deprecated. Authentication is now automatic.");
 
+      // Log deprecation warning
+      window.SecurityUtils?.logSecurityEvent("deprecated_login_attempt", {
+        message: "Manual login attempted but automatic authentication is now enforced",
+        timestamp: new Date().toISOString(),
+      });
+
+      // Redirect to automatic authentication flow
+      this.initializeLogin();
+      return;
+
+      // *** DEPRECATED CODE BELOW - KEPT FOR REFERENCE ***
       // Get elements using direct selectors to avoid MutationObserver conflicts
       const userCodeInput = document.getElementById("userCode");
       const loginBtn = document.querySelector("button.login-btn");
@@ -1779,17 +2218,19 @@
     },
 
     // Show login error
+    // Legacy showLoginError method - NO LONGER USED
+    // Login error display has been replaced with automatic authentication
     showLoginError: function (message) {
-      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
-      const timeoutId = setTimeout(() => {
-        const errorDiv = document.getElementById("loginError");
-        if (errorDiv) {
-          errorDiv.textContent = message;
-          errorDiv.style.display = "block";
-        } else {
-          console.error("[UMIG] Login error element not found:", message);
-        }
-      }, 10);
+      console.warn("[UMIG] showLoginError called but login forms are deprecated:", message);
+
+      // Log deprecation warning instead of showing login error
+      window.SecurityUtils?.logSecurityEvent("deprecated_login_error", {
+        message: message,
+        timestamp: new Date().toISOString(),
+      });
+
+      // For any critical errors, show as a general toast notification instead
+      this.showMessage("Authentication Error: " + message, "error");
     },
 
     // Show main dashboard
@@ -1806,18 +2247,61 @@
           dashboardPage.style.display = "flex";
         }
 
-        this.setupUserInterface();
-        this.setupMenuVisibility();
-        this.loadCurrentSection();
+        // ALWAYS setup UI and menu, even if components fail
+        try {
+          this.setupUserInterface();
+        } catch (error) {
+          console.error("[US-087] Failed to setup user interface:", error);
+          // Continue anyway - menu is more important than user info
+        }
+
+        try {
+          this.setupMenuVisibility();
+        } catch (error) {
+          console.error("[US-087] Failed to setup menu visibility:", error);
+          // Continue anyway - at least try to show something
+        }
+
+        // Set appropriate default section based on user role and URL parameters
+        try {
+          this.setDefaultSection();
+        } catch (error) {
+          console.error("[US-087] Failed to set default section:", error);
+          // Continue with existing currentSection
+        }
+
+        // Load content section - this may fail but menu should already be visible
+        try {
+          this.loadCurrentSection();
+        } catch (error) {
+          console.error("[US-087] Failed to load current section:", error);
+          // Show error in content area but keep menu visible
+          const contentArea = document.getElementById("content");
+          if (contentArea) {
+            contentArea.innerHTML = '<div class="aui-message aui-message-error">Failed to load content. Please select an item from the menu.</div>';
+          }
+        }
       }, 10);
     },
 
     // Setup user interface with current user info
     setupUserInterface: function () {
-      const user = this.state.currentUser;
-
-      document.getElementById("userName").textContent = `Welcome, ${user.name}`;
-      document.getElementById("userRole").textContent = user.role.toUpperCase();
+      try {
+        const user = this.state.currentUser || { name: "User", role: "user" };
+        
+        const userNameEl = document.getElementById("userName");
+        if (userNameEl) {
+          userNameEl.textContent = `Welcome, ${user.name}`;
+        }
+        
+        const userRoleEl = document.getElementById("userRole");
+        if (userRoleEl) {
+          userRoleEl.textContent = user.role.toUpperCase();
+        }
+      } catch (error) {
+        console.warn("[US-087] Could not setup user interface:", error);
+        // Non-critical - continue
+      }
     },
 
     // Setup menu visibility based on user role
@@ -1827,6 +2311,16 @@
       const superadminSection = document.getElementById("superadminSection");
       const adminSection = document.getElementById("adminSection");
       const pilotSection = document.getElementById("pilotSection");
+
+      // Defensive programming: check if elements exist before accessing style
+      if (!superadminSection || !adminSection || !pilotSection) {
+        console.warn("[setupMenuVisibility] Some menu sections not found in DOM:", {
+          superadminSection: !!superadminSection,
+          adminSection: !!adminSection,
+          pilotSection: !!pilotSection
+        });
+        return; // Exit early if critical elements are missing
+      }
 
       // Hide all sections first
       superadminSection.style.display = "none";
@@ -1843,6 +2337,77 @@
         pilotSection.style.display = "block";
       } else if (role === "pilot") {
         pilotSection.style.display = "block";
+      }
+    },
+
+    // Set appropriate default section based on user role and URL parameters
+    setDefaultSection: function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const entityParam = urlParams.get('e'); // ?e=section parameter
+
+      let defaultSection;
+      let defaultEntity;
+
+      // Check if URL parameter overrides default
+      if (entityParam) {
+        console.log(`[UMIG] URL parameter override: ?e=${entityParam}`);
+        defaultSection = entityParam;
+        defaultEntity = entityParam;
+      } else {
+        // Set default based on user role
+        const role = this.state.currentUser?.role || 'user';
+
+        switch (role) {
+          case 'superadmin':
+            defaultSection = 'users';
+            defaultEntity = 'users';
+            console.log('[UMIG] SUPERADMIN default: Users management');
+            break;
+          case 'admin':
+            defaultSection = 'migrations';
+            defaultEntity = 'migrations';
+            console.log('[UMIG] ADMIN default: Migrations management');
+            break;
+          case 'pilot':
+            defaultSection = 'iterations';
+            defaultEntity = 'iterations';
+            console.log('[UMIG] PILOT default: Iterations management');
+            break;
+          default:
+            // Fallback for unexpected roles
+            defaultSection = 'users';
+            defaultEntity = 'users';
+            console.warn(`[UMIG] Unknown role ${role}, defaulting to users`);
+        }
+      }
+
+      // Update state
+      this.state.currentSection = defaultSection;
+      this.state.currentEntity = defaultEntity;
+
+      // Update active menu item
+      this.updateActiveMenuItems(defaultSection);
+
+      console.log(`[UMIG] Default section set: ${defaultSection} (entity: ${defaultEntity})`);
+    },
+
+    // Update active menu items based on current section
+    updateActiveMenuItems: function (activeSection) {
+      try {
+        // Remove active class from all nav items
+        const allNavItems = document.querySelectorAll('.nav-item');
+        allNavItems.forEach(item => item.classList.remove('active'));
+
+        // Add active class to current section
+        const activeNavItem = document.querySelector(`[data-section="${activeSection}"]`);
+        if (activeNavItem) {
+          activeNavItem.classList.add('active');
+          console.log(`[UMIG] Active menu item set: ${activeSection}`);
+        } else {
+          console.warn(`[UMIG] No nav item found for section: ${activeSection}`);
+        }
+      } catch (error) {
+        console.error('[UMIG] Failed to update active menu items:', error);
       }
     },
 
@@ -1960,17 +2525,42 @@
         return;
       }
 
-      // Direct Teams component architecture (simplified from US-087)
-      if (entity === "teams") {
-        console.log(`[US-087] Always using Teams EntityManager`);
+      // US-087 Phase 2: Direct component architecture for all base entities
+      // These entities now always use EntityManagers for component-based rendering
+      const componentBasedEntities = [
+        "teams",
+        "users", 
+        "environments",
+        "applications",
+        "labels",
+        "migrationTypes",
+        "iterationTypes"
+      ];
+
+      if (componentBasedEntities.includes(entity)) {
+        console.log(`[US-087] Using ${entity} EntityManager (Phase 2 migration)`);
+        
+        // Check if the EntityManager was loaded
+        if (!this.componentManagers[entity]) {
+          console.warn(`[US-087] ${entity} EntityManager not loaded, attempting to load...`);
+          
+          // Try to load the EntityManager dynamically
+          const loadMethodName = `load${entity.charAt(0).toUpperCase() + entity.slice(1)}EntityManager`;
+          if (typeof this[loadMethodName] === 'function') {
+            try {
+              this[loadMethodName]();
+            } catch (error) {
+              console.error(`[US-087] Failed to dynamically load ${entity} EntityManager:`, error);
+              return this.loadCurrentSectionLegacy();
+            }
+          }
+        }
+        
         return this.loadWithEntityManager(entity);
       }
 
-      // US-087: Check if we should use component manager for other entities
-      if (entity !== "teams" && this.shouldUseComponentManager(entity)) {
-        console.log(`[US-087] Using ${entity} EntityManager`);
-        return this.loadWithEntityManager(entity);
-      }
+      // US-087: Legacy fallback for entities not yet migrated
+      // This will be removed once all entities are migrated
 
       // Defensive access to entities with comprehensive error handling
       let config = null;
@@ -2343,9 +2933,9 @@
         this.showLoadingSpinner();
 
         // Get the content container
-        const contentArea = document.getElementById("content");
+        const contentArea = document.getElementById("mainContent");
         if (!contentArea) {
-          throw new Error("Content area not found");
+          throw new Error("Main content area not found");
         }
 
         // Clear existing content
@@ -4844,15 +5434,20 @@
       this.loadCurrentSection();
     },
 
-    // Handle logout
+    // Handle logout - Redirect to Confluence logout
     handleLogout: function () {
       this.state.isAuthenticated = false;
       this.state.currentUser = null;
 
-      document.getElementById("dashboardPage").style.display = "none";
-      document.getElementById("loginPage").style.display = "flex";
-      document.getElementById("userCode").value = "";
-      document.getElementById("userCode").focus();
+      // Log security event
+      window.SecurityUtils?.logSecurityEvent("user_logout", {
+        username: this.state.currentUser?.username,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Redirect to Confluence logout instead of showing local login form
+      // This ensures proper session cleanup and security
+      window.location.href = "/logout";
     },
 
     // Show message (success/error)
@@ -5736,4 +6331,8 @@
       window.adminGui.init();
     }
   }
-})();
+
+// Export adminGui to window for global access (ADR-057 compliance)
+if (typeof window !== 'undefined') {
+  window.adminGui = window.adminGui;
+}
