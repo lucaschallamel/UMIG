@@ -81,6 +81,9 @@ class StepsAPIv2Client {
     if (options.size) queryParams.append("size", options.size);
     if (options.sort) queryParams.append("sort", options.sort);
 
+    // Force enhanced method to get nested structure (sequences[].phases[].steps[])
+    queryParams.append("enhanced", "true");
+
     const url = `${this.baseUrl}${this.endpoint}?${queryParams.toString()}`;
     console.log("StepsAPIv2: Fetching", url);
 
@@ -894,17 +897,17 @@ class IterationView {
               "X-Atlassian-Token": "no-check",
             },
             credentials: "same-origin",
-          }
+          },
         );
-        
+
         if (response.ok) {
           const context = await response.json();
           console.log("User context loaded from backend:", context);
-          
+
           this.userRole = context.role || "NORMAL";
           this.isAdmin = context.isAdmin || false;
           this.userContext = context;
-          
+
           // Apply role-based UI controls once DOM is ready
           if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () =>
@@ -915,9 +918,15 @@ class IterationView {
           }
         } else {
           // Fallback to username-based detection for backwards compatibility
-          console.warn("Failed to load user context from API, falling back to username detection");
-          
-          if (username === "admin" || username === "guq" || username === "adm") {
+          console.warn(
+            "Failed to load user context from API, falling back to username detection",
+          );
+
+          if (
+            username === "admin" ||
+            username === "guq" ||
+            username === "adm"
+          ) {
             console.log("Admin user detected (username-based fallback)");
             this.userRole = "ADMIN";
             this.isAdmin = true;
@@ -926,12 +935,12 @@ class IterationView {
             this.isAdmin = false;
             console.log("Standard user detected:", username);
           }
-          
+
           this.applyRoleBasedControls();
         }
       } catch (error) {
         console.error("Error loading user context:", error);
-        
+
         // Fallback to username-based detection
         if (username === "admin" || username === "guq" || username === "adm") {
           console.log("Admin user detected (error fallback)");
@@ -941,7 +950,7 @@ class IterationView {
           this.userRole = "NORMAL";
           this.isAdmin = false;
         }
-        
+
         this.applyRoleBasedControls();
       }
 
@@ -2601,7 +2610,7 @@ class IterationView {
       });
 
       // Use enhanced API client with caching
-      const sequences = await this.apiClient.fetchSteps(filters, options);
+      const apiResponse = await this.apiClient.fetchSteps(filters, options);
 
       // Track performance
       this.performanceMetrics.loadEndTime = performance.now();
@@ -2609,6 +2618,37 @@ class IterationView {
         this.performanceMetrics.loadEndTime -
         this.performanceMetrics.loadStartTime;
       console.log(`IterationView: Steps loaded in ${loadTime.toFixed(2)}ms`);
+
+      // Handle the API response structure
+      // Enhanced API returns flat array of steps, need to transform to nested structure
+      const rawData =
+        apiResponse && apiResponse.data && Array.isArray(apiResponse.data)
+          ? apiResponse.data
+          : [];
+
+      console.log(
+        `IterationView: Received ${rawData.length} items from enhanced API response`,
+      );
+
+      // Check if we received a flat array of steps (enhanced API) or nested structure (non-enhanced API)
+      const isFlat =
+        rawData.length > 0 && rawData[0].stepId && !rawData[0].phases;
+
+      let sequences;
+      if (isFlat) {
+        console.log(
+          `IterationView: Transforming ${rawData.length} flat steps into nested structure`,
+        );
+        sequences = this.transformFlatStepsToNested(rawData);
+        console.log(
+          `IterationView: Transformed into ${sequences.length} sequences`,
+        );
+      } else {
+        sequences = rawData;
+        console.log(
+          `IterationView: Using pre-structured ${sequences.length} sequences`,
+        );
+      }
 
       if (!Array.isArray(sequences) || sequences.length === 0) {
         runsheetContent.innerHTML = `
@@ -2693,6 +2733,87 @@ class IterationView {
 
     // Bind events efficiently after DOM update
     this._bindEventListenersOptimized();
+  }
+
+  /**
+   * Transform flat array of steps from enhanced API into nested sequences[].phases[].steps[] structure
+   * @param {Array} flatSteps - Array of step objects from enhanced API
+   * @returns {Array} Nested structure matching expected frontend format
+   */
+  transformFlatStepsToNested(flatSteps) {
+    const sequencesMap = new Map();
+
+    flatSteps.forEach((step) => {
+      // Extract sequence info
+      const sequenceKey = `${step.sequenceNumber || 1}-${step.sequenceId || "unknown"}`;
+      const phaseKey = `${step.phaseNumber || 1}-${step.phaseId || "unknown"}`;
+
+      // Initialize sequence if not exists
+      if (!sequencesMap.has(sequenceKey)) {
+        sequencesMap.set(sequenceKey, {
+          id: step.sequenceId || step.sequenceInstanceId,
+          name: step.sequenceName || `Sequence ${step.sequenceNumber || 1}`,
+          number: step.sequenceNumber || 1,
+          phases: new Map(),
+        });
+      }
+
+      const sequence = sequencesMap.get(sequenceKey);
+
+      // Initialize phase if not exists
+      if (!sequence.phases.has(phaseKey)) {
+        sequence.phases.set(phaseKey, {
+          id: step.phaseId || step.phaseInstanceId,
+          name: step.phaseName || `Phase ${step.phaseNumber || 1}`,
+          number: step.phaseNumber || 1,
+          steps: [],
+        });
+      }
+
+      const phase = sequence.phases.get(phaseKey);
+
+      // Transform step to expected format
+      const transformedStep = {
+        id: step.stepInstanceId || step.stepId,
+        code:
+          step.stepCode ||
+          `${step.stepType || "STEP"}-${String(step.stepNumber || 1).padStart(3, "0")}`,
+        name: step.stepName || "Unnamed Step",
+        status: step.stepStatus || "NOT_STARTED",
+        durationMinutes: step.estimatedDuration || step.actualDuration || 0,
+        ownerTeamId: step.ownerTeamId || step.assignedTeamId,
+        ownerTeamName:
+          step.ownerTeamName || step.assignedTeamName || "Unassigned",
+        labels: step.labels || [],
+      };
+
+      phase.steps.push(transformedStep);
+    });
+
+    // Convert Maps to Arrays and sort
+    const sequences = Array.from(sequencesMap.values())
+      .map((sequence) => {
+        const phases = Array.from(sequence.phases.values())
+          .map((phase) => ({
+            ...phase,
+            steps: phase.steps.sort((a, b) =>
+              (a.code || "").localeCompare(b.code || ""),
+            ),
+          }))
+          .sort((a, b) => (a.number || 0) - (b.number || 0));
+
+        return {
+          ...sequence,
+          phases,
+        };
+      })
+      .sort((a, b) => (a.number || 0) - (b.number || 0));
+
+    console.log(
+      `IterationView: Transformed ${flatSteps.length} steps into ${sequences.length} sequences with ${sequences.reduce((total, seq) => total + seq.phases.length, 0)} phases`,
+    );
+
+    return sequences;
   }
 
   /**
@@ -3273,10 +3394,36 @@ class IterationView {
     // Extract unique teams from steps
     const teamsMap = new Map();
 
+    // Add defensive checks for nested structure
+    if (!sequences || !Array.isArray(sequences)) {
+      console.warn(
+        "IterationView: sequences is not a valid array in updateTeamFilterFromSteps",
+      );
+      return;
+    }
+
     sequences.forEach((sequence) => {
+      // Check if sequence and sequence.phases exist
+      if (!sequence || !sequence.phases || !Array.isArray(sequence.phases)) {
+        console.warn(
+          "IterationView: sequence.phases is not a valid array for sequence:",
+          sequence,
+        );
+        return;
+      }
+
       sequence.phases.forEach((phase) => {
+        // Check if phase and phase.steps exist
+        if (!phase || !phase.steps || !Array.isArray(phase.steps)) {
+          console.warn(
+            "IterationView: phase.steps is not a valid array for phase:",
+            phase,
+          );
+          return;
+        }
+
         phase.steps.forEach((step) => {
-          if (step.ownerTeamId && step.ownerTeamName) {
+          if (step && step.ownerTeamId && step.ownerTeamName) {
             teamsMap.set(step.ownerTeamId, step.ownerTeamName);
           }
         });

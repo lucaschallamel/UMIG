@@ -54,7 +54,7 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     // Initialize parent with proper config including entityType
     super({
       entityType: "migration-types",
-      ...config
+      ...config,
     });
 
     // Define migration-types-specific configuration after super()

@@ -250,7 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Include URL constructor utility -->
 <script type=\"text/javascript\" src=\"${webRoot}/js/utils/url-constructor.js\"></script>
 
-<!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
+<!-- SecurityUtils for enterprise security - Load BEFORE StatusProvider (ADR-058) -->
+<script src=\"${webRoot}/js/components/SecurityUtils.js\"></script>
+
+<!-- StatusProvider for TD-003 status management - Load AFTER SecurityUtils -->
 <script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
 
 <!-- StepViewRBAC for enhanced RBAC management -->

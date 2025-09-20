@@ -48,13 +48,31 @@ Where:
 
 ## User Story
 
-**As a** Migration Coordinator  
-**I want** Plans displayed as independent reusable templates  
-**So that** I understand that Plans are not iteration-specific but rather templates I can select for any migration iteration
+**As a** Migration Coordinator who needs to reuse successful migration approaches
+**I want** to access and manage Plans as independent templates that I can apply to any migration
+**So that** I can efficiently create new iterations by selecting proven plan templates rather than recreating plans for each migration
+
+### What is a Junction Entity? (Simplified Explanation)
+
+Think of an Iteration like a **booking** that connects:
+
+- A **Migration** (the project you're working on)
+- A **Plan Template** (the proven approach you want to use)
+
+The Iteration doesn't "own" the Plan - it just points to it and creates an instance from it.
+Multiple Iterations can point to the same Plan Template, just like multiple bookings can reference the same venue.
 
 ### Value Statement
 
 This story fixes a fundamental domain model misrepresentation that confuses users about the true nature of Plans as reusable templates. The correction will improve user understanding, workflow efficiency, and system scalability by properly representing the Plans-as-Templates pattern.
+
+**Current Problem**: Teams recreate migration plans from scratch because they can't easily find and reuse proven templates
+**Solution Value**: Teams can quickly find, reuse, and adapt successful migration approaches
+**Measurable Impact**:
+
+- 50% reduction in iteration planning time
+- 30% increase in plan template reuse
+- 90% improvement in user understanding of plan relationships
 
 ## Acceptance Criteria
 
@@ -115,8 +133,8 @@ This story fixes a fundamental domain model misrepresentation that confuses user
 
 ### AC-084.6: Template Reusability Enhancement
 
-**Given** I have created a successful Plan template  
-**When** I want to reuse it for multiple migrations  
+**Given** I have created a successful Plan template
+**When** I want to reuse it for multiple migrations
 **Then** I can easily:
 
 - Create new iterations based on the same plan template
@@ -124,6 +142,57 @@ This story fixes a fundamental domain model misrepresentation that confuses user
 - Update the template with changes propagated to active iterations (with user confirmation)
 - Archive templates that are no longer needed
   **And** The reusability is obvious from the UI flow and terminology
+
+### AC-084.7: API Response Structure for Junction Entity
+
+**Given** I am integrating with the Plans-as-Templates API
+**When** I request iteration details with plan context
+**Then** the API response includes:
+
+- Clear junction relationship indicators: `"relationship_type": "junction"`
+- Plan template reference: `"plan_template": { "id": "...", "name": "...", "is_template": true }`
+- Usage context: `"template_usage": { "other_iterations_count": 5, "last_used": "2025-01-15" }`
+  **And** the response format distinguishes between plan master vs plan instance data
+  **And** the junction nature is explicit in the data structure
+
+### AC-084.8: Master vs Instance Distinction
+
+**Given** I am working with plan templates and their instances
+**When** viewing plan-related data
+**Then** the system clearly distinguishes:
+
+- **Plan Masters**: `"type": "template"`, stored in `plans_master_plm`
+- **Plan Instances**: `"type": "execution_instance"`, stored in `plans_instance_pli`
+  **And** templates show: `"template_metadata": { "created_from": null, "is_template": true }`
+  **And** instances show: `"template_metadata": { "created_from": "plan_master_id", "is_template": false }`
+  **And** instance modifications don't affect the master template
+
+### AC-084.9: Search and Discovery Functionality
+
+**Given** I need to find suitable plan templates
+**When** I search for plans
+**Then** I can search by:
+
+- Plan template name and description
+- Number of successful iterations using this template
+- Last modified date range
+- Template author or team
+- Migration types that have used this template
+  **And** search results show usage statistics: "Used in 5 migrations, 12 iterations"
+  **And** I can filter by: Active templates, Most-used templates, Recently updated
+
+### AC-084.10: Transition Plan API Endpoints
+
+**Given** the system needs to transition from wrong to correct model presentation
+**When** implementing the transition
+**Then** these API endpoints support the transition:
+
+- `GET /api/v2/plans/templates` - Independent plan templates with usage stats
+- `GET /api/v2/plans/{planId}/usage` - All iterations using this plan template
+- `GET /api/v2/iterations/{iterationId}/plan-context` - Plan template context for iteration
+- `POST /api/v2/iterations/from-template` - Create iteration from plan template
+  **And** legacy endpoints remain functional with deprecation warnings
+  **And** response headers indicate: `X-Hierarchy-Model: "corrected"` vs `X-Hierarchy-Model: "legacy"`
 
 ## Technical Requirements
 
@@ -176,27 +245,33 @@ const HierarchyBreadcrumb = {
 #### API Response Structure Enhancement
 
 ```groovy
-// Enhanced Iteration API response
-class IterationResponseDto {
+// Enhanced Iteration API response with junction clarity
+class IterationWithPlanContextDto {
+    // Iteration identity
     UUID iterationId
     String iterationName
 
-    // Junction relationship clarity
+    // Junction relationship (Migration + Plan Template)
     UUID migrationId
     String migrationName
 
-    // Template relationship (not parent-child!)
-    UUID planId
+    // Template reference (not parent-child!)
+    UUID planTemplateId      // The master plan template
     String planTemplateName
-    String planTemplateDescription
+    UUID planInstanceId       // The actual instance created for this iteration
+
+    // Relationship metadata
+    String relationshipType = "junction"  // Explicitly states junction nature
 
     // Usage context
-    Integer otherIterationsUsingThisPlan
+    Integer otherIterationsUsingThisTemplate
+    Boolean planTemplateIsModifiable
     Date planTemplateLastModified
+    Date iterationCreatedFromTemplate
 }
 ```
 
-#### Plan Template Independence
+#### Plan Template Independence with Usage
 
 ```groovy
 // Plans as independent entities API
@@ -204,17 +279,59 @@ class PlanTemplateResponseDto {
     UUID planId
     String name
     String description
+    String type = "template"  // Clearly identifies as template
     String status // ACTIVE, ARCHIVED
 
     // Usage statistics (not children!)
     Integer activeIterationsCount
     Integer totalIterationsCount
-    List<IterationSummary> currentUsage
+    List<IterationUsageSummary> activeUsage
+    Date lastUsed
+    Boolean canBeDeleted  // Based on active usage
 
     // Template metadata
     Date created
     Date lastModified
     String author
+
+    // Template capabilities
+    Boolean supportsVersioning
+    Boolean allowsCustomization
+}
+```
+
+#### Master vs Instance Distinction
+
+```groovy
+// Clear distinction between master templates and instances
+class PlanMasterDto {
+    UUID plmId           // plans_master_plm.plm_id
+    String plmName
+    String plmDescription
+    String entityType = "master_template"
+
+    // Template metadata
+    Boolean isTemplate = true
+    UUID createdFrom = null  // Masters have no parent
+
+    // Usage tracking
+    Integer instanceCount
+    List<UUID> activeInstances
+}
+
+class PlanInstanceDto {
+    UUID pliId           // plans_instance_pli.pli_id
+    String pliName       // May differ from master if customized
+    UUID iterationId     // The iteration this instance belongs to
+    String entityType = "execution_instance"
+
+    // Instance metadata
+    Boolean isTemplate = false
+    UUID createdFrom     // References plm_id (master template)
+
+    // Customization tracking
+    Boolean hasCustomizations
+    List<String> customizedFields
 }
 ```
 
@@ -236,22 +353,37 @@ tbl_iterations.itr_mig_id → tbl_migrations.mig_id    -- Migration reference
 
 ## Implementation Plan
 
+### Phase 0: Communication & Preparation (0.5 days)
+
+1. **User Communication**
+   - Send announcement about upcoming UX improvement
+   - Create "Plans as Templates" help documentation
+   - Set up usage analytics to measure adoption
+
+2. **Technical Preparation**
+   - Review existing PlansApi.groovy for master/instance patterns
+   - Document current API endpoints and their responses
+   - Create feature flag for gradual rollout
+
 ### Phase 1: Backend API Enhancement (2 days)
 
 1. **Enhanced Plan Templates API**
    - Add usage statistics to plan responses
    - Include "active iterations count" in plan template listings
    - Create endpoint for "plans with usage details"
+   - Implement caching for usage statistics to avoid N+1 queries
 
 2. **Iteration Context API**
    - Enhance iteration responses to include plan template context
    - Add "other iterations using this plan" information
    - Implement plan template navigation from iteration context
+   - Clearly distinguish planTemplateId from planInstanceId
 
 3. **Cross-Reference Endpoints**
    - API to get all iterations using a specific plan template
    - API to get plan template details from iteration context
-   - Efficient join queries to avoid N+1 problems
+   - Efficient join queries with proper indexing
+   - Response header indicators for hierarchy model version
 
 ### Phase 2: Frontend Navigation Restructure (2.5 days)
 
@@ -297,20 +429,23 @@ tbl_iterations.itr_mig_id → tbl_migrations.mig_id    -- Migration reference
 
 ### Technical Risks
 
-| Risk                                       | Impact | Probability | Mitigation                                              |
-| ------------------------------------------ | ------ | ----------- | ------------------------------------------------------- |
-| User workflow confusion                    | Medium | Medium      | Clear communication, gradual rollout with user guidance |
-| URL/bookmark breakage                      | Low    | Medium      | Comprehensive redirect mapping                          |
-| Integration with existing features         | Medium | Low         | Thorough testing of US-082 Enhanced Components          |
-| Performance impact from additional queries | Low    | Low         | Optimize join queries, add caching where needed         |
+| Risk                                       | Impact | Probability | Mitigation                                                     |
+| ------------------------------------------ | ------ | ----------- | -------------------------------------------------------------- |
+| User workflow confusion                    | Medium | Medium      | Clear communication, gradual rollout with user guidance        |
+| URL/bookmark breakage                      | Low    | Medium      | Comprehensive redirect mapping                                 |
+| Integration with existing features         | Medium | Low         | Thorough testing of US-082 Enhanced Components                 |
+| Performance impact from additional queries | Medium | High        | Implement caching, optimize join queries with indexes          |
+| Master/Instance API confusion              | High   | Medium      | Clear API documentation and response structure standardization |
+| N+1 query problems with usage statistics   | High   | High        | Implement eager loading and caching strategies                 |
 
 ### Business Risks
 
-| Risk                               | Impact | Probability | Mitigation                                                  |
-| ---------------------------------- | ------ | ----------- | ----------------------------------------------------------- |
-| User resistance to workflow change | Medium | Medium      | Frame as "improvement" not "change", provide clear benefits |
-| Training overhead                  | Low    | High        | Document benefits clearly, provide transition guide         |
-| Temporary productivity impact      | Low    | Medium      | Phase rollout, provide user support during transition       |
+| Risk                                       | Impact | Probability | Mitigation                                                      |
+| ------------------------------------------ | ------ | ----------- | --------------------------------------------------------------- |
+| User resistance to workflow change         | Medium | Medium      | Frame as "improvement" not "change", provide clear benefits     |
+| Training overhead                          | Low    | High        | Document benefits clearly, provide transition guide             |
+| Temporary productivity impact              | Low    | Medium      | Phase rollout, provide user support during transition           |
+| User workflow disruption during transition | High   | Medium      | Phased rollout with feature flags, A/B testing with power users |
 
 ## Dependencies
 
@@ -402,10 +537,20 @@ tbl_iterations.itr_mig_id → tbl_migrations.mig_id    -- Migration reference
 
 ---
 
-**Document Version**: 1.0  
-**Created**: January 9, 2025  
-**Last Updated**: January 9, 2025  
-**Owner**: UMIG Development Team  
+**Document Version**: 1.1
+**Created**: January 9, 2025
+**Last Updated**: September 20, 2025
+**Owner**: UMIG Development Team
 **Review Date**: Sprint 7 Planning Session
+**Enhancement Date**: September 20, 2025 - Added AC-084.7 through AC-084.10 based on requirements analysis
 
 _This story fixes a fundamental domain model misrepresentation to properly show Plans as independent reusable templates rather than children of Iterations, improving user understanding and system scalability._
+
+**Version 1.1 Enhancements:**
+
+- Added 4 new acceptance criteria (AC-084.7 to AC-084.10) for API structure, master/instance distinction, search functionality, and transition endpoints
+- Enhanced technical requirements with clearer DTOs showing junction entity nature
+- Added simplified junction entity explanation for better understanding
+- Expanded implementation plan with Phase 0 preparation
+- Updated risk assessment with performance and API confusion risks
+- Improved user story narrative for clarity

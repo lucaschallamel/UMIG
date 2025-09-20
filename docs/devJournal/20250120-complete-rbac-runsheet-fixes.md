@@ -7,6 +7,7 @@
 ## Summary
 
 Successfully resolved multiple critical issues:
+
 1. ✅ Runsheet headers showing UUIDs instead of sequence/phase names
 2. ✅ ADMIN users incorrectly getting read-only access in stepview
 3. ✅ Iteration view showing read-only banner for ADMIN users
@@ -22,12 +23,14 @@ Successfully resolved multiple critical issues:
 **Root Cause**: Missing `sqm_name` and `phm_name` fields in SQL queries.
 
 **Solution**:
+
 1. Updated `StepRepository.groovy` to include name fields in SELECT clause
 2. Added `sequenceName` and `phaseName` properties to `StepInstanceDTO`
 3. Modified `StepDataTransformationService` to map these fields
 4. Updated `StepsApi.groovy` to use actual names instead of IDs
 
 **Files Modified**:
+
 - `/src/groovy/umig/repository/StepRepository.groovy`
 - `/src/groovy/umig/dto/StepInstanceDTO.groovy`
 - `/src/groovy/umig/service/StepDataTransformationService.groovy`
@@ -38,11 +41,13 @@ Successfully resolved multiple critical issues:
 **Problem**: ADMIN users were getting read-only access despite having full permissions.
 
 **Root Cause**:
+
 1. Missing backend RBAC integration
 2. User 'adm' not mapped in database (only 'ADM' existed)
 3. Frontend not calling proper API for user context
 
 **Solution**:
+
 1. Created `/stepViewApi/userContext` endpoint with complete RBAC logic
 2. User manually updated database: `usr_confluence_user_id = 'adm'`
 3. Updated `step-view.js` to call new userContext API
@@ -50,6 +55,7 @@ Successfully resolved multiple critical issues:
 5. Fixed static type checking errors using bracket notation
 
 **Files Created/Modified**:
+
 - `/src/groovy/umig/api/v2/stepViewApi.groovy` (created)
 - `/src/groovy/umig/web/js/stepview/StepViewRBAC.js` (created)
 - `/src/groovy/umig/web/js/step-view.js`
@@ -62,11 +68,13 @@ Successfully resolved multiple critical issues:
 **Root Cause**: `iteration-view.js` was using hardcoded username detection instead of backend API.
 
 **Solution**:
+
 1. Updated `iteration-view.js` to call backend userContext API
 2. Modified `stepViewApi.groovy` to support calls without stepCode parameter
 3. Ensured permissions are properly calculated based on role
 
 **Files Modified**:
+
 - `/src/groovy/umig/web/js/iteration-view.js`
 - `/src/groovy/umig/api/v2/stepViewApi.groovy`
 
@@ -79,12 +87,14 @@ Successfully resolved multiple critical issues:
 **Actual Issue**: The numbers were always "1" regardless of actual database values.
 
 **Solution**:
+
 1. Added `sqi_order` and `phi_order` to StepRepository query
 2. Added `sequenceNumber` and `phaseNumber` to StepInstanceDTO with builder methods
 3. Updated StepDataTransformationService to map order fields
 4. Modified StepsApi to use actual order values from database
 
 **Files Modified**:
+
 - `/src/groovy/umig/repository/StepRepository.groovy`
 - `/src/groovy/umig/dto/StepInstanceDTO.groovy`
 - `/src/groovy/umig/service/StepDataTransformationService.groovy`
@@ -95,10 +105,12 @@ Successfully resolved multiple critical issues:
 **Problem**: Multiple static type checking errors in Groovy code.
 
 **Issues Fixed**:
+
 1. SQL result access in `stepViewApi.groovy` - used bracket notation
 2. Builder chain errors in `StepDataTransformationService` - added missing builder methods
 
 **Pattern Applied**:
+
 ```groovy
 // Bracket notation for SQL results
 currentUser['usr_id'] instead of currentUser.usr_id
@@ -112,17 +124,18 @@ Builder sequenceNumber(Integer sequenceNumber) {
 
 ## RBAC Permission Matrix Implemented
 
-| Role | View Details | Update Status | Complete Instructions | Add Comments | Edit Comments |
-|------|-------------|---------------|----------------------|--------------|---------------|
-| ADMIN | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PILOT | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Team Member (Assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Team Member (Impacted) | ✅ | ❌ | ❌ | ✅ | ❌ |
-| USER | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Role                   | View Details | Update Status | Complete Instructions | Add Comments | Edit Comments |
+| ---------------------- | ------------ | ------------- | --------------------- | ------------ | ------------- |
+| ADMIN                  | ✅           | ✅            | ✅                    | ✅           | ✅            |
+| PILOT                  | ✅           | ✅            | ✅                    | ✅           | ✅            |
+| Team Member (Assigned) | ✅           | ✅            | ✅                    | ✅           | ✅            |
+| Team Member (Impacted) | ✅           | ❌            | ❌                    | ✅           | ❌            |
+| USER                   | ✅           | ❌            | ❌                    | ✅           | ❌            |
 
 ## Non-Critical Issue (Working as Designed)
 
 ### SecurityUtils Warning
+
 - **Status**: Non-critical, has proper fallback
 - **Behavior**: Logs warning but continues with fallback security measures
 - **Design**: Intentional - allows StatusProvider to work in different contexts
@@ -130,6 +143,7 @@ Builder sequenceNumber(Integer sequenceNumber) {
 ## Testing Verification
 
 ### Manual Testing Steps
+
 1. ✅ Log in as 'adm' user (ADMIN role)
 2. ✅ Open iteration view and verify no read-only banner
 3. ✅ Select a step in the right pane
@@ -143,6 +157,7 @@ Builder sequenceNumber(Integer sequenceNumber) {
    - Correct sequence/phase numbers from database
 
 ### Console Validation
+
 - ✅ No errors when loading iteration view
 - ✅ Successful user context API calls
 - ✅ Proper permission object structure
@@ -176,12 +191,14 @@ Builder sequenceNumber(Integer sequenceNumber) {
 ## Post-Deployment Regression Fix
 
 ### Issue: HTTP 500 Error on userContext API
+
 **Symptom**: `iteration-view.js` failing to load user context with HTTP 500 error
 
 **Root Cause**: Incorrect lazy loading pattern in `stepViewApi.groovy` using Closures
 
 **Fix Applied**:
 Changed from lazy-loaded Closure pattern:
+
 ```groovy
 // INCORRECT - Caused HTTP 500
 final Closure<UserRepository> getUserRepository = { ->
@@ -191,6 +208,7 @@ currentUser = getUserRepository().findUserByUsername(username)
 ```
 
 To direct instantiation pattern (matching TeamsApi):
+
 ```groovy
 // CORRECT - Following established pattern
 final UserRepository userRepository = new UserRepository()
@@ -204,6 +222,7 @@ currentUser = userRepository.findUserByUsername(username)
 ## Next Steps
 
 Future enhancements could include:
+
 - Implement impacted team permissions when requirements clarified
 - Add more granular permission controls
 - Enhance audit logging for permission changes

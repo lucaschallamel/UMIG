@@ -137,11 +137,10 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                 return sql.rows('''
                     SELECT
                         tm.tms_id,
-                        t.tms_name,
-                        tm.tme_role
-                    FROM team_members_tme tm
+                        t.tms_name
+                    FROM teams_tms_x_users_usr tm
                     JOIN teams_tms t ON tm.tms_id = t.tms_id
-                    WHERE tm.usr_id = :usr_id AND tm.tme_active = true
+                    WHERE tm.usr_id = :usr_id
                 ''', [usr_id: currentUser['usr_id'] as Integer])
             }
 
@@ -200,8 +199,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                 isAdmin: (currentUser['usr_is_admin'] as Boolean) ?: (roleCode == 'ADMIN'),
                 teamMemberships: userTeamMemberships.collect { [
                     teamId: it.tms_id,
-                    teamName: it.tms_name,
-                    role: it.tme_role
+                    teamName: it.tms_name
                 ] },
                 permissions: permissions,
                 source: "stepview_user_context",

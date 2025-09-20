@@ -90,6 +90,9 @@ if (typeof BaseEntityManager === "undefined") {
       this.timers = new Set();
       this.componentReferences = new Set();
 
+      // Track component rendering state to prevent duplicates (TD-004)
+      this._componentsRendered = false;
+
       // Initialize security context
       this._initializeSecurityContext();
 
@@ -156,6 +159,20 @@ if (typeof BaseEntityManager === "undefined") {
           } else {
             // If it's already an instance, use it directly
             this.orchestrator = this.orchestratorClass;
+            // Ensure container is set for existing instance
+            if (
+              this.container &&
+              typeof this.orchestrator.setContainer === "function"
+            ) {
+              const containerSet = this.orchestrator.setContainer(
+                this.container,
+              );
+              if (!containerSet) {
+                console.error(
+                  `[BaseEntityManager] Failed to set container on existing orchestrator for ${this.entityType}`,
+                );
+              }
+            }
           }
         } else {
           // Fallback to creating a new instance if ComponentOrchestrator is available
@@ -172,6 +189,47 @@ if (typeof BaseEntityManager === "undefined") {
             );
           }
         }
+
+        // CRITICAL: Validate that orchestrator has container set after creation
+        if (!this.orchestrator.config || !this.orchestrator.config.container) {
+          console.error(
+            `[BaseEntityManager] ComponentOrchestrator container not properly set for ${this.entityType}`,
+            {
+              container: this.container,
+              orchestratorConfig: this.orchestrator.config,
+              hasSetContainer:
+                typeof this.orchestrator.setContainer === "function",
+            },
+          );
+
+          // Attempt to fix by calling setContainer explicitly
+          if (
+            this.container &&
+            typeof this.orchestrator.setContainer === "function"
+          ) {
+            console.log(
+              `[BaseEntityManager] Attempting to fix container for ${this.entityType} by calling setContainer explicitly`,
+            );
+            const containerSet = this.orchestrator.setContainer(this.container);
+            if (!containerSet) {
+              throw new Error(
+                `Failed to set container on ComponentOrchestrator for ${this.entityType}`,
+              );
+            }
+          } else {
+            throw new Error(
+              `ComponentOrchestrator for ${this.entityType} has no container and cannot set one`,
+            );
+          }
+        }
+
+        console.log(
+          `[BaseEntityManager] ComponentOrchestrator initialized successfully for ${this.entityType} with container:`,
+          {
+            containerId: this.orchestrator.config.container?.id,
+            containerTag: this.orchestrator.config.container?.tagName,
+          },
+        );
 
         // TD-005 Phase 2: Setup any deferred event subscriptions
         this._setupDeferredEventSubscriptions();
@@ -227,6 +285,10 @@ if (typeof BaseEntityManager === "undefined") {
       if (this.orchestrator) {
         this.orchestrator.setContainer(container);
       }
+
+      // Reset components rendered flag when container changes
+      // This ensures components will be re-rendered in the new container
+      this._componentsRendered = false;
 
       console.log(
         `[BaseEntityManager] Container set for ${this.entityType} entity manager`,
@@ -414,9 +476,25 @@ if (typeof BaseEntityManager === "undefined") {
         // TD-005 Phase 2 compliance: State management
         this._setState("rendering");
 
-        // TD-004 FIX: Components self-render via orchestrator event bus
-        // Orchestrator is an event bus, not a rendering manager - components handle their own rendering
-        // await this.orchestrator.render(); // REMOVED: Interface mismatch resolved
+        // Load data if not already loaded
+        if (!this.currentData || this.currentData.length === 0) {
+          console.log(
+            `[BaseEntityManager] Loading initial data for ${this.entityType}`,
+          );
+          try {
+            await this.loadData();
+          } catch (dataError) {
+            console.warn(
+              `[BaseEntityManager] Failed to load initial data for ${this.entityType}:`,
+              dataError,
+            );
+            // Continue rendering even if data loading fails
+          }
+        }
+
+        // TD-004 FIX: Direct component rendering instead of orchestrator delegation
+        // Components need to be properly rendered to the DOM after creation
+        await this._renderComponents();
 
         this._setState("mounted"); // Back to mounted state after rendering
 
@@ -1052,22 +1130,46 @@ if (typeof BaseEntityManager === "undefined") {
           console.log(
             `[BaseEntityManager] Creating table component for ${this.entityType}`,
           );
-          this.tableComponent = await this.orchestrator.createComponent(
-            "table",
-            {
+          // Try orchestrator first, fallback to direct instantiation
+          try {
+            this.tableComponent = await this.orchestrator.createComponent(
+              "table",
+              {
+                ...this.config.tableConfig,
+                entityType: this.entityType,
+              },
+            );
+          } catch (orchestratorError) {
+            console.warn(
+              `[BaseEntityManager] Orchestrator createComponent failed for ${this.entityType}, falling back to direct instantiation:`,
+              orchestratorError,
+            );
+            this.tableComponent = null;
+          }
+
+          // EMERGENCY FIX: Direct instantiation fallback
+          if (!this.tableComponent && window.TableComponent) {
+            console.log(
+              `[BaseEntityManager] Creating TableComponent directly for ${this.entityType}`,
+            );
+            const containerId =
+              this.config.tableConfig.containerId || "dataTable";
+            this.tableComponent = new window.TableComponent(containerId, {
               ...this.config.tableConfig,
               entityType: this.entityType,
-            },
-          );
+            });
+          }
 
           // Validate created component
           if (!this.tableComponent) {
             const error = new Error(
-              "TableComponent creation returned null/undefined",
+              "TableComponent creation failed (both orchestrator and direct instantiation)",
             );
             console.error(`[BaseEntityManager] ${error.message}`, {
               entityType: this.entityType,
               config: this.config.tableConfig,
+              orchestratorAvailable: !!this.orchestrator,
+              tableComponentAvailable: !!window.TableComponent,
             });
             initializationErrors.push(`TableComponent: ${error.message}`);
           } else if (
@@ -1671,6 +1773,112 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
+     * Render initialized components to the DOM
+     * @returns {Promise<void>}
+     * @private
+     */
+    async _renderComponents() {
+      try {
+        console.log(
+          `[BaseEntityManager] Rendering components for ${this.entityType}`,
+        );
+
+        if (!this.container) {
+          throw new Error("Container must be set before rendering components");
+        }
+
+        // Check if components are already rendered to prevent duplicate rendering
+        if (this._componentsRendered) {
+          console.log(
+            `[BaseEntityManager] Components already rendered for ${this.entityType}, skipping`,
+          );
+          return;
+        }
+
+        // Clear container to ensure clean state
+        this.container.innerHTML = "";
+
+        // Render TableComponent if available
+        if (this.tableComponent) {
+          try {
+            console.log(
+              `[BaseEntityManager] Rendering TableComponent for ${this.entityType}`,
+            );
+
+            // Create table container
+            const tableContainer = document.createElement("div");
+            tableContainer.id =
+              this.config.tableConfig.containerId || "dataTable";
+            tableContainer.className = "table-container";
+
+            this.container.appendChild(tableContainer);
+
+            // Initialize the table component with the container (only if not already initialized)
+            if (
+              typeof this.tableComponent.initialize === "function" &&
+              !this.tableComponent.initialized
+            ) {
+              console.log(
+                `[BaseEntityManager] Initializing TableComponent for ${this.entityType}`,
+              );
+              await this.tableComponent.initialize();
+            } else if (this.tableComponent.initialized) {
+              console.log(
+                `[BaseEntityManager] TableComponent already initialized for ${this.entityType}, skipping`,
+              );
+            }
+
+            // Set the container and render the table component
+            if (this.tableComponent.container !== tableContainer) {
+              this.tableComponent.container = tableContainer;
+            }
+
+            if (typeof this.tableComponent.render === "function") {
+              await this.tableComponent.render();
+            }
+
+            // Load initial data if available
+            if (this.currentData && this.currentData.length > 0) {
+              if (typeof this.tableComponent.updateData === "function") {
+                await this.tableComponent.updateData(this.currentData);
+              } else if (typeof this.tableComponent.setData === "function") {
+                await this.tableComponent.setData(this.currentData);
+              }
+            }
+
+            console.log(
+              `[BaseEntityManager] TableComponent rendered successfully for ${this.entityType}`,
+            );
+          } catch (error) {
+            console.error(
+              `[BaseEntityManager] Failed to render TableComponent for ${this.entityType}:`,
+              error,
+            );
+            this._trackError("_renderComponents_table", error);
+            // Continue with other components even if table fails
+          }
+        }
+
+        // Render other components (pagination, filters, etc.) if they exist
+        // These will be added in future iterations
+
+        // Mark components as rendered to prevent duplicate rendering
+        this._componentsRendered = true;
+
+        console.log(
+          `[BaseEntityManager] Component rendering complete for ${this.entityType}`,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Failed to render components for ${this.entityType}:`,
+          error,
+        );
+        this._trackError("_renderComponents", error);
+        throw error;
+      }
+    }
+
+    /**
      * Validate entity data
      * @param {Object} data - Entity data
      * @param {string} operation - Operation type
@@ -1730,6 +1938,17 @@ if (typeof BaseEntityManager === "undefined") {
       if (window.UMIGServices?.auditService) {
         window.UMIGServices.auditService.log(auditEntry);
       }
+    }
+
+    /**
+     * Force re-rendering of components (clears rendered flag)
+     * @public
+     */
+    forceComponentRerender() {
+      console.log(
+        `[BaseEntityManager] Forcing component re-render for ${this.entityType}`,
+      );
+      this._componentsRendered = false;
     }
 
     /**
@@ -2046,8 +2265,8 @@ if (typeof BaseEntityManager === "undefined") {
         );
         return this.orchestrator.on(eventName, handler);
       } else {
-        console.warn(
-          `[BaseEntityManager] Cannot subscribe to '${eventName}' - orchestrator not available yet`,
+        console.debug(
+          `[BaseEntityManager] Deferring subscription to '${eventName}' - orchestrator not available yet`,
         );
         // Store for later binding when orchestrator becomes available
         if (!this._deferredEventSubscriptions) {
@@ -2086,7 +2305,7 @@ if (typeof BaseEntityManager === "undefined") {
       if (this.orchestrator && typeof this.orchestrator.emit === "function") {
         return this.orchestrator.emit(eventName, data);
       } else {
-        console.warn(
+        console.debug(
           `[BaseEntityManager] Cannot emit '${eventName}' - orchestrator not available`,
         );
       }
@@ -2713,6 +2932,7 @@ if (typeof BaseEntityManager === "undefined") {
         this.isInitialized = false;
         this.mounted = false;
         this.container = null;
+        this._componentsRendered = false;
         this._setState("destroyed");
 
         console.log(
