@@ -3086,8 +3086,20 @@ class IterationView {
     const impactedTeams = stepData.impactedTeams || [];
 
     // Debug log to check if labels are being returned
+    console.log("Step Data Full Object:", stepData);
     console.log("Step Summary:", summary);
     console.log("Labels:", summary.Labels);
+
+    // Log specific UUID fields for debugging
+    console.log("Step Instance UUID (summary.ID):", summary.ID);
+    console.log("Step Master UUID (various attempts):", {
+      "summary.StepMasterID": summary.StepMasterID,
+      "summary.stepMasterID": summary.stepMasterID,
+      "summary.MasterID": summary.MasterID,
+      "stepData.stepMasterID": stepData.stepMasterID,
+      "stepData.StepMasterID": stepData.StepMasterID,
+      "stepData.stm_id": stepData.stm_id,
+    });
 
     // Helper function to get status display - use the main getStatusDisplay method
     const getStatusDisplay = (status) => {
@@ -3116,7 +3128,19 @@ class IterationView {
                     <span class="breadcrumb-separator">›</span>
                     <span class="breadcrumb-item">${summary.PhaseName || "Phase"}</span>
                 </div>
-                
+
+                <!-- Debug UUIDs for troubleshooting -->
+                <div class="step-uuids" style="background: #f5f5f5; padding: 8px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 11px; color: #666;">
+                    <div style="margin-bottom: 4px;">
+                        <span style="font-weight: bold;">Step Instance UUID:</span>
+                        <span style="color: #0052cc; user-select: all; cursor: text;">${summary.ID || summary.sti_id || "N/A"}</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: bold;">Step Master UUID:</span>
+                        <span style="color: #0052cc; user-select: all; cursor: text;">${summary.StepMasterID || summary.stm_id || stepData.StepMasterID || stepData.stm_id || "N/A"}</span>
+                    </div>
+                </div>
+
                 <div class="step-key-info">
                     <div class="metadata-item">
                         <span class="label">📊 Status:</span>

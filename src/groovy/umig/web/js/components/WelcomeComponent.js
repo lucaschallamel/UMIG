@@ -65,18 +65,18 @@ class UmigWelcomeComponent extends BaseComponent {
 
   /**
    * Component initialization
-   * Lifecycle: initialize → mount → render → update → unmount → destroy
+   * Lifecycle: initialize → render → update → destroy
    */
-  async initialize() {
+  initialize() {
     try {
       if (this.config.debug) {
         console.log("[UMIG] WelcomeComponent.initialize() starting");
       }
 
-      await super.initialize();
+      super.initialize();
 
       // Initialize user context
-      await this.initializeUserContext();
+      this.initializeUserContext();
 
       // Initialize navigation items
       this.initializeNavigationItems();
@@ -86,7 +86,7 @@ class UmigWelcomeComponent extends BaseComponent {
 
       // Fetch system statistics if enabled
       if (this.config.showSystemOverview) {
-        await this.fetchSystemStats();
+        this.fetchSystemStats();
       }
 
       this.state.loading = false;
@@ -117,7 +117,7 @@ class UmigWelcomeComponent extends BaseComponent {
   /**
    * Initialize user context and authentication state
    */
-  async initializeUserContext() {
+  initializeUserContext() {
     try {
       // Get authentication state from AuthenticationManager
       if (window.AuthenticationManager) {
@@ -272,7 +272,7 @@ class UmigWelcomeComponent extends BaseComponent {
   /**
    * Fetch system statistics for overview
    */
-  async fetchSystemStats() {
+  fetchSystemStats() {
     try {
       // This would typically call API endpoints to get system stats
       // For now, we'll create mock data that could be replaced with real API calls
@@ -333,6 +333,11 @@ class UmigWelcomeComponent extends BaseComponent {
 
       // Apply security measures
       this.applySecurity();
+
+      // Bind events and apply styles after rendering content
+      this.bindQuickActions();
+      this.bindNavigationEvents();
+      this.injectStyles();
 
       // Track render
       this.metrics.renderCount++;
@@ -540,31 +545,6 @@ class UmigWelcomeComponent extends BaseComponent {
   }
 
   /**
-   * Mount component and bind events
-   */
-  mount() {
-    if (!super.mount()) {
-      return false;
-    }
-
-    try {
-      // Bind quick action events
-      this.bindQuickActions();
-
-      // Bind navigation events
-      this.bindNavigationEvents();
-
-      // Apply CSS styles
-      this.injectStyles();
-
-      return true;
-    } catch (error) {
-      console.error("[UMIG] WelcomeComponent mount failed:", error);
-      return false;
-    }
-  }
-
-  /**
    * Bind quick action button events
    */
   bindQuickActions() {
@@ -575,7 +555,7 @@ class UmigWelcomeComponent extends BaseComponent {
       const action = this.state.quickActions.find((a) => a.key === actionKey);
 
       if (action && action.action) {
-        this.addEventListener(btn, "click", (e) => {
+        this.addDOMListener(btn, "click", (e) => {
           e.preventDefault();
 
           // Rate limiting check using SecurityUtils
@@ -609,7 +589,7 @@ class UmigWelcomeComponent extends BaseComponent {
     navItems.forEach((item) => {
       const entityKey = item.dataset.entity;
 
-      this.addEventListener(item, "click", (e) => {
+      this.addDOMListener(item, "click", (e) => {
         e.preventDefault();
         this.navigateToEntity(entityKey);
       });
@@ -618,7 +598,7 @@ class UmigWelcomeComponent extends BaseComponent {
       item.setAttribute("tabindex", "0");
       item.setAttribute("role", "button");
 
-      this.addEventListener(item, "keydown", (e) => {
+      this.addDOMListener(item, "keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           this.navigateToEntity(entityKey);

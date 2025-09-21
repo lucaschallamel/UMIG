@@ -28,7 +28,7 @@ def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
 
 // Version string for JavaScript files (update when deploying changes)
 // Using a stable version instead of System.currentTimeMillis() for better caching
-def jsVersion = "3.9.1"
+def jsVersion = "3.9.7"
 
 // Performance configuration constants
 def PERFORMANCE_CONFIG = [

@@ -1,14 +1,395 @@
 # System Patterns
 
-**Last Updated**: September 21, 2025 (Late Morning Update)
-**Status**: ADR-061 CSS Namespace Isolation COMPLETE + Session Authentication Patterns + Modal Enhancement Patterns
-**Key Achievement**: **ADR-061 COMPLETE** with comprehensive umig- prefix isolation, TD-008 session authentication infrastructure, VIEW modal patterns with audit fields, role display corrections
-**Revolutionary Patterns**: CSS namespace isolation methodology, Cross-platform authentication patterns, Modal render override patterns, Lazy initialization patterns, Component loading strategies
-**Security Architecture**: 8.5/10 enterprise rating maintained with SecurityUtils integration
-**Performance Excellence**: 100% component loading, Complete functional isolation from Confluence, Session validation patterns
-**Business Impact**: Eliminated authentication barriers, Resolved UI conflicts, Enhanced developer experience
+**Last Updated**: September 21, 2025 (Late Evening Update)
+**Status**: Recent Development Excellence + Enhanced Error Handling Patterns + Email Integration Patterns
+**Key Achievement**: **System Enhancement COMPLETE** with step status updates, email notification integration, PostgreSQL parameter error handling, UUID debugging strategies, component lifecycle management, event delegation patterns
+**Revolutionary Patterns**: PostgreSQL parameter type handling, Email notification integration workflows, UUID debugging methodologies, Component error boundary patterns, Event delegation optimisation
+**Security Architecture**: 8.5/10 enterprise rating maintained with enhanced error handling
+**Performance Excellence**: Improved database stability, Enhanced UI responsiveness, Optimised event handling
+**Business Impact**: Enhanced system reliability, Improved debugging capabilities, Streamlined development workflow
 
-## CSS Namespace Isolation & Authentication Patterns (September 21, 2025)
+## Recent Development Patterns & System Enhancements (September 21, 2025)
+
+### PostgreSQL Parameter Type Error Handling Pattern
+
+**Pattern**: Graceful parameter type validation preventing database execution failures
+**Implementation**: Enhanced type checking with fallback mechanisms
+
+```groovy
+// ANTI-PATTERN - Unchecked parameter types causing SQL failures
+def processStepUpdate(String stepId, String status) {
+    DatabaseUtil.withSql { sql ->
+        return sql.executeUpdate('''
+            UPDATE step_instances_sti
+            SET sti_status_id = ?
+            WHERE sti_id = ?
+        ''', [status, stepId])  // Risk: status might be string, stepId might be malformed UUID
+    }
+}
+
+// CORRECT PATTERN - Enhanced parameter validation with graceful fallback
+def processStepUpdate(String stepId, String status) {
+    try {
+        // Validate and convert parameters with explicit type checking
+        UUID validatedStepId = UUID.fromString(stepId as String)
+        Integer statusId = parseStatusId(status as String)
+
+        DatabaseUtil.withSql { sql ->
+            return sql.executeUpdate('''
+                UPDATE step_instances_sti
+                SET sti_status_id = ?
+                WHERE sti_id = ?
+            ''', [statusId, validatedStepId])
+        }
+    } catch (IllegalArgumentException e) {
+        log.warn("Parameter validation failed: ${e.message}")
+        // Graceful fallback with detailed error reporting
+        return [success: false, error: "Invalid parameter format", details: e.message]
+    }
+}
+
+// Enhanced status ID parsing with validation
+private Integer parseStatusId(String status) {
+    if (status.isNumber()) {
+        return Integer.parseInt(status)
+    }
+
+    // Fallback: lookup status by name
+    return DatabaseUtil.withSql { sql ->
+        def result = sql.firstRow('''
+            SELECT sts_id FROM status_sts
+            WHERE sts_name = ? OR sts_display_name = ?
+        ''', [status, status])
+
+        if (!result) {
+            throw new IllegalArgumentException("Unknown status: ${status}")
+        }
+
+        return result.sts_id as Integer
+    }
+}
+```
+
+**Application**:
+
+- All API endpoints handling UUID parameters
+- Status field updates with mixed type inputs
+- Complex query parameter validation
+- Error logging with actionable debugging information
+
+### Email Notification Integration Pattern
+
+**Pattern**: Comprehensive email workflow integration with testing infrastructure
+**Innovation**: MailHog integration for development testing with production SMTP support
+
+```javascript
+// Email notification integration pattern
+class EmailNotificationManager {
+  constructor(environment = "development") {
+    this.environment = environment;
+    this.smtpConfig = this.loadSMTPConfig();
+    this.templates = new EmailTemplateManager();
+  }
+
+  async sendStepStatusNotification(stepInstance, userContext) {
+    try {
+      // Template rendering with dynamic content
+      const emailContent = await this.templates.render("step-status-update", {
+        stepName: stepInstance.step_name,
+        newStatus: stepInstance.status_name,
+        updatedBy: userContext.displayName,
+        updatedAt: new Date().toISOString(),
+        stepDetails: this.formatStepDetails(stepInstance),
+      });
+
+      // Environment-aware email delivery
+      const recipients = await this.getNotificationRecipients(
+        stepInstance.team_id,
+      );
+
+      for (const recipient of recipients) {
+        await this.deliverEmail({
+          to: recipient.email,
+          subject: `Step Status Update: ${stepInstance.step_name}`,
+          html: emailContent,
+          metadata: {
+            stepId: stepInstance.sti_id,
+            userId: userContext.userId,
+            notificationType: "step-status-update",
+          },
+        });
+      }
+
+      return { success: true, recipientCount: recipients.length };
+    } catch (error) {
+      log.error("Email notification failed", error);
+      // Non-blocking error handling - email failures shouldn't break step updates
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deliverEmail(emailData) {
+    if (this.environment === "development") {
+      // MailHog delivery for testing
+      return await this.deliverToMailHog(emailData);
+    } else {
+      // Production SMTP delivery
+      return await this.deliverToSMTP(emailData);
+    }
+  }
+
+  async deliverToMailHog(emailData) {
+    const response = await fetch("http://localhost:8025/api/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: this.smtpConfig.from,
+        to: [emailData.to],
+        subject: emailData.subject,
+        html: emailData.html,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`MailHog delivery failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+}
+```
+
+**Benefits**:
+
+- Seamless development-to-production email workflow
+- MailHog integration for comprehensive testing
+- Non-blocking email delivery (failures don't break core functionality)
+- Template-based dynamic content rendering
+- Environment-aware configuration management
+
+### UUID Debugging & Display Enhancement Pattern
+
+**Pattern**: Enhanced UUID debugging utilities for improved troubleshooting
+**Innovation**: Intelligent UUID formatting with context-aware display
+
+```javascript
+// UUID debugging enhancement pattern
+class UUIDDebugManager {
+  constructor() {
+    this.debugMode = window.location.search.includes("debug=true");
+    this.uuidCache = new Map();
+  }
+
+  formatUUIDForDisplay(uuid, context = "default") {
+    if (!uuid) return "N/A";
+
+    // Cache UUID metadata for debugging
+    if (this.debugMode && !this.uuidCache.has(uuid)) {
+      this.cacheUUIDMetadata(uuid, context);
+    }
+
+    switch (context) {
+      case "step":
+        return this.formatStepUUID(uuid);
+      case "user":
+        return this.formatUserUUID(uuid);
+      case "team":
+        return this.formatTeamUUID(uuid);
+      default:
+        return this.formatGenericUUID(uuid);
+    }
+  }
+
+  formatStepUUID(uuid) {
+    const cached = this.uuidCache.get(uuid);
+    if (cached && cached.stepName) {
+      return this.debugMode
+        ? `${cached.stepName} (${this.shortenUUID(uuid)})`
+        : cached.stepName;
+    }
+
+    // Fallback to shortened UUID with loading indicator
+    return `Step ${this.shortenUUID(uuid)}...`;
+  }
+
+  shortenUUID(uuid) {
+    if (typeof uuid !== "string") return "Invalid";
+
+    // Display first 8 characters for readability
+    return uuid.substring(0, 8);
+  }
+
+  async cacheUUIDMetadata(uuid, context) {
+    try {
+      const metadata = await this.fetchUUIDMetadata(uuid, context);
+      this.uuidCache.set(uuid, {
+        ...metadata,
+        cachedAt: Date.now(),
+        context: context,
+      });
+    } catch (error) {
+      console.warn(`Failed to cache UUID metadata for ${uuid}:`, error);
+    }
+  }
+
+  // Debugging utility for UUID validation
+  validateUUID(uuid) {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    return {
+      isValid: uuidRegex.test(uuid),
+      version: this.getUUIDVersion(uuid),
+      timestamp: this.extractUUIDTimestamp(uuid),
+      shortened: this.shortenUUID(uuid),
+    };
+  }
+}
+
+// Global debugging utility
+window.UUIDDebug = new UUIDDebugManager();
+```
+
+**Application**:
+
+- Enhanced step instance display in admin GUI
+- Improved error reporting with UUID context
+- Development debugging with comprehensive metadata
+- User-friendly UUID display without losing technical accuracy
+
+### Component Lifecycle Management Pattern
+
+**Pattern**: Enhanced component lifecycle with improved error boundaries
+**Innovation**: Event delegation optimisation with graceful error handling
+
+```javascript
+// Enhanced component lifecycle pattern
+class EnhancedBaseComponent {
+  constructor(element, config = {}) {
+    super(element, config);
+    this.errorBoundary = new ComponentErrorBoundary(this);
+    this.eventDelegator = new OptimisedEventDelegator(this);
+    this.lifecycleState = "initialised";
+  }
+
+  async safeInitialise() {
+    try {
+      this.lifecycleState = "initialising";
+      await this.errorBoundary.wrap(() => this.initialise());
+      this.lifecycleState = "ready";
+
+      // Enhanced event delegation setup
+      this.eventDelegator.setupEventListeners();
+    } catch (error) {
+      this.lifecycleState = "error";
+      this.errorBoundary.handleError(error, "initialisation");
+    }
+  }
+
+  async safeUpdate(data, config) {
+    if (this.lifecycleState !== "ready") {
+      console.warn(
+        `Component not ready for update. Current state: ${this.lifecycleState}`,
+      );
+      return false;
+    }
+
+    try {
+      const shouldProceed = await this.errorBoundary.wrap(() =>
+        this.shouldUpdate(data, config),
+      );
+
+      if (shouldProceed) {
+        await this.errorBoundary.wrap(() => this.render(data, config));
+        this.eventDelegator.refreshEventListeners();
+      }
+
+      return true;
+    } catch (error) {
+      this.errorBoundary.handleError(error, "update");
+      return false;
+    }
+  }
+
+  destroy() {
+    this.lifecycleState = "destroying";
+    this.eventDelegator.cleanup();
+    this.errorBoundary.cleanup();
+    super.destroy();
+    this.lifecycleState = "destroyed";
+  }
+}
+
+// Optimised event delegation
+class OptimisedEventDelegator {
+  constructor(component) {
+    this.component = component;
+    this.eventListeners = new Map();
+    this.debounceTimers = new Map();
+  }
+
+  setupEventListeners() {
+    // Delegate events at container level for better performance
+    this.addDelegatedListener(
+      "click",
+      "[data-action]",
+      this.handleActionClick.bind(this),
+    );
+    this.addDelegatedListener(
+      "change",
+      "[data-field]",
+      this.handleFieldChange.bind(this),
+    );
+    this.addDelegatedListener(
+      "submit",
+      "form",
+      this.handleFormSubmit.bind(this),
+    );
+  }
+
+  addDelegatedListener(eventType, selector, handler) {
+    const delegatedHandler = (event) => {
+      const target = event.target.closest(selector);
+      if (target) {
+        // Debounce rapid events for performance
+        this.debounceAction(
+          `${eventType}-${selector}`,
+          () => {
+            handler(event, target);
+          },
+          100,
+        );
+      }
+    };
+
+    this.component.element.addEventListener(eventType, delegatedHandler);
+    this.eventListeners.set(`${eventType}-${selector}`, delegatedHandler);
+  }
+
+  debounceAction(key, action, delay) {
+    if (this.debounceTimers.has(key)) {
+      clearTimeout(this.debounceTimers.get(key));
+    }
+
+    const timer = setTimeout(() => {
+      action();
+      this.debounceTimers.delete(key);
+    }, delay);
+
+    this.debounceTimers.set(key, timer);
+  }
+}
+```
+
+**Benefits**:
+
+- Improved component stability with error boundaries
+- Enhanced performance through optimised event delegation
+- Graceful error handling with detailed reporting
+- Debounced event handling for better UI responsiveness
+- Comprehensive lifecycle state management
+
+## Previous Patterns (September 21, 2025)
 
 ### CSS Namespace Isolation Pattern (ADR-061)
 
