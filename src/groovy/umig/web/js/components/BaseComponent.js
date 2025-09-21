@@ -121,6 +121,15 @@ if (typeof BaseComponent === "undefined") {
         return;
       }
 
+      // CRITICAL FIX: Prevent excessive rendering
+      if (this._isRendering) {
+        this.logDebug(
+          "Render already in progress, skipping duplicate render call",
+        );
+        return;
+      }
+
+      this._isRendering = true;
       const perfMeasure = this.startPerformanceMeasure("render");
       const startTime = performance.now();
 
@@ -131,6 +140,7 @@ if (typeof BaseComponent === "undefined") {
         // Check for error state
         if (this.errorState) {
           this.renderError();
+          this._isRendering = false; // Reset flag before early return
           return;
         }
 
@@ -150,6 +160,9 @@ if (typeof BaseComponent === "undefined") {
         this.logDebug(`Component rendered in ${renderTime.toFixed(2)}ms`);
       } catch (error) {
         this.handleError(error, "render");
+      } finally {
+        // CRITICAL FIX: Always reset rendering flag
+        this._isRendering = false;
       }
     }
 

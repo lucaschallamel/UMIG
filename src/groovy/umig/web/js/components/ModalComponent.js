@@ -61,8 +61,12 @@ class ModalComponent extends BaseComponent {
    * Initialize modal component
    */
   onInitialize() {
+    // Create unique global close function for inline onclick (ADR-061 fix)
+    this.globalCloseFunction = `umigCloseModal_${this.containerId.replace(/[^a-zA-Z0-9]/g, "_")}`;
+    window[this.globalCloseFunction] = () => this.close();
+
     // Create modal structure if not exists
-    if (!this.container.querySelector(".modal-wrapper")) {
+    if (!this.container.querySelector(".umig-modal-wrapper")) {
       this.createModalStructure();
     }
 
@@ -76,36 +80,111 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
-   * Create modal HTML structure
+   * Create modal HTML structure with UMIG namespace (ADR-061)
+   * Uses umig- prefix for all classes to avoid Confluence conflicts
    */
   createModalStructure() {
     const modalHTML = `
-      <div class="modal-wrapper ${this.config.animated ? "modal-animated" : ""}" 
-           role="dialog" 
+      <div class="umig-modal-backdrop"
+           onclick="if(event.target === this && ${this.config.closeOnOverlay}) ${this.globalCloseFunction}()"
+           style="
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        background-color: rgba(0, 0, 0, 0.6) !important;
+        z-index: 999998 !important;
+        display: none;
+      "></div>
+      <div class="umig-modal-wrapper ${this.config.animated ? "umig-modal-animated" : ""}"
+           role="dialog"
            aria-modal="true"
-           aria-labelledby="modal-title-${this.containerId}"
-           aria-describedby="modal-content-${this.containerId}"
-           hidden>
-        <div class="modal-overlay"></div>
-        <div class="modal-container modal-${this.config.size} ${this.config.centered ? "modal-centered" : ""}">
-          <div class="modal-dialog">
-            <div class="modal-header modal-type-${this.config.type}">
-              <h2 id="modal-title-${this.containerId}" class="modal-title"></h2>
+           aria-labelledby="umig-modal-title-${this.containerId}"
+           aria-describedby="umig-modal-content-${this.containerId}"
+           style="
+             position: fixed !important;
+             top: 0 !important;
+             left: 0 !important;
+             right: 0 !important;
+             bottom: 0 !important;
+             z-index: 999999 !important;
+             align-items: center !important;
+             justify-content: center !important;
+             visibility: hidden;
+           ">
+        <div class="umig-modal-container umig-modal-${this.config.size} ${this.config.centered ? "umig-modal-centered" : ""}"
+             style="
+               position: relative !important;
+               background: white !important;
+               border-radius: 8px !important;
+               box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+               max-width: 800px !important;
+               width: 90% !important;
+               max-height: 80vh !important;
+               overflow: hidden !important;
+               pointer-events: auto !important;
+               margin: 20px !important;
+             ">
+          <div class="umig-modal-dialog" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="umig-modal-header umig-modal-type-${this.config.type}"
+                 style="
+                   display: flex !important;
+                   justify-content: space-between !important;
+                   align-items: center !important;
+                   padding: 20px !important;
+                   border-bottom: 1px solid #e1e4e8 !important;
+                   background: #f6f8fa !important;
+                   flex-shrink: 0;
+                 ">
+              <h2 id="umig-modal-title-${this.containerId}" class="umig-modal-title"
+                  style="
+                    margin: 0 !important;
+                    font-size: 18px !important;
+                    font-weight: 600 !important;
+                    color: #24292e !important;
+                  "></h2>
               ${
                 this.config.closeable
                   ? `
-                <button class="modal-close" aria-label="Close modal">
+                <button class="umig-modal-close" aria-label="Close modal"
+                        onclick="${this.globalCloseFunction}()"
+                        style="
+                          background: none !important;
+                          border: none !important;
+                          font-size: 28px !important;
+                          cursor: pointer !important;
+                          color: #586069 !important;
+                          padding: 0 !important;
+                          width: 30px !important;
+                          height: 30px !important;
+                          line-height: 1 !important;
+                        ">
                   <span aria-hidden="true">&times;</span>
                 </button>
               `
                   : ""
               }
             </div>
-            ${this.tabsEnabled ? '<div class="modal-tabs-nav" role="tablist"></div>' : ""}
-            <div id="modal-content-${this.containerId}" class="modal-body">
+            ${this.tabsEnabled ? '<div class="umig-modal-tabs-nav" role="tablist"></div>' : ""}
+            <div id="umig-modal-content-${this.containerId}" class="umig-modal-body"
+                 style="
+                   padding: 20px !important;
+                   flex: 1;
+                   overflow-y: auto !important;
+                 ">
               <!-- Content will be injected here -->
             </div>
-            <div class="modal-footer">
+            <div class="umig-modal-footer"
+                 style="
+                   display: flex !important;
+                   justify-content: flex-end !important;
+                   gap: 10px !important;
+                   padding: 15px 20px !important;
+                   border-top: 1px solid #e1e4e8 !important;
+                   background: #f6f8fa !important;
+                   flex-shrink: 0;
+                 ">
               <!-- Buttons will be injected here -->
             </div>
           </div>
@@ -137,15 +216,25 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
+   * Override render to prevent container clearing
+   * CRITICAL: Modal must NOT clear container as it would destroy the modal structure
+   */
+  render() {
+    // Do NOT call parent render which would clear the container
+    // Instead, directly call onRender
+    this.onRender();
+  }
+
+  /**
    * Render modal content
    */
   onRender() {
     if (!this.isOpen) return;
 
-    const wrapper = this.container.querySelector(".modal-wrapper");
-    const title = this.container.querySelector(".modal-title");
-    const body = this.container.querySelector(".modal-body");
-    const footer = this.container.querySelector(".modal-footer");
+    const wrapper = this.container.querySelector(".umig-modal-wrapper");
+    const title = this.container.querySelector(".umig-modal-title");
+    const body = this.container.querySelector(".umig-modal-body");
+    const footer = this.container.querySelector(".umig-modal-footer");
 
     // Set title
     if (title) {
@@ -450,7 +539,7 @@ class ModalComponent extends BaseComponent {
     return buttons
       .map(
         (btn) => `
-      <button class="btn btn-${btn.variant || "secondary"}" 
+      <button class="umig-modal-btn umig-modal-btn-${btn.variant || "secondary"}"
               data-action="${btn.action}"
               ${btn.disabled ? "disabled" : ""}>
         ${btn.text}
@@ -464,20 +553,20 @@ class ModalComponent extends BaseComponent {
    * Apply type-specific styling
    */
   applyTypeStyling() {
-    const dialog = this.container.querySelector(".modal-dialog");
+    const dialog = this.container.querySelector(".umig-modal-dialog");
     if (!dialog) return;
 
     // Remove existing type classes
     dialog.classList.remove(
-      "modal-info",
-      "modal-warning",
-      "modal-error",
-      "modal-success",
+      "umig-modal-info",
+      "umig-modal-warning",
+      "umig-modal-error",
+      "umig-modal-success",
     );
 
     // Add type-specific class
     if (this.config.type !== "default") {
-      dialog.classList.add(`modal-${this.config.type}`);
+      dialog.classList.add(`umig-modal-${this.config.type}`);
     }
   }
 
@@ -571,7 +660,7 @@ class ModalComponent extends BaseComponent {
    * @private
    */
   renderTabs() {
-    const tabsNav = this.container.querySelector(".modal-tabs-nav");
+    const tabsNav = this.container.querySelector(".umig-modal-tabs-nav");
     if (!tabsNav || this.tabs.size === 0) return;
 
     const tabsHTML = Array.from(this.tabs.entries())
@@ -623,7 +712,7 @@ class ModalComponent extends BaseComponent {
    * @private
    */
   async renderActiveTabContent() {
-    const body = this.container.querySelector(".modal-body");
+    const body = this.container.querySelector(".umig-modal-body");
     if (!body || !this.activeTabId) return;
 
     const activeTab = this.tabs.get(this.activeTabId);
@@ -708,21 +797,84 @@ class ModalComponent extends BaseComponent {
   async open() {
     if (this.isOpen) return;
 
-    const wrapper = this.container.querySelector(".modal-wrapper");
-    if (!wrapper) return;
+    console.log(
+      "[ModalComponent] Opening modal for container:",
+      this.containerId,
+    );
+
+    // CRITICAL: Ensure the container itself is visible (ADR-061 fix)
+    this.container.style.display = "block";
+    this.container.style.visibility = "visible";
+
+    const wrapper = this.container.querySelector(".umig-modal-wrapper");
+    const backdrop = this.container.querySelector(".umig-modal-backdrop");
+    const modalContainer = this.container.querySelector(
+      ".umig-modal-container",
+    );
+
+    console.log("[ModalComponent] Modal elements found:", {
+      wrapper: !!wrapper,
+      backdrop: !!backdrop,
+      modalContainer: !!modalContainer,
+      containerId: this.containerId,
+    });
+
+    if (!wrapper || !backdrop) {
+      console.error("[ModalComponent] Critical modal elements missing");
+      return;
+    }
 
     // Store previous focus for restoration
     this.previousFocus = document.activeElement;
 
-    // Show modal
-    wrapper.hidden = false;
+    // Show modal with UMIG namespace and FORCE visibility
+    backdrop.style.display = "block";
+    backdrop.style.visibility = "visible";
+
+    // Force wrapper to be visible and properly positioned
+    wrapper.style.display = "flex";
+    wrapper.style.visibility = "visible";
+    wrapper.style.opacity = "1";
+    wrapper.style.pointerEvents = "auto";
+
+    // Force modal container to be visible
+    if (modalContainer) {
+      modalContainer.style.display = "block";
+      modalContainer.style.visibility = "visible";
+      modalContainer.style.opacity = "1";
+      modalContainer.style.transform = "none";
+    }
+
     this.isOpen = true;
 
+    // Log computed styles for debugging
+    console.log("[ModalComponent] Wrapper computed style:", {
+      display: window.getComputedStyle(wrapper).display,
+      visibility: window.getComputedStyle(wrapper).visibility,
+      zIndex: window.getComputedStyle(wrapper).zIndex,
+      position: window.getComputedStyle(wrapper).position,
+      width: window.getComputedStyle(wrapper).width,
+      height: window.getComputedStyle(wrapper).height,
+    });
+
+    if (modalContainer) {
+      console.log("[ModalComponent] Modal container computed style:", {
+        display: window.getComputedStyle(modalContainer).display,
+        visibility: window.getComputedStyle(modalContainer).visibility,
+        width: window.getComputedStyle(modalContainer).width,
+        height: window.getComputedStyle(modalContainer).height,
+        transform: window.getComputedStyle(modalContainer).transform,
+      });
+    }
+
     // Add body class to prevent scrolling
-    document.body.classList.add("modal-open");
+    document.body.classList.add("umig-modal-open");
 
     // Render content
     this.render();
+
+    // Setup DOM event listeners (including close button)
+    this.setupDOMListeners();
 
     // If tabs are enabled, ensure active tab content is rendered
     if (this.tabsEnabled && this.tabs.size > 0) {
@@ -735,7 +887,7 @@ class ModalComponent extends BaseComponent {
     // Trigger animation
     if (this.config.animated) {
       requestAnimationFrame(() => {
-        wrapper.classList.add("modal-show");
+        wrapper.classList.add("umig-modal-show");
       });
     }
 
@@ -749,6 +901,13 @@ class ModalComponent extends BaseComponent {
 
     // Announce to screen readers
     this.announce("Modal opened");
+
+    // Add diagnostic check after modal should be fully open
+    setTimeout(() => {
+      if (this.isOpen) {
+        this.diagnoseModalVisibility();
+      }
+    }, 100);
   }
 
   /**
@@ -757,27 +916,33 @@ class ModalComponent extends BaseComponent {
   close() {
     if (!this.isOpen) return;
 
-    const wrapper = this.container.querySelector(".modal-wrapper");
+    const wrapper = this.container.querySelector(".umig-modal-wrapper");
+    const backdrop = this.container.querySelector(".umig-modal-backdrop");
     if (!wrapper) return;
 
     // Trigger close animation
     if (this.config.animated) {
-      wrapper.classList.remove("modal-show");
-      setTimeout(() => this.doClose(wrapper), 300);
+      wrapper.classList.remove("umig-modal-show");
+      setTimeout(() => this.doClose(wrapper, backdrop), 300);
     } else {
-      this.doClose(wrapper);
+      this.doClose(wrapper, backdrop);
     }
   }
 
   /**
    * Actually close the modal
    */
-  doClose(wrapper) {
-    wrapper.hidden = true;
+  doClose(wrapper, backdrop) {
+    if (wrapper) wrapper.style.display = "none";
+    if (backdrop) backdrop.style.display = "none";
+
+    // CRITICAL: Hide the container itself (ADR-061 fix)
+    this.container.style.display = "none";
+
     this.isOpen = false;
 
     // Remove body class
-    document.body.classList.remove("modal-open");
+    document.body.classList.remove("umig-modal-open");
 
     // Restore focus
     if (this.previousFocus) {
@@ -878,24 +1043,44 @@ class ModalComponent extends BaseComponent {
    * Setup DOM event listeners
    */
   setupDOMListeners() {
-    // Close button
-    const closeBtn = this.container.querySelector(".modal-close");
+    // Close button - direct event binding to ensure it works
+    const closeBtn = this.container.querySelector(".umig-modal-close");
     if (closeBtn) {
-      this.addDOMListener(closeBtn, "click", () => this.close());
+      // Remove any existing listeners first by cloning
+      const newCloseBtn = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+
+      // Add fresh event listener
+      newCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.close();
+      });
     }
 
-    // Overlay click
-    const overlay = this.container.querySelector(".modal-overlay");
-    if (overlay && this.config.closeOnOverlay) {
-      this.addDOMListener(overlay, "click", () => this.close());
+    // Backdrop click
+    const backdrop = this.container.querySelector(".umig-modal-backdrop");
+    if (backdrop && this.config.closeOnOverlay) {
+      // Direct event binding for backdrop
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.close();
+        }
+      });
     }
 
-    // Button actions
-    const buttons = this.container.querySelectorAll(".modal-footer button");
+    // Button actions in footer
+    const buttons = this.container.querySelectorAll(
+      ".umig-modal-footer button",
+    );
     buttons.forEach((btn) => {
-      this.addDOMListener(btn, "click", (e) => {
-        const action = e.target.dataset.action;
-        this.handleButtonAction(action);
+      btn.addEventListener("click", (e) => {
+        const action = e.target.dataset.action || btn.dataset.action;
+        if (action) {
+          this.handleButtonAction(action);
+        }
       });
     });
 
@@ -1098,7 +1283,7 @@ class ModalComponent extends BaseComponent {
    * Set loading state
    */
   setLoading(loading) {
-    const footer = this.container.querySelector(".modal-footer");
+    const footer = this.container.querySelector(".umig-modal-footer");
     if (footer) {
       const buttons = footer.querySelectorAll("button");
       buttons.forEach((btn) => {
@@ -1117,7 +1302,7 @@ class ModalComponent extends BaseComponent {
    * Show error message
    */
   showError(message) {
-    const body = this.container.querySelector(".modal-body");
+    const body = this.container.querySelector(".umig-modal-body");
     if (body) {
       const existingError = body.querySelector(".modal-error-message");
       if (existingError) {
@@ -1148,7 +1333,7 @@ class ModalComponent extends BaseComponent {
   setTitle(title) {
     this.config.title = title;
     if (this.isOpen) {
-      const titleElement = this.container.querySelector(".modal-title");
+      const titleElement = this.container.querySelector(".umig-modal-title");
       if (titleElement) {
         titleElement.textContent = title;
       }
@@ -1161,7 +1346,7 @@ class ModalComponent extends BaseComponent {
   setContent(content) {
     this.config.content = content;
     if (this.isOpen && !this.config.form) {
-      const body = this.container.querySelector(".modal-body");
+      const body = this.container.querySelector(".umig-modal-body");
       if (body) {
         // Use SecurityUtils for safe content setting if available
         if (typeof window.SecurityUtils !== "undefined") {
@@ -1229,6 +1414,75 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
+   * Diagnostic method to debug modal visibility issues
+   */
+  diagnoseModalVisibility() {
+    const wrapper = this.container.querySelector(".umig-modal-wrapper");
+    const backdrop = this.container.querySelector(".umig-modal-backdrop");
+    const modalContainer = this.container.querySelector(
+      ".umig-modal-container",
+    );
+    const modalDialog = this.container.querySelector(".umig-modal-dialog");
+    const modalBody = this.container.querySelector(".umig-modal-body");
+
+    console.log("[ModalComponent] DIAGNOSTIC REPORT for", this.containerId);
+    console.log("=".repeat(50));
+
+    // Check element existence
+    console.log("Element Existence:", {
+      container: !!this.container,
+      wrapper: !!wrapper,
+      backdrop: !!backdrop,
+      modalContainer: !!modalContainer,
+      modalDialog: !!modalDialog,
+      modalBody: !!modalBody,
+    });
+
+    // Check container visibility
+    if (this.container) {
+      const containerRect = this.container.getBoundingClientRect();
+      console.log("Container:", {
+        display: this.container.style.display,
+        visibility: this.container.style.visibility,
+        rect: containerRect,
+        visible: containerRect.width > 0 && containerRect.height > 0,
+      });
+    }
+
+    // Check wrapper visibility
+    if (wrapper) {
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const wrapperStyles = window.getComputedStyle(wrapper);
+      console.log("Wrapper:", {
+        display: wrapperStyles.display,
+        visibility: wrapperStyles.visibility,
+        opacity: wrapperStyles.opacity,
+        zIndex: wrapperStyles.zIndex,
+        position: wrapperStyles.position,
+        rect: wrapperRect,
+        visible: wrapperRect.width > 0 && wrapperRect.height > 0,
+      });
+    }
+
+    // Check modal container visibility
+    if (modalContainer) {
+      const containerRect = modalContainer.getBoundingClientRect();
+      const containerStyles = window.getComputedStyle(modalContainer);
+      console.log("Modal Container:", {
+        display: containerStyles.display,
+        visibility: containerStyles.visibility,
+        opacity: containerStyles.opacity,
+        width: containerStyles.width,
+        height: containerStyles.height,
+        rect: containerRect,
+        visible: containerRect.width > 0 && containerRect.height > 0,
+      });
+    }
+
+    console.log("=".repeat(50));
+  }
+
+  /**
    * Clean up on destroy
    */
   onDestroy() {
@@ -1236,11 +1490,506 @@ class ModalComponent extends BaseComponent {
       this.close();
     }
 
+    // Clean up global close function (ADR-061 fix)
+    if (this.globalCloseFunction && window[this.globalCloseFunction]) {
+      delete window[this.globalCloseFunction];
+    }
+
     // Clear tabs state
     this.tabs.clear();
     this.activeTabId = null;
     this.tabsEnabled = false;
   }
+}
+
+// Add UMIG modal styles to avoid Confluence conflicts (ADR-061)
+if (
+  typeof window !== "undefined" &&
+  !document.getElementById("umig-modal-styles")
+) {
+  const style = document.createElement("style");
+  style.id = "umig-modal-styles";
+  style.textContent = `
+    /* UMIG Modal Styles - Maximum Override for Confluence (ADR-061) */
+    body.umig-modal-open {
+      overflow: hidden !important;
+    }
+
+    /* Ultra-high specificity selectors to override Confluence */
+    html body .umig-modal-backdrop,
+    html body div.umig-modal-backdrop,
+    html body .page-container .umig-modal-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background-color: rgba(0, 0, 0, 0.6) !important;
+      z-index: 999998 !important;
+      animation: umigFadeIn 0.2s ease-out !important;
+    }
+
+    html body .umig-modal-wrapper,
+    html body div.umig-modal-wrapper,
+    html body .page-container .umig-modal-wrapper {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      pointer-events: auto !important;
+    }
+
+    html body .umig-modal-container,
+    html body div.umig-modal-container,
+    html body .page-container .umig-modal-container {
+      position: relative !important;
+      background: white !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+      max-width: 800px !important;
+      width: 90% !important;
+      max-height: 80vh !important;
+      overflow: hidden !important;
+      pointer-events: auto !important;
+      margin: 20px !important;
+      animation: umigSlideIn 0.3s ease-out !important;
+    }
+
+    @keyframes umigFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes umigSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .umig-modal-close:hover {
+      color: #24292e !important;
+    }
+
+    .umig-modal-btn:hover {
+      opacity: 0.9 !important;
+    }
+
+    /* Override Confluence styles with maximum specificity */
+    html body .umig-modal-wrapper *,
+    html body div.umig-modal-wrapper *,
+    html body .page-container .umig-modal-wrapper * {
+      box-sizing: border-box !important;
+    }
+
+    /* Button styles with ultra-high specificity */
+    html body .umig-modal-btn,
+    html body div.umig-modal-btn,
+    html body .page-container .umig-modal-btn {
+      padding: 8px 20px !important;
+      border-radius: 4px !important;
+      border: 1px solid #d1d5db !important;
+      cursor: pointer !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+    }
+
+    html body .umig-modal-btn-primary,
+    html body div.umig-modal-btn-primary,
+    html body .page-container .umig-modal-btn-primary {
+      background: #0969da !important;
+      color: white !important;
+    }
+
+    html body .umig-modal-btn-secondary,
+    html body div.umig-modal-btn-secondary,
+    html body .page-container .umig-modal-btn-secondary {
+      background: white !important;
+      color: #24292e !important;
+    }
+
+    /* Force visibility for any hidden modals - Ultimate Override */
+    html body .umig-modal-wrapper[style*="display: none"],
+    html body div.umig-modal-wrapper[style*="display: none"],
+    html body .umig-modal-wrapper[style*="visibility: hidden"],
+    html body div.umig-modal-wrapper[style*="visibility: hidden"] {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    /* Ensure modal content is always visible when modal is open */
+    html body .umig-modal-wrapper[style*="display: flex"] .umig-modal-container,
+    html body div.umig-modal-wrapper[style*="display: flex"] .umig-modal-container {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      transform: none !important;
+      position: relative !important;
+      background: white !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+      max-width: 800px !important;
+      width: 90% !important;
+      max-height: 80vh !important;
+      overflow: hidden !important;
+      pointer-events: auto !important;
+      margin: 20px !important;
+    }
+
+    /* Force modal content to be visible */
+    html body .umig-modal-wrapper[style*="display: flex"] .umig-modal-dialog,
+    html body div.umig-modal-wrapper[style*="display: flex"] .umig-modal-dialog {
+      display: flex !important;
+      flex-direction: column !important;
+      height: 100% !important;
+      visibility: visible !important;
+    }
+
+    /* Prevent Confluence from hiding modal elements */
+    html body .umig-modal-wrapper,
+    html body .umig-modal-container,
+    html body .umig-modal-dialog,
+    html body .umig-modal-header,
+    html body .umig-modal-body,
+    html body .umig-modal-footer {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    /* Professional Form Styling for Modal Content */
+    html body .umig-modal-wrapper .umig-modal-header,
+    html body div.umig-modal-wrapper .umig-modal-header,
+    html body .page-container .umig-modal-wrapper .umig-modal-header {
+      padding: 20px 24px 16px 24px !important;
+      border-bottom: 1px solid #e1e5e9 !important;
+      background: #f8f9fa !important;
+      position: relative !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-title,
+    html body div.umig-modal-wrapper .umig-modal-title,
+    html body .page-container .umig-modal-wrapper .umig-modal-title {
+      font-size: 18px !important;
+      font-weight: 600 !important;
+      color: #24292e !important;
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-close,
+    html body div.umig-modal-wrapper .umig-modal-close,
+    html body .page-container .umig-modal-wrapper .umig-modal-close {
+      position: absolute !important;
+      top: 16px !important;
+      right: 20px !important;
+      background: none !important;
+      border: none !important;
+      font-size: 24px !important;
+      font-weight: 300 !important;
+      color: #6a737d !important;
+      cursor: pointer !important;
+      padding: 4px 8px !important;
+      border-radius: 4px !important;
+      transition: all 0.2s ease !important;
+      line-height: 1 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-close:hover,
+    html body div.umig-modal-wrapper .umig-modal-close:hover,
+    html body .page-container .umig-modal-wrapper .umig-modal-close:hover {
+      color: #24292e !important;
+      background: #f6f8fa !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-body,
+    html body div.umig-modal-wrapper .umig-modal-body,
+    html body .page-container .umig-modal-wrapper .umig-modal-body {
+      padding: 24px !important;
+      max-height: calc(80vh - 160px) !important;
+      overflow-y: auto !important;
+      background: white !important;
+    }
+
+    /* Form Element Styling */
+    html body .umig-modal-wrapper form,
+    html body div.umig-modal-wrapper form,
+    html body .page-container .umig-modal-wrapper form {
+      margin: 0 !important;
+    }
+
+    html body .umig-modal-wrapper .form-group,
+    html body div.umig-modal-wrapper .form-group,
+    html body .page-container .umig-modal-wrapper .form-group {
+      margin-bottom: 20px !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    html body .umig-modal-wrapper label,
+    html body div.umig-modal-wrapper label,
+    html body .page-container .umig-modal-wrapper label {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: #24292e !important;
+      margin-bottom: 6px !important;
+      display: block !important;
+      line-height: 1.4 !important;
+    }
+
+    html body .umig-modal-wrapper input[type="text"],
+    html body .umig-modal-wrapper input[type="email"],
+    html body .umig-modal-wrapper input[type="password"],
+    html body .umig-modal-wrapper input[type="number"],
+    html body .umig-modal-wrapper textarea,
+    html body .umig-modal-wrapper select,
+    html body div.umig-modal-wrapper input[type="text"],
+    html body div.umig-modal-wrapper input[type="email"],
+    html body div.umig-modal-wrapper input[type="password"],
+    html body div.umig-modal-wrapper input[type="number"],
+    html body div.umig-modal-wrapper textarea,
+    html body div.umig-modal-wrapper select,
+    html body .page-container .umig-modal-wrapper input[type="text"],
+    html body .page-container .umig-modal-wrapper input[type="email"],
+    html body .page-container .umig-modal-wrapper input[type="password"],
+    html body .page-container .umig-modal-wrapper input[type="number"],
+    html body .page-container .umig-modal-wrapper textarea,
+    html body .page-container .umig-modal-wrapper select {
+      width: 100% !important;
+      padding: 8px 12px !important;
+      border: 1px solid #d0d7de !important;
+      border-radius: 6px !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
+      color: #24292e !important;
+      background: white !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+      box-sizing: border-box !important;
+    }
+
+    html body .umig-modal-wrapper input[type="text"]:focus,
+    html body .umig-modal-wrapper input[type="email"]:focus,
+    html body .umig-modal-wrapper input[type="password"]:focus,
+    html body .umig-modal-wrapper input[type="number"]:focus,
+    html body .umig-modal-wrapper textarea:focus,
+    html body .umig-modal-wrapper select:focus,
+    html body div.umig-modal-wrapper input[type="text"]:focus,
+    html body div.umig-modal-wrapper input[type="email"]:focus,
+    html body div.umig-modal-wrapper input[type="password"]:focus,
+    html body div.umig-modal-wrapper input[type="number"]:focus,
+    html body div.umig-modal-wrapper textarea:focus,
+    html body div.umig-modal-wrapper select:focus,
+    html body .page-container .umig-modal-wrapper input[type="text"]:focus,
+    html body .page-container .umig-modal-wrapper input[type="email"]:focus,
+    html body .page-container .umig-modal-wrapper input[type="password"]:focus,
+    html body .page-container .umig-modal-wrapper input[type="number"]:focus,
+    html body .page-container .umig-modal-wrapper textarea:focus,
+    html body .page-container .umig-modal-wrapper select:focus {
+      outline: none !important;
+      border-color: #0969da !important;
+      box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1) !important;
+    }
+
+    /* Checkbox and Radio Styling */
+    html body .umig-modal-wrapper input[type="checkbox"],
+    html body .umig-modal-wrapper input[type="radio"],
+    html body div.umig-modal-wrapper input[type="checkbox"],
+    html body div.umig-modal-wrapper input[type="radio"],
+    html body .page-container .umig-modal-wrapper input[type="checkbox"],
+    html body .page-container .umig-modal-wrapper input[type="radio"] {
+      width: auto !important;
+      margin-right: 8px !important;
+      margin-bottom: 0 !important;
+      transform: scale(1.1) !important;
+    }
+
+    html body .umig-modal-wrapper .checkbox-group,
+    html body .umig-modal-wrapper .radio-group,
+    html body div.umig-modal-wrapper .checkbox-group,
+    html body div.umig-modal-wrapper .radio-group,
+    html body .page-container .umig-modal-wrapper .checkbox-group,
+    html body .page-container .umig-modal-wrapper .radio-group {
+      display: flex !important;
+      align-items: center !important;
+      margin-bottom: 16px !important;
+    }
+
+    html body .umig-modal-wrapper .checkbox-group label,
+    html body .umig-modal-wrapper .radio-group label,
+    html body div.umig-modal-wrapper .checkbox-group label,
+    html body div.umig-modal-wrapper .radio-group label,
+    html body .page-container .umig-modal-wrapper .checkbox-group label,
+    html body .page-container .umig-modal-wrapper .radio-group label {
+      margin-bottom: 0 !important;
+      font-weight: 400 !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    /* Modal Footer Styling */
+    html body .umig-modal-wrapper .umig-modal-footer,
+    html body div.umig-modal-wrapper .umig-modal-footer,
+    html body .page-container .umig-modal-wrapper .umig-modal-footer {
+      padding: 16px 24px 20px 24px !important;
+      border-top: 1px solid #e1e5e9 !important;
+      background: #f8f9fa !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      gap: 12px !important;
+    }
+
+    /* Enhanced Button Styling for Modal */
+    html body .umig-modal-wrapper .umig-modal-btn,
+    html body div.umig-modal-wrapper .umig-modal-btn,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 8px 16px !important;
+      border-radius: 6px !important;
+      border: 1px solid #d0d7de !important;
+      cursor: pointer !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 1.4 !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+      min-width: 80px !important;
+      box-sizing: border-box !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-primary,
+    html body div.umig-modal-wrapper .umig-modal-btn-primary,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-primary {
+      background: #0969da !important;
+      color: white !important;
+      border-color: #0969da !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-primary:hover,
+    html body div.umig-modal-wrapper .umig-modal-btn-primary:hover,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-primary:hover {
+      background: #0860ca !important;
+      border-color: #0860ca !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-secondary,
+    html body div.umig-modal-wrapper .umig-modal-btn-secondary,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-secondary {
+      background: white !important;
+      color: #24292e !important;
+      border-color: #d0d7de !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-secondary:hover,
+    html body div.umig-modal-wrapper .umig-modal-btn-secondary:hover,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-secondary:hover {
+      background: #f6f8fa !important;
+      border-color: #d0d7de !important;
+    }
+
+    /* Error and Success Message Styling */
+    html body .umig-modal-wrapper .alert,
+    html body div.umig-modal-wrapper .alert,
+    html body .page-container .umig-modal-wrapper .alert {
+      padding: 12px 16px !important;
+      border-radius: 6px !important;
+      margin-bottom: 16px !important;
+      border: 1px solid transparent !important;
+    }
+
+    html body .umig-modal-wrapper .alert-error,
+    html body div.umig-modal-wrapper .alert-error,
+    html body .page-container .umig-modal-wrapper .alert-error {
+      background: #fdf2f2 !important;
+      color: #d73a49 !important;
+      border-color: #fdbdbd !important;
+    }
+
+    html body .umig-modal-wrapper .alert-success,
+    html body div.umig-modal-wrapper .alert-success,
+    html body .page-container .umig-modal-wrapper .alert-success {
+      background: #f0fff4 !important;
+      color: #28a745 !important;
+      border-color: #c3e6cb !important;
+    }
+
+    html body .umig-modal-wrapper .alert-warning,
+    html body div.umig-modal-wrapper .alert-warning,
+    html body .page-container .umig-modal-wrapper .alert-warning {
+      background: #fff8e1 !important;
+      color: #e36209 !important;
+      border-color: #ffecb3 !important;
+    }
+
+    /* Disabled State Styling */
+    html body .umig-modal-wrapper input:disabled,
+    html body .umig-modal-wrapper textarea:disabled,
+    html body .umig-modal-wrapper select:disabled,
+    html body div.umig-modal-wrapper input:disabled,
+    html body div.umig-modal-wrapper textarea:disabled,
+    html body div.umig-modal-wrapper select:disabled,
+    html body .page-container .umig-modal-wrapper input:disabled,
+    html body .page-container .umig-modal-wrapper textarea:disabled,
+    html body .page-container .umig-modal-wrapper select:disabled {
+      background: #f6f8fa !important;
+      color: #6a737d !important;
+      cursor: not-allowed !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn:disabled,
+    html body div.umig-modal-wrapper .umig-modal-btn:disabled,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn:disabled {
+      background: #f6f8fa !important;
+      color: #6a737d !important;
+      border-color: #d0d7de !important;
+      cursor: not-allowed !important;
+      opacity: 0.6 !important;
+    }
+
+    /* Responsive Design for Smaller Screens */
+    @media (max-width: 640px) {
+      html body .umig-modal-container,
+      html body div.umig-modal-container,
+      html body .page-container .umig-modal-container {
+        width: 95% !important;
+        margin: 10px !important;
+        max-height: 90vh !important;
+      }
+
+      html body .umig-modal-wrapper .umig-modal-header,
+      html body .umig-modal-wrapper .umig-modal-body,
+      html body .umig-modal-wrapper .umig-modal-footer,
+      html body div.umig-modal-wrapper .umig-modal-header,
+      html body div.umig-modal-wrapper .umig-modal-body,
+      html body div.umig-modal-wrapper .umig-modal-footer {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+
+      html body .umig-modal-wrapper .umig-modal-footer,
+      html body div.umig-modal-wrapper .umig-modal-footer {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      html body .umig-modal-wrapper .umig-modal-btn,
+      html body div.umig-modal-wrapper .umig-modal-btn {
+        width: 100% !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 // Export for use

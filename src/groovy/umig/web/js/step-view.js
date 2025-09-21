@@ -3672,8 +3672,7 @@ class StepView {
 
     try {
       console.log(
-        "📊 StepView: Fetching statuses from:",
-        `${this.config.api.baseUrl}/status?entityType=Step`,
+        "📊 StepView: Fetching statuses using StatusProvider for entity type: Step",
       );
       console.log(
         "📊 StepView: Current Status (raw):",
@@ -3682,15 +3681,37 @@ class StepView {
         typeof currentStatus,
       );
 
-      const response = await fetch(
-        `${this.config.api.baseUrl}/status?entityType=Step`,
-      );
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Use StatusProvider to get statuses (TD-003 migration)
+      let statuses = [];
+      if (window.StatusProvider) {
+        console.log("📊 StepView: StatusProvider available, fetching statuses");
+        statuses = await window.StatusProvider.getStatuses("Step");
+      } else {
+        console.error(
+          "❌ StepView: StatusProvider not available, using direct API call",
+        );
+        // Fallback to direct API call if StatusProvider not available
+        const response = await fetch(
+          `${this.config.api.baseUrl}/status?entityType=Step`,
+        );
+        if (!response.ok) {
+          throw new Error(
+            `API Error: ${response.status} ${response.statusText}`,
+          );
+        }
+        statuses = await response.json();
       }
 
-      const statuses = await response.json();
+      // Ensure statuses is an array
+      if (!Array.isArray(statuses)) {
+        console.error(
+          "❌ StepView: Expected array of statuses but got:",
+          typeof statuses,
+          statuses,
+        );
+        statuses = [];
+      }
+
       console.log(
         "📊 StepView: Successfully loaded",
         statuses.length,

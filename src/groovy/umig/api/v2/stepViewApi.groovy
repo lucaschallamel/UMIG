@@ -294,7 +294,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                     LEFT JOIN steps_master_stm pred_stm ON stm.stm_id_predecessor = pred_stm.stm_id
                     LEFT JOIN environment_roles_enr enr ON stm.enr_id = enr.enr_id
                     -- Join to get actual environment name for this iteration and role
-                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = stm.enr_id
                     LEFT JOIN environments_env env ON eei.env_id = env.env_id
                     WHERE stm.stt_code = :sttCode 
                     AND stm.stm_number = :stmNumber

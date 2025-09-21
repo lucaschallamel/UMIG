@@ -681,22 +681,245 @@ class PlanRepository {
      */
     private Integer getDefaultPlanInstanceStatusId(groovy.sql.Sql sql) {
         Map defaultStatus = sql.firstRow("""
-            SELECT sts_id 
-            FROM status_sts 
+            SELECT sts_id
+            FROM status_sts
             WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'
             LIMIT 1
         """) as Map
-        
+
         // Fallback to any Plan status if PLANNING not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
-                SELECT sts_id 
-                FROM status_sts 
+                SELECT sts_id
+                FROM status_sts
                 WHERE sts_type = 'Plan'
                 LIMIT 1
             """) as Map
         }
-        
+
         return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
+    }
+
+    // ==================== US-084 TEMPLATE OPERATIONS ====================
+
+    /**
+     * Finds plan templates with usage statistics (US-084).
+     * Treats plans as independent templates, showing iteration usage.
+     * @param filters Map containing optional filters
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction
+     * @return Map with templates and usage statistics
+     */
+    def findTemplatesWithUsageStats(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'name', String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+
+            def whereConditions = []
+            def params = []
+
+            // Build dynamic WHERE clause
+            if (filters.search) {
+                whereConditions << "(plm.plm_name ILIKE ? OR plm.plm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+
+            if (filters.status) {
+                whereConditions << "sts.sts_name = ?"
+                params << filters.status
+            }
+
+            if (filters.teamId) {
+                whereConditions << "plm.tms_id = ?"
+                params << Integer.parseInt(filters.teamId as String)
+            }
+
+            if (filters.minUsage != null) {
+                whereConditions << "COALESCE(usage.total_iterations, 0) >= ?"
+                params << filters.minUsage
+            }
+
+            if (filters.maxUsage != null) {
+                whereConditions << "COALESCE(usage.total_iterations, 0) <= ?"
+                params << filters.maxUsage
+            }
+
+            if (filters.lastUsedAfter) {
+                whereConditions << "usage.last_used >= ?"
+                params << filters.lastUsedAfter
+            }
+
+            if (filters.lastUsedBefore) {
+                whereConditions << "usage.last_used <= ?"
+                params << filters.lastUsedBefore
+            }
+
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+
+            // Main query with usage statistics
+            def query = """
+                WITH template_usage AS (
+                    SELECT
+                        plm.plm_id,
+                        COUNT(DISTINCT pli.ite_id) as total_iterations_count,
+                        COUNT(DISTINCT CASE
+                            WHEN ite.ite_status IN (
+                                SELECT sts_id FROM status_sts
+                                WHERE sts_name IN ('ACTIVE', 'IN_PROGRESS', 'PLANNING')
+                                AND sts_type = 'Iteration'
+                            ) THEN pli.ite_id
+                        END) as active_iterations_count,
+                        MAX(pli.created_at) as last_used,
+                        STRING_AGG(DISTINCT usr.usr_code, ', ' ORDER BY usr.usr_code) as author_name
+                    FROM plans_master_plm plm
+                    LEFT JOIN plans_instance_pli pli ON plm.plm_id = pli.plm_id
+                    LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    LEFT JOIN users_usr usr ON pli.created_by = usr.usr_code
+                    GROUP BY plm.plm_id
+                )
+                SELECT
+                    plm.plm_id,
+                    plm.plm_name,
+                    plm.plm_description,
+                    plm.plm_status,
+                    plm.tms_id,
+                    plm.created_at,
+                    plm.updated_at,
+                    sts.sts_id,
+                    sts.sts_name as plm_status,
+                    tms.tms_name,
+                    COALESCE(usage.total_iterations_count, 0) as total_iterations_count,
+                    COALESCE(usage.active_iterations_count, 0) as active_iterations_count,
+                    usage.last_used,
+                    usage.author_name
+                FROM plans_master_plm plm
+                JOIN status_sts sts ON plm.plm_status = sts.sts_id
+                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN template_usage usage ON plm.plm_id = usage.plm_id
+                ${whereClause}
+            """
+
+            // Count query
+            def countParams = params.clone() as List
+            def countQuery = """
+                SELECT COUNT(*) as total
+                FROM plans_master_plm plm
+                JOIN status_sts sts ON plm.plm_status = sts.sts_id
+                LEFT JOIN (
+                    SELECT plm_id,
+                           COUNT(DISTINCT ite_id) as total_iterations,
+                           MAX(created_at) as last_used
+                    FROM plans_instance_pli
+                    GROUP BY plm_id
+                ) usage ON plm.plm_id = usage.plm_id
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, countParams)?.total ?: 0
+
+            // Sort mapping
+            def sortMapping = [
+                'name': 'plm.plm_name',
+                'usage': 'usage.total_iterations_count',
+                'lastUsed': 'usage.last_used',
+                'created': 'plm.created_at',
+                'status': 'sts.sts_name'
+            ]
+
+            def orderField = sortMapping[sortField] ?: 'plm.plm_name'
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+
+            // Add pagination
+            def offset = (pageNumber - 1) * pageSize
+            query += " ORDER BY ${orderField} ${sortDirection} LIMIT ${pageSize} OFFSET ${offset}"
+
+            def templates = sql.rows(query, params)
+
+            return [
+                data: templates,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+
+    /**
+     * Finds all iterations using a specific plan template (US-084).
+     * Shows junction relationship between Migrations and Plans.
+     * @param planId The UUID of the plan template
+     * @return Map with template info and iteration usage
+     */
+    def findTemplateUsage(UUID planId) {
+        DatabaseUtil.withSql { sql ->
+            // Get iterations using this template
+            def iterations = sql.rows("""
+                SELECT
+                    ite.ite_id,
+                    ite.ite_name,
+                    ite.mig_id,
+                    mig.mig_name,
+                    pli.pli_id,
+                    pli.created_at,
+                    pli.updated_at,
+                    sts.sts_name as ite_status,
+                    -- Check for customizations (compare nullable fields safely)
+                    CASE
+                        WHEN COALESCE(pli.pli_name, '') != COALESCE(plm.plm_name, '')
+                          OR COALESCE(pli.pli_description, '') != COALESCE(plm.plm_description, '')
+                        THEN true
+                        ELSE false
+                    END as has_customizations
+                FROM plans_instance_pli pli
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                JOIN status_sts sts ON ite.ite_status = sts.sts_id
+                WHERE plm.plm_id = ?
+                ORDER BY pli.created_at DESC
+            """, [planId]) as List
+
+            // Calculate statistics with proper type safety
+            def iterationsList = iterations as List
+            def activeCount = iterationsList.count { row ->
+                def iterationRow = row as Map
+                iterationRow.ite_status in ['ACTIVE', 'IN_PROGRESS', 'PLANNING']
+            }
+            def totalCount = iterationsList.size()
+            def firstUsed = iterationsList.min { row ->
+                def iterationRow = row as Map
+                iterationRow.created_at
+            }?.created_at
+            def lastUsed = iterationsList.max { row ->
+                def iterationRow = row as Map
+                iterationRow.created_at
+            }?.created_at
+            def customizationRate = totalCount > 0 ?
+                (iterationsList.count { row ->
+                    def iterationRow = row as Map
+                    iterationRow.has_customizations
+                } * 100.0 / totalCount) : 0
+            def successRate = totalCount > 0 ?
+                (iterationsList.count { row ->
+                    def iterationRow = row as Map
+                    iterationRow.ite_status == 'COMPLETED'
+                } * 100.0 / totalCount) : 0
+
+            return [
+                activeCount: activeCount,
+                totalCount: totalCount,
+                iterations: iterationsList,
+                firstUsed: firstUsed,
+                lastUsed: lastUsed,
+                customizationRate: customizationRate,
+                successRate: successRate
+            ] as Map
+        }
     }
 }

@@ -17,6 +17,7 @@ import groovy.sql.Sql
 import groovy.util.logging.Slf4j
 
 // TD-003 Phase 2G: Integrated StatusService for centralized status management
+// Updated: 2025-09-20 14:30 - Labels integration with frontend field mapping
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
  */
@@ -3024,22 +3025,34 @@ class StepRepository {
     /**
      * Build the comprehensive base query for DTO population
      * This query includes all fields needed for StepInstanceDTO construction
+     * REFACTORED: Consolidated method with comprehensive labels logging
      * @return SQL query string
      */
     private String buildDTOBaseQuery() {
+        log.info("*** LABELS REFACTOR *** buildDTOBaseQuery() called - CONSOLIDATED VERSION")
+        return buildComprehensiveDTOQuery()
+    }
+
+    /**
+     * REFACTORED: Consolidated comprehensive base query with enhanced labels debugging
+     * This is the single source of truth for all DTO queries with labels
+     * @return SQL query string with comprehensive labels integration
+     */
+    private String buildComprehensiveDTOQuery() {
+        log.info("*** LABELS REFACTOR *** buildComprehensiveDTOQuery() executing - comprehensive labels integration")
         return '''
-            SELECT 
+            SELECT
                 -- Core step identification
                 stm.stm_id,
                 sti.sti_id,
                 COALESCE(sti.sti_name, stm.stm_name) as stm_name,
                 COALESCE(sti.sti_description, stm.stm_description) as stm_description,
                 sts.sts_name as step_status,
-                
+
                 -- Team assignment
                 tms.tms_id,
                 tms.tms_name as team_name,
-                
+
                 -- Hierarchical context
                 mig.mig_id as migration_id,
                 mig.mig_name as migration_name,
@@ -3056,39 +3069,43 @@ class StepRepository {
                 -- Instance hierarchy order fields (required by transformation service)
                 COALESCE(sqi.sqi_order, sqm.sqm_order) as sqi_order,
                 COALESCE(phi.phi_order, phm.phm_order) as phi_order,
-                
+
                 -- Temporal fields
                 sti.created_at as created_date,
                 sti.updated_at as last_modified_date,
                 true as is_active,  -- Default to true since column doesn't exist
                 -- priority column doesn't exist in database
-                
+
                 -- Extended metadata
                 stt.stt_code,
                 stt.stt_name,
                 stm.stm_duration_minutes,
                 sti.sti_duration_minutes,
-                
+
                 -- Progress tracking with computed values
                 COALESCE(dep_counts.dependency_count, 0) as dependency_count,
                 COALESCE(dep_counts.completed_dependencies, 0) as completed_dependencies,
                 COALESCE(inst_counts.instruction_count, 0) as instruction_count,
                 COALESCE(inst_counts.completed_instructions, 0) as completed_instructions,
-                
+
                 -- Comment integration
                 COALESCE(comment_counts.comment_count, 0) as comment_count,
                 CASE WHEN comment_counts.comment_count > 0 THEN true ELSE false END as has_active_comments,
-                comment_counts.last_comment_date
-                
+                comment_counts.last_comment_date,
+
+                -- REFACTORED LABELS: Enhanced debugging and error handling
+                COALESCE(step_labels.labels, '[]'::json) as labels,
+                step_labels.label_count_debug
+
             FROM steps_instance_sti sti
             JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
             JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
             JOIN status_sts sts ON sti.sti_status = sts.sts_id AND sts.sts_type = 'Step'
-            
+
             -- Hierarchical joins
             JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
             JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-            
+
             -- Instance hierarchy for proper filtering
             JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
             JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
@@ -3098,10 +3115,10 @@ class StepRepository {
             JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
             LEFT JOIN iteration_types_itt itt ON ite.itt_code = itt.itt_code
             LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
-            
+
             -- Team assignment (using step master's owner team)
             LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
-            
+
             -- Dependency counts subquery (based on predecessor relationships in steps_master_stm)
             LEFT JOIN (
                 SELECT
@@ -3134,12 +3151,107 @@ class StepRepository {
                 FROM step_instance_comments_sic
                 GROUP BY sti_id
             ) comment_counts ON sti.sti_id = comment_counts.sti_id
+
+            -- REFACTORED LABELS: Enhanced subquery with debugging and comprehensive error handling
+            -- REFACTOR DATE: 2025-09-21 - Comprehensive labels integration refactor
+            LEFT JOIN (
+                SELECT
+                    lxs.stm_id,
+                    json_agg(
+                        json_build_object(
+                            'id', lbl.lbl_id,
+                            'name', lbl.lbl_name,
+                            'color', lbl.lbl_color,
+                            'description', lbl.lbl_description
+                        ) ORDER BY lbl.lbl_name
+                    ) FILTER (WHERE lbl.lbl_id IS NOT NULL) as labels,
+                    COUNT(lbl.lbl_id) as label_count_debug
+                FROM labels_lbl_x_steps_master_stm lxs
+                INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                WHERE lbl.lbl_id IS NOT NULL
+                GROUP BY lxs.stm_id
+            ) step_labels ON stm.stm_id = step_labels.stm_id
         '''
+    }
+
+    /**
+     * DEPRECATED: Use buildComprehensiveDTOQuery() instead
+     * Maintained for backward compatibility during refactor period
+     */
+    private String buildDTOBaseQuery_v2() {
+        log.warn("*** LABELS REFACTOR WARNING *** buildDTOBaseQuery_v2() is deprecated - redirecting to consolidated method")
+        return buildComprehensiveDTOQuery()
+    }
+
+    /**
+     * REFACTOR TEST METHOD: Test labels SQL independently to verify data exists
+     * This method directly tests the labels JOIN to verify data integrity
+     * @return Map with debug information about labels
+     */
+    def testLabelsDataIntegrity() {
+        DatabaseUtil.withSql { sql ->
+            log.info("*** LABELS REFACTOR TEST *** Testing labels data integrity")
+
+            // Test 1: Check if any step-label relationships exist
+            def labelRelationshipCount = sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM labels_lbl_x_steps_master_stm lxs
+                INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                INNER JOIN steps_master_stm stm ON lxs.stm_id = stm.stm_id
+            """)[0] as Integer
+
+            log.info("*** LABELS REFACTOR TEST *** Found ${labelRelationshipCount} step-label relationships")
+
+            // Test 2: Get sample step with labels using the exact SQL from our query
+            def testRows = sql.rows("""
+                SELECT
+                    stm.stm_id,
+                    stm.stm_name,
+                    COALESCE(step_labels.labels, '[]'::json) as labels,
+                    step_labels.label_count_debug
+                FROM steps_master_stm stm
+                LEFT JOIN (
+                    SELECT
+                        lxs.stm_id,
+                        json_agg(
+                            json_build_object(
+                                'id', lbl.lbl_id,
+                                'name', lbl.lbl_name,
+                                'color', lbl.lbl_color,
+                                'description', lbl.lbl_description
+                            ) ORDER BY lbl.lbl_name
+                        ) FILTER (WHERE lbl.lbl_id IS NOT NULL) as labels,
+                        COUNT(lbl.lbl_id) as label_count_debug
+                    FROM labels_lbl_x_steps_master_stm lxs
+                    INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                    WHERE lbl.lbl_id IS NOT NULL
+                    GROUP BY lxs.stm_id
+                ) step_labels ON stm.stm_id = step_labels.stm_id
+                LIMIT 10
+            """)
+
+            log.info("*** LABELS REFACTOR TEST *** Sample query returned ${testRows.size()} rows")
+
+            def rowsWithLabels = testRows.findAll { it.labels && it.labels.toString() != '[]' && it.labels.toString() != 'null' }
+            log.info("*** LABELS REFACTOR TEST *** ${rowsWithLabels.size()} rows have labels")
+
+            testRows.eachWithIndex { row, index ->
+                log.info("*** LABELS REFACTOR TEST *** Row ${index}: ${row.stm_name} - Labels: '${row.labels}' (type: ${row.labels?.getClass()?.simpleName}), Debug count: ${row.label_count_debug}")
+            }
+
+            return [
+                totalRelationships: labelRelationshipCount,
+                testRowsCount: testRows.size(),
+                rowsWithLabels: rowsWithLabels.size(),
+                sampleRows: testRows.collect { [name: it.stm_name, labels: it.labels, debugCount: it.label_count_debug] }
+            ]
+        }
     }
     
     /**
      * Find steps with filters and return as StepInstanceDTO list with pagination
      * Enhanced version of existing findMasterStepsWithFilters that returns DTOs
+     * Updated: Fixed labels field names for frontend compatibility (name, color, description)
      * @param filters Map of filter parameters  
      * @param pageNumber Page number (1-based)
      * @param pageSize Number of items per page
@@ -3147,11 +3259,13 @@ class StepRepository {
      * @param sortDirection Sort direction (asc/desc)
      * @return Map with DTO data, pagination info, and filters
      */
-    def findStepsWithFiltersAsDTO(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'created_date', String sortDirection = 'desc') {
+    def findStepsWithFiltersAsDTO_v2(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'created_date', String sortDirection = 'desc') {
         DatabaseUtil.withSql { sql ->
             pageNumber = Math.max(1, pageNumber)
             pageSize = Math.min(100, Math.max(1, pageSize))
 
+            // FORCE RELOAD: 2025-09-20 14:35 - Labels integration fix for iteration view
+            log.info("*** LABELS DEBUG *** StepRepository.findStepsWithFiltersAsDTO called - Labels should be included via step_labels.labels field")
             // Log incoming filters for debugging
             log.info("StepRepository.findStepsWithFiltersAsDTO called with filters: ${filters}")
             log.info("Pagination: pageNumber=${pageNumber}, pageSize=${pageSize}, sortField=${sortField}, sortDirection=${sortDirection}")
@@ -3171,7 +3285,25 @@ class StepRepository {
                 params.iterationId = UUID.fromString(filters.iterationId as String)
                 log.info("Added iteration filter: ite.ite_id = ${params.iterationId}")
             }
-            
+
+            if (filters.planId) {
+                whereConditions << "pli.pli_id = :planId"
+                params.planId = UUID.fromString(filters.planId as String)
+                log.info("Added plan filter: pli.pli_id = ${params.planId}")
+            }
+
+            if (filters.sequenceId) {
+                whereConditions << "sqi.sqi_id = :sequenceId"
+                params.sequenceId = UUID.fromString(filters.sequenceId as String)
+                log.info("Added sequence filter: sqi.sqi_id = ${params.sequenceId}")
+            }
+
+            if (filters.phaseId) {
+                whereConditions << "phi.phi_id = :phaseId"
+                params.phaseId = UUID.fromString(filters.phaseId as String)
+                log.info("Added phase filter: phi.phi_id = ${params.phaseId}")
+            }
+
             if (filters.assignedTeamId) {
                 whereConditions << "tms.tms_id = :assignedTeamId"
                 params.assignedTeamId = UUID.fromString(filters.assignedTeamId as String)
@@ -3288,7 +3420,7 @@ class StepRepository {
             params.limit = pageSize
             params.offset = offset
 
-            def dataQuery = buildDTOBaseQuery() + """
+            def dataQuery = buildComprehensiveDTOQuery() + """
                 ${whereClause}
                 ${orderByClause}
                 LIMIT :limit OFFSET :offset
@@ -3298,10 +3430,34 @@ class StepRepository {
             log.info("MAIN query parameters: ${params}")
 
             def rows = sql.rows(dataQuery, params)
-            log.info("MAIN query returned: ${rows.size()} rows")
+            log.info("*** LABELS REFACTOR *** MAIN query returned: ${rows.size()} rows")
+
+            // LABELS REFACTOR: Detailed inspection of raw database rows
+            if (rows.size() > 0) {
+                def firstRow = rows[0]
+                log.info("*** LABELS REFACTOR *** First row labels field: '${firstRow.labels}' (type: ${firstRow.labels?.getClass()?.simpleName})")
+                log.info("*** LABELS REFACTOR *** First row label_count_debug: ${firstRow.label_count_debug}")
+
+                // Count how many rows have non-null labels
+                def rowsWithLabels = rows.findAll { it.labels != null }
+                def rowsWithNonEmptyLabels = rows.findAll { it.labels && it.labels.toString() != '[]' }
+                log.info("*** LABELS REFACTOR *** ${rowsWithLabels.size()} rows have non-null labels, ${rowsWithNonEmptyLabels.size()} have non-empty labels")
+            }
 
             def dtos = transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
-            log.info("Transformed to ${dtos.size()} DTOs")
+            log.info("*** LABELS REFACTOR *** Transformed to ${dtos.size()} DTOs")
+
+            // LABELS REFACTOR: Detailed inspection of transformed DTOs
+            def stepsWithLabels = dtos.findAll { it.labels && !it.labels.isEmpty() }
+            log.info("*** LABELS REFACTOR *** ${stepsWithLabels.size()} out of ${dtos.size()} DTOs have labels after transformation")
+
+            if (stepsWithLabels.size() > 0) {
+                def firstStepWithLabels = stepsWithLabels[0]
+                log.info("*** LABELS REFACTOR *** First DTO with labels: '${firstStepWithLabels.stepName}' has ${firstStepWithLabels.labels.size()} labels: ${firstStepWithLabels.labels}")
+            } else if (dtos.size() > 0) {
+                def firstDto = dtos[0]
+                log.info("*** LABELS REFACTOR *** First DTO labels (empty): '${firstDto.stepName}' has labels: ${firstDto.labels}")
+            }
             
             return [
                 data: dtos,

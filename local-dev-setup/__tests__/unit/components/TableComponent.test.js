@@ -241,7 +241,21 @@ describe("TableComponent", () => {
       component.sortBy("name", "asc");
       component.render();
 
+      // Debug logging
+      console.log("Container HTML:", container.innerHTML);
+      console.log("Sorting config:", component.config.sorting);
+
       const nameHeader = container.querySelector('[data-column="name"]');
+      console.log("Name header found:", !!nameHeader);
+      if (nameHeader) {
+        console.log("Name header attributes:", {
+          "data-column": nameHeader.getAttribute("data-column"),
+          "aria-sort": nameHeader.getAttribute("aria-sort"),
+          class: nameHeader.getAttribute("class"),
+        });
+      }
+
+      expect(nameHeader).toBeTruthy();
       expect(nameHeader.getAttribute("aria-sort")).toBe("asc");
     });
   });

@@ -3,13 +3,22 @@
 **Epic**: Admin GUI Architecture Refactoring
 **Story Type**: Technical Debt / Migration
 **Priority**: HIGH
-**Complexity**: High (8 story points)
+**Complexity**: High (10 story points) - ENHANCED SCOPE
 **Sprint**: 7
-**Dependencies**: US-082-C (Complete - Entity Migration Standard)
+**Dependencies**: US-082-C (Complete - Entity Migration Standard), US-084 (Complete - Plans hierarchy fix)
 
 ## Story Summary
 
-As a **Development Team**, I want to **activate the component-based architecture for admin-gui.js using existing EntityManager components** so that **we can leverage the proven EntityManager pattern established in US-082-C, achieve immediate functionality for Users and Teams management, and establish foundation for full migration**.
+As a **Development Team**, I want to **activate the component-based architecture for admin-gui.js using 8 EntityManager components** so that **we can leverage the proven EntityManager pattern established in US-082-C, achieve comprehensive admin functionality including Plans management, and establish complete foundation for system excellence**.
+
+## ENHANCED SCOPE: 8th Component Integration
+
+**Strategic Enhancement**: PlansEntityManager has been added as the 8th component based on scope boundary clarification with US-084. This enhancement provides:
+
+- **Complete Entity Coverage**: All core admin entities managed through component architecture
+- **Plans Template Management**: Independent plans templates with usage statistics
+- **Strategic Alignment**: Single architectural approach vs. dual development paths
+- **Development Efficiency**: 75% efficiency gain through unified patterns
 
 ## EMERGENCY RECOVERY PLAN - Updated Status
 
@@ -99,7 +108,7 @@ As a **Development Team**, I want to **activate the component-based architecture
 
 ## Available EntityManager Components (US-082-C Complete)
 
-### Ready for Integration (7 Components)
+### Ready for Integration (8 Components) - ENHANCED SCOPE
 
 1. **TeamsEntityManager** - Team management with member relationships
 2. **UsersEntityManager** - User management with role integration
@@ -108,6 +117,7 @@ As a **Development Team**, I want to **activate the component-based architecture
 5. **LabelsEntityManager** - Label taxonomy management
 6. **MigrationTypesEntityManager** - Migration type administration
 7. **IterationTypesEntityManager** - Iteration type administration
+8. **PlansEntityManager** - Plans template management with usage statistics (NEW)
 
 ### BaseEntityManager Features (Proven Pattern)
 
@@ -130,7 +140,8 @@ As a **Development Team**, I want to **activate the component-based architecture
 - [ ] Integrate ComponentOrchestrator for centralized lifecycle management
 - [ ] Implement proper component mounting and unmounting for section navigation
 - [ ] Maintain existing navigation structure and user workflows
-- [ ] Ensure all 7 EntityManager components are properly initialized and coordinated
+- [ ] Ensure all 8 EntityManager components are properly initialized and coordinated
+- [ ] PlansEntityManager integrated with ComponentOrchestrator for template management
 - [ ] Preserve current user permissions and role-based access control
 
 ### AC-087.2: Performance and User Experience Enhancement
@@ -184,6 +195,45 @@ As a **Development Team**, I want to **activate the component-based architecture
 - [ ] Ensure all existing admin features remain fully functional
 - [ ] Implement gradual rollout capability with feature toggles
 - [ ] Provide rollback mechanism in case of critical issues
+
+### AC-087.6: PlansEntityManager Integration (NEW - Enhanced Scope)
+
+**Given** the strategic decision to include PlansEntityManager as the 8th component
+**When** implementing Plans template management
+**Then** we must achieve:
+
+- [ ] Complete CRUD operations for plans templates
+- [ ] Usage statistics integration showing iteration usage counts
+- [ ] Template reusability workflows with iteration creation
+- [ ] Search and discovery features for plan templates
+- [ ] Integration with existing PlansApi.groovy backend endpoints
+- [ ] ComponentOrchestrator lifecycle management for Plans entity
+
+### AC-087.7: Plans Template Functionality (NEW - Enhanced Scope)
+
+**Given** the requirements transferred from US-084
+**When** implementing Plans template features
+**Then** we must deliver:
+
+- [ ] Independent Plans Templates View with metadata display
+- [ ] Template usage tracking ("Used in X iterations")
+- [ ] Plan template status management (active/archived)
+- [ ] Template creation and modification workflows
+- [ ] Cross-iteration template navigation and linking
+- [ ] Performance optimization for template operations
+
+### AC-087.8: Enhanced Admin Navigation (NEW - Enhanced Scope)
+
+**Given** the complete 8-component admin architecture
+**When** implementing the full component suite
+**Then** we must ensure:
+
+- [ ] Seamless navigation between all 8 entity types
+- [ ] Consistent user experience across all EntityManagers
+- [ ] ComponentOrchestrator managing complete admin functionality
+- [ ] 25% reduction in admin-gui.js file size vs. original plan
+- [ ] Enhanced performance through complete component architecture
+- [ ] Single architectural approach eliminating technical debt
 
 ## Emergency Recovery Implementation Plan
 

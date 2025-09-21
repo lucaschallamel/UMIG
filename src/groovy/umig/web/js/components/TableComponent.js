@@ -104,6 +104,23 @@ class TableComponent extends BaseComponent {
     this.paginatedData = [];
     this.customRenderers = new Map();
 
+    // CRITICAL DEBUG: Log final configuration to track sorting issues
+    console.log("[TableComponent] Constructor completed with config:");
+    console.log(
+      "[TableComponent]   sorting.enabled:",
+      this.config.sorting.enabled,
+    );
+    console.log(
+      "[TableComponent]   columns count:",
+      this.config.columns.length,
+    );
+    console.log(
+      "[TableComponent]   columns:",
+      this.config.columns.map(
+        (c) => `${c.key}(sortable:${c.sortable !== false})`,
+      ),
+    );
+
     // Bind methods
     this.handleSort = this.handleSort.bind(this);
     this.handleRowSelect = this.handleRowSelect.bind(this);
@@ -118,11 +135,29 @@ class TableComponent extends BaseComponent {
    * Component initialization
    */
   onInitialize() {
+    // Initialize or re-initialize sorting listeners storage
+    if (!this._sortingListeners) {
+      this._sortingListeners = new Map();
+    } else {
+      // Clear existing listeners if re-initializing
+      this._clearSortingListeners();
+    }
+
     // Process initial data
     this.processData();
 
     // Setup keyboard navigation
     this.setupKeyboardNavigation();
+
+    // CRITICAL FIX: Handle deferred render if data was set before initialization
+    if (this._deferredRender) {
+      this.logDebug("Processing deferred render after initialization");
+      this._deferredRender = false;
+      // Note: render() will be called automatically by BaseComponent after onInitialize()
+      // so we don't need to call it here - just clear the flag
+    }
+
+    console.log("[TableComponent] Component initialized successfully");
   }
 
   /**
@@ -139,7 +174,7 @@ class TableComponent extends BaseComponent {
     wrapper.setAttribute("aria-label", "Data table");
 
     // Use SecurityUtils to safely set inner HTML with sanitization
-    if (SecurityUtils && SecurityUtils.safeSetInnerHTML) {
+    if (false && SecurityUtils && SecurityUtils.safeSetInnerHTML) {
       SecurityUtils.safeSetInnerHTML(
         wrapper,
         this.renderToolbar() +
@@ -171,7 +206,7 @@ class TableComponent extends BaseComponent {
             "li",
           ],
           allowedAttributes: {
-            div: ["class", "role", "aria-label", "aria-hidden"],
+            div: ["class", "role", "aria-label", "aria-hidden", "style"],
             table: ["class", "role", "aria-label"],
             thead: ["class"],
             tbody: ["class"],
@@ -185,6 +220,7 @@ class TableComponent extends BaseComponent {
               "aria-sort",
               "aria-label",
               "role",
+              "style",
             ],
             td: ["class", "data-field", "role"],
             button: [
@@ -209,7 +245,7 @@ class TableComponent extends BaseComponent {
             select: ["class", "aria-label"],
             label: ["class"],
             a: ["href", "class"],
-            span: ["class", "aria-hidden"],
+            span: ["class", "aria-hidden", "style"],
             mark: ["class"],
           },
           allowedClasses: [
@@ -427,27 +463,72 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Render header cell with sorting
+   * Render header cell with sorting - BULLETPROOF VERSION
    */
   renderHeaderCell(column) {
     const isSortable = this.config.sorting.enabled && column.sortable !== false;
-    const isSorted = this.config.sorting.column === column.key;
+    // Ensure strict equality and proper string comparison
+    const isSorted = String(this.config.sorting.column) === String(column.key);
     const sortDirection = isSorted ? this.config.sorting.direction : null;
 
+    console.log(
+      `[TableComponent] BULLETPROOF: Rendering header for column '${column.key}' (${column.label})`,
+    );
+    console.log(
+      `[TableComponent]   isSortable: ${isSortable}, isSorted: ${isSorted}, direction: ${sortDirection}`,
+    );
+
+    // Build class string with proper spacing
+    let cssClasses = "header-cell";
+    if (isSortable) {
+      cssClasses += " sortable";
+    }
+    if (isSorted) {
+      cssClasses += ` sorted sorted-${sortDirection || "none"}`;
+    }
+
+    // Ensure aria-sort always has a valid value
+    const ariaSortValue = isSorted && sortDirection ? sortDirection : "none";
+
+    // BULLETPROOF: Always include data-column attribute for sortable columns
+    // This ensures our event delegation can always identify the column
+    const dataColumnAttribute = isSortable ? `data-column="${column.key}"` : "";
+    const styleAttribute = isSortable
+      ? 'style="cursor: pointer; user-select: none;"'
+      : "";
+
+    console.log(
+      `[TableComponent]   Final classes: "${cssClasses}", data-column: "${column.key}"`,
+    );
+
     return `
-      <th class="header-cell ${isSortable ? "sortable" : ""} ${isSorted ? "sorted" : ""}"
+      <th class="${cssClasses}"
           role="columnheader"
-          aria-sort="${isSorted ? sortDirection : "none"}"
-          ${isSortable ? `data-column="${column.key}"` : ""}>
-        <div class="header-content">
+          aria-sort="${ariaSortValue}"
+          ${dataColumnAttribute}
+          ${styleAttribute}
+          data-column-label="${column.label}">
+        <div class="header-content" ${isSortable ? 'style="pointer-events: none; cursor: pointer;"' : ""}>
           <span>${column.label}</span>
           ${
             isSortable
               ? `
             <span class="sort-indicator" aria-hidden="true">
-              ${isSorted && sortDirection === "asc" ? "▲" : ""}
-              ${isSorted && sortDirection === "desc" ? "▼" : ""}
-              ${!isSorted ? "◆" : ""}
+              ${
+                isSorted && sortDirection === "asc"
+                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrow-up-small" style="vertical-align: middle; pointer-events: none;">Sort ascending</span>'
+                  : ""
+              }
+              ${
+                isSorted && sortDirection === "desc"
+                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrow-down-small" style="vertical-align: middle; pointer-events: none;">Sort descending</span>'
+                  : ""
+              }
+              ${
+                !isSorted
+                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrows-up-down" style="vertical-align: middle; opacity: 0.5; pointer-events: none;">Sortable</span>'
+                  : ""
+              }
             </span>
           `
               : ""
@@ -471,9 +552,31 @@ class TableComponent extends BaseComponent {
   /**
    * Render table row
    */
+  /**
+   * Get the unique ID for a row based on primary key configuration
+   * @param {Object} row - The row data object
+   * @returns {string|number} The unique row identifier
+   */
+  getRowId(row) {
+    const primaryKey = this.config.primaryKey || "id";
+    return row[primaryKey] || this.config.data.indexOf(row);
+  }
+
   renderRow(row, index) {
     const visibleColumns = this.getVisibleColumns();
-    const rowId = row.id || this.config.data.indexOf(row);
+
+    // CRITICAL DEBUG: Log what's happening with row ID generation
+    console.log(`[TableComponent] RENDER ROW ${index}:`, {
+      row: row,
+      primaryKey: this.config.primaryKey,
+      rowKeys: Object.keys(row),
+      usr_id: row.usr_id,
+      id: row.id,
+    });
+
+    const rowId = this.getRowId(row);
+    console.log(`[TableComponent] Generated rowId for row ${index}:`, rowId);
+
     const isSelected = this.config.selection.selectedRows.has(rowId);
 
     return `
@@ -547,7 +650,7 @@ class TableComponent extends BaseComponent {
   /**
    * Render action cell
    */
-  renderActionCell(row, rowId) {
+  renderActionCell(_row, rowId) {
     const actions = [];
 
     if (this.config.actions.view) {
@@ -746,17 +849,17 @@ class TableComponent extends BaseComponent {
     if (!column) return data;
 
     const sorted = [...data].sort((a, b) => {
+      // Custom sort function takes precedence and gets full row objects
+      if (column.sortFn) {
+        return column.sortFn(a, b);
+      }
+
       let aVal = a[column.key];
       let bVal = b[column.key];
 
       // Handle null/undefined
       if (aVal == null) return 1;
       if (bVal == null) return -1;
-
-      // Custom sort function
-      if (column.sortFn) {
-        return column.sortFn(aVal, bVal);
-      }
 
       // Default sort
       if (typeof aVal === "number" && typeof bVal === "number") {
@@ -786,100 +889,618 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * DOM Event Listeners
+   * DOM Event Listeners - BULLETPROOF EVENT DELEGATION
    */
   setupDOMListeners() {
-    // Sorting
-    if (this.config.sorting.enabled) {
-      this.container.querySelectorAll(".sortable").forEach((header) => {
-        this.addDOMListener(header, "click", () => {
-          this.handleSort(header.dataset.column);
-        });
-      });
+    console.log(
+      "[TableComponent] Setting up DOM listeners - BULLETPROOF VERSION",
+    );
+    console.log("[TableComponent] Container available:", !!this.container);
+    console.log(
+      "[TableComponent] Sorting enabled:",
+      this.config.sorting.enabled,
+    );
+
+    // CRITICAL FIX: Ensure container exists before any DOM operations
+    if (!this.container) {
+      console.error(
+        "[TableComponent] No container available for setupDOMListeners - ABORTING",
+      );
+      return;
     }
 
-    // Selection
-    if (this.config.selection.enabled) {
-      // Select all
-      const selectAll = this.container.querySelector(".select-all");
-      if (selectAll) {
-        this.addDOMListener(selectAll, "change", this.handleSelectAll);
+    // CRITICAL FIX: Clear existing DOM listeners to prevent duplicates
+    console.log(
+      "[TableComponent] Clearing existing DOM listeners to prevent duplicates",
+    );
+    this.clearDOMListeners();
+
+    // BULLETPROOF: Use event delegation instead of direct element binding
+    this._setupBulletproofSorting();
+    this._setupBulletproofActions();
+    this._setupNonSortingListeners();
+  }
+
+  /**
+   * Bulletproof sorting setup using event delegation
+   * @private
+   */
+  _setupBulletproofSorting() {
+    try {
+      console.log(
+        "[TableComponent] Setting up bulletproof sorting with event delegation",
+      );
+
+      // Clear any existing sorting listeners
+      this._clearSortingListeners();
+
+      if (!this.config.sorting.enabled) {
+        console.log("[TableComponent] Sorting disabled, skipping setup");
+        return;
       }
 
-      // Individual row selection
-      this.container.querySelectorAll(".row-select").forEach((checkbox) => {
-        this.addDOMListener(checkbox, "change", (e) => {
-          this.handleRowSelect(checkbox.dataset.rowId, e.target.checked);
-        });
-      });
+      // BULLETPROOF APPROACH: Use event delegation on the container
+      // This eliminates DOM timing issues and handles re-renders automatically
+      const sortingHandler = (event) => {
+        // Find the clicked header element
+        const clickedElement = event.target;
+        const headerElement = this._findHeaderElement(clickedElement);
+
+        if (!headerElement) {
+          // Click was not on a sortable header
+          return;
+        }
+
+        // Use multiple methods to identify the column
+        const columnKey = this._identifyColumn(headerElement);
+
+        if (!columnKey) {
+          console.error(
+            "[TableComponent] Could not identify column for sorting",
+          );
+          return;
+        }
+
+        // Prevent default behavior and stop propagation
+        event.preventDefault();
+        event.stopPropagation();
+
+        console.log(`[TableComponent] BULLETPROOF SORT - Column: ${columnKey}`);
+        this.handleSort(columnKey);
+      };
+
+      // Attach single delegated event listener to container
+      this.addDOMListener(this.container, "click", sortingHandler);
+
+      // Store reference for cleanup
+      this._sortingDelegateHandler = sortingHandler;
+
+      console.log(
+        "[TableComponent] ✓ Bulletproof sorting delegation established",
+      );
+    } catch (error) {
+      console.error(
+        "[TableComponent] Error in bulletproof sorting setup:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Find the header element from a clicked target (handles clicks on nested elements)
+   * @private
+   */
+  _findHeaderElement(clickedElement) {
+    // Traverse up the DOM to find the header element
+    let element = clickedElement;
+    let attempts = 0;
+    const maxAttempts = 5; // Prevent infinite loops
+
+    while (element && attempts < maxAttempts) {
+      // Check if this element is a sortable header
+      if (element.tagName === "TH" && this._isHeaderSortable(element)) {
+        return element;
+      }
+
+      // Move up to parent element
+      element = element.parentElement;
+      attempts++;
     }
 
-    // Pagination
-    if (this.config.pagination.enabled) {
-      // Page size
-      const pageSizeSelect = this.container.querySelector(".page-size-select");
-      if (pageSizeSelect) {
-        this.addDOMListener(pageSizeSelect, "change", (e) => {
-          this.handlePageSizeChange(parseInt(e.target.value));
+    return null;
+  }
+
+  /**
+   * Check if a header element is sortable
+   * @private
+   */
+  _isHeaderSortable(element) {
+    // Multiple checks for reliability
+    return (
+      element.classList.contains("sortable") ||
+      element.hasAttribute("data-column") ||
+      (element.getAttribute("aria-sort") &&
+        element.getAttribute("aria-sort") !== "")
+    );
+  }
+
+  /**
+   * Robust column identification with multiple fallback mechanisms
+   * @private
+   */
+  _identifyColumn(headerElement) {
+    console.log(
+      "[TableComponent] Identifying column for header:",
+      headerElement,
+    );
+
+    // Method 1: data-column attribute (primary)
+    const dataColumn = headerElement.getAttribute("data-column");
+    if (dataColumn) {
+      console.log(
+        `[TableComponent] Column identified via data-column: ${dataColumn}`,
+      );
+      return dataColumn;
+    }
+
+    // Method 2: Find column index and map to configuration
+    const headerRow = headerElement.parentElement;
+    const headers = Array.from(headerRow.children);
+    let headerIndex = headers.indexOf(headerElement);
+
+    // Account for selection column if present
+    if (this.config.selection.enabled && headerIndex > 0) {
+      headerIndex--;
+    }
+
+    // Get visible columns and map index
+    const visibleColumns = this.getVisibleColumns();
+    if (headerIndex >= 0 && headerIndex < visibleColumns.length) {
+      const column = visibleColumns[headerIndex];
+      console.log(
+        `[TableComponent] Column identified via index mapping: ${column.key}`,
+      );
+      return column.key;
+    }
+
+    // Method 3: Text content matching (last resort)
+    const headerText = headerElement.textContent.trim();
+    const matchingColumn = this.config.columns.find(
+      (col) => col.label === headerText && col.sortable !== false,
+    );
+
+    if (matchingColumn) {
+      console.log(
+        `[TableComponent] Column identified via text matching: ${matchingColumn.key}`,
+      );
+      return matchingColumn.key;
+    }
+
+    console.error(
+      "[TableComponent] Failed to identify column using all methods",
+    );
+    console.error("[TableComponent] Header element:", headerElement);
+    console.error("[TableComponent] data-column:", dataColumn);
+    console.error("[TableComponent] headerIndex:", headerIndex);
+    console.error("[TableComponent] headerText:", headerText);
+
+    return null;
+  }
+
+  /**
+   * Store sorting listener reference for cleanup
+   * @private
+   */
+  _storeSortingListener(element, handler) {
+    if (!this._sortingListeners) {
+      this._sortingListeners = new Map();
+    }
+    this._sortingListeners.set(element, handler);
+  }
+
+  /**
+   * Clear all sorting listeners to prevent duplicates
+   * @private
+   */
+  _clearSortingListeners() {
+    // Clear old individual listeners (legacy)
+    if (this._sortingListeners) {
+      this._sortingListeners.forEach((handler, element) => {
+        try {
+          element.removeEventListener("click", handler);
+        } catch (error) {
+          console.warn(
+            "[TableComponent] Error removing sorting listener:",
+            error,
+          );
+        }
+      });
+      this._sortingListeners.clear();
+    }
+
+    // Clear new delegate handler
+    if (this._sortingDelegateHandler && this.container) {
+      try {
+        this.container.removeEventListener(
+          "click",
+          this._sortingDelegateHandler,
+        );
+        this._sortingDelegateHandler = null;
+        console.log("[TableComponent] ✓ Delegate sorting handler cleared");
+      } catch (error) {
+        console.warn(
+          "[TableComponent] Error removing delegate sorting handler:",
+          error,
+        );
+      }
+    }
+  }
+
+  /**
+   * Bulletproof action button setup using event delegation
+   * Eliminates click hijacking and race conditions with table re-renders
+   * @private
+   */
+  _setupBulletproofActions() {
+    try {
+      console.log(
+        "[TableComponent] Setting up bulletproof action button delegation",
+      );
+
+      // Clear any existing action listeners
+      this._clearActionListeners();
+
+      // BULLETPROOF APPROACH: Use event delegation on the container
+      // This eliminates DOM timing issues and handles re-renders automatically
+      const actionHandler = (event) => {
+        // Find the clicked action button element
+        const clickedElement = event.target;
+        const actionButton = this._findActionButton(clickedElement);
+
+        if (!actionButton) {
+          // Click was not on an action button
+          return;
+        }
+
+        // Extract action data from button
+        const actionData = this._extractActionData(actionButton);
+
+        if (!actionData.action || !actionData.rowId) {
+          console.error(
+            "[TableComponent] Could not extract action data from button",
+          );
+          return;
+        }
+
+        // CRITICAL: Prevent default behavior and stop propagation immediately
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        console.log(
+          `[TableComponent] BULLETPROOF ACTION - Action: ${actionData.action}, Row: ${actionData.rowId}`,
+        );
+
+        // Add a small delay to ensure this executes before any potential re-render
+        setTimeout(() => {
+          this.handleRowAction(actionData.action, actionData.rowId);
+        }, 5);
+      };
+
+      // Attach single delegated event listener to container
+      this.addDOMListener(this.container, "click", actionHandler);
+
+      // Store reference for cleanup
+      this._actionDelegateHandler = actionHandler;
+
+      console.log(
+        "[TableComponent] ✓ Bulletproof action delegation established",
+      );
+    } catch (error) {
+      console.error(
+        "[TableComponent] Error in bulletproof action setup:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Find the action button element from a clicked target (handles clicks on nested elements)
+   * @private
+   */
+  _findActionButton(clickedElement) {
+    // Traverse up the DOM to find the action button element
+    let element = clickedElement;
+    let attempts = 0;
+    const maxAttempts = 5; // Prevent infinite loops
+
+    while (element && attempts < maxAttempts) {
+      // Check if this element is an action button
+      if (element.tagName === "BUTTON" && this._isActionButton(element)) {
+        return element;
+      }
+
+      // Move up to parent element
+      element = element.parentElement;
+      attempts++;
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if a button element is an action button
+   * @private
+   */
+  _isActionButton(element) {
+    // Multiple checks for reliability
+    return (
+      element.classList.contains("action-btn") ||
+      element.hasAttribute("data-action") ||
+      element.hasAttribute("data-row-id")
+    );
+  }
+
+  /**
+   * Extract action data from button element
+   * @private
+   */
+  _extractActionData(buttonElement) {
+    console.log(
+      "[TableComponent] Extracting action data from button:",
+      buttonElement,
+    );
+
+    const action = buttonElement.getAttribute("data-action");
+    const rowId = buttonElement.getAttribute("data-row-id");
+
+    console.log(
+      `[TableComponent] Extracted action: ${action}, rowId: ${rowId}`,
+    );
+
+    return { action, rowId };
+  }
+
+  /**
+   * Clear all action listeners to prevent duplicates
+   * @private
+   */
+  _clearActionListeners() {
+    // Clear new delegate handler
+    if (this._actionDelegateHandler && this.container) {
+      try {
+        this.container.removeEventListener(
+          "click",
+          this._actionDelegateHandler,
+        );
+        this._actionDelegateHandler = null;
+        console.log("[TableComponent] ✓ Delegate action handler cleared");
+      } catch (error) {
+        console.warn(
+          "[TableComponent] Error removing delegate action handler:",
+          error,
+        );
+      }
+    }
+  }
+
+  /**
+   * Setup non-sorting event listeners
+   * @private
+   */
+  _setupNonSortingListeners() {
+    try {
+      console.log("[TableComponent] Setting up non-sorting listeners");
+
+      // DEFENSIVE: Ensure container still exists
+      if (!this.container) {
+        console.error(
+          "[TableComponent] Container lost during non-sorting listener setup",
+        );
+        return;
+      }
+
+      // Selection
+      if (this.config.selection.enabled) {
+        // Select all
+        const selectAll = this.container.querySelector(".select-all");
+        if (selectAll) {
+          this.addDOMListener(selectAll, "change", this.handleSelectAll);
+          console.log("[TableComponent] ✓ Select-all listener attached");
+        } else {
+          console.log(
+            "[TableComponent] No select-all element found (selection may be disabled)",
+          );
+        }
+
+        // Individual row selection
+        const rowSelectors = this.container.querySelectorAll(".row-select");
+        console.log(
+          `[TableComponent] Found ${rowSelectors.length} row selection checkboxes`,
+        );
+        rowSelectors.forEach((checkbox, index) => {
+          this.addDOMListener(checkbox, "change", (e) => {
+            this.handleRowSelect(checkbox.dataset.rowId, e.target.checked);
+          });
         });
+        if (rowSelectors.length > 0) {
+          console.log(
+            `[TableComponent] ✓ ${rowSelectors.length} row selection listeners attached`,
+          );
+        }
       }
 
-      // Navigation buttons
-      const firstBtn = this.container.querySelector(".pagination-first");
-      if (firstBtn) {
-        this.addDOMListener(firstBtn, "click", () => this.goToPage(1));
-      }
+      // CRITICAL FIX: Page Size Event Delegation with Extensive Debugging
+      if (this.config.pagination.enabled) {
+        console.log(
+          "[TableComponent] PAGINATION DEBUG: Setting up page size event delegation",
+        );
 
-      const prevBtn = this.container.querySelector(".pagination-prev");
-      if (prevBtn) {
-        this.addDOMListener(prevBtn, "click", () =>
-          this.goToPage(this.config.pagination.currentPage - 1),
+        // Find ALL page size dropdowns in container
+        const pageSizeSelects =
+          this.container.querySelectorAll(".page-size-select");
+        console.log(
+          `[TableComponent] PAGINATION DEBUG: Found ${pageSizeSelects.length} page size dropdowns`,
+        );
+
+        // Set up event delegation on container for any page size changes
+        const pageSizeHandler = (event) => {
+          console.log(
+            "[TableComponent] PAGINATION DEBUG: Page size event detected:",
+            event,
+          );
+          console.log(
+            "[TableComponent] PAGINATION DEBUG: Event target:",
+            event.target,
+          );
+          console.log(
+            "[TableComponent] PAGINATION DEBUG: Event target class list:",
+            event.target.classList,
+          );
+
+          // Check if this is a page size select change
+          if (
+            event.target &&
+            event.target.classList.contains("page-size-select")
+          ) {
+            const newSize = parseInt(event.target.value);
+            console.log(
+              `[TableComponent] PAGINATION DEBUG: Page size change detected: ${newSize}`,
+            );
+
+            // Prevent event from propagating to avoid double handling
+            event.stopPropagation();
+
+            // Handle the page size change
+            this.handlePageSizeChange(newSize);
+            return;
+          }
+        };
+
+        // Attach delegated event listener for page size changes
+        this.addDOMListener(this.container, "change", pageSizeHandler);
+        console.log(
+          "[TableComponent] PAGINATION DEBUG: ✓ Page size event delegation attached to container",
+        );
+
+        // Also try direct listeners as fallback
+        pageSizeSelects.forEach((select, index) => {
+          console.log(
+            `[TableComponent] PAGINATION DEBUG: Setting up direct listener ${index} on:`,
+            select,
+          );
+          this.addDOMListener(select, "change", (e) => {
+            console.log(
+              `[TableComponent] PAGINATION DEBUG: Direct listener ${index} triggered with value:`,
+              e.target.value,
+            );
+            this.handlePageSizeChange(parseInt(e.target.value));
+          });
+        });
+
+        if (pageSizeSelects.length > 0) {
+          console.log(
+            `[TableComponent] PAGINATION DEBUG: ✓ ${pageSizeSelects.length} direct page size listeners attached`,
+          );
+        } else {
+          console.warn(
+            "[TableComponent] PAGINATION DEBUG: ⚠ No .page-size-select elements found for direct listeners",
+          );
+        }
+
+        // Navigation buttons with defensive checks and unique identification
+        const firstBtn = this.container.querySelector(".pagination-first");
+        if (firstBtn) {
+          // Give unique ID if not present to ensure proper listener tracking
+          if (!firstBtn.id) {
+            firstBtn.id = `pagination-first-${this.id || Date.now()}`;
+          }
+          this.addDOMListener(firstBtn, "click", () => this.goToPage(1));
+        }
+
+        const prevBtn = this.container.querySelector(".pagination-prev");
+        if (prevBtn) {
+          if (!prevBtn.id) {
+            prevBtn.id = `pagination-prev-${this.id || Date.now()}`;
+          }
+          this.addDOMListener(prevBtn, "click", () =>
+            this.goToPage(this.config.pagination.currentPage - 1),
+          );
+        }
+
+        const nextBtn = this.container.querySelector(".pagination-next");
+        if (nextBtn) {
+          if (!nextBtn.id) {
+            nextBtn.id = `pagination-next-${this.id || Date.now()}`;
+          }
+          this.addDOMListener(nextBtn, "click", () =>
+            this.goToPage(this.config.pagination.currentPage + 1),
+          );
+        }
+
+        const lastBtn = this.container.querySelector(".pagination-last");
+        if (lastBtn) {
+          if (!lastBtn.id) {
+            lastBtn.id = `pagination-last-${this.id || Date.now()}`;
+          }
+          this.addDOMListener(lastBtn, "click", () => {
+            const totalPages = Math.ceil(
+              this.filteredData.length / this.config.pagination.pageSize,
+            );
+            this.goToPage(totalPages);
+          });
+        }
+
+        const paginationButtons = [firstBtn, prevBtn, nextBtn, lastBtn].filter(
+          Boolean,
+        );
+        console.log(
+          `[TableComponent] ✓ ${paginationButtons.length} pagination button listeners attached`,
         );
       }
 
-      const nextBtn = this.container.querySelector(".pagination-next");
-      if (nextBtn) {
-        this.addDOMListener(nextBtn, "click", () =>
-          this.goToPage(this.config.pagination.currentPage + 1),
+      // Row actions - NOW HANDLED BY BULLETPROOF DELEGATION
+      // No direct listeners needed - all action buttons handled by _setupBulletproofActions()
+      const actionButtons = this.container.querySelectorAll(".action-btn");
+      console.log(
+        `[TableComponent] Found ${actionButtons.length} action buttons (handled by delegation)`,
+      );
+      if (actionButtons.length > 0) {
+        console.log(
+          `[TableComponent] ✓ ${actionButtons.length} action buttons will be handled by bulletproof delegation`,
         );
       }
 
-      const lastBtn = this.container.querySelector(".pagination-last");
-      if (lastBtn) {
-        const totalPages = Math.ceil(
-          this.filteredData.length / this.config.pagination.pageSize,
+      // Export buttons
+      const exportButtons = this.container.querySelectorAll(".btn-export");
+      exportButtons.forEach((btn) => {
+        this.addDOMListener(btn, "click", () => {
+          this.exportData(btn.dataset.format);
+        });
+      });
+      if (exportButtons.length > 0) {
+        console.log(
+          `[TableComponent] ✓ ${exportButtons.length} export button listeners attached`,
         );
-        this.addDOMListener(lastBtn, "click", () => this.goToPage(totalPages));
       }
-    }
 
-    // Row actions
-    this.container.querySelectorAll(".action-btn").forEach((btn) => {
-      this.addDOMListener(btn, "click", () => {
-        this.handleRowAction(btn.dataset.action, btn.dataset.rowId);
-      });
-    });
+      // Column visibility toggle
+      const columnToggle = this.container.querySelector(".btn-column-toggle");
+      if (columnToggle) {
+        this.addDOMListener(columnToggle, "click", () => {
+          const dropdown = this.container.querySelector(".column-dropdown");
+          if (dropdown) {
+            dropdown.classList.toggle("hidden");
+          }
+        });
+        console.log("[TableComponent] ✓ Column toggle listener attached");
+      }
 
-    // Export buttons
-    this.container.querySelectorAll(".btn-export").forEach((btn) => {
-      this.addDOMListener(btn, "click", () => {
-        this.exportData(btn.dataset.format);
-      });
-    });
-
-    // Column visibility toggle
-    const columnToggle = this.container.querySelector(".btn-column-toggle");
-    if (columnToggle) {
-      this.addDOMListener(columnToggle, "click", () => {
-        const dropdown = this.container.querySelector(".column-dropdown");
-        dropdown.classList.toggle("hidden");
-      });
-    }
-
-    // Column visibility checkboxes
-    this.container
-      .querySelectorAll(".column-option input")
-      .forEach((checkbox) => {
+      // Column visibility checkboxes
+      const columnCheckboxes = this.container.querySelectorAll(
+        ".column-option input",
+      );
+      columnCheckboxes.forEach((checkbox) => {
         this.addDOMListener(checkbox, "change", () => {
           this.toggleColumnVisibility(
             checkbox.dataset.column,
@@ -887,33 +1508,220 @@ class TableComponent extends BaseComponent {
           );
         });
       });
+      if (columnCheckboxes.length > 0) {
+        console.log(
+          `[TableComponent] ✓ ${columnCheckboxes.length} column visibility listeners attached`,
+        );
+      }
+
+      console.log(
+        "[TableComponent] ✓ All non-sorting DOM listeners setup complete",
+      );
+    } catch (error) {
+      console.error(
+        "[TableComponent] Error setting up non-sorting listeners:",
+        error,
+      );
+    }
   }
 
   /**
-   * Event handlers
+   * Event handlers - BULLETPROOF SORTING WITH COMPREHENSIVE VALIDATION
    */
   handleSort(column) {
-    if (this.config.sorting.column === column) {
-      // Toggle direction
-      this.config.sorting.direction =
-        this.config.sorting.direction === "asc" ? "desc" : "asc";
-    } else {
-      // New column
-      this.config.sorting.column = column;
-      this.config.sorting.direction = "asc";
+    console.log(
+      `[TableComponent] BULLETPROOF handleSort called with column: '${column}'`,
+    );
+
+    // VALIDATION LAYER 1: Basic input validation
+    if (!column || typeof column !== "string") {
+      console.error("[TableComponent] Invalid column parameter:", column);
+      return;
     }
 
-    this.processData();
-    this.render();
+    // VALIDATION LAYER 2: Check if sorting is enabled
+    if (!this.config.sorting.enabled) {
+      console.error("[TableComponent] Sorting is disabled");
+      return;
+    }
 
-    this.emit("sort", {
+    // VALIDATION LAYER 3: Validate column exists in configuration
+    const columnConfig = this.config.columns.find((col) => col.key === column);
+    if (!columnConfig) {
+      console.error(
+        `[TableComponent] Column '${column}' not found in table configuration`,
+      );
+      console.error(
+        "[TableComponent] Available columns:",
+        this.config.columns.map((c) => c.key),
+      );
+      return;
+    }
+
+    // VALIDATION LAYER 4: Check if column is sortable
+    if (columnConfig.sortable === false) {
+      console.error(`[TableComponent] Column '${column}' is not sortable`);
+      return;
+    }
+
+    // VALIDATION LAYER 5: Check component state
+    if (!this.config.data || !Array.isArray(this.config.data)) {
+      console.error("[TableComponent] Invalid data state for sorting");
+      return;
+    }
+
+    // Log current state for debugging
+    console.log(`[TableComponent] Current sorting state:`, {
       column: this.config.sorting.column,
       direction: this.config.sorting.direction,
     });
+    console.log(`[TableComponent] Column config:`, {
+      key: columnConfig.key,
+      label: columnConfig.label,
+      sortable: columnConfig.sortable,
+    });
 
-    this.announce(
-      `Table sorted by ${column} ${this.config.sorting.direction}ending`,
-    );
+    // ATOMIC STATE UPDATE: Update sorting configuration atomically
+    const previousSortColumn = this.config.sorting.column;
+    const previousSortDirection = this.config.sorting.direction;
+
+    try {
+      if (this.config.sorting.column === column) {
+        // Toggle direction for same column
+        this.config.sorting.direction =
+          this.config.sorting.direction === "asc" ? "desc" : "asc";
+        console.log(
+          `[TableComponent] Toggling sort direction for column '${column}' to '${this.config.sorting.direction}'`,
+        );
+      } else {
+        // New column - set to ascending
+        this.config.sorting.column = column;
+        this.config.sorting.direction = "asc";
+        console.log(
+          `[TableComponent] Setting new sort column '${column}' with direction 'asc'`,
+        );
+      }
+
+      // ATOMIC OPERATION: Process data and re-render
+      console.log(
+        `[TableComponent] Processing data with new sort state:`,
+        this.config.sorting,
+      );
+      this.processData();
+
+      console.log(`[TableComponent] Re-rendering table with updated sort`);
+      this.render();
+
+      // VERIFICATION: Check that the sorting was applied correctly
+      this._verifySortingState(column, columnConfig);
+
+      // Emit sort event
+      this.emit("sort", {
+        column: this.config.sorting.column,
+        direction: this.config.sorting.direction,
+      });
+
+      // Accessibility announcement
+      const columnLabel = columnConfig.label;
+      const direction =
+        this.config.sorting.direction === "asc" ? "ascending" : "descending";
+      this.announce(`Table sorted by ${columnLabel} ${direction}`);
+
+      console.log(
+        `[TableComponent] ✓ Sorting completed successfully for column '${column}'`,
+      );
+    } catch (error) {
+      // ROLLBACK: Restore previous state on error
+      console.error(
+        "[TableComponent] Error during sorting, rolling back:",
+        error,
+      );
+      this.config.sorting.column = previousSortColumn;
+      this.config.sorting.direction = previousSortDirection;
+
+      // Try to restore previous state
+      try {
+        this.processData();
+        this.render();
+      } catch (rollbackError) {
+        console.error(
+          "[TableComponent] Failed to rollback sorting state:",
+          rollbackError,
+        );
+      }
+    }
+  }
+
+  /**
+   * Verify that sorting state was applied correctly to DOM
+   * @private
+   */
+  _verifySortingState(expectedColumn, expectedColumnConfig) {
+    try {
+      console.log(
+        `[TableComponent] Verifying sorting state for column '${expectedColumn}'`,
+      );
+
+      // Find the header for the sorted column
+      const headerElements = this.container.querySelectorAll("th[data-column]");
+      let sortedHeaderFound = false;
+      let correctIndicatorFound = false;
+
+      headerElements.forEach((header) => {
+        const columnKey = header.getAttribute("data-column");
+        const ariaSortValue = header.getAttribute("aria-sort");
+        const hasSortedClass = header.classList.contains("sorted");
+
+        if (columnKey === expectedColumn) {
+          sortedHeaderFound = true;
+
+          // Check if this header has the correct sorting indicators
+          if (
+            hasSortedClass &&
+            ariaSortValue === this.config.sorting.direction
+          ) {
+            correctIndicatorFound = true;
+            console.log(
+              `[TableComponent] ✓ Correct sorting indicators found on column '${expectedColumn}'`,
+            );
+          } else {
+            console.warn(
+              `[TableComponent] ⚠ Sorting indicators may be incorrect:`,
+              {
+                column: columnKey,
+                hasSortedClass,
+                ariaSortValue,
+                expectedDirection: this.config.sorting.direction,
+              },
+            );
+          }
+        } else {
+          // Other headers should not have sorted class
+          if (hasSortedClass) {
+            console.warn(
+              `[TableComponent] ⚠ Header '${columnKey}' incorrectly has sorted class`,
+            );
+          }
+        }
+      });
+
+      if (!sortedHeaderFound) {
+        console.error(
+          `[TableComponent] ✗ Header for sorted column '${expectedColumn}' not found in DOM`,
+        );
+      }
+
+      if (!correctIndicatorFound) {
+        console.error(
+          `[TableComponent] ✗ Correct sorting indicators not found for column '${expectedColumn}'`,
+        );
+      }
+
+      return sortedHeaderFound && correctIndicatorFound;
+    } catch (error) {
+      console.error("[TableComponent] Error verifying sorting state:", error);
+      return false;
+    }
   }
 
   handleRowSelect(rowId, selected) {
@@ -944,7 +1752,7 @@ class TableComponent extends BaseComponent {
     if (checked) {
       // Select all visible rows
       this.paginatedData.forEach((row) => {
-        const rowId = row.id || this.config.data.indexOf(row);
+        const rowId = this.getRowId(row);
         this.config.selection.selectedRows.add(rowId);
       });
     } else {
@@ -973,20 +1781,123 @@ class TableComponent extends BaseComponent {
     this.goToPage(page);
   }
 
+  /**
+   * Handle page size change with comprehensive debugging
+   * @param {number} size - New page size
+   */
   handlePageSizeChange(size) {
-    this.setPageSize(size);
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: handlePageSizeChange called with size: ${size}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Current page size: ${this.config.pagination.pageSize}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Current page: ${this.config.pagination.currentPage}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Total data items: ${this.config.data.length}`,
+    );
+
+    try {
+      // Validate the size parameter
+      if (!size || isNaN(size) || size <= 0) {
+        console.error(
+          `[TableComponent] PAGINATION DEBUG: Invalid page size: ${size}`,
+        );
+        return;
+      }
+
+      console.log(
+        `[TableComponent] PAGINATION DEBUG: Calling setPageSize(${size})`,
+      );
+      this.setPageSize(size);
+
+      console.log(
+        `[TableComponent] PAGINATION DEBUG: ✓ Page size change completed successfully`,
+      );
+      console.log(
+        `[TableComponent] PAGINATION DEBUG: New page size: ${this.config.pagination.pageSize}`,
+      );
+      console.log(
+        `[TableComponent] PAGINATION DEBUG: New page: ${this.config.pagination.currentPage}`,
+      );
+    } catch (error) {
+      console.error(
+        "[TableComponent] PAGINATION DEBUG: Error in handlePageSizeChange:",
+        error,
+      );
+      throw error;
+    }
   }
 
   handleRowAction(action, rowId) {
-    const row = this.config.data.find(
-      (r) => (r.id || this.config.data.indexOf(r)) == rowId,
+    console.log("[TableComponent] DEBUG: handleRowAction called", {
+      action,
+      rowId,
+    });
+    console.log(
+      "[TableComponent] DEBUG: Primary key config:",
+      this.config.primaryKey,
+    );
+    console.log(
+      "[TableComponent] DEBUG: First few rows:",
+      this.config.data.slice(0, 2),
     );
 
-    this.emit("rowAction", {
+    const row = this.config.data.find((r) => this.getRowId(r) == rowId);
+
+    console.log("[TableComponent] DEBUG: Found row:", row);
+    console.log(
+      "[TableComponent] DEBUG: getRowId for first row:",
+      this.getRowId(this.config.data[0]),
+    );
+
+    // CRITICAL FIX: Emit through orchestrator for global events, fallback to local emit
+    const eventData = {
       action,
       rowId,
       row,
-    });
+      data: row, // Add data alias for BaseEntityManager compatibility
+    };
+
+    console.log(
+      "[TableComponent] DEBUG: Emitting table:action event with data:",
+      eventData,
+    );
+
+    if (this.orchestrator && typeof this.orchestrator.emit === "function") {
+      console.log(
+        "[TableComponent] DEBUG: Using orchestrator.emit() for global event",
+      );
+      this.orchestrator.emit("table:action", eventData);
+    } else {
+      console.warn(
+        "[TableComponent] DEBUG: No orchestrator available, using local emit()",
+      );
+      console.warn("[TableComponent] DEBUG: Orchestrator:", this.orchestrator);
+      console.warn(
+        "[TableComponent] DEBUG: window.currentEntityManager:",
+        window.currentEntityManager,
+      );
+
+      // Fallback: Try to emit through currentEntityManager if available
+      if (
+        window.currentEntityManager &&
+        typeof window.currentEntityManager.emit === "function"
+      ) {
+        console.log(
+          "[TableComponent] DEBUG: Using window.currentEntityManager.emit() as fallback",
+        );
+        window.currentEntityManager.emit("table:action", eventData);
+      } else {
+        console.error(
+          "[TableComponent] DEBUG: No orchestrator or currentEntityManager available - event will not reach BaseEntityManager!",
+        );
+        // Still emit locally in case there are component-level listeners
+        this.emit("table:action", eventData);
+      }
+    }
   }
 
   /**
@@ -1055,7 +1966,16 @@ class TableComponent extends BaseComponent {
   setData(data) {
     this.config.data = data;
     this.processData();
-    this.render();
+
+    // CRITICAL FIX: Only render if component is initialized
+    // Prevents "Component not initialized" errors during early data updates
+    if (this.initialized) {
+      this.render();
+    } else {
+      // Queue render for after initialization
+      this.logDebug("setData called before initialization, deferring render");
+      this._deferredRender = true;
+    }
   }
 
   /**
@@ -1114,13 +2034,130 @@ class TableComponent extends BaseComponent {
     this.announce(`Page ${page} of ${totalPages}`);
   }
 
+  /**
+   * Set page size with comprehensive debugging and event emission
+   * @param {number} size - New page size
+   */
   setPageSize(size) {
-    this.config.pagination.pageSize = size;
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: setPageSize called with: ${size}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Previous page size: ${this.config.pagination.pageSize}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Previous current page: ${this.config.pagination.currentPage}`,
+    );
+
+    // Validate size
+    const validSize = parseInt(size);
+    if (isNaN(validSize) || validSize <= 0 || validSize > 1000) {
+      console.error(
+        `[TableComponent] PAGINATION DEBUG: Invalid page size value: ${size} -> ${validSize}`,
+      );
+      return;
+    }
+
+    // Check if size actually changed
+    if (this.config.pagination.pageSize === validSize) {
+      console.log(
+        `[TableComponent] PAGINATION DEBUG: Page size unchanged (${validSize}), skipping update`,
+      );
+      return;
+    }
+
+    const oldPageSize = this.config.pagination.pageSize;
+    const oldPage = this.config.pagination.currentPage;
+
+    // Update configuration
+    this.config.pagination.pageSize = validSize;
     this.config.pagination.currentPage = 1; // Reset to first page
+
+    console.log(`[TableComponent] PAGINATION DEBUG: Configuration updated:`);
+    console.log(
+      `[TableComponent] PAGINATION DEBUG:   pageSize: ${oldPageSize} -> ${this.config.pagination.pageSize}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG:   currentPage: ${oldPage} -> ${this.config.pagination.currentPage}`,
+    );
+
+    // Process data with new pagination
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Processing data with new page size`,
+    );
     this.processData();
+
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Paginated data length: ${this.paginatedData.length}`,
+    );
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Filtered data length: ${this.filteredData.length}`,
+    );
+
+    // Re-render table
+    console.log(`[TableComponent] PAGINATION DEBUG: Re-rendering table`);
     this.render();
 
-    this.emit("pageSizeChange", { pageSize: size });
+    // Emit events for external listeners
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: Emitting pageSizeChange event`,
+    );
+    this.emit("pageSizeChange", {
+      pageSize: validSize,
+      previousPageSize: oldPageSize,
+      currentPage: this.config.pagination.currentPage,
+      previousPage: oldPage,
+    });
+
+    // Also emit a more generic pagination change event
+    this.emit("paginationChange", {
+      type: "pageSize",
+      pageSize: validSize,
+      previousPageSize: oldPageSize,
+      currentPage: this.config.pagination.currentPage,
+      previousPage: oldPage,
+    });
+
+    console.log(
+      `[TableComponent] PAGINATION DEBUG: ✓ setPageSize completed successfully`,
+    );
+  }
+
+  /**
+   * Force re-render of the component (clears initialization and rendered state)
+   * Used when container changes or component needs to be completely refreshed
+   * BULLETPROOF VERSION: Properly handles event delegation cleanup
+   */
+  forceRerender() {
+    console.log("[TableComponent] BULLETPROOF force re-render requested");
+
+    // Clear sorting listeners to prevent duplicates (including delegate handler)
+    this._clearSortingListeners();
+
+    // Clear action listeners to prevent duplicates
+    this._clearActionListeners();
+
+    // Reset initialization state
+    this.initialized = false;
+
+    // Clear any pending timers
+    if (this._retryTimer) {
+      clearTimeout(this._retryTimer);
+      this._retryTimer = null;
+    }
+
+    // Clear delegate handler references
+    this._sortingDelegateHandler = null;
+    this._actionDelegateHandler = null;
+
+    // Clear legacy listener storage
+    if (this._sortingListeners) {
+      this._sortingListeners.clear();
+    }
+
+    console.log(
+      "[TableComponent] ✓ Component state reset for bulletproof re-render",
+    );
   }
 
   setLoading(loading) {
@@ -1214,7 +2251,7 @@ class TableComponent extends BaseComponent {
     // Export filtered data or selected rows
     if (this.config.selection.selectedRows.size > 0) {
       return this.filteredData.filter((row) => {
-        const rowId = row.id || this.config.data.indexOf(row);
+        const rowId = this.getRowId(row);
         return this.config.selection.selectedRows.has(rowId);
       });
     }
@@ -1250,7 +2287,7 @@ class TableComponent extends BaseComponent {
     this.downloadFile(json, "data.json", "application/json");
   }
 
-  exportAsExcel(data) {
+  exportAsExcel(_data) {
     // This would require a library like SheetJS in production
     console.warn("Excel export requires additional library");
     this.emit("exportError", { format: "xlsx", error: "Not implemented" });
@@ -1307,7 +2344,7 @@ class TableComponent extends BaseComponent {
     if (this.paginatedData.length === 0) return false;
 
     return this.paginatedData.every((row) => {
-      const rowId = row.id || this.config.data.indexOf(row);
+      const rowId = this.getRowId(row);
       return this.config.selection.selectedRows.has(rowId);
     });
   }
@@ -1332,9 +2369,54 @@ class TableComponent extends BaseComponent {
   }
 
   /**
+   * Component cleanup - BULLETPROOF VERSION
+   */
+  onDestroy() {
+    console.log("[TableComponent] BULLETPROOF cleanup starting");
+
+    // Clean up sorting listeners (including delegate handler)
+    this._clearSortingListeners();
+
+    // Clean up action listeners (including delegate handler)
+    this._clearActionListeners();
+
+    // Clean up any timers or intervals
+    if (this._retryTimer) {
+      clearTimeout(this._retryTimer);
+      this._retryTimer = null;
+    }
+
+    // Clear references to prevent memory leaks
+    this._sortingDelegateHandler = null;
+    this._actionDelegateHandler = null;
+    if (this._sortingListeners) {
+      this._sortingListeners.clear();
+      this._sortingListeners = null;
+    }
+
+    // Clear any cached DOM references
+    this.processedData = [];
+    this.filteredData = [];
+    this.paginatedData = [];
+
+    console.log(
+      "[TableComponent] ✓ BULLETPROOF component destroyed and cleaned up",
+    );
+  }
+
+  /**
    * Responsive handling
    */
   onBreakpointChange(breakpoint) {
+    // CRITICAL FIX: Only process if component is initialized
+    // Prevents "Component not initialized" errors during responsive events
+    if (!this.initialized) {
+      this.logDebug(
+        "onBreakpointChange called before initialization, ignoring",
+      );
+      return;
+    }
+
     // Adjust table layout for mobile
     if (breakpoint === "mobile") {
       this.config.pagination.pageSize = 10;

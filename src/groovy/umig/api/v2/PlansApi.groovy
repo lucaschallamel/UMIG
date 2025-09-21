@@ -27,12 +27,15 @@ final Logger logger = LogManager.getLogger(getClass())
  * - GET /plans/master -> returns all master plans
  * - GET /plans/master/{id} -> returns specific master plan
  * - GET /plans/instance/{id} -> returns specific plan instance
+ * - GET /plans/templates -> returns plan templates with usage statistics (US-084)
+ * - GET /plans/usage/{planId} -> returns iterations using a plan template (US-084)
  * - GET /plans?migrationId={uuid} -> returns plans in a migration
  * - GET /plans?iterationId={uuid} -> returns plans in an iteration
  * - GET /plans?teamId={int} -> returns plans owned by a team
  * - GET /plans?statusId={int} -> returns plans with specific status
- * 
+ *
  * Multiple filters can be combined for progressive refinement.
+ * US-084 endpoints treat plans as independent templates with usage tracking.
  */
 plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
@@ -69,6 +72,175 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         }
     }
     
+    // GET /plans/templates - Returns plan templates with usage statistics (US-084)
+    if (pathParts.size() == 1 && pathParts[0] == 'templates') {
+        try {
+            // Extract and validate query parameters
+            def filters = [:]
+            def pageNumber = 1
+            def pageSize = 50
+            def sortField = 'name'
+            def sortDirection = 'asc'
+
+            queryParams.keySet().each { param ->
+                def value = queryParams.getFirst(param)
+                switch (param) {
+                    case 'page':
+                        pageNumber = Integer.parseInt(value as String)
+                        break
+                    case 'size':
+                        pageSize = Integer.parseInt(value as String)
+                        break
+                    case 'sort':
+                        sortField = value as String
+                        break
+                    case 'direction':
+                        sortDirection = value as String
+                        break
+                    case 'search':
+                    case 'status':
+                    case 'teamId':
+                    case 'team':  // Support both teamId and team
+                        filters[param == 'team' ? 'teamId' : param] = value
+                        break
+                    case 'minUsage':
+                    case 'maxUsage':
+                        filters[param] = Integer.parseInt(value as String)
+                        break
+                    case 'lastUsedAfter':
+                    case 'lastUsedBefore':
+                        filters[param] = value
+                        break
+                }
+            }
+
+            PlanRepository planRepository = getPlanRepository()
+
+            // Fetch templates with usage statistics
+            def result = planRepository.findTemplatesWithUsageStats(filters, pageNumber, pageSize, sortField, sortDirection) as Map
+
+            // Transform to US-084 response format
+            def templates = (result.data as List).collect { templateRow ->
+                def template = templateRow as Map
+                [
+                    // Template identity
+                    planId: template.plm_id,
+                    name: template.plm_name,
+                    description: template.plm_description,
+                    type: "template",
+                    status: template.plm_status,
+
+                    // Usage statistics
+                    activeIterationsCount: template.active_iterations_count ?: 0,
+                    totalIterationsCount: template.total_iterations_count ?: 0,
+                    lastUsed: template.last_used,
+                    canBeDeleted: template.active_iterations_count == 0,
+
+                    // Metadata
+                    created: template.created_at,
+                    lastModified: template.updated_at,
+                    author: template.author_name,
+                    teamId: template.tms_id,
+                    teamName: template.tms_name,
+
+                    // US-084 relationship indicator
+                    relationshipType: "independent_template"
+                ]
+            }
+
+            def response = [
+                data: templates,
+                pagination: result.pagination,
+                filters: result.filters,
+                hierarchyModel: "corrected"  // US-084 marker
+            ]
+
+            return Response.ok(new JsonBuilder(response).toString())
+                .header("X-Hierarchy-Model", "corrected")
+                .build()
+
+        } catch (Exception e) {
+            logger.error("Failed to fetch plan templates", e)
+            return Response.status(500)
+                .entity(new JsonBuilder([
+                    error: "Failed to fetch plan templates",
+                    message: e.message
+                ]).toString())
+                .build()
+        }
+    }
+
+    // GET /plans/usage/{planId} - Returns all iterations using this plan template (US-084)
+    if (pathParts.size() == 2 && pathParts[0] == 'usage') {
+        try {
+            def planId = UUID.fromString(pathParts[1])
+            PlanRepository planRepository = getPlanRepository()
+
+            // Get template details
+            def template = planRepository.findMasterPlanById(planId)
+            if (!template) {
+                return Response.status(404)
+                    .entity(new JsonBuilder([error: "Plan template not found"]).toString())
+                    .build()
+            }
+
+            // Get usage statistics
+            def usage = planRepository.findTemplateUsage(planId) as Map
+
+            // Build response
+            def response = [
+                template: [
+                    planId: (template as Map).plm_id,
+                    name: (template as Map).plm_name,
+                    description: (template as Map).plm_description,
+                    type: "template"
+                ],
+                usage: [
+                    activeIterationsCount: usage.activeCount,
+                    totalIterationsCount: usage.totalCount,
+                    iterations: (usage.iterations as List).collect { iterationRow ->
+                        def iteration = iterationRow as Map
+                        [
+                            iterationId: iteration.ite_id,
+                            iterationName: iteration.ite_name,
+                            migrationId: iteration.mig_id,
+                            migrationName: iteration.mig_name,
+                            planInstanceId: iteration.pli_id,
+                            status: iteration.ite_status,
+                            createdFromTemplate: iteration.created_at,
+                            lastModified: iteration.updated_at,
+                            hasCustomizations: iteration.has_customizations,
+                            relationshipType: "junction"  // US-084 clarity
+                        ]
+                    }
+                ],
+                statistics: [
+                    firstUsed: usage.firstUsed,
+                    lastUsed: usage.lastUsed,
+                    averageCustomizationRate: usage.customizationRate,
+                    successRate: usage.successRate
+                ]
+            ]
+
+            return Response.ok(new JsonBuilder(response).toString())
+                .header("X-Hierarchy-Model", "corrected")
+                .build()
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(400)
+                .entity(new JsonBuilder([error: "Invalid plan ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            logger.error("Failed to fetch plan usage", e)
+            return Response.status(500)
+                .entity(new JsonBuilder([
+                    error: "Failed to fetch plan usage",
+                    message: e.message
+                ]).toString())
+                .build()
+        }
+    }
+
     // GET /plans/master - return master plans with pagination, filtering, and sorting
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
@@ -190,7 +362,7 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     usr_id_owner: plan.usr_id_owner,
                     owner_name: plan.owner_name,
                     master_plan_name: plan.plm_name,
-                    iteration_name: plan.itr_name,
+                    iteration_name: plan.ite_name,
                     migration_name: plan.mig_name,
                     created_at: plan.created_at,
                     updated_at: plan.updated_at

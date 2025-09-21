@@ -15,7 +15,8 @@
  */
 class StepsAPIv2Client {
   constructor() {
-    this.baseUrl = "/rest/scriptrunner/latest/custom";
+    this.baseUrl =
+      (AJS.contextPath() || "/confluence") + "/rest/scriptrunner/latest/custom";
     this.endpoint = "/steps";
     this.cache = new Map();
     this.maxCacheSize = 100; // Maximum cache entries for memory management
@@ -85,6 +86,16 @@ class StepsAPIv2Client {
     queryParams.append("enhanced", "true");
 
     const url = `${this.baseUrl}${this.endpoint}?${queryParams.toString()}`;
+
+    // ENHANCED DEBUG: Log complete API call details
+    console.log("=== API CLIENT DEBUG ===");
+    console.log("StepsAPIv2: Base URL:", this.baseUrl);
+    console.log("StepsAPIv2: Endpoint:", this.endpoint);
+    console.log(
+      "StepsAPIv2: Query Params Object:",
+      Object.fromEntries(queryParams),
+    );
+    console.log("StepsAPIv2: Complete URL:", url);
     console.log("StepsAPIv2: Fetching", url);
 
     const data = await this._retryRequest(url);
@@ -826,9 +837,9 @@ class IterationView {
     this.selectedStep = null;
     this.selectedStepCode = null;
     this.filters = {
-      migration: "",
-      iteration: "",
-      plan: "",
+      planTemplate: "", // US-084: Plan template selector (first in flow)
+      migration: "", // Migration selector (second in flow)
+      iteration: "", // Iteration selector (third, filtered by template+migration)
       sequence: "",
       phase: "",
       team: "",
@@ -841,7 +852,11 @@ class IterationView {
     this.userContext = null;
     this.activeTimeouts = new Set(); // Track active timeouts for cleanup
     this.config = window.UMIG_ITERATION_CONFIG || {
-      api: { baseUrl: "/rest/scriptrunner/latest/custom" },
+      api: {
+        baseUrl:
+          (AJS.contextPath() || "/confluence") +
+          "/rest/scriptrunner/latest/custom",
+      },
     };
 
     // Initialize enhanced API client and real-time sync
@@ -1092,16 +1107,76 @@ class IterationView {
   }
 
   async initializeSelectors() {
-    // Initialize migration selector
-    await this.loadMigrations();
+    // US-084: Initialize selectors in correct order: Plan Template → Migration → Iteration
+    await this.loadPlanTemplates(); // First: Load plan templates
+    await this.loadMigrations(); // Second: Load migrations (initially all)
 
-    // Initialize all other selectors with default states
+    // US-084: Backward compatibility - parse URL parameters for old plan-based URLs
+    await this.initializeFromUrlParameters();
+
+    // Initialize dependent selectors with default states
     this.resetSelector("#iteration-select", "SELECT AN ITERATION");
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
     this.resetSelector("#label-filter", "All Labels");
+  }
+
+  // US-084: Backward compatibility method
+  async initializeFromUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Handle legacy plan parameter - convert to planTemplate
+    const legacyPlanId = urlParams.get("plan") || urlParams.get("planId");
+    const migrationId =
+      urlParams.get("migration") || urlParams.get("migrationId");
+    const iterationId =
+      urlParams.get("iteration") || urlParams.get("iterationId");
+
+    if (legacyPlanId && migrationId) {
+      console.log(
+        "US-084: Converting legacy plan URL parameter to plan template",
+      );
+      try {
+        // Find the plan template for this plan instance
+        const response = await fetch(
+          `/rest/scriptrunner/latest/custom/plans/${legacyPlanId}`,
+        );
+        if (response.ok) {
+          const planData = await response.json();
+          if (planData.templateId) {
+            this.filters.planTemplate = planData.templateId;
+            const planTemplateSelect = document.getElementById(
+              "plan-template-select",
+            );
+            if (planTemplateSelect)
+              planTemplateSelect.value = planData.templateId;
+          }
+        }
+      } catch (e) {
+        console.warn("US-084: Could not convert legacy plan parameter:", e);
+      }
+    }
+
+    // Set migration and iteration if provided
+    if (migrationId) {
+      this.filters.migration = migrationId;
+      const migrationSelect = document.getElementById("migration-select");
+      if (migrationSelect) migrationSelect.value = migrationId;
+
+      if (this.filters.planTemplate) {
+        await this.loadFilteredIterations(
+          migrationId,
+          this.filters.planTemplate,
+        );
+      }
+    }
+
+    if (iterationId) {
+      this.filters.iteration = iterationId;
+      const iterationSelect = document.getElementById("iteration-select");
+      if (iterationSelect) iterationSelect.value = iterationId;
+    }
   }
 
   resetSelector(selector, defaultText) {
@@ -1112,9 +1187,17 @@ class IterationView {
   }
 
   bindEvents() {
-    // Migration and Iteration selectors
+    // US-084: Corrected selector flow - Plan Template → Migration → Iteration
+    const planTemplateSelect = document.getElementById("plan-template-select");
     const migrationSelect = document.getElementById("migration-select");
     const iterationSelect = document.getElementById("iteration-select");
+
+    if (planTemplateSelect) {
+      planTemplateSelect.addEventListener("change", (e) => {
+        this.filters.planTemplate = e.target.value;
+        this.onPlanTemplateChange();
+      });
+    }
 
     if (migrationSelect) {
       migrationSelect.addEventListener("change", (e) => {
@@ -1125,58 +1208,93 @@ class IterationView {
 
     if (iterationSelect) {
       iterationSelect.addEventListener("change", (e) => {
+        // ENHANCED DEBUG: Track event listener execution
+        console.log("=== ITERATION EVENT LISTENER DEBUG ===");
+        console.log(
+          "Iteration dropdown changed - Event target value:",
+          e.target.value,
+        );
+        console.log(
+          "Iteration dropdown changed - Before filter update:",
+          this.filters.iteration,
+        );
+
         this.filters.iteration = e.target.value;
+
+        console.log(
+          "Iteration dropdown changed - After filter update:",
+          this.filters.iteration,
+        );
+        console.log(
+          "Iteration dropdown changed - Full filters:",
+          JSON.stringify(this.filters, null, 2),
+        );
+
         this.onIterationChange();
       });
     }
 
-    // Filter controls
-    const planFilter = document.getElementById("plan-filter");
+    // Filter controls (no more plan filter - replaced by template selector)
     const sequenceFilter = document.getElementById("sequence-filter");
     const phaseFilter = document.getElementById("phase-filter");
     const teamFilter = document.getElementById("team-filter");
     const labelFilter = document.getElementById("label-filter");
     const myTeamsOnly = document.getElementById("my-teams-only");
 
-    if (planFilter) {
-      planFilter.addEventListener("change", (e) => {
-        this.filters.plan = e.target.value;
-        this.onPlanChange();
-      });
-    }
-
     if (sequenceFilter) {
       sequenceFilter.addEventListener("change", (e) => {
+        console.log("=== SEQUENCE FILTER DEBUG ===");
+        console.log("Sequence filter changed to:", e.target.value);
+        console.log(
+          "Before update - this.filters.sequence:",
+          this.filters.sequence,
+        );
         this.filters.sequence = e.target.value;
+        console.log(
+          "After update - this.filters.sequence:",
+          this.filters.sequence,
+        );
+        console.log("About to call onSequenceChange()");
         this.onSequenceChange();
       });
     }
 
     if (phaseFilter) {
       phaseFilter.addEventListener("change", (e) => {
+        console.log("=== PHASE FILTER DEBUG ===");
+        console.log("Phase filter changed to:", e.target.value);
+        console.log("Before update - this.filters.phase:", this.filters.phase);
         this.filters.phase = e.target.value;
+        console.log("After update - this.filters.phase:", this.filters.phase);
+        console.log("About to call onPhaseChange()");
         this.onPhaseChange();
       });
     }
 
     if (teamFilter) {
-      teamFilter.addEventListener("change", (e) => {
+      teamFilter.addEventListener("change", async (e) => {
         this.filters.team = e.target.value;
-        this.applyFilters();
+        this.apiClient.clearCache();
+        console.log("Team filter changed: Cache cleared");
+        await this.applyFilters();
       });
     }
 
     if (labelFilter) {
-      labelFilter.addEventListener("change", (e) => {
+      labelFilter.addEventListener("change", async (e) => {
         this.filters.label = e.target.value;
-        this.applyFilters();
+        this.apiClient.clearCache();
+        console.log("Label filter changed: Cache cleared");
+        await this.applyFilters();
       });
     }
 
     if (myTeamsOnly) {
-      myTeamsOnly.addEventListener("change", (e) => {
+      myTeamsOnly.addEventListener("change", async (e) => {
         this.filters.myTeamsOnly = e.target.checked;
-        this.applyFilters();
+        this.apiClient.clearCache();
+        console.log("MyTeamsOnly filter changed: Cache cleared");
+        await this.applyFilters();
       });
     }
 
@@ -1206,6 +1324,44 @@ class IterationView {
       commentBtn.addEventListener("click", () => this.addComment());
     }
   }
+  // US-084: Load plan templates using new template-focused API
+  async loadPlanTemplates() {
+    const select = document.getElementById("plan-template-select");
+    if (!select) {
+      console.warn("Plan template selector not found - UI may need updating");
+      return;
+    }
+
+    select.innerHTML = "<option>Loading plan templates...</option>";
+    try {
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/plans/templates",
+      );
+      if (!response.ok) throw new Error("Failed to fetch plan templates");
+      const responseData = await response.json();
+
+      const templates = responseData.data || responseData;
+
+      if (!Array.isArray(templates) || templates.length === 0) {
+        select.innerHTML = "<option>No plan templates found</option>";
+      } else {
+        select.innerHTML =
+          '<option value="">SELECT A PLAN TEMPLATE</option>' +
+          templates
+            .map(
+              (t) =>
+                `<option value="${t.planId}" data-template-name="${t.name}" title="${t.description || ""}">
+                  ${t.name} (${t.totalIterationsCount} iterations)
+                </option>`,
+            )
+            .join("");
+      }
+    } catch (e) {
+      console.error("Error loading plan templates:", e);
+      select.innerHTML = "<option>Error loading plan templates</option>";
+    }
+  }
+
   async loadMigrations() {
     const select = document.getElementById("migration-select");
     select.innerHTML = "<option>Loading migrations...</option>";
@@ -1237,13 +1393,116 @@ class IterationView {
     }
   }
 
+  // US-084: Load iterations filtered by plan template and migration
+  async loadFilteredIterations(migrationId, planTemplateId) {
+    const select = document.getElementById("iteration-select");
+    select.innerHTML = "<option>Loading filtered iterations...</option>";
+
+    try {
+      // Use the new plan usage endpoint to get iterations using this template
+      const response = await fetch(
+        `/rest/scriptrunner/latest/custom/plans/usage/${planTemplateId}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch template usage");
+      const responseData = await response.json();
+
+      // Filter iterations to only show those in the selected migration
+      const allIterations = responseData.usage?.iterations || [];
+
+      // ENHANCED DEBUG: Log iteration filtering process
+      console.log("=== LOAD FILTERED ITERATIONS DEBUG ===");
+      console.log("loadFilteredIterations: Migration ID:", migrationId);
+      console.log("loadFilteredIterations: Plan Template ID:", planTemplateId);
+      console.log(
+        "loadFilteredIterations: All iterations received:",
+        allIterations,
+      );
+
+      const filteredIterations = allIterations.filter(
+        (iteration) => iteration.migrationId === migrationId,
+      );
+
+      console.log(
+        "loadFilteredIterations: Filtered iterations:",
+        filteredIterations,
+      );
+      console.log(
+        "loadFilteredIterations: Iteration IDs being used:",
+        filteredIterations.map((i) => i.iterationId),
+      );
+
+      if (filteredIterations.length === 0) {
+        select.innerHTML =
+          "<option>No iterations found using this template in the selected migration</option>";
+      } else {
+        select.innerHTML =
+          '<option value="">SELECT AN ITERATION</option>' +
+          filteredIterations
+            .map(
+              (i) =>
+                `<option value="${i.iterationId}"
+                  data-ite-name="${i.iterationName}"
+                  data-ite-code="${i.iterationCode || ""}"
+                  title="Uses plan template: ${responseData.template?.name}">
+                  ${i.iterationName} ${i.hasCustomizations ? "(customized)" : ""}
+                </option>`,
+            )
+            .join("");
+      }
+    } catch (e) {
+      console.error("Error loading filtered iterations:", e);
+      select.innerHTML =
+        "<option>Error loading iterations for this template</option>";
+    }
+  }
+
+  // US-084: New event handler for plan template selection
+  onPlanTemplateChange() {
+    const planTemplateId = this.filters.planTemplate;
+    console.log(
+      "onPlanTemplateChange: Selected plan template ID:",
+      planTemplateId,
+    );
+
+    // Reset ALL dependent filters when template changes
+    this.filters.migration = "";
+    this.filters.iteration = "";
+    this.filters.sequence = "";
+    this.filters.phase = "";
+    this.filters.team = "";
+    this.filters.label = "";
+
+    // Reset dependent selectors
+    this.resetSelector("#migration-select", "SELECT A MIGRATION");
+    this.resetSelector("#iteration-select", "SELECT AN ITERATION");
+    this.resetSelector("#sequence-filter", "All Sequences");
+    this.resetSelector("#phase-filter", "All Phases");
+    this.resetSelector("#team-filter", "All Teams");
+    this.resetSelector("#label-filter", "All Labels");
+
+    // Show blank state since no iteration is selected
+    this.showBlankRunsheetState();
+
+    if (planTemplateId) {
+      // Load migrations (could be filtered by template if we implement that)
+      this.loadMigrations();
+      this.showNotification(
+        `Plan template selected. Now choose a migration to see iterations using this template.`,
+        "info",
+      );
+    }
+  }
+
   onMigrationChange() {
     const migId = this.filters.migration;
     console.log("onMigrationChange: Selected migration ID:", migId);
 
-    // Reset ALL dependent filters (everything below migration in hierarchy)
+    // CRITICAL FIX: Clear API cache when migration changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onMigrationChange: Cache cleared for fresh migration data");
+
+    // Reset dependent filters (everything below migration in hierarchy)
     this.filters.iteration = "";
-    this.filters.plan = "";
     this.filters.sequence = "";
     this.filters.phase = "";
     this.filters.team = "";
@@ -1251,7 +1510,6 @@ class IterationView {
 
     // Reset all dependent selectors to default state
     this.resetSelector("#iteration-select", "SELECT AN ITERATION");
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
@@ -1262,8 +1520,21 @@ class IterationView {
         "onMigrationChange: Loading iterations for migration:",
         migId,
       );
-      const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
-      populateIterations("#iteration-select", url, "SELECT AN ITERATION");
+
+      // US-084: Filter iterations by plan template if one is selected
+      const planTemplateId = this.filters.planTemplate;
+      if (planTemplateId) {
+        // Load iterations that use the selected plan template in this migration
+        this.loadFilteredIterations(migId, planTemplateId);
+        this.showNotification(
+          `Loading iterations that use the selected plan template in this migration...`,
+          "info",
+        );
+      } else {
+        // No plan template selected - show all iterations for migration
+        const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
+        populateIterations("#iteration-select", url, "SELECT AN ITERATION");
+      }
     }
 
     // Show blank runsheet state since no iteration is selected
@@ -1273,17 +1544,42 @@ class IterationView {
   onIterationChange() {
     const migId = this.filters.migration;
     const iteId = this.filters.iteration;
-    console.log("onIterationChange: Selected iteration ID:", iteId);
 
-    // Reset dependent filters (everything below iteration in hierarchy)
-    this.filters.plan = "";
+    // ENHANCED DEBUG: Complete iteration change flow tracking
+    console.log("=== ITERATION CHANGE DEBUG START ===");
+    console.log("onIterationChange: Selected iteration ID:", iteId);
+    console.log(
+      "onIterationChange: Full filters object:",
+      JSON.stringify(this.filters, null, 2),
+    );
+
+    // Verify dropdown value matches filter
+    const iterationSelect = document.getElementById("iteration-select");
+    const dropdownValue = iterationSelect ? iterationSelect.value : "NOT_FOUND";
+    console.log("onIterationChange: Dropdown value:", dropdownValue);
+    console.log("onIterationChange: Values match:", dropdownValue === iteId);
+
+    // Check if dropdown has options and log them
+    if (iterationSelect) {
+      const options = Array.from(iterationSelect.options).map((opt) => ({
+        value: opt.value,
+        text: opt.text,
+        selected: opt.selected,
+      }));
+      console.log("onIterationChange: All dropdown options:", options);
+    }
+
+    // CRITICAL FIX: Clear API cache when iteration changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onIterationChange: Cache cleared for fresh iteration data");
+
+    // US-084: Reset dependent filters (no more plan filter in hierarchy)
     this.filters.sequence = "";
     this.filters.phase = "";
     this.filters.team = "";
     this.filters.label = "";
 
     // Reset dependent selectors to default state
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
@@ -1294,14 +1590,12 @@ class IterationView {
       return;
     }
 
-    // Populate filters for this iteration
-    const planUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances`;
+    // US-084: Populate filters for this iteration (no more plan filter)
     const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
     const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
     const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
     const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
 
-    populateFilter("#plan-filter", planUrl, "All Plans");
     populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
     populateFilter("#phase-filter", phaseUrl, "All Phases");
     populateFilter("#team-filter", teamsUrl, "All Teams");
@@ -1309,64 +1603,29 @@ class IterationView {
 
     this.showNotification("Loading data for selected iteration...", "info");
     // Load steps and auto-select first step
+    console.log("onIterationChange: About to call loadStepsAndSelectFirst()");
+    console.log(
+      "onIterationChange: Final filters state:",
+      JSON.stringify(this.filters, null, 2),
+    );
+    console.log("=== ITERATION CHANGE DEBUG END ===");
+
     this.loadStepsAndSelectFirst();
   }
 
-  onPlanChange() {
-    const { migration: migId, iteration: iteId, plan: planId } = this.filters;
-    console.log("onPlanChange: Selected plan ID:", planId);
+  // US-084: onPlanChange() method removed - plans are no longer part of iteration hierarchy
 
-    // Reset dependent filters (everything below plan in hierarchy)
-    this.filters.sequence = "";
-    this.filters.phase = "";
-    this.filters.team = "";
-    this.filters.label = "";
-
-    // Reset dependent selectors to default state
-    this.resetSelector("#sequence-filter", "All Sequences");
-    this.resetSelector("#phase-filter", "All Phases");
-    this.resetSelector("#team-filter", "All Teams");
-    this.resetSelector("#label-filter", "All Labels");
-
-    if (!migId || !iteId) {
-      this.showBlankRunsheetState();
-      return;
-    }
-
-    if (!planId) {
-      // 'All Plans' selected - show all sequences and phases for iteration
-      const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
-      const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
-      populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
-      populateFilter("#phase-filter", phaseUrl, "All Phases");
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
-    } else {
-      // Specific plan selected - use nested URL pattern (migrationApi supports this)
-      const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/sequences`;
-      const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
-      populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
-      populateFilter("#phase-filter", phaseUrl, "All Phases");
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
-    }
-
-    // Apply filters to reload steps
-    this.applyFilters();
-  }
-
-  onSequenceChange() {
+  async onSequenceChange() {
     const {
       migration: migId,
       iteration: iteId,
-      plan: planId,
       sequence: seqId,
     } = this.filters;
     console.log("onSequenceChange: Selected sequence ID:", seqId);
+
+    // CRITICAL FIX: Clear API cache when sequence changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onSequenceChange: Cache cleared for fresh sequence data");
 
     // Reset dependent filters (everything below sequence in hierarchy)
     this.filters.phase = "";
@@ -1383,16 +1642,22 @@ class IterationView {
       return;
     }
 
+    // US-084: Data model reality - sequences are still under Plan Instances (PLI)
+    // But UI shows plan template selection first, then filtered iterations
+    const planTemplateId = this.filters.planTemplate;
+
     if (!seqId) {
-      // 'All Sequences' selected - show all phases for current plan or iteration
-      if (planId) {
-        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+      // 'All Sequences' selected - show all phases for iteration+plan template combination
+      if (planTemplateId) {
+        // Filter by plan template - use plan instance filtering
+        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases?planTemplateId=${planTemplateId}`;
+        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
+        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
         populateFilter("#phase-filter", phaseUrl, "All Phases");
         populateFilter("#team-filter", teamsUrl, "All Teams");
         populateFilter("#label-filter", labelsUrl, "All Labels");
       } else {
+        // No plan template selected - show all phases for iteration
         const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
         const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
         const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
@@ -1410,19 +1675,25 @@ class IterationView {
       populateFilter("#label-filter", labelsUrl, "All Labels");
     }
 
-    // Apply filters to reload steps
-    this.applyFilters();
+    // Clear cache and apply filters to reload steps
+    this.apiClient.clearCache();
+    console.log("onSequenceChange: Cache cleared for fresh sequence data");
+    await this.applyFilters();
   }
 
-  onPhaseChange() {
+  async onPhaseChange() {
     const {
       migration: migId,
       iteration: iteId,
-      plan: planId,
+      planTemplate: planTemplateId,
       sequence: seqId,
       phase: phaseId,
     } = this.filters;
     console.log("onPhaseChange: Selected phase ID:", phaseId);
+
+    // CRITICAL FIX: Clear API cache when phase changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onPhaseChange: Cache cleared for fresh phase data");
 
     // Reset dependent filters (teams and labels - no hierarchy below phase)
     this.filters.team = "";
@@ -1463,8 +1734,10 @@ class IterationView {
       populateFilter("#label-filter", labelsUrl, "All Labels");
     }
 
-    // Apply filters to reload steps
-    this.applyFilters();
+    // Clear cache and apply filters to reload steps
+    this.apiClient.clearCache();
+    console.log("onPhaseChange: Cache cleared for fresh phase data");
+    await this.applyFilters();
   }
 
   selectStep(stepId, stepCode) {
@@ -2356,9 +2629,10 @@ class IterationView {
                 </div>
                 
                 <div class="step-breadcrumb">
+                    <!-- US-084: Updated hierarchy - Plan Template shown as independent template -->
+                    <span class="breadcrumb-item template-indicator">📋 ${summary.PlanName || "Plan Template"}</span>
+                    <span class="breadcrumb-separator">•</span>
                     <span class="breadcrumb-item">${summary.MigrationName || "Migration"}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${summary.PlanName || "Plan"}</span>
                     <span class="breadcrumb-separator">›</span>
                     <span class="breadcrumb-item">${summary.IterationName || "Iteration"}</span>
                     <span class="breadcrumb-separator">›</span>
@@ -2547,9 +2821,14 @@ class IterationView {
     this.attachStepViewButtonListener();
   }
 
-  applyFilters() {
-    this.loadSteps();
-    this.showNotification("Filters applied", "info");
+  async applyFilters() {
+    try {
+      await this.loadSteps();
+      this.showNotification("Filters applied", "info");
+    } catch (error) {
+      console.error("IterationView: Error applying filters:", error);
+      this.showNotification("Error applying filters", "error");
+    }
   }
 
   /**
@@ -2584,14 +2863,15 @@ class IterationView {
 
       if (this.filters.migration) filters.migrationId = this.filters.migration;
       if (this.filters.iteration) filters.iterationId = this.filters.iteration;
-      if (this.filters.plan) filters.planId = this.filters.plan;
+      // US-084: For now, we don't pass planTemplate to the API since it expects planId for plan instances
+      // The sequence/phase/team/label filters should work independently
       if (this.filters.sequence) filters.sequenceId = this.filters.sequence;
       if (this.filters.phase) filters.phaseId = this.filters.phase;
       if (this.filters.team) filters.teamId = this.filters.team;
       if (this.filters.label) filters.labelId = this.filters.label;
 
-      // Apply quick filters
-      if (this.quickFilters.myTeamSteps) filters.myTeamOnly = true;
+      // Apply quick filters and myTeamsOnly from main filters
+      if (this.filters.myTeamsOnly) filters.myTeamOnly = true;
       if (this.quickFilters.myAssignedSteps) filters.assignedToMe = true;
       if (this.quickFilters.criticalSteps) filters.priority = "HIGH";
       if (this.quickFilters.blockedSteps)
@@ -2603,6 +2883,18 @@ class IterationView {
         includeInstructions: false, // Load instructions lazily
         includeComments: false, // Load comments on demand
       };
+
+      // ENHANCED DEBUG: Log complete filter flow to API
+      console.log("=== LOAD STEPS DEBUG ===");
+      console.log(
+        "loadSteps: Current this.filters object:",
+        JSON.stringify(this.filters, null, 2),
+      );
+      console.log(
+        "loadSteps: Constructed filters for API:",
+        JSON.stringify(filters, null, 2),
+      );
+      console.log("loadSteps: API options:", JSON.stringify(options, null, 2));
 
       console.log("IterationView: Loading steps with enhanced API v2", {
         filters,
@@ -2629,6 +2921,36 @@ class IterationView {
       console.log(
         `IterationView: Received ${rawData.length} items from enhanced API response`,
       );
+
+      // Debug: Log first step to see all available fields
+      if (rawData.length > 0) {
+        console.log(
+          "IterationView: DEBUG - First step raw data structure:",
+          rawData[0],
+        );
+        console.log(
+          "IterationView: DEBUG - Available fields:",
+          Object.keys(rawData[0]),
+        );
+
+        // Check specifically for label-related fields
+        const labelFields = Object.keys(rawData[0]).filter((key) =>
+          key.toLowerCase().includes("label"),
+        );
+        if (labelFields.length > 0) {
+          console.log(
+            "IterationView: DEBUG - Label-related fields found:",
+            labelFields,
+          );
+          labelFields.forEach((field) => {
+            console.log(`  - ${field}:`, rawData[0][field]);
+          });
+        } else {
+          console.warn(
+            "IterationView: DEBUG - No label fields found in API response!",
+          );
+        }
+      }
 
       // Check if we received a flat array of steps (enhanced API) or nested structure (non-enhanced API)
       const isFlat =
@@ -2773,18 +3095,31 @@ class IterationView {
       const phase = sequence.phases.get(phaseKey);
 
       // Transform step to expected format
+      // Handle both 'labels' (lowercase) and 'Labels' (uppercase) from different API endpoints
+      const stepLabels = step.labels || step.Labels || step.stepLabels || [];
+
+      // Debug logging to identify label field naming inconsistency
+      if (!step.labels && step.Labels) {
+        console.debug(
+          "IterationView: Step has 'Labels' (uppercase) instead of 'labels':",
+          step.stepName,
+        );
+      }
+
       const transformedStep = {
         id: step.stepInstanceId || step.stepId,
         code:
           step.stepCode ||
-          `${step.stepType || "STEP"}-${String(step.stepNumber || 1).padStart(3, "0")}`,
+          (step.stepType && step.stepNumber
+            ? `${step.stepType}-${step.stepNumber}` // No padding, use actual number
+            : `STEP-${step.stepNumber || 1}`), // Fallback without padding
         name: step.stepName || "Unnamed Step",
         status: step.stepStatus || "NOT_STARTED",
         durationMinutes: step.estimatedDuration || step.actualDuration || 0,
         ownerTeamId: step.ownerTeamId || step.assignedTeamId,
         ownerTeamName:
           step.ownerTeamName || step.assignedTeamName || "Unassigned",
-        labels: step.labels || [],
+        labels: stepLabels, // Use the normalized labels
       };
 
       phase.steps.push(transformedStep);
@@ -2796,9 +3131,8 @@ class IterationView {
         const phases = Array.from(sequence.phases.values())
           .map((phase) => ({
             ...phase,
-            steps: phase.steps.sort((a, b) =>
-              (a.code || "").localeCompare(b.code || ""),
-            ),
+            // Keep steps in their natural database order (by step number, not alphabetically by code)
+            steps: phase.steps, // No sorting - maintain database order
           }))
           .sort((a, b) => (a.number || 0) - (b.number || 0));
 
@@ -2929,8 +3263,21 @@ class IterationView {
     const runsheetContent = document.getElementById("runsheet-content");
     if (!runsheetContent) return;
 
-    // Use event delegation for better performance
-    runsheetContent.addEventListener("click", (event) => {
+    // Remove any existing event listeners to prevent duplicates
+    const existingHandlers = runsheetContent._iterationViewHandlers;
+    if (existingHandlers) {
+      runsheetContent.removeEventListener(
+        "click",
+        existingHandlers.stepHandler,
+      );
+      runsheetContent.removeEventListener(
+        "click",
+        existingHandlers.foldingHandler,
+      );
+    }
+
+    // Create new handlers
+    const stepHandler = (event) => {
       const target = event.target.closest(".step-row");
       if (target) {
         const stepId = target.getAttribute("data-step");
@@ -2939,16 +3286,82 @@ class IterationView {
           this.selectStep(stepId, stepCode);
         }
       }
+    };
+
+    const foldingHandler = (event) => {
+      // Enhanced folding handler with better event targeting
+      const sequenceHeader = event.target.closest(".sequence-header");
+      const phaseHeader = event.target.closest(".phase-header");
+
+      if (sequenceHeader && !phaseHeader) {
+        // Only handle sequence header clicks, not nested phase headers
+        event.preventDefault();
+        event.stopPropagation();
+        this.toggleSequence(sequenceHeader);
+      } else if (phaseHeader && !sequenceHeader) {
+        // Handle phase header clicks when no sequence header is present (filtered mode)
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      } else if (
+        phaseHeader &&
+        sequenceHeader &&
+        !sequenceHeader.contains(phaseHeader)
+      ) {
+        // Handle phase header clicks that aren't nested in sequence headers
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      } else if (phaseHeader) {
+        // Handle phase header clicks within sequence sections
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      }
+    };
+
+    // Attach new handlers
+    runsheetContent.addEventListener("click", stepHandler);
+    runsheetContent.addEventListener("click", foldingHandler);
+
+    // Store references for cleanup
+    runsheetContent._iterationViewHandlers = {
+      stepHandler: stepHandler,
+      foldingHandler: foldingHandler,
+    };
+
+    // Reset all expand/collapse states to ensure consistency after filtering
+    this.resetExpandCollapseStates();
+  }
+
+  /**
+   * Reset all expand/collapse states to ensure consistency after filtering
+   */
+  resetExpandCollapseStates() {
+    // Reset all sequence and phase headers to expanded state
+    document
+      .querySelectorAll(".sequence-header .expand-icon")
+      .forEach((icon) => {
+        icon.classList.remove("collapsed");
+      });
+
+    document.querySelectorAll(".phase-header .expand-icon").forEach((icon) => {
+      icon.classList.remove("collapsed");
     });
 
-    // Bind folding events
-    runsheetContent.addEventListener("click", (event) => {
-      if (event.target.closest(".sequence-header")) {
-        this.toggleSequence(event.target.closest(".sequence-header"));
-      } else if (event.target.closest(".phase-header")) {
-        this.togglePhase(event.target.closest(".phase-header"));
-      }
+    // Ensure all phase sections are visible
+    document.querySelectorAll(".phase-section").forEach((phase) => {
+      phase.style.display = "block";
     });
+
+    // Ensure all step tables are visible
+    document.querySelectorAll(".runsheet-table").forEach((table) => {
+      table.style.display = "table";
+    });
+
+    console.log(
+      "IterationView: Reset all expand/collapse states to expanded after filtering",
+    );
   }
 
   /**
@@ -3112,16 +3525,38 @@ class IterationView {
    * Toggle sequence visibility (fold/unfold)
    */
   toggleSequence(sequenceHeader) {
+    if (!sequenceHeader) {
+      console.warn("IterationView: toggleSequence called with invalid header");
+      return;
+    }
+
     const icon = sequenceHeader.querySelector(".expand-icon");
     const sequenceSection = sequenceHeader.closest(".sequence-section");
-    const phaseSections = sequenceSection.querySelectorAll(".phase-section");
 
-    if (icon.classList.contains("collapsed")) {
+    if (!icon || !sequenceSection) {
+      console.warn(
+        "IterationView: toggleSequence - missing icon or sequence section",
+      );
+      return;
+    }
+
+    const phaseSections = sequenceSection.querySelectorAll(".phase-section");
+    const isCurrentlyCollapsed = icon.classList.contains("collapsed");
+
+    if (isCurrentlyCollapsed) {
+      // Expand: remove collapsed class and show phases
       icon.classList.remove("collapsed");
-      phaseSections.forEach((phase) => (phase.style.display = "block"));
+      phaseSections.forEach((phase) => {
+        phase.style.display = "block";
+      });
+      console.log("IterationView: Expanded sequence");
     } else {
+      // Collapse: add collapsed class and hide phases
       icon.classList.add("collapsed");
-      phaseSections.forEach((phase) => (phase.style.display = "none"));
+      phaseSections.forEach((phase) => {
+        phase.style.display = "none";
+      });
+      console.log("IterationView: Collapsed sequence");
     }
   }
 
@@ -3129,20 +3564,38 @@ class IterationView {
    * Toggle phase visibility (fold/unfold)
    */
   togglePhase(phaseHeader) {
+    if (!phaseHeader) {
+      console.warn("IterationView: togglePhase called with invalid header");
+      return;
+    }
+
     const icon = phaseHeader.querySelector(".expand-icon");
     const phaseSection = phaseHeader.closest(".phase-section");
-    const stepsTable = phaseSection.querySelector("table.runsheet-table");
 
-    if (icon.classList.contains("collapsed")) {
+    if (!icon || !phaseSection) {
+      console.warn(
+        "IterationView: togglePhase - missing icon or phase section",
+      );
+      return;
+    }
+
+    const stepsTable = phaseSection.querySelector("table.runsheet-table");
+    const isCurrentlyCollapsed = icon.classList.contains("collapsed");
+
+    if (isCurrentlyCollapsed) {
+      // Expand: remove collapsed class and show table
       icon.classList.remove("collapsed");
       if (stepsTable) {
         stepsTable.style.display = "table";
       }
+      console.log("IterationView: Expanded phase");
     } else {
+      // Collapse: add collapsed class and hide table
       icon.classList.add("collapsed");
       if (stepsTable) {
         stepsTable.style.display = "none";
       }
+      console.log("IterationView: Collapsed phase");
     }
   }
 
@@ -3635,6 +4088,18 @@ class IterationView {
     const selectedIteOption = iterationSelect
       ? iterationSelect.selectedOptions[0]
       : null;
+
+    // Debug: Log the selected option details
+    if (selectedIteOption) {
+      console.log("buildStepViewURL: Selected iteration option details", {
+        value: selectedIteOption.value,
+        text: selectedIteOption.textContent,
+        dataset: selectedIteOption.dataset,
+        hasDataIteName: "iteName" in selectedIteOption.dataset,
+        dataIteName: selectedIteOption.dataset.iteName,
+      });
+    }
+
     const iterationName = selectedIteOption
       ? selectedIteOption.dataset.iteName
       : "";
@@ -3645,6 +4110,8 @@ class IterationView {
         migration: migrationName,
         iteration: iterationName,
         stepCode: stepCode,
+        selectedIteOption: selectedIteOption,
+        selectedMigOption: selectedMigOption,
       });
       return null;
     }
@@ -4071,9 +4538,9 @@ class IterationView {
     this.activeTimeouts.add(timeoutId);
   }
 
-  updateFilters() {
+  async updateFilters() {
     // Initialize filter state
-    this.applyFilters();
+    await this.applyFilters();
   }
 
   /**

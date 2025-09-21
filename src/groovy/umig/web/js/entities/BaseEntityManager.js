@@ -279,6 +279,18 @@ if (typeof BaseEntityManager === "undefined") {
         );
       }
 
+      // CRITICAL FIX: Prevent excessive re-initialization when container hasn't changed
+      const containerChanged = this.container !== container;
+      if (!containerChanged) {
+        console.log(
+          `[BaseEntityManager] Container unchanged for ${this.entityType}, skipping re-initialization`,
+        );
+        return;
+      }
+
+      console.log(
+        `[BaseEntityManager] Container actually changed for ${this.entityType}, proceeding with re-initialization`,
+      );
       this.container = container;
 
       // If orchestrator exists, update its container
@@ -289,6 +301,27 @@ if (typeof BaseEntityManager === "undefined") {
       // Reset components rendered flag when container changes
       // This ensures components will be re-rendered in the new container
       this._componentsRendered = false;
+
+      // CRITICAL FIX: Force re-initialization of table component when container changes
+      // This ensures sorting listeners are properly attached to the new DOM
+      if (this.tableComponent) {
+        console.log(
+          `[BaseEntityManager] Container changed for ${this.entityType}, forcing table component re-initialization`,
+        );
+
+        // Update the table component's container
+        this.tableComponent.container = container;
+
+        // If the component has a forceRerender method, use it
+        if (typeof this.tableComponent.forceRerender === "function") {
+          this.tableComponent.forceRerender();
+        }
+
+        // Mark table component for re-initialization on next render
+        if (this.tableComponent.initialized) {
+          this.tableComponent.initialized = false;
+        }
+      }
 
       console.log(
         `[BaseEntityManager] Container set for ${this.entityType} entity manager`,
@@ -1353,6 +1386,44 @@ if (typeof BaseEntityManager === "undefined") {
         },
       );
 
+      // CRITICAL FIX: Populate components Map for dual access pattern support
+      // This ensures both individual property access (this.tableComponent) and
+      // Map access (this.components.get("table")) work properly
+      if (!this.components) {
+        this.components = new Map();
+      }
+
+      // Register successfully created components in the Map
+      if (this.tableComponent) {
+        this.components.set("table", this.tableComponent);
+        console.log(
+          `[BaseEntityManager] Registered tableComponent in components Map for ${this.entityType}`,
+        );
+      }
+      if (this.modalComponent) {
+        this.components.set("modal", this.modalComponent);
+        console.log(
+          `[BaseEntityManager] Registered modalComponent in components Map for ${this.entityType}`,
+        );
+      }
+      if (this.filterComponent) {
+        this.components.set("filter", this.filterComponent);
+        console.log(
+          `[BaseEntityManager] Registered filterComponent in components Map for ${this.entityType}`,
+        );
+      }
+      if (this.paginationComponent) {
+        this.components.set("pagination", this.paginationComponent);
+        console.log(
+          `[BaseEntityManager] Registered paginationComponent in components Map for ${this.entityType}`,
+        );
+      }
+
+      console.log(
+        `[BaseEntityManager] Components Map populated for ${this.entityType}:`,
+        Array.from(this.components.keys()),
+      );
+
       // If there are initialization errors but at least one component succeeded, continue with warnings
       if (initializationErrors.length > 0) {
         if (successfulComponents.length === 0) {
@@ -1389,7 +1460,8 @@ if (typeof BaseEntityManager === "undefined") {
         });
 
         this.orchestrator.on("table:action", (event) => {
-          this._handleTableAction(event.action, event.data);
+          console.log(`[BaseEntityManager] Table action received:`, event);
+          this._handleTableAction(event);
         });
 
         // Filter events
@@ -1397,9 +1469,13 @@ if (typeof BaseEntityManager === "undefined") {
           this.loadData(event.filters, this.currentSort, 1); // Reset to page 1
         });
 
-        // Pagination events
-        this.orchestrator.on("pagination:change", (event) => {
-          this.loadData(this.currentFilters, this.currentSort, event.page);
+        // Pagination events - handle both page changes and page size changes
+        this.orchestrator.on("pagination:change", async (event) => {
+          console.log(
+            `[BaseEntityManager] Pagination change event for ${this.entityType}:`,
+            event,
+          );
+          await this._handlePaginationChange(event);
         });
 
         // Modal events
@@ -1414,21 +1490,77 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
-     * Handle table actions
-     * @param {string} action - Action type
-     * @param {Object} data - Action data
+     * Handle pagination change events
+     * @param {Object} event - Pagination event data
      * @private
      */
-    async _handleTableAction(action, data) {
+    async _handlePaginationChange(event) {
+      try {
+        console.log(
+          `[BaseEntityManager] Handling pagination change for ${this.entityType}:`,
+          event,
+        );
+
+        // Update current page and page size
+        if (event.page !== undefined) {
+          this.currentPage = event.page;
+        }
+        if (event.pageSize !== undefined && this.config.paginationConfig) {
+          this.config.paginationConfig.pageSize = event.pageSize;
+        }
+
+        // Reload data with new pagination settings
+        await this.loadData(
+          this.currentFilters,
+          this.currentSort,
+          this.currentPage,
+        );
+      } catch (error) {
+        console.error(
+          `[BaseEntityManager] Error handling pagination change for ${this.entityType}:`,
+          error,
+        );
+        this._trackError("pagination_change", error);
+      }
+    }
+
+    /**
+     * Handle table actions
+     * @param {Object} event - Action event with action, rowId, row, and data properties
+     * @private
+     */
+    async _handleTableAction(event) {
+      console.log(`[BaseEntityManager] Processing table action:`, event);
+
+      if (!event || !event.action) {
+        console.error(`[BaseEntityManager] Invalid action event:`, event);
+        return;
+      }
+
+      const { action, rowId, row, data } = event;
+      const entityData = data || row; // Use data if available, fallback to row
+
+      console.log(
+        `[BaseEntityManager] Action: ${action}, RowId: ${rowId}, Data:`,
+        entityData,
+      );
+
+      if (!entityData) {
+        console.error(
+          `[BaseEntityManager] No entity data found for action ${action} with rowId ${rowId}`,
+        );
+        return;
+      }
+
       switch (action) {
         case "view":
-          await this._viewEntity(data);
+          await this._viewEntity(entityData);
           break;
         case "edit":
-          await this._editEntity(data);
+          await this._editEntity(entityData);
           break;
         case "delete":
-          await this._confirmDeleteEntity(data);
+          await this._confirmDeleteEntity(entityData);
           break;
         default:
           console.warn(`[BaseEntityManager] Unhandled action: ${action}`);
@@ -1441,12 +1573,26 @@ if (typeof BaseEntityManager === "undefined") {
      * @private
      */
     async _viewEntity(data) {
+      console.log(`[BaseEntityManager] _viewEntity called with data:`, data);
       if (this.modalComponent) {
-        await this.modalComponent.show({
-          mode: "view",
-          data: data,
+        console.log(
+          `[BaseEntityManager] Opening modal with data for ${this.entityType}`,
+        );
+
+        // Configure the modal first (matching UsersEntityManager pattern)
+        this.modalComponent.updateConfig({
           title: `View ${this.entityType.slice(0, -1)}`,
+          type: "info",
+          content: this._generateViewContent(data),
+          size: "large",
+          buttons: [{ text: "Close", action: "close", variant: "secondary" }],
         });
+
+        // Then open the modal (no parameters)
+        await this.modalComponent.open();
+        console.log(`[BaseEntityManager] Modal opened successfully`);
+      } else {
+        console.error(`[BaseEntityManager] No modal component available`);
       }
     }
 
@@ -1456,13 +1602,202 @@ if (typeof BaseEntityManager === "undefined") {
      * @private
      */
     async _editEntity(data) {
+      console.log(`[BaseEntityManager] _editEntity called with data:`, data);
       if (this.modalComponent) {
-        await this.modalComponent.show({
-          mode: "edit",
-          data: data,
+        console.log(
+          `[BaseEntityManager] Opening modal for edit with data for ${this.entityType}`,
+        );
+
+        // Configure the modal first (matching UsersEntityManager pattern)
+        this.modalComponent.updateConfig({
           title: `Edit ${this.entityType.slice(0, -1)}`,
+          type: "form",
+          size: "large",
+          onSubmit: async (formData) => {
+            try {
+              console.log(
+                `[BaseEntityManager] Submitting edit for ${this.entityType}:`,
+                formData,
+              );
+              const result = await this._updateEntityData(
+                data[this.primaryKey],
+                formData,
+              );
+              console.log(
+                `[BaseEntityManager] ${this.entityType} updated successfully:`,
+                result,
+              );
+
+              // Refresh the table data
+              await this.loadData();
+
+              // Show success message (if notification system exists)
+              if (window.AJS && window.AJS.flag) {
+                window.AJS.flag({
+                  type: "success",
+                  title: `${this.entityType.slice(0, -1)} Updated`,
+                  body: `The ${this.entityType.slice(0, -1).toLowerCase()} has been updated successfully.`,
+                });
+              }
+
+              return true; // Close modal
+            } catch (error) {
+              console.error(
+                `[BaseEntityManager] Error updating ${this.entityType}:`,
+                error,
+              );
+
+              // Show error message
+              if (window.AJS && window.AJS.flag) {
+                window.AJS.flag({
+                  type: "error",
+                  title: `Error Updating ${this.entityType.slice(0, -1)}`,
+                  body:
+                    error.message ||
+                    `An error occurred while updating the ${this.entityType.slice(0, -1).toLowerCase()}.`,
+                });
+              }
+
+              return false; // Keep modal open
+            }
+          },
         });
+
+        // Set form data if modal has form capabilities
+        if (this.modalComponent.formData) {
+          Object.assign(this.modalComponent.formData, data);
+        }
+
+        // Then open the modal (no parameters)
+        await this.modalComponent.open();
+        console.log(`[BaseEntityManager] Edit modal opened successfully`);
+      } else {
+        console.error(
+          `[BaseEntityManager] No modal component available for edit`,
+        );
       }
+    }
+
+    /**
+     * Generate view content for modal display
+     * @param {Object} data - Entity data
+     * @returns {string} HTML content for modal
+     * @private
+     */
+    _generateViewContent(data) {
+      if (!data) {
+        return "<p>No data available</p>";
+      }
+
+      try {
+        // Generate a basic table view of the entity data
+        let html = '<div class="entity-view-content">';
+        html += '<table class="aui aui-table">';
+        html += "<tbody>";
+
+        // Iterate through the data object and display key-value pairs
+        Object.keys(data).forEach((key) => {
+          if (data[key] !== null && data[key] !== undefined) {
+            const value = data[key];
+            const displayKey = this._formatFieldName(key);
+            const displayValue = this._formatFieldValue(key, value);
+
+            html += `<tr>`;
+            html += `<th style="width: 30%; white-space: nowrap;">${displayKey}</th>`;
+            html += `<td>${displayValue}</td>`;
+            html += `</tr>`;
+          }
+        });
+
+        html += "</tbody>";
+        html += "</table>";
+        html += "</div>";
+
+        return html;
+      } catch (error) {
+        console.error(
+          "[BaseEntityManager] Error generating view content:",
+          error,
+        );
+        return "<p>Error displaying entity data</p>";
+      }
+    }
+
+    /**
+     * Format field name for display
+     * @param {string} fieldName - Raw field name
+     * @returns {string} Formatted field name
+     * @private
+     */
+    _formatFieldName(fieldName) {
+      // Convert snake_case to Title Case
+      return fieldName
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+
+    /**
+     * Format field value for display
+     * @param {string} fieldName - Field name
+     * @param {*} value - Field value
+     * @returns {string} Formatted field value
+     * @private
+     */
+    _formatFieldValue(fieldName, value) {
+      // Handle different data types
+      if (value === null || value === undefined) {
+        return "<em>Not set</em>";
+      }
+
+      if (typeof value === "boolean") {
+        return value ? "Yes" : "No";
+      }
+
+      if (typeof value === "string" && value.length === 0) {
+        return "<em>Empty</em>";
+      }
+
+      // Handle email fields
+      if (
+        fieldName.toLowerCase().includes("email") &&
+        typeof value === "string"
+      ) {
+        return `<a href="mailto:${value}">${value}</a>`;
+      }
+
+      // Handle URL fields
+      if (
+        fieldName.toLowerCase().includes("url") &&
+        typeof value === "string"
+      ) {
+        return `<a href="${value}" target="_blank">${value}</a>`;
+      }
+
+      // Handle dates (ISO string format)
+      if (
+        typeof value === "string" &&
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)
+      ) {
+        try {
+          const date = new Date(value);
+          return date.toLocaleString();
+        } catch (e) {
+          return value;
+        }
+      }
+
+      // Default: return as string, but escape HTML
+      const stringValue = String(value);
+      return stringValue.replace(/[&<>"']/g, function (match) {
+        const escapeMap = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        };
+        return escapeMap[match];
+      });
     }
 
     /**
@@ -1616,41 +1951,88 @@ if (typeof BaseEntityManager === "undefined") {
               typeof this.paginationComponent === "object" &&
               this.paginationComponent !== null
             ) {
-              // TD-004 FIX: Use setState pattern for pagination component updates
+              // TD-004 FIX: Use setState pattern for pagination component updates with fallbacks
               // Components use setState pattern for state management, not direct method calls
+              const paginationState = {
+                currentPage: this.currentPage,
+                totalItems: this.totalRecords,
+                pageSize: this.config.paginationConfig?.pageSize || 20,
+              };
+
+              console.log(
+                `[BaseEntityManager] Updating pagination - page ${this.currentPage}, total ${this.totalRecords}`,
+              );
+
+              // Try multiple update methods in priority order
+              let updateSuccessful = false;
+
+              // Method 1: setState (preferred)
               if (typeof this.paginationComponent.setState === "function") {
                 updateAttempts.pagination.method = "setState";
-                const paginationState = {
-                  currentPage: this.currentPage,
-                  totalItems: this.totalRecords,
-                  pageSize: this.config.paginationConfig?.pageSize || 20,
-                };
+                try {
+                  await this.paginationComponent.setState(paginationState);
+                  updateSuccessful = true;
+                  console.log(
+                    "[BaseEntityManager] ✓ Pagination updated via setState",
+                  );
+                } catch (setStateError) {
+                  console.warn(
+                    "[BaseEntityManager] setState failed, trying fallback methods:",
+                    setStateError,
+                  );
+                }
+              }
 
-                console.log(
-                  `[BaseEntityManager] Updating pagination via setState - page ${this.currentPage}, total ${this.totalRecords}`,
-                );
-                await this.paginationComponent.setState(paginationState);
+              // Method 2: updateConfig (fallback)
+              if (
+                !updateSuccessful &&
+                typeof this.paginationComponent.updateConfig === "function"
+              ) {
+                updateAttempts.pagination.method = "updateConfig";
+                try {
+                  await this.paginationComponent.updateConfig(paginationState);
+                  updateSuccessful = true;
+                  console.log(
+                    "[BaseEntityManager] ✓ Pagination updated via updateConfig",
+                  );
+                } catch (updateConfigError) {
+                  console.warn(
+                    "[BaseEntityManager] updateConfig failed, trying setTotalItems:",
+                    updateConfigError,
+                  );
+                }
+              }
+
+              // Method 3: setTotalItems (minimal fallback)
+              if (
+                !updateSuccessful &&
+                typeof this.paginationComponent.setTotalItems === "function"
+              ) {
+                updateAttempts.pagination.method = "setTotalItems";
+                try {
+                  this.paginationComponent.setTotalItems(this.totalRecords);
+                  // Also update page if possible
+                  if (typeof this.paginationComponent.goToPage === "function") {
+                    this.paginationComponent.goToPage(this.currentPage);
+                  }
+                  updateSuccessful = true;
+                  console.log(
+                    "[BaseEntityManager] ✓ Pagination updated via setTotalItems",
+                  );
+                } catch (setTotalError) {
+                  console.warn(
+                    "[BaseEntityManager] setTotalItems failed:",
+                    setTotalError,
+                  );
+                }
+              }
+
+              if (updateSuccessful) {
                 updateAttempts.pagination.successful = true;
               } else {
-                const availableMethods = this._getAvailableMethods(
-                  this.paginationComponent,
-                );
-                const errorMsg = `PaginationComponent missing setState method. Available methods: ${availableMethods.join(", ")}`;
+                const errorMsg = "All pagination update methods failed";
                 updateAttempts.pagination.error = errorMsg;
-
-                console.error(`[BaseEntityManager] ${errorMsg}`, {
-                  paginationComponent: this.paginationComponent,
-                  constructor: this.paginationComponent.constructor?.name,
-                  prototype: Object.getPrototypeOf(this.paginationComponent)
-                    .constructor?.name,
-                  entityType: this.entityType,
-                  availableMethods: availableMethods,
-                });
-
-                this._trackError(
-                  "_updateComponents_pagination",
-                  new Error(errorMsg),
-                );
+                console.error(`[BaseEntityManager] ${errorMsg}`);
               }
             } else {
               const errorMsg = `PaginationComponent is not a valid object (type: ${typeof this.paginationComponent})`;
@@ -1828,12 +2210,19 @@ if (typeof BaseEntityManager === "undefined") {
               );
             }
 
-            // Set the container and render the table component
+            // Set the container BEFORE calling render to ensure proper setup
             if (this.tableComponent.container !== tableContainer) {
               this.tableComponent.container = tableContainer;
             }
 
+            // CRITICAL FIX: Use proper BaseComponent lifecycle instead of calling render() directly
+            // The BaseComponent.render() method calls onRender() AND setupDOMListeners()
+            // Calling tableComponent.render() directly only calls onRender(), missing setupDOMListeners()
             if (typeof this.tableComponent.render === "function") {
+              console.log(
+                `[BaseEntityManager] Using proper BaseComponent lifecycle for TableComponent rendering (${this.entityType})`,
+              );
+              // This calls the BaseComponent render() which includes setupDOMListeners() for sorting
               await this.tableComponent.render();
             }
 

@@ -247,10 +247,11 @@ class MigrationRepository {
     def findSequencesByPlanInstanceId(UUID planInstanceId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT sqi_id, sqi_name
-                FROM sequences_instance_sqi
-                WHERE pli_id = :planInstanceId
-                ORDER BY sqi_name
+                SELECT sqi.sqi_id, sqm.sqm_name as sqi_name, sqm.sqm_order
+                FROM sequences_instance_sqi sqi
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                WHERE sqi.pli_id = :planInstanceId
+                ORDER BY sqm.sqm_order, sqm.sqm_name
             """, [planInstanceId: planInstanceId])
         }
     }
@@ -263,11 +264,12 @@ class MigrationRepository {
     def findPhasesByPlanInstanceId(UUID planInstanceId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT phi.phi_id, phi.phi_name
+                SELECT phi.phi_id, phm.phm_name as phi_name, phm.phm_order
                 FROM phases_instance_phi phi
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
                 JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                 WHERE sqi.pli_id = :planInstanceId
-                ORDER BY phi.phi_name
+                ORDER BY phm.phm_order, phm.phm_name
             """, [planInstanceId: planInstanceId])
         }
     }
@@ -280,10 +282,11 @@ class MigrationRepository {
     def findPhasesBySequenceId(UUID sequenceId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT phi.phi_id, phi.phi_name
+                SELECT phi.phi_id, phm.phm_name as phi_name, phm.phm_order
                 FROM phases_instance_phi phi
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
                 WHERE phi.sqi_id = :sequenceId
-                ORDER BY phi.phi_name
+                ORDER BY phm.phm_order, phm.phm_name
             """, [sequenceId: sequenceId])
         }
     }
@@ -296,11 +299,12 @@ class MigrationRepository {
     def findSequencesByIterationId(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT DISTINCT sqi.sqi_id, sqi.sqi_name
+                SELECT DISTINCT sqi.sqi_id, sqm.sqm_name as sqi_name, sqm.sqm_order
                 FROM sequences_instance_sqi sqi
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
                 JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                 WHERE pli.ite_id = :iterationId
-                ORDER BY sqi.sqi_name
+                ORDER BY sqm.sqm_order, sqm.sqm_name
             """, [iterationId: iterationId])
         }
     }
@@ -313,12 +317,13 @@ class MigrationRepository {
     def findPhasesByIterationId(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT DISTINCT phi.phi_id, phi.phi_name
+                SELECT DISTINCT phi.phi_id, phm.phm_name as phi_name, phm.phm_order
                 FROM phases_instance_phi phi
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
                 JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                 JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                 WHERE pli.ite_id = :iterationId
-                ORDER BY phi.phi_name
+                ORDER BY phm.phm_order, phm.phm_name
             """, [iterationId: iterationId])
         }
     }

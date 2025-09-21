@@ -73,7 +73,7 @@ class ComponentOrchestrator {
       maxStateUpdatesPerMinute: 100, // Per path
       maxTotalEventsPerMinute: 5000, // Global limit
       suspendedComponents: new Set(),
-      suspensionTimestamps: new WeakMap(), // Memory-efficient: GC collectable references
+      suspensionTimestamps: new Map(), // Iterable for cleanup operations
     };
 
     // Memory-efficient component metadata cache using WeakMap
@@ -328,6 +328,13 @@ class ComponentOrchestrator {
             throw new Error("TableComponent is not available");
           }
           componentInstance = new window.TableComponent(containerId, config);
+          // CRITICAL FIX: Pass orchestrator reference to enable global event emission
+          if (componentInstance && typeof componentInstance === "object") {
+            componentInstance.orchestrator = this;
+            console.log(
+              "[ComponentOrchestrator] DEBUG: Orchestrator reference added to TableComponent",
+            );
+          }
           break;
 
         case "modal":
@@ -560,14 +567,28 @@ class ComponentOrchestrator {
     try {
       this.checkRateLimit(source, "event");
     } catch (error) {
-      // Rate limit exceeded - log and reject (sanitized)
-      this.logWarning(
-        this.sanitizeLogMessage(
-          `Rate limit exceeded for source: ${error.message}`,
-          { source },
-        ),
-      );
-      throw new Error(this.sanitizeErrorMessage(error.message, "rate_limit"));
+      // Rate limit exceeded - handle based on event type
+      const isBenignEvent =
+        eventName === "breakpointChange" ||
+        eventName.includes("resize") ||
+        eventName.includes("scroll");
+
+      if (isBenignEvent) {
+        // For benign UI events, just suppress silently to prevent console spam
+        this.logDebug(
+          `Benign event suppressed due to rate limiting: ${source}:${eventName}`,
+        );
+        return false;
+      } else {
+        // For other events, maintain security by throwing
+        this.logWarning(
+          this.sanitizeLogMessage(
+            `Rate limit exceeded for source: ${error.message}`,
+            { source },
+          ),
+        );
+        throw new Error(this.sanitizeErrorMessage(error.message, "rate_limit"));
+      }
     }
 
     // Track component activity efficiently using WeakMap
@@ -1436,21 +1457,32 @@ class ComponentOrchestrator {
     this.rateLimiting.lastResetTime = now;
 
     // Clean up expired suspensions
-    if (this.rateLimiting.suspensionTimestamps) {
-      const suspensionDuration = 5 * 60 * 1000; // 5 minutes
-      const expiredSuspensions = [];
+    if (
+      this.rateLimiting.suspensionTimestamps &&
+      typeof this.rateLimiting.suspensionTimestamps.entries === "function"
+    ) {
+      try {
+        const suspensionDuration = 5 * 60 * 1000; // 5 minutes
+        const expiredSuspensions = [];
 
-      for (const [source, timestamp] of this.rateLimiting
-        .suspensionTimestamps) {
-        if (now - timestamp > suspensionDuration) {
-          expiredSuspensions.push(source);
+        for (const [source, timestamp] of this.rateLimiting
+          .suspensionTimestamps) {
+          if (now - timestamp > suspensionDuration) {
+            expiredSuspensions.push(source);
+          }
         }
-      }
 
-      for (const source of expiredSuspensions) {
-        this.rateLimiting.suspendedComponents.delete(source);
-        this.rateLimiting.suspensionTimestamps.delete(source);
-        this.logDebug(`Suspension expired for component "${source}"`);
+        for (const source of expiredSuspensions) {
+          this.rateLimiting.suspendedComponents.delete(source);
+          this.rateLimiting.suspensionTimestamps.delete(source);
+          this.logDebug(`Suspension expired for component "${source}"`);
+        }
+      } catch (error) {
+        this.logWarning(
+          `Error cleaning up expired suspensions: ${error.message}`,
+        );
+        // Reinitialize if corrupted
+        this.rateLimiting.suspensionTimestamps = new Map();
       }
     }
   }
@@ -1538,9 +1570,23 @@ class ComponentOrchestrator {
     // Override emit method to use orchestrator
     const originalEmit = component.emit;
     component.emit = (eventName, data) => {
-      return this.emit(`${componentId}:${eventName}`, data, {
+      // Emit component-specific event
+      const componentEvent = this.emit(`${componentId}:${eventName}`, data, {
         source: componentId,
       });
+
+      // For pagination components, also emit a general pagination:change event
+      if (
+        componentId.startsWith("pagination-") &&
+        eventName === "pagination:change"
+      ) {
+        this.emit("pagination:change", data, {
+          source: componentId,
+          componentEvent: true,
+        });
+      }
+
+      return componentEvent;
     };
 
     // Store original for unwiring
@@ -1947,7 +1993,7 @@ class ComponentOrchestrator {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            if (entry.duration > 50) {
+            if (entry.duration > 100) {
               this.logWarning(`Long task detected: ${entry.duration}ms`);
             }
           }

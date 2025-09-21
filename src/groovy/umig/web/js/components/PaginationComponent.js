@@ -526,38 +526,119 @@ class PaginationComponent extends BaseComponent {
   }
 
   /**
-   * Setup DOM event listeners
+   * Setup DOM event listeners with extensive debugging
    */
   setupDOMListeners() {
-    // Navigation button clicks
+    // Use requestAnimationFrame to ensure DOM is fully updated before setting up listeners
+    requestAnimationFrame(() => {
+      this.setupDOMListenersWithRetry();
+    });
+  }
+
+  /**
+   * Setup DOM listeners with retry logic to handle timing issues
+   */
+  setupDOMListenersWithRetry(attempt = 1, maxAttempts = 3) {
+    const isDebugMode = this.config.debugMode || false; // Only show detailed logs in debug mode
+
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] Setting up DOM listeners (attempt ${attempt})`,
+      );
+    }
+
+    // Navigation button clicks - this can be set up immediately
     this.container.addEventListener("click", (e) => {
       const button = e.target.closest("[data-action]");
       if (button && !button.disabled) {
         const action = button.dataset.action;
         const page = button.dataset.page;
+        if (isDebugMode) {
+          console.log(
+            `[PaginationComponent] Navigation button clicked - action: ${action}, page: ${page}`,
+          );
+        }
         this.handleAction(action, page);
       }
     });
 
-    // Page size change
+    // Page size selector - needs DOM to be ready
     const pageSizeSelect = this.container.querySelector(".page-size-select");
-    if (pageSizeSelect) {
-      this.addDOMListener(pageSizeSelect, "change", (e) => {
-        this.handlePageSizeChange(e.target.value); // handlePageSizeChange now does validation
-      });
-    }
 
-    // Jump to page
+    if (pageSizeSelect) {
+      if (isDebugMode) {
+        console.log(
+          "[PaginationComponent] ✓ Page size selector found, setting up listener",
+        );
+        console.log(
+          "[PaginationComponent] Current selected value:",
+          pageSizeSelect.value,
+        );
+        console.log(
+          "[PaginationComponent] Available options:",
+          Array.from(pageSizeSelect.options).map((o) => o.value),
+        );
+      }
+
+      this.addDOMListener(pageSizeSelect, "change", (e) => {
+        if (isDebugMode) {
+          console.log(
+            "[PaginationComponent] Page size change event triggered!",
+          );
+          console.log("[PaginationComponent] New value:", e.target.value);
+          console.log(
+            "[PaginationComponent] Previous page size:",
+            this.config.pageSize,
+          );
+        }
+        this.handlePageSizeChange(e.target.value);
+      });
+
+      if (isDebugMode) {
+        console.log(
+          "[PaginationComponent] ✓ Page size change listener attached successfully",
+        );
+      }
+    } else if (this.config.showPageSizeSelector) {
+      // Only retry if page size selector should be visible
+      if (attempt < maxAttempts) {
+        if (isDebugMode) {
+          console.log(
+            `[PaginationComponent] Page size selector not found, retrying in 10ms (attempt ${attempt}/${maxAttempts})`,
+          );
+        }
+        setTimeout(() => {
+          this.setupDOMListenersWithRetry(attempt + 1, maxAttempts);
+        }, 10);
+        return; // Skip the rest of setup on retry
+      } else {
+        // Final attempt failed - only log if debug mode is on
+        if (isDebugMode) {
+          console.warn(
+            "[PaginationComponent] Page size selector not found after all retries",
+          );
+          console.log(
+            "[PaginationComponent] Container HTML preview:",
+            this.container.innerHTML.substring(0, 200) + "...",
+          );
+        }
+      }
+    }
+    // If showPageSizeSelector is false, this is expected behavior - no logging needed
+
+    // Jump to page elements - only set up if they should exist
     const jumpInput = this.container.querySelector(".jump-input");
     const jumpButton = this.container.querySelector(".jump-button");
 
     if (jumpInput) {
-      // Enter key in jump input
       this.addDOMListener(jumpInput, "keydown", (e) => {
         if (e.key === "Enter") {
           this.handleJumpToPage(parseInt(jumpInput.value));
         }
       });
+      if (isDebugMode) {
+        console.log("[PaginationComponent] ✓ Jump input listener attached");
+      }
     }
 
     if (jumpButton) {
@@ -567,12 +648,19 @@ class PaginationComponent extends BaseComponent {
           this.handleJumpToPage(parseInt(jumpInput.value));
         }
       });
+      if (isDebugMode) {
+        console.log("[PaginationComponent] ✓ Jump button listener attached");
+      }
     }
 
-    // Keyboard navigation
+    // Keyboard navigation - always available
     this.addDOMListener(this.container, "keydown", (e) => {
       this.handleKeyboardNavigation(e);
     });
+
+    if (isDebugMode) {
+      console.log("[PaginationComponent] ✓ All DOM listeners setup completed");
+    }
   }
 
   /**
@@ -670,7 +758,17 @@ class PaginationComponent extends BaseComponent {
       });
     }
 
-    // Emit change event
+    // Emit change event for orchestrator
+    this.emit("pagination:change", {
+      page: this.config.currentPage,
+      previousPage: oldPage,
+      pageSize: this.config.pageSize,
+      totalPages: this.totalPages,
+      startItem: this.startItem,
+      endItem: this.endItem,
+    });
+
+    // Emit legacy event for backward compatibility
     this.emit("pageChange", {
       currentPage: this.config.currentPage,
       previousPage: oldPage,
@@ -681,45 +779,101 @@ class PaginationComponent extends BaseComponent {
   }
 
   /**
-   * Handle page size change
+   * Handle page size change with validation
    */
   handlePageSizeChange(newSize) {
+    const isDebugMode = this.config.debugMode || false;
+
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] handlePageSizeChange called with: ${newSize}`,
+      );
+      console.log(
+        `[PaginationComponent] Current page size: ${this.config.pageSize}, current page: ${this.config.currentPage}`,
+      );
+    }
+
     // Validate input using SecurityUtils if available
+    let validatedSize;
     if (typeof window.SecurityUtils !== "undefined") {
-      newSize = window.SecurityUtils.validateInteger(newSize, {
+      if (isDebugMode) {
+        console.log("[PaginationComponent] Using SecurityUtils for validation");
+      }
+      validatedSize = window.SecurityUtils.validateInteger(newSize, {
         min: 1,
         max: 1000,
       });
-      if (newSize === null) {
+      if (validatedSize === null) {
+        console.error(
+          `[PaginationComponent] SecurityUtils validation failed for: ${newSize}`,
+        );
         return;
       }
     } else {
+      if (isDebugMode) {
+        console.log("[PaginationComponent] Using fallback validation");
+      }
       // Fallback validation
-      newSize = parseInt(newSize, 10);
-      if (isNaN(newSize) || newSize < 1 || newSize > 1000) {
+      validatedSize = parseInt(newSize, 10);
+      if (isNaN(validatedSize) || validatedSize < 1 || validatedSize > 1000) {
+        console.error(
+          `[PaginationComponent] Validation failed for: ${newSize} -> ${validatedSize}`,
+        );
         return;
       }
     }
 
-    if (newSize === this.config.pageSize) {
+    if (isDebugMode) {
+      console.log(`[PaginationComponent] Validated size: ${validatedSize}`);
+    }
+
+    if (validatedSize === this.config.pageSize) {
+      if (isDebugMode) {
+        console.log(
+          "[PaginationComponent] Page size unchanged, skipping update",
+        );
+      }
       return;
     }
 
     const oldSize = this.config.pageSize;
-    this.config.pageSize = newSize;
+    const oldPage = this.config.currentPage;
+
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] Updating pageSize: ${oldSize} -> ${validatedSize}`,
+      );
+    }
+
+    this.config.pageSize = validatedSize;
 
     // Adjust current page to maintain position
     const firstItem = (this.config.currentPage - 1) * oldSize + 1;
-    this.config.currentPage = Math.ceil(firstItem / newSize);
+    this.config.currentPage = Math.ceil(firstItem / validatedSize);
 
-    // Recalculate
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] Adjusted currentPage: ${oldPage} -> ${this.config.currentPage} (maintaining position from item ${firstItem})`,
+      );
+    }
+
+    // Recalculate pagination values
     this.calculate();
 
-    // Re-render
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] After recalculation - totalPages: ${this.totalPages}, startItem: ${this.startItem}, endItem: ${this.endItem}`,
+      );
+    }
+
+    // Re-render component
     this.render();
 
-    // Call page size change callback
+    // Call page size change callback if provided
     if (this.config.onPageSizeChange) {
+      if (isDebugMode) {
+        console.log(`[PaginationComponent] Calling onPageSizeChange callback`);
+      }
       this.config.onPageSizeChange({
         pageSize: this.config.pageSize,
         previousPageSize: oldSize,
@@ -728,16 +882,34 @@ class PaginationComponent extends BaseComponent {
       });
     }
 
-    // Emit event
+    // Emit event for orchestrator (pagination:change includes pageSize changes)
+    this.emit("pagination:change", {
+      page: this.config.currentPage,
+      previousPage: oldPage,
+      pageSize: this.config.pageSize,
+      previousPageSize: oldSize,
+      totalPages: this.totalPages,
+      startItem: this.startItem,
+      endItem: this.endItem,
+      type: "pageSize",
+    });
+
+    // Emit legacy event for backward compatibility
     this.emit("pageSizeChange", {
       pageSize: this.config.pageSize,
       previousPageSize: oldSize,
     });
 
-    // Announce change
+    // Announce change for accessibility
     this.announce(
       `Page size changed to ${this.config.pageSize} items per page`,
     );
+
+    if (isDebugMode) {
+      console.log(
+        `[PaginationComponent] ✓ handlePageSizeChange completed successfully`,
+      );
+    }
   }
 
   /**
@@ -770,9 +942,47 @@ class PaginationComponent extends BaseComponent {
    * Update total items
    */
   setTotalItems(total) {
+    console.log(`[PaginationComponent] Setting total items: ${total}`);
     this.config.totalItems = total;
     this.calculate();
     this.render();
+
+    // Emit event for any listeners
+    this.emit("pagination:totalItemsChanged", {
+      totalItems: this.config.totalItems,
+      totalPages: this.totalPages,
+      currentPage: this.config.currentPage,
+    });
+  }
+
+  /**
+   * Update configuration and re-render
+   */
+  updateConfig(newConfig) {
+    console.log(`[PaginationComponent] Updating config:`, newConfig);
+
+    // Update configuration
+    Object.assign(this.config, newConfig);
+
+    // Recalculate and re-render
+    this.calculate();
+    this.render();
+
+    // Emit event for any listeners
+    this.emit("pagination:configUpdated", {
+      totalItems: this.config.totalItems,
+      totalPages: this.totalPages,
+      currentPage: this.config.currentPage,
+      pageSize: this.config.pageSize,
+    });
+  }
+
+  /**
+   * Set state (BaseComponent compatibility)
+   */
+  setState(newState) {
+    console.log(`[PaginationComponent] Setting state:`, newState);
+    return this.updateConfig(newState);
   }
 
   /**

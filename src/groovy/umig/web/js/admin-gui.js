@@ -3408,6 +3408,13 @@ window.adminGui = {
       return this.loadCurrentSectionLegacy();
     }
 
+    // CRITICAL FIX: Set the current entity manager for component access
+    window.currentEntityManager = manager;
+    console.log(
+      `[US-087] Set window.currentEntityManager for ${entity}:`,
+      manager,
+    );
+
     console.log(`[US-087] Loading ${entity} with EntityManager`);
 
     // Track performance
@@ -3547,8 +3554,30 @@ window.adminGui = {
         `[AdminGUI] Pagination change event received for ${entity}:`,
         event,
       );
+
+      // Update state without triggering full reload
       this.state.currentPage = event.page || event.currentPage || 1;
-      this.loadWithEntityManager(entity);
+      if (event.pageSize) {
+        this.state.pageSize = event.pageSize;
+      }
+
+      // Only reload data through the EntityManager, don't rebuild components
+      const manager = this.componentManagers[entity];
+      if (manager && typeof manager.loadData === "function") {
+        console.log(
+          `[AdminGUI] Reloading data only for ${entity} pagination change`,
+        );
+        manager.loadData(
+          manager.currentFilters,
+          manager.currentSort,
+          this.state.currentPage,
+        );
+      } else {
+        console.warn(
+          `[AdminGUI] EntityManager loadData not available for ${entity}, falling back to full reload`,
+        );
+        this.loadWithEntityManager(entity);
+      }
     });
 
     // Listen for table sort changes

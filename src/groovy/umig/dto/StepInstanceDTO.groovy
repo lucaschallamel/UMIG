@@ -137,7 +137,17 @@ class StepInstanceDTO {
     /** Phase order number (from phi_order) */
     @JsonProperty("phaseNumber")
     Integer phaseNumber
-    
+
+    /** Step number from master table (e.g., 3 for BGO-3) */
+    @JsonProperty("stepNumber")
+    Integer stepNumber
+
+    /** Complete step code (e.g., BGO-3) combining type and number */
+    @JsonProperty("stepCode")
+    String getStepCode() {
+        return (stepType && stepNumber) ? "${stepType}-${stepNumber}" : null
+    }
+
     // ========================================
     // TEMPORAL AND STATUS FIELDS
     // ========================================
@@ -197,19 +207,27 @@ class StepInstanceDTO {
     // ========================================
     // COMMENT INTEGRATION
     // ========================================
-    
+
     /** Recent comments (limit to last 5 for performance) */
     @JsonProperty("comments")
     List<CommentDTO> comments = []
-    
+
     /** Indicates if there are active/unresolved comments */
     @JsonProperty("hasActiveComments")
     Boolean hasActiveComments = false
-    
+
     /** Timestamp of most recent comment */
     @JsonProperty("lastCommentDate")
     LocalDateTime lastCommentDate
-    
+
+    // ========================================
+    // ASSOCIATED ENTITIES
+    // ========================================
+
+    /** List of label objects inherited from step master */
+    @JsonProperty("labels")
+    List<Map<String, Object>> labels
+
     // ========================================
     // COMPUTED PROPERTIES
     // ========================================
@@ -484,6 +502,7 @@ class StepInstanceDTO {
         Builder phaseId(String phaseId) { dto.phaseId = phaseId; return this }
         Builder phaseName(String phaseName) { dto.phaseName = phaseName; return this }
         Builder phaseNumber(Integer phaseNumber) { dto.phaseNumber = phaseNumber; return this }
+        Builder stepNumber(Integer stepNumber) { dto.stepNumber = stepNumber; return this }
         Builder priority(Integer priority) { dto.priority = priority; return this }
         Builder stepType(String stepType) { dto.stepType = stepType; return this }
         Builder stepCategory(String stepCategory) { dto.stepCategory = stepCategory; return this }
@@ -499,6 +518,7 @@ class StepInstanceDTO {
         Builder isActive(Boolean active) { dto.isActive = active; return this }
         Builder createdDate(LocalDateTime date) { dto.createdDate = date; return this }
         Builder lastModifiedDate(LocalDateTime date) { dto.lastModifiedDate = date; return this }
+        Builder labels(List<Map<String, Object>> labels) { dto.labels = labels; return this }
         
         StepInstanceDTO build() {
             // Set default timestamps if not provided

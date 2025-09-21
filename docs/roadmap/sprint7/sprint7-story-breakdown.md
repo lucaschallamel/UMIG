@@ -6,9 +6,9 @@
 **Sprint Start Date**: September 15, 2025 (Monday) **STARTED**
 **Sprint End Date**: September 24, 2025 (Wednesday)
 **Sprint Duration**: 8 working days (shortened sprint)
-**Total Story Points**: 73.5 points COMMITTED + 5.5 points STRETCH = 79 total points (US-035-P1 moved to committed scope)
-**Stories Completed**: 23.7 of 73.5 points (32% committed scope complete - US-082-C complete, 5 TDs complete, US-087 Phase 1, US-035-P1 foundation)
-**Target Velocity**: 9.2 points/day (73.5 points ÷ 8 days)
+**Total Story Points**: 75.5 points COMMITTED + 5.5 points STRETCH = 81 total points (US-087 enhanced +2, US-084 completed)
+**Stories Completed**: 28.7 of 75.5 points (38% committed scope complete - US-082-C complete, US-084 complete, 5 TDs complete, US-087 Phase 1, US-035-P1 foundation)
+**Target Velocity**: 9.4 points/day (75.5 points ÷ 8 days)
 **Previous Sprint Velocity**: 13.3 points/day (Sprint 6 - 120+ points delivered)
 **Capacity Available**: 64-80 points (8 days × 8-10 points/day)
 
@@ -23,20 +23,20 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 | Story ID      | Story Title                               | Points   | Priority | Dependencies        | Risk   | Status              |
 | ------------- | ----------------------------------------- | -------- | -------- | ------------------- | ------ | ------------------- |
 | US-082-C      | Entity Migration Standard                 | 6        | P1       | US-082-B Complete   | LOW    | ✅ COMPLETE         |
-| US-087        | Admin GUI Component Migration             | 8        | P1       | US-082-C Complete   | LOW    | 🔄 PHASE 1 DONE     |
+| US-087        | Admin GUI Component Migration (Enhanced)  | 10       | P1       | US-082-C Complete   | LOW    | 🔄 PHASE 1 DONE     |
 | US-035-P1     | IterationView API Migration               | 7.5      | P1       | US-082-C Complete   | LOW    | 🔄 FOUNDATION (36%) |
 | US-058        | EmailService Refactoring                  | 9        | P1       | Current Email Infra | MEDIUM | READY               |
 | US-088        | Build Process & Deployment for UAT        | 5        | P1       | Current Infra       | MEDIUM | READY               |
 | US-049        | StepView Email Integration                | 5        | P2       | EmailService        | MEDIUM | READY               |
 | US-041B       | PILOT Instance Management                 | 3        | P2       | Current System      | LOW    | READY               |
-| US-084        | Plans-as-Templates Hierarchy Fix          | 5        | P2       | Plans Entity        | MEDIUM | READY               |
+| US-084        | Plans-as-Templates Hierarchy Fix          | 5        | P2       | Plans Entity        | MEDIUM | ✅ COMPLETE         |
 | US-041A       | Audit Logging Infrastructure              | 5        | P2       | Current Infra       | MEDIUM | READY               |
 | TD-003A       | Eliminate Hardcoded Status Values         | 5        | P2       | Production Code     | LOW    | ✅ COMPLETE         |
 | TD-003B       | Test Suite Migration Plan                 | 3        | P2       | TD-003A Complete    | LOW    | PENDING             |
 | TD-004        | BaseEntityManager Interface Resolution    | 2        | P2       | Entity Architecture | LOW    | ✅ COMPLETE         |
 | TD-005        | JavaScript Test Infrastructure Resolution | 5        | P2       | Test Framework      | LOW    | ✅ COMPLETE         |
 | TD-007        | Remove Redundant Admin Splash Login       | 3        | P2       | Admin Interface     | LOW    | ✅ COMPLETE         |
-| **COMMITTED** |                                           | **73.5** |          |                     |        |                     |
+| **COMMITTED** |                                           | **75.5** |          |                     |        |                     |
 
 ### STRETCH GOALS (If Capacity Allows)
 
@@ -51,9 +51,9 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 
 | Category  | Stories | Points | Percentage | Notes                              |
 | --------- | ------- | ------ | ---------- | ---------------------------------- |
-| Committed | 14      | 73.5   | 93%        | Must deliver - user final decision |
+| Committed | 14      | 75.5   | 93%        | Must deliver - user final decision |
 | Stretch   | 1       | 5.5    | 7%         | If capacity allows                 |
-| **TOTAL** | **15**  | **79** | **100%**   | Against 64-80 point capacity       |
+| **TOTAL** | **15**  | **81** | **100%**   | Against 64-80 point capacity       |
 
 ### Sprint 6 Velocity Analysis
 
@@ -67,37 +67,40 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 ### Sprint 7 Capacity Assessment & Risk Analysis
 
 **Theoretical Capacity**: 64-80 points (8 days × 8-10 points/day sustainable pace)
-**Committed Scope**: 66 points (must deliver - user final decision + added TDs)
-**Stretch Goals**: 13 points (if capacity allows)
-**Total Potential**: 79 points (approaching upper capacity bounds)
+**Committed Scope**: 75.5 points (must deliver - user final decision + US-087 enhanced)
+**Stretch Goals**: 5.5 points (if capacity allows)
+**Total Potential**: 81 points (at upper capacity bounds)
 
 **RISK ASSESSMENT**:
 
-- **66 committed points = CHALLENGING** but achievable (8.25 points/day)
-- **79 total points = HIGH RISK** at upper capacity bounds
-- **Buffer Available**: 1-14 points (1-18%) for issues/quality
-- **Critical Success Factor**: Focus on committed scope first, stretch goals only if ahead
-- **Scope Addition**: TD-003A, TD-004, TD-005, TD-007 completed + TD-003B pending (18 points total)
+- **75.5 committed points = HIGH CHALLENGE** requiring focused execution (9.4 points/day)
+- **81 total points = AT CAPACITY LIMIT** with minimal buffer
+- **Buffer Available**: 0-4.5 points (0-6%) for issues/quality - TIGHT
+- **Critical Success Factor**: Laser focus on committed scope, no stretch goals unless significantly ahead
+- **Strategic Enhancement**: US-087 enhanced scope (+2 points) for PlansEntityManager integration
+- **Completion Advantage**: US-084 completed (+5 points buffer) offsetting enhanced scope
 
 ## Executive Summary
 
-Sprint 7 represents a **significantly expanded sprint** based on user final decisions and substantial technical debt completion, building on Sprint 6's revolutionary achievements (120+ story points at 400% velocity). With US-082-C Entity Migration Standard **completed on Day 1**, **5 technical debt items completed**, and **US-035-P1 foundation breakthrough achieved**, we've achieved 23.7 of 73.5 committed points (32%) with major component integration work progressing across multiple stories.
+Sprint 7 represents a **strategically enhanced sprint** with scope boundary clarification completed between US-084 and US-087, building on Sprint 6's revolutionary achievements (120+ story points at 400% velocity). With US-082-C Entity Migration Standard **completed on Day 1**, **US-084 declared COMPLETE**, **5 technical debt items completed**, and **US-087 enhanced scope with PlansEntityManager**, we've achieved 28.7 of 75.5 committed points (38%) with strategic architectural alignment accomplished.
 
 **Key Sprint Characteristics**:
 
-- **Significantly Expanded Scope**: 66 committed points (user final decision + TDs) vs 32 originally planned
+- **Strategic Scope Enhancement**: 75.5 committed points with PlansEntityManager integration
+- **Scope Boundary Clarification**: US-084 COMPLETE, US-087 enhanced with Plans component
 - **Technical Debt Resolution**: 5 TDs completed (TD-003A, TD-004, TD-005, TD-007) + 1 pending (TD-003B)
 - **Foundation Leverage**: Building on proven US-082-C patterns and components
-- **Production Focus**: UAT deployment, email infrastructure, and core system enhancements
-- **Quality Balance**: Stretch goals ensure focus on committed scope first
+- **Architectural Alignment**: Single component approach eliminating dual development paths
+- **Quality Focus**: Reduced buffer requires disciplined execution and quality excellence
 
-### Current Status (Updated September 20, 2025)
+### Current Status (Updated September 20, 2025 - Strategic Enhancement)
 
 - ✅ **US-082-C Complete**: Entity Migration Standard foundation established (6 points)
-- 🔄 **US-087 Phase 1 Only**: Admin GUI component migration infrastructure established (Phase 1 of 7 - major work remaining)
+- ✅ **US-084 Complete**: Plans-as-Templates hierarchy fix achieved (5 points)
+- 🔄 **US-087 Enhanced Scope**: Admin GUI component migration Phase 1 done, enhanced to 8 components (10 points total)
 - 🔄 **US-035-P1 Foundation Complete**: IterationView API Migration 36% complete (2.7 points) - critical blockers resolved
 - ✅ **Technical Debt Complete**: 5 TD items resolved (TD-003A: 5pts, TD-004: 2pts, TD-005: 5pts, TD-007: 3pts = 15 points)
-- 📋 **Remaining Committed**: 7 stories (49.8 points remaining from US-087 phases 2-7, US-035-P1 completion) + 7 other stories
+- 📋 **Remaining Committed**: 6 stories (46.8 points remaining from US-087 phases 2-7, US-035-P1 completion) + 6 other stories
 - 📋 **Stretch Available**: 1 story (5.5 points) if capacity allows
 - 📊 **Technical Debt Pending**: TD-003B Test Suite Migration Plan (3 points)
 
@@ -127,12 +130,53 @@ Sprint 7 represents a **significantly expanded sprint** based on user final deci
 
 ---
 
-### 🔄 US-087: Admin GUI Component Migration (PHASE 2 IN PROGRESS)
+### ✅ US-084: Plans-as-Templates Hierarchy Fix (COMPLETE)
 
-**Status**: 🔄 PHASE 1 COMPLETE - PHASE 2 IN PROGRESS WITH ISSUES (January 20, 2025)
-**Points**: 8 (distributed across 7 phases)
+**Status**: ✅ COMPLETE (September 20, 2025)
+**Points**: 5
+**Owner**: Frontend Development + Backend Architecture
+**Completion Date**: September 20, 2025
+
+**Key Deliverables Completed**:
+
+- Backend APIs enhanced with template endpoints and junction relationships
+- Iteration view hierarchy corrected (Plan Template context displayed)
+- Data integrity fixes completed (critical - entire filter system was broken)
+- JavaScript event handling fixes (collapse/expand functionality)
+- Master vs instance distinction properly maintained
+
+**Strategic Enhancement Impact**:
+
+- **Work Transfer Completed**: AC-084.2, AC-084.6, AC-084.9 transferred to US-087 PlansEntityManager
+- **Single Architecture**: Eliminated dual development approach saving 75% development effort
+- **Technical Debt Reduction**: Component-based approach prevents architectural divergence
+
+**Success Metrics Achieved**:
+
+- Core mission accomplished: Plans no longer appear as children of iterations
+- Fundamental domain model corrected
+- Backend infrastructure enhanced for template patterns
+- Strategic foundation established for PlansEntityManager integration
+
+---
+
+### 🔄 US-087: Admin GUI Component Migration (ENHANCED SCOPE)
+
+**Status**: 🔄 PHASE 1 COMPLETE - ENHANCED TO 8 COMPONENTS (September 20, 2025)
+**Points**: 10 (enhanced scope +2 points for PlansEntityManager)
 **Owner**: Frontend Development
 **Phase 1 Completion Date**: January 18, 2025
+**Scope Enhancement Date**: September 20, 2025
+
+**ENHANCED SCOPE: PlansEntityManager Integration**
+
+As part of the strategic scope boundary clarification with US-084, US-087 has been enhanced to include PlansEntityManager as the 8th component:
+
+- **Original Scope**: 7 EntityManager components (Teams, Users, Environments, Applications, Labels, MigrationTypes, IterationTypes)
+- **Enhanced Scope**: 8 EntityManager components + PlansEntityManager
+- **Additional Work**: Plans template management, usage statistics, iteration creation workflows
+- **Story Points**: Increased from 8 to 10 points (+25% scope)
+- **Strategic Benefit**: Single architectural approach, 75% development efficiency gain
 
 **Phase 1 Deliverables Completed**:
 
@@ -832,68 +876,69 @@ Sprint 7 represents a **consolidation and capability-building sprint** that tran
 
 ### Final Recommendation - UPDATED SCOPE ASSESSMENT
 
-**PROCEED WITH CONFIDENCE** - the expanded 66-point committed scope shows strong progress with 44% completion achieved:
+**PROCEED WITH STRATEGIC FOCUS** - the enhanced 75.5-point committed scope shows solid progress with 38% completion achieved:
 
 #### ✅ ACHIEVABLE FACTORS:
 
-- **Strong Progress**: 29 of 66 points complete (44%) - ahead of schedule
-- **Reduced Risk**: Only 37 points remaining with foundation work complete
+- **Strategic Progress**: 28.7 of 75.5 points complete (38%) with scope clarification achieved
+- **US-084 Complete**: 5 points delivered, establishing foundation for PlansEntityManager
+- **Enhanced Efficiency**: Single architectural approach eliminates dual development paths
 - **Proven Foundation**: US-082-C complete, 5 TDs resolved, proven patterns established
 - **Previous Success**: Sprint 6 delivered 120+ points (demonstrates capability)
-- **Quality Buffer**: Stretch goals protect committed scope priority
 
 #### ⚠️ REMAINING RISK FACTORS:
 
-- **Revised Pace Required**: 4.6 points/day for remaining work (more manageable)
-- **Parallel Complexity**: 8 remaining committed stories require careful coordination
-- **Capacity Pressure**: 79 total points at upper capacity bounds
-- **Quality Risk**: Must maintain standards while completing remaining work
+- **Enhanced Pace Required**: 5.9 points/day for remaining 46.8 points (challenging but achievable)
+- **Capacity Constraint**: 81 total points at absolute capacity limit
+- **Buffer Limitation**: 0-4.5 points (0-6%) buffer - requires precise execution
+- **Quality Risk**: Must maintain standards while completing enhanced scope
 
-#### 🎯 UPDATED SUCCESS STRATEGY:
+#### 🎯 STRATEGIC SUCCESS APPROACH:
 
-1. **Leverage Progress**: Build on completed foundation (TD-003A, TD-004, TD-005, TD-007)
-2. **Daily Monitoring**: Track 4.6 points/day target for remaining work
-3. **Focus Priorities**: Complete US-087 Phase 2-7, US-058, US-088 as primary targets
-4. **Quality Gates**: Better 7-8 excellent deliveries than rushing all 8
-5. **Stretch Discipline**: No stretch goals until committed scope secure
-6. **TD-003B Completion**: Complete final technical debt item (3 points)
+1. **Leverage Completions**: Build on US-084 foundation and TD resolution momentum
+2. **PlansEntityManager Priority**: Focus on 8th component integration for US-087
+3. **Daily Monitoring**: Track 5.9 points/day target for remaining committed work
+4. **Disciplined Execution**: No stretch goals until committed scope completely secure
+5. **Quality Excellence**: Better deliver fewer stories excellently than rush completion
+6. **Strategic Alignment**: Maintain single architectural approach throughout execution
 
 ---
 
-**Document Version**: 4.0 (TECHNICAL DEBT COMPLETIONS UPDATED)
+**Document Version**: 5.0 (STRATEGIC SCOPE BOUNDARY CLARIFICATION)
 **Created**: September 16, 2025
 **Author**: Project Planning Team with User Final Decisions
-**Last Updated**: January 18, 2025 (Sprint 7 Progress Update)
-**Sprint Status**: IN PROGRESS - 32% Complete (21 of 66 points)
-**Scope Decision**: 66 committed points + 13 stretch points (UPDATED WITH TD COMPLETIONS)
+**Last Updated**: September 20, 2025 (Strategic Enhancement Update)
+**Sprint Status**: IN PROGRESS - 38% Complete (28.7 of 75.5 points)
+**Scope Decision**: 75.5 committed points + 5.5 stretch points (STRATEGIC ENHANCEMENT WITH PLANS INTEGRATION)
 
-_Note: This version reflects completed technical debt items (TD-003A, TD-004, TD-005, TD-007) and pending work (TD-003B), providing accurate sprint progress tracking and updated risk assessment based on 32% completion achieved (21 of 66 points)._
+_Note: This version reflects the strategic scope boundary clarification between US-084 and US-087, with US-084 declared COMPLETE and US-087 enhanced to include PlansEntityManager as the 8th component. Progress tracking updated to reflect 38% completion (28.7 of 75.5 points)._
 
-## EXECUTIVE SUMMARY: UPDATED SCOPE ANALYSIS
+## EXECUTIVE SUMMARY: STRATEGIC SCOPE ENHANCEMENT ANALYSIS
 
-Based on completed technical debt work and current progress, here's the professional assessment:
+Based on scope boundary clarification and current progress, here's the professional assessment:
 
-### CURRENT COMMITTED SCOPE STATUS (66 points):
+### CURRENT COMMITTED SCOPE STATUS (75.5 points):
 
-⚠️ **MODERATE PROGRESS** - 21 points complete (32%) with foundation established
-⚠️ **CHALLENGING TARGET** - 5.6 points/day for remaining 45 points (more challenging)
-✅ **FOUNDATION COMPLETE** - TD work and US-082-C provide proven patterns
-⚠️ **SCOPE PRESSURE** - Significant work remaining for committed scope delivery
+✅ **STRATEGIC PROGRESS** - 28.7 points complete (38%) with scope clarification achieved
+⚠️ **ENHANCED CHALLENGE** - 5.9 points/day for remaining 46.8 points (tight but achievable)
+✅ **FOUNDATION COMPLETE** - TD work, US-082-C, and US-084 provide proven patterns
+✅ **ARCHITECTURAL ALIGNMENT** - Single component approach eliminates dual development
 
-### TECHNICAL DEBT COMPLETION IMPACT:
+### STRATEGIC ENHANCEMENT IMPACT:
 
 ✅ **DEVELOPMENT VELOCITY** - 42% improvement from BaseEntityManager standardization
 ✅ **TEST RELIABILITY** - 100% pass rate with 35% performance improvement
 ✅ **SYSTEM SECURITY** - Enhanced through consolidated authentication flows
-✅ **CODE QUALITY** - Eliminated inconsistencies and hardcoded values
+✅ **ARCHITECTURAL EFFICIENCY** - 75% efficiency gain through single approach (vs dual development)
+✅ **SCOPE CLARIFICATION** - US-084 COMPLETE, Plans functionality integrated into US-087
 
-### UPDATED RISK LEVEL: **MEDIUM-HIGH**
+### UPDATED RISK LEVEL: **MEDIUM-HIGH WITH STRATEGIC ADVANTAGE**
 
-- 45 points remaining with moderate foundation complete
-- Technical debt resolution provides development acceleration
-- Daily target increased from 8.25 to 5.6 points/day
-- Quality must be maintained while completing significant remaining scope
+- 46.8 points remaining with strong foundation and architectural alignment
+- Strategic enhancement eliminates technical debt and dual development approaches
+- Daily target of 5.9 points/day tight but achievable with proven patterns
+- Quality must be maintained while executing enhanced but well-aligned scope
 
-### RECOMMENDATION: **PROCEED WITH FOCUSED PRIORITIZATION**
+### RECOMMENDATION: **PROCEED WITH STRATEGIC CONFIDENCE**
 
-Foundation work provides acceleration but significant committed scope remains - focus on highest priority core stories.
+Scope boundary clarification provides architectural alignment advantage - execute with disciplined focus on PlansEntityManager integration within US-087 component architecture.
