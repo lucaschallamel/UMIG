@@ -145,7 +145,29 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             if (!user) {
                 return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
             }
-            return Response.ok(new JsonBuilder(user).toString()).build()
+
+            // Include audit fields and role information in the response
+            def userMap = user as Map
+            def userResponse = [
+                usr_id: userMap.usr_id,
+                usr_code: userMap.usr_code,
+                usr_first_name: userMap.usr_first_name,
+                usr_last_name: userMap.usr_last_name,
+                usr_email: userMap.usr_email,
+                usr_is_admin: userMap.usr_is_admin,
+                usr_active: userMap.usr_active,
+                rls_id: userMap.rls_id,
+                role_code: userMap.role_code,
+                role_description: userMap.role_description,
+                teams: userMap.teams,
+                // Audit fields
+                created_at: userMap.created_at,
+                updated_at: userMap.updated_at,
+                created_by: userMap.created_by,
+                updated_by: userMap.updated_by
+            ]
+
+            return Response.ok(new JsonBuilder(userResponse).toString()).build()
         } else {
             // Check for userCode authentication parameter
             def userCode = queryParams.getFirst('userCode')
@@ -246,7 +268,36 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             
             // Get paginated users
             def result = userRepository.findAllUsers(pageNumber, pageSize, searchTerm, sortField, sortDirection, teamFilter, activeFilter)
-            return Response.ok(new JsonBuilder(result).toString()).build()
+
+            // Cast result to Map for static type checking compliance (ADR-031, ADR-043)
+            def resultMap = result as Map
+
+            // Ensure all users include audit fields
+            if (resultMap.content) {
+                resultMap.content = (resultMap.content as List).collect { user ->
+                    def userMap = user as Map
+                    return [
+                        usr_id: userMap.usr_id,
+                        usr_code: userMap.usr_code,
+                        usr_first_name: userMap.usr_first_name,
+                        usr_last_name: userMap.usr_last_name,
+                        usr_email: userMap.usr_email,
+                        usr_is_admin: userMap.usr_is_admin,
+                        usr_active: userMap.usr_active,
+                        rls_id: userMap.rls_id,
+                        role_code: userMap.role_code,
+                        role_description: userMap.role_description,
+                        teams: userMap.teams,
+                        // Audit fields
+                        created_at: userMap.created_at,
+                        updated_at: userMap.updated_at,
+                        created_by: userMap.created_by,
+                        updated_by: userMap.updated_by
+                    ]
+                }
+            }
+
+            return Response.ok(new JsonBuilder(resultMap).toString()).build()
         }
     } catch (SQLException e) {
         log.error("Database error in GET /users", e)
@@ -275,7 +326,27 @@ users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         }
 
         def newUser = userRepository.createUser(userData)
-        return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newUser).toString()).build()
+
+        // Ensure audit fields are included in the response
+        def userMap = newUser as Map
+        def userResponse = [
+            usr_id: userMap.usr_id,
+            usr_code: userMap.usr_code,
+            usr_first_name: userMap.usr_first_name,
+            usr_last_name: userMap.usr_last_name,
+            usr_email: userMap.usr_email,
+            usr_is_admin: userMap.usr_is_admin,
+            usr_active: userMap.usr_active,
+            rls_id: userMap.rls_id,
+            teams: userMap.teams,
+            // Audit fields
+            created_at: userMap.created_at,
+            updated_at: userMap.updated_at,
+            created_by: userMap.created_by,
+            updated_by: userMap.updated_by
+        ]
+
+        return Response.status(Response.Status.CREATED).entity(new JsonBuilder(userResponse).toString()).build()
     } catch (SQLException e) {
         log.error("Database error in POST /users: ${e.message}", e)
         
@@ -353,7 +424,27 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         }
 
         def updatedUser = userRepository.updateUser(userId, userData)
-        return Response.ok(new JsonBuilder(updatedUser).toString()).build()
+
+        // Ensure audit fields are included in the response
+        def userMap = updatedUser as Map
+        def userResponse = [
+            usr_id: userMap.usr_id,
+            usr_code: userMap.usr_code,
+            usr_first_name: userMap.usr_first_name,
+            usr_last_name: userMap.usr_last_name,
+            usr_email: userMap.usr_email,
+            usr_is_admin: userMap.usr_is_admin,
+            usr_active: userMap.usr_active,
+            rls_id: userMap.rls_id,
+            teams: userMap.teams,
+            // Audit fields
+            created_at: userMap.created_at,
+            updated_at: userMap.updated_at,
+            created_by: userMap.created_by,
+            updated_by: userMap.updated_by
+        ]
+
+        return Response.ok(new JsonBuilder(userResponse).toString()).build()
     } catch (SQLException e) {
         log.error("Database error in PUT /users/${userId}: ${e.message}", e)
         

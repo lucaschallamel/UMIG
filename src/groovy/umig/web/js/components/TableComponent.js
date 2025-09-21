@@ -94,6 +94,16 @@ class TableComponent extends BaseComponent {
         visibleColumns: null,
         ...(config.columnVisibility || {}),
       },
+      colorMapping: {
+        enabled: false,
+        fields: {
+          // fieldName: {
+          //   attribute: 'data-field-status',
+          //   values: { activeValue: 'css-class-suffix', inactiveValue: 'css-class-suffix' }
+          // }
+        },
+        ...(config.colorMapping || {}),
+      },
       loading: false,
       emptyMessage: "No data available",
     };
@@ -222,7 +232,14 @@ class TableComponent extends BaseComponent {
               "role",
               "style",
             ],
-            td: ["class", "data-field", "role"],
+            td: [
+              "class",
+              "data-field",
+              "data-column",
+              "role",
+              "data-user-status",
+              "data-user-role",
+            ],
             button: [
               "class",
               "type",
@@ -426,7 +443,7 @@ class TableComponent extends BaseComponent {
 
     return `
       <div class="table-wrapper" role="table">
-        <table class="data-table" aria-label="Data table">
+        <table class="umig-data-table" aria-label="Data table">
           ${this.renderTableHeader()}
           ${this.renderTableBody()}
         </table>
@@ -463,7 +480,7 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Render header cell with sorting - BULLETPROOF VERSION
+   * Render header cell with sorting - BULLETPROOF UMIG-PREFIXED VERSION
    */
   renderHeaderCell(column) {
     const isSortable = this.config.sorting.enabled && column.sortable !== false;
@@ -478,13 +495,13 @@ class TableComponent extends BaseComponent {
       `[TableComponent]   isSortable: ${isSortable}, isSorted: ${isSorted}, direction: ${sortDirection}`,
     );
 
-    // Build class string with proper spacing
+    // Build UMIG-prefixed class string with proper spacing to avoid Confluence conflicts
     let cssClasses = "header-cell";
     if (isSortable) {
-      cssClasses += " sortable";
+      cssClasses += " umig-sortable";
     }
     if (isSorted) {
-      cssClasses += ` sorted sorted-${sortDirection || "none"}`;
+      cssClasses += ` umig-sorted umig-sorted-${sortDirection || "none"}`;
     }
 
     // Ensure aria-sort always has a valid value
@@ -493,8 +510,14 @@ class TableComponent extends BaseComponent {
     // BULLETPROOF: Always include data-column attribute for sortable columns
     // This ensures our event delegation can always identify the column
     const dataColumnAttribute = isSortable ? `data-column="${column.key}"` : "";
+
+    // CRITICAL: Add umig-specific data attribute for bulletproof identification
+    const umigColumnAttribute = isSortable
+      ? `data-umig-column="${column.key}"`
+      : "";
+
     const styleAttribute = isSortable
-      ? 'style="cursor: pointer; user-select: none;"'
+      ? 'style="cursor: pointer !important; user-select: none; position: relative; z-index: 10;"'
       : "";
 
     console.log(
@@ -506,31 +529,15 @@ class TableComponent extends BaseComponent {
           role="columnheader"
           aria-sort="${ariaSortValue}"
           ${dataColumnAttribute}
+          ${umigColumnAttribute}
           ${styleAttribute}
-          data-column-label="${column.label}">
-        <div class="header-content" ${isSortable ? 'style="pointer-events: none; cursor: pointer;"' : ""}>
-          <span>${column.label}</span>
+          data-column-label="${column.label}"
+          data-umig-sortable="${isSortable}">
+        <div class="umig-header-content" style="pointer-events: none; cursor: pointer;">
+          <span style="pointer-events: none;">${column.label}</span>
           ${
             isSortable
-              ? `
-            <span class="sort-indicator" aria-hidden="true">
-              ${
-                isSorted && sortDirection === "asc"
-                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrow-up-small" style="vertical-align: middle; pointer-events: none;">Sort ascending</span>'
-                  : ""
-              }
-              ${
-                isSorted && sortDirection === "desc"
-                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrow-down-small" style="vertical-align: middle; pointer-events: none;">Sort descending</span>'
-                  : ""
-              }
-              ${
-                !isSorted
-                  ? '<span class="aui-icon aui-icon-small aui-iconfont-arrows-up-down" style="vertical-align: middle; opacity: 0.5; pointer-events: none;">Sortable</span>'
-                  : ""
-              }
-            </span>
-          `
+              ? `<span class="umig-sort-indicator" aria-hidden="true" style="pointer-events: none;"></span>`
               : ""
           }
         </div>
@@ -604,7 +611,7 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Render table cell
+   * Render table cell with color mapping support
    */
   renderCell(row, column) {
     let value = row[column.key];
@@ -644,7 +651,30 @@ class TableComponent extends BaseComponent {
       });
     }
 
-    return `<td class="data-cell" role="cell" data-column="${column.key}">${value}</td>`;
+    // Apply color mapping if configured
+    let colorAttributes = "";
+    if (
+      this.config.colorMapping.enabled &&
+      this.config.colorMapping.fields[column.key]
+    ) {
+      const fieldConfig = this.config.colorMapping.fields[column.key];
+      const fieldValue = row[column.key];
+
+      // Convert field value to string for comparison
+      const valueKey = String(fieldValue);
+
+      if (fieldConfig.values && fieldConfig.values[valueKey]) {
+        const mappedValue = fieldConfig.values[valueKey];
+        colorAttributes = ` ${fieldConfig.attribute}="${mappedValue}"`;
+
+        // Debug logging for color mapping
+        console.log(
+          `[TableComponent] Applied color mapping: ${column.key}=${fieldValue} -> ${fieldConfig.attribute}="${mappedValue}"`,
+        );
+      }
+    }
+
+    return `<td class="data-cell" role="cell" data-column="${column.key}"${colorAttributes}>${value}</td>`;
   }
 
   /**
@@ -715,20 +745,20 @@ class TableComponent extends BaseComponent {
       return "";
     }
 
-    const totalPages = Math.ceil(
-      this.filteredData.length / this.config.pagination.pageSize,
-    );
+    // Client-side pagination - use filtered data length
+    const totalItems = this.filteredData.length;
+    const totalPages = Math.ceil(totalItems / this.config.pagination.pageSize);
     const currentPage = this.config.pagination.currentPage;
     const startItem = (currentPage - 1) * this.config.pagination.pageSize + 1;
     const endItem = Math.min(
       currentPage * this.config.pagination.pageSize,
-      this.filteredData.length,
+      totalItems,
     );
 
     return `
       <div class="table-pagination" role="navigation" aria-label="Table pagination">
         <div class="pagination-info">
-          Showing ${startItem}-${endItem} of ${this.filteredData.length} items
+          Showing ${startItem}-${endItem} of ${totalItems} items
         </div>
         <div class="pagination-controls">
           <select class="page-size-select" aria-label="Items per page">
@@ -922,13 +952,13 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Bulletproof sorting setup using event delegation
+   * Bulletproof sorting setup using event delegation with Confluence interference prevention
    * @private
    */
   _setupBulletproofSorting() {
     try {
       console.log(
-        "[TableComponent] Setting up bulletproof sorting with event delegation",
+        "[TableComponent] Setting up bulletproof sorting with UMIG-prefixed event delegation",
       );
 
       // Clear any existing sorting listeners
@@ -939,44 +969,57 @@ class TableComponent extends BaseComponent {
         return;
       }
 
-      // BULLETPROOF APPROACH: Use event delegation on the container
+      // BULLETPROOF APPROACH: Use event delegation on the container with event capture
       // This eliminates DOM timing issues and handles re-renders automatically
+      // Event capture ensures we intercept clicks before Confluence can handle them
       const sortingHandler = (event) => {
-        // Find the clicked header element
+        console.log("[TableComponent] UMIG sorting handler triggered:", event);
+
+        // Find the clicked header element using UMIG-specific attributes
         const clickedElement = event.target;
-        const headerElement = this._findHeaderElement(clickedElement);
+        const headerElement = this._findUmigHeaderElement(clickedElement);
 
         if (!headerElement) {
-          // Click was not on a sortable header
+          // Click was not on a UMIG sortable header
           return;
         }
 
-        // Use multiple methods to identify the column
-        const columnKey = this._identifyColumn(headerElement);
+        // Use UMIG-specific methods to identify the column
+        const columnKey = this._identifyUmigColumn(headerElement);
 
         if (!columnKey) {
           console.error(
-            "[TableComponent] Could not identify column for sorting",
+            "[TableComponent] Could not identify UMIG column for sorting",
           );
           return;
         }
 
-        // Prevent default behavior and stop propagation
+        // CRITICAL: Immediately prevent event from reaching Confluence
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
 
-        console.log(`[TableComponent] BULLETPROOF SORT - Column: ${columnKey}`);
-        this.handleSort(columnKey);
+        console.log(
+          `[TableComponent] UMIG BULLETPROOF SORT - Column: ${columnKey}`,
+        );
+
+        // Add slight delay to ensure DOM state is stable
+        setTimeout(() => {
+          this.handleSort(columnKey);
+        }, 0);
       };
 
-      // Attach single delegated event listener to container
-      this.addDOMListener(this.container, "click", sortingHandler);
+      // CRITICAL: Attach with event capture to intercept before Confluence
+      // Use both capture phase and bubble phase for maximum compatibility
+      this.container.addEventListener("click", sortingHandler, true); // Capture phase
+      this.addDOMListener(this.container, "click", sortingHandler); // Bubble phase
 
       // Store reference for cleanup
       this._sortingDelegateHandler = sortingHandler;
+      this._sortingCaptureHandler = sortingHandler;
 
       console.log(
-        "[TableComponent] ✓ Bulletproof sorting delegation established",
+        "[TableComponent] ✓ UMIG bulletproof sorting delegation established with capture phase",
       );
     } catch (error) {
       console.error(
@@ -987,18 +1030,24 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Find the header element from a clicked target (handles clicks on nested elements)
+   * Find the UMIG header element from a clicked target (handles clicks on nested elements)
    * @private
    */
-  _findHeaderElement(clickedElement) {
-    // Traverse up the DOM to find the header element
+  _findUmigHeaderElement(clickedElement) {
+    // Traverse up the DOM to find the UMIG header element
     let element = clickedElement;
     let attempts = 0;
     const maxAttempts = 5; // Prevent infinite loops
 
+    console.log(
+      "[TableComponent] Finding UMIG header element from:",
+      clickedElement,
+    );
+
     while (element && attempts < maxAttempts) {
-      // Check if this element is a sortable header
-      if (element.tagName === "TH" && this._isHeaderSortable(element)) {
+      // Check if this element is a UMIG sortable header
+      if (element.tagName === "TH" && this._isUmigHeaderSortable(element)) {
+        console.log("[TableComponent] Found UMIG sortable header:", element);
         return element;
       }
 
@@ -1007,43 +1056,86 @@ class TableComponent extends BaseComponent {
       attempts++;
     }
 
+    console.log("[TableComponent] No UMIG sortable header found");
     return null;
   }
 
   /**
-   * Check if a header element is sortable
+   * Check if a header element is UMIG sortable (uses UMIG-specific attributes/classes)
    * @private
    */
-  _isHeaderSortable(element) {
-    // Multiple checks for reliability
+  _isUmigHeaderSortable(element) {
+    // Multiple checks for reliability using UMIG-specific identifiers
+    const hasUmigSortableClass = element.classList.contains("umig-sortable");
+    const hasUmigColumnAttr = element.hasAttribute("data-umig-column");
+    const hasUmigSortableAttr =
+      element.getAttribute("data-umig-sortable") === "true";
+    const hasDataColumn = element.hasAttribute("data-column"); // Fallback compatibility
+
+    console.log("[TableComponent] Checking UMIG sortable:", {
+      element: element,
+      hasUmigSortableClass,
+      hasUmigColumnAttr,
+      hasUmigSortableAttr,
+      hasDataColumn,
+      classList: Array.from(element.classList),
+    });
+
     return (
-      element.classList.contains("sortable") ||
-      element.hasAttribute("data-column") ||
-      (element.getAttribute("aria-sort") &&
-        element.getAttribute("aria-sort") !== "")
+      hasUmigSortableClass ||
+      hasUmigColumnAttr ||
+      hasUmigSortableAttr ||
+      hasDataColumn
     );
   }
 
   /**
-   * Robust column identification with multiple fallback mechanisms
+   * Find the header element from a clicked target (handles clicks on nested elements) - LEGACY
    * @private
    */
-  _identifyColumn(headerElement) {
+  _findHeaderElement(clickedElement) {
+    // Redirect to UMIG-specific method
+    return this._findUmigHeaderElement(clickedElement);
+  }
+
+  /**
+   * Check if a header element is sortable - LEGACY
+   * @private
+   */
+  _isHeaderSortable(element) {
+    // Redirect to UMIG-specific method
+    return this._isUmigHeaderSortable(element);
+  }
+
+  /**
+   * UMIG-specific column identification with multiple fallback mechanisms
+   * @private
+   */
+  _identifyUmigColumn(headerElement) {
     console.log(
-      "[TableComponent] Identifying column for header:",
+      "[TableComponent] Identifying UMIG column for header:",
       headerElement,
     );
 
-    // Method 1: data-column attribute (primary)
+    // Method 1: data-umig-column attribute (UMIG-specific primary)
+    const umigColumn = headerElement.getAttribute("data-umig-column");
+    if (umigColumn) {
+      console.log(
+        `[TableComponent] UMIG column identified via data-umig-column: ${umigColumn}`,
+      );
+      return umigColumn;
+    }
+
+    // Method 2: data-column attribute (legacy fallback)
     const dataColumn = headerElement.getAttribute("data-column");
     if (dataColumn) {
       console.log(
-        `[TableComponent] Column identified via data-column: ${dataColumn}`,
+        `[TableComponent] UMIG column identified via data-column: ${dataColumn}`,
       );
       return dataColumn;
     }
 
-    // Method 2: Find column index and map to configuration
+    // Method 3: Find column index and map to configuration
     const headerRow = headerElement.parentElement;
     const headers = Array.from(headerRow.children);
     let headerIndex = headers.indexOf(headerElement);
@@ -1058,12 +1150,12 @@ class TableComponent extends BaseComponent {
     if (headerIndex >= 0 && headerIndex < visibleColumns.length) {
       const column = visibleColumns[headerIndex];
       console.log(
-        `[TableComponent] Column identified via index mapping: ${column.key}`,
+        `[TableComponent] UMIG column identified via index mapping: ${column.key}`,
       );
       return column.key;
     }
 
-    // Method 3: Text content matching (last resort)
+    // Method 4: Text content matching (last resort)
     const headerText = headerElement.textContent.trim();
     const matchingColumn = this.config.columns.find(
       (col) => col.label === headerText && col.sortable !== false,
@@ -1071,20 +1163,30 @@ class TableComponent extends BaseComponent {
 
     if (matchingColumn) {
       console.log(
-        `[TableComponent] Column identified via text matching: ${matchingColumn.key}`,
+        `[TableComponent] UMIG column identified via text matching: ${matchingColumn.key}`,
       );
       return matchingColumn.key;
     }
 
     console.error(
-      "[TableComponent] Failed to identify column using all methods",
+      "[TableComponent] Failed to identify UMIG column using all methods",
     );
     console.error("[TableComponent] Header element:", headerElement);
+    console.error("[TableComponent] data-umig-column:", umigColumn);
     console.error("[TableComponent] data-column:", dataColumn);
     console.error("[TableComponent] headerIndex:", headerIndex);
     console.error("[TableComponent] headerText:", headerText);
 
     return null;
+  }
+
+  /**
+   * Robust column identification with multiple fallback mechanisms - LEGACY
+   * @private
+   */
+  _identifyColumn(headerElement) {
+    // Redirect to UMIG-specific method
+    return this._identifyUmigColumn(headerElement);
   }
 
   /**
@@ -1099,7 +1201,7 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Clear all sorting listeners to prevent duplicates
+   * Clear all sorting listeners to prevent duplicates (including capture phase)
    * @private
    */
   _clearSortingListeners() {
@@ -1118,7 +1220,7 @@ class TableComponent extends BaseComponent {
       this._sortingListeners.clear();
     }
 
-    // Clear new delegate handler
+    // Clear new delegate handler (bubble phase)
     if (this._sortingDelegateHandler && this.container) {
       try {
         this.container.removeEventListener(
@@ -1130,6 +1232,24 @@ class TableComponent extends BaseComponent {
       } catch (error) {
         console.warn(
           "[TableComponent] Error removing delegate sorting handler:",
+          error,
+        );
+      }
+    }
+
+    // Clear capture phase handler
+    if (this._sortingCaptureHandler && this.container) {
+      try {
+        this.container.removeEventListener(
+          "click",
+          this._sortingCaptureHandler,
+          true, // Capture phase
+        );
+        this._sortingCaptureHandler = null;
+        console.log("[TableComponent] ✓ Capture phase sorting handler cleared");
+      } catch (error) {
+        console.warn(
+          "[TableComponent] Error removing capture phase sorting handler:",
           error,
         );
       }
@@ -1653,51 +1773,59 @@ class TableComponent extends BaseComponent {
   }
 
   /**
-   * Verify that sorting state was applied correctly to DOM
+   * Verify that sorting state was applied correctly to DOM (UMIG-aware)
    * @private
    */
   _verifySortingState(expectedColumn, expectedColumnConfig) {
     try {
       console.log(
-        `[TableComponent] Verifying sorting state for column '${expectedColumn}'`,
+        `[TableComponent] Verifying UMIG sorting state for column '${expectedColumn}'`,
       );
 
-      // Find the header for the sorted column
-      const headerElements = this.container.querySelectorAll("th[data-column]");
+      // Find headers with UMIG-specific attributes
+      const headerElements = this.container.querySelectorAll(
+        "th[data-umig-column], th[data-column]",
+      );
       let sortedHeaderFound = false;
       let correctIndicatorFound = false;
 
       headerElements.forEach((header) => {
-        const columnKey = header.getAttribute("data-column");
+        // Try UMIG-specific attribute first, then fallback to legacy
+        const columnKey =
+          header.getAttribute("data-umig-column") ||
+          header.getAttribute("data-column");
         const ariaSortValue = header.getAttribute("aria-sort");
-        const hasSortedClass = header.classList.contains("sorted");
+        const hasUmigSortedClass = header.classList.contains("umig-sorted");
+        const hasLegacySortedClass = header.classList.contains("sorted"); // Legacy support
 
         if (columnKey === expectedColumn) {
           sortedHeaderFound = true;
 
-          // Check if this header has the correct sorting indicators
+          // Check if this header has the correct UMIG sorting indicators
           if (
-            hasSortedClass &&
+            (hasUmigSortedClass || hasLegacySortedClass) &&
             ariaSortValue === this.config.sorting.direction
           ) {
             correctIndicatorFound = true;
             console.log(
-              `[TableComponent] ✓ Correct sorting indicators found on column '${expectedColumn}'`,
+              `[TableComponent] ✓ Correct UMIG sorting indicators found on column '${expectedColumn}'`,
             );
           } else {
             console.warn(
-              `[TableComponent] ⚠ Sorting indicators may be incorrect:`,
+              `[TableComponent] ⚠ UMIG sorting indicators may be incorrect:`,
               {
                 column: columnKey,
-                hasSortedClass,
+                hasUmigSortedClass,
+                hasLegacySortedClass,
                 ariaSortValue,
                 expectedDirection: this.config.sorting.direction,
+                classList: Array.from(header.classList),
               },
             );
           }
         } else {
           // Other headers should not have sorted class
-          if (hasSortedClass) {
+          if (hasUmigSortedClass || hasLegacySortedClass) {
             console.warn(
               `[TableComponent] ⚠ Header '${columnKey}' incorrectly has sorted class`,
             );
@@ -1713,13 +1841,16 @@ class TableComponent extends BaseComponent {
 
       if (!correctIndicatorFound) {
         console.error(
-          `[TableComponent] ✗ Correct sorting indicators not found for column '${expectedColumn}'`,
+          `[TableComponent] ✗ Correct UMIG sorting indicators not found for column '${expectedColumn}'`,
         );
       }
 
       return sortedHeaderFound && correctIndicatorFound;
     } catch (error) {
-      console.error("[TableComponent] Error verifying sorting state:", error);
+      console.error(
+        "[TableComponent] Error verifying UMIG sorting state:",
+        error,
+      );
       return false;
     }
   }
@@ -1981,9 +2112,10 @@ class TableComponent extends BaseComponent {
   /**
    * Update table data - alias for setData for component compatibility
    * @param {Array} data - New data array
+   * @param {Object} metadata - Optional metadata including totalElements
    */
-  updateData(data) {
-    return this.setData(data);
+  updateData(data, metadata = {}) {
+    return this.setData(data, metadata);
   }
 
   getData() {
@@ -2148,6 +2280,7 @@ class TableComponent extends BaseComponent {
 
     // Clear delegate handler references
     this._sortingDelegateHandler = null;
+    this._sortingCaptureHandler = null;
     this._actionDelegateHandler = null;
 
     // Clear legacy listener storage

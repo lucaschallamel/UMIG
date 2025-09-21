@@ -391,13 +391,15 @@ class ModalComponent extends BaseComponent {
   renderFormField(field) {
     const required = field.required ? "required" : "";
     const error = this.validationErrors[field.name];
-    const value = this.formData[field.name] || field.defaultValue || "";
+    const value =
+      this.formData[field.name] || field.value || field.defaultValue || "";
+    const isViewMode = this.viewMode || false;
 
     let fieldHTML = `
-      <div class="form-group ${error ? "has-error" : ""}">
+      <div class="form-group ${error ? "has-error" : ""} ${isViewMode ? "view-mode" : ""}">
         <label for="${field.name}" class="form-label">
           ${field.label}
-          ${field.required ? '<span class="required">*</span>' : ""}
+          ${field.required && !isViewMode ? '<span class="required">*</span>' : ""}
         </label>
     `;
 
@@ -408,101 +410,245 @@ class ModalComponent extends BaseComponent {
       case "number":
       case "date":
       case "time":
-        fieldHTML += `
-          <input type="${field.type}" 
-                 id="${field.name}" 
-                 name="${field.name}"
-                 class="form-control"
-                 value="${value}"
-                 placeholder="${field.placeholder || ""}"
-                 ${required}
-                 ${field.readonly ? "readonly" : ""}
-                 ${field.disabled ? "disabled" : ""}
-                 aria-invalid="${error ? "true" : "false"}"
-                 aria-describedby="${error ? field.name + "-error" : ""}">
-        `;
+        if (isViewMode) {
+          // In view mode, show as styled text instead of input
+          fieldHTML += `
+            <div class="form-control-static view-field-value"
+                 style="
+                   padding: 8px 12px !important;
+                   background-color: #f8f9fa !important;
+                   border: 1px solid #e9ecef !important;
+                   border-radius: 4px !important;
+                   min-height: 34px !important;
+                   color: #495057 !important;
+                   font-family: inherit !important;
+                   line-height: 1.5 !important;
+                 ">
+              ${value || '<em style="color: #6c757d;">No value</em>'}
+            </div>
+          `;
+        } else {
+          fieldHTML += `
+            <input type="${field.type}"
+                   id="${field.name}"
+                   name="${field.name}"
+                   class="form-control"
+                   value="${value}"
+                   placeholder="${field.placeholder || ""}"
+                   ${required}
+                   ${field.readonly ? "readonly" : ""}
+                   ${field.disabled ? "disabled" : ""}
+                   aria-invalid="${error ? "true" : "false"}"
+                   aria-describedby="${error ? field.name + "-error" : ""}">
+          `;
+        }
         break;
 
       case "textarea":
-        fieldHTML += `
-          <textarea id="${field.name}" 
-                    name="${field.name}"
-                    class="form-control"
-                    rows="${field.rows || 3}"
-                    placeholder="${field.placeholder || ""}"
-                    ${required}
-                    ${field.readonly ? "readonly" : ""}
-                    ${field.disabled ? "disabled" : ""}
-                    aria-invalid="${error ? "true" : "false"}"
-                    aria-describedby="${error ? field.name + "-error" : ""}">${value}</textarea>
-        `;
+        if (isViewMode) {
+          fieldHTML += `
+            <div class="form-control-static view-field-value"
+                 style="
+                   padding: 8px 12px !important;
+                   background-color: #f8f9fa !important;
+                   border: 1px solid #e9ecef !important;
+                   border-radius: 4px !important;
+                   min-height: 80px !important;
+                   color: #495057 !important;
+                   font-family: inherit !important;
+                   line-height: 1.5 !important;
+                   white-space: pre-wrap !important;
+                 ">
+              ${value || '<em style="color: #6c757d;">No value</em>'}
+            </div>
+          `;
+        } else {
+          fieldHTML += `
+            <textarea id="${field.name}"
+                      name="${field.name}"
+                      class="form-control"
+                      rows="${field.rows || 3}"
+                      placeholder="${field.placeholder || ""}"
+                      ${required}
+                      ${field.readonly ? "readonly" : ""}
+                      ${field.disabled ? "disabled" : ""}
+                      aria-invalid="${error ? "true" : "false"}"
+                      aria-describedby="${error ? field.name + "-error" : ""}">${value}</textarea>
+          `;
+        }
         break;
 
       case "select":
-        fieldHTML += `
-          <select id="${field.name}" 
-                  name="${field.name}"
-                  class="form-control"
-                  ${required}
-                  ${field.disabled ? "disabled" : ""}
-                  aria-invalid="${error ? "true" : "false"}"
-                  aria-describedby="${error ? field.name + "-error" : ""}">
-            ${field.options
-              .map(
-                (opt) => `
-              <option value="${opt.value}" ${value === opt.value ? "selected" : ""}>
-                ${opt.label}
-              </option>
-            `,
-              )
-              .join("")}
-          </select>
-        `;
-        break;
-
-      case "checkbox":
-        fieldHTML = `
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" 
-                     id="${field.name}" 
-                     name="${field.name}"
-                     value="true"
-                     ${value === true || value === "true" ? "checked" : ""}
-                     ${field.disabled ? "disabled" : ""}>
-              ${field.label}
-            </label>
-          </div>
-        `;
-        break;
-
-      case "radio":
-        fieldHTML = `
-          <div class="form-group">
-            <div class="radio-group" role="radiogroup" aria-labelledby="${field.name}-label">
-              <span id="${field.name}-label" class="form-label">${field.label}</span>
+        if (isViewMode) {
+          // Find the selected option label
+          const selectedOption = field.options?.find(
+            (opt) => opt.value === value,
+          );
+          const displayValue = selectedOption ? selectedOption.label : value;
+          fieldHTML += `
+            <div class="form-control-static view-field-value"
+                 style="
+                   padding: 8px 12px !important;
+                   background-color: #f8f9fa !important;
+                   border: 1px solid #e9ecef !important;
+                   border-radius: 4px !important;
+                   min-height: 34px !important;
+                   color: #495057 !important;
+                   font-family: inherit !important;
+                   line-height: 1.5 !important;
+                 ">
+              ${displayValue || '<em style="color: #6c757d;">No value</em>'}
+            </div>
+          `;
+        } else {
+          fieldHTML += `
+            <select id="${field.name}"
+                    name="${field.name}"
+                    class="form-control"
+                    ${required}
+                    ${field.disabled ? "disabled" : ""}
+                    aria-invalid="${error ? "true" : "false"}"
+                    aria-describedby="${error ? field.name + "-error" : ""}">
               ${field.options
                 .map(
                   (opt) => `
-                <label class="radio-label">
-                  <input type="radio" 
-                         name="${field.name}"
-                         value="${opt.value}"
-                         ${value === opt.value ? "checked" : ""}
-                         ${field.disabled ? "disabled" : ""}>
+                <option value="${opt.value}" ${value === opt.value ? "selected" : ""}>
                   ${opt.label}
-                </label>
+                </option>
               `,
                 )
                 .join("")}
+            </select>
+          `;
+        }
+        break;
+
+      case "checkbox":
+        if (isViewMode) {
+          const displayValue =
+            value === true || value === "true" ? "Yes" : "No";
+          const iconClass = value === true || value === "true" ? "✓" : "✗";
+          const iconColor =
+            value === true || value === "true" ? "#28a745" : "#dc3545";
+          fieldHTML = `
+            <div class="form-group view-mode">
+              <label class="form-label">${field.label}</label>
+              <div class="form-control-static view-field-value"
+                   style="
+                     padding: 8px 12px !important;
+                     background-color: #f8f9fa !important;
+                     border: 1px solid #e9ecef !important;
+                     border-radius: 4px !important;
+                     min-height: 34px !important;
+                     color: #495057 !important;
+                     font-family: inherit !important;
+                     line-height: 1.5 !important;
+                   ">
+                <span style="color: ${iconColor}; font-weight: bold; margin-right: 8px;">${iconClass}</span>
+                ${displayValue}
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          fieldHTML = `
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox"
+                       id="${field.name}"
+                       name="${field.name}"
+                       value="true"
+                       ${value === true || value === "true" ? "checked" : ""}
+                       ${field.disabled ? "disabled" : ""}>
+                ${field.label}
+              </label>
+            </div>
+          `;
+        }
+        break;
+
+      case "radio":
+        if (isViewMode) {
+          // Find the selected option label
+          const selectedOption = field.options?.find(
+            (opt) => opt.value === value,
+          );
+          const displayValue = selectedOption ? selectedOption.label : value;
+          fieldHTML = `
+            <div class="form-group view-mode">
+              <label class="form-label">${field.label}</label>
+              <div class="form-control-static view-field-value"
+                   style="
+                     padding: 8px 12px !important;
+                     background-color: #f8f9fa !important;
+                     border: 1px solid #e9ecef !important;
+                     border-radius: 4px !important;
+                     min-height: 34px !important;
+                     color: #495057 !important;
+                     font-family: inherit !important;
+                     line-height: 1.5 !important;
+                   ">
+                ${displayValue || '<em style="color: #6c757d;">No value</em>'}
+              </div>
+            </div>
+          `;
+        } else {
+          fieldHTML = `
+            <div class="form-group">
+              <div class="radio-group" role="radiogroup" aria-labelledby="${field.name}-label">
+                <span id="${field.name}-label" class="form-label">${field.label}</span>
+                ${field.options
+                  .map(
+                    (opt) => `
+                  <label class="radio-label">
+                    <input type="radio"
+                           name="${field.name}"
+                           value="${opt.value}"
+                           ${value === opt.value ? "checked" : ""}
+                           ${field.disabled ? "disabled" : ""}>
+                    ${opt.label}
+                  </label>
+                `,
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `;
+        }
+        break;
+
+      case "separator":
+        // Special case for audit section separator
+        if (isViewMode && field.isAuditField) {
+          fieldHTML = `
+            <div class="audit-section-separator" style="margin: 25px 0 15px 0;">
+              <hr style="
+                border: none !important;
+                border-top: 2px solid #e9ecef !important;
+                margin: 15px 0 !important;
+              ">
+              <h4 style="
+                margin: 0 0 15px 0 !important;
+                font-size: 16px !important;
+                font-weight: 600 !important;
+                color: #495057 !important;
+                border-bottom: 1px solid #dee2e6 !important;
+                padding-bottom: 8px !important;
+              ">${field.label}</h4>
+            </div>
+          `;
+        } else {
+          // Regular separator for edit mode (minimal)
+          fieldHTML = `
+            <div class="form-separator" style="margin: 20px 0;">
+              <hr style="border: none; border-top: 1px solid #e9ecef;">
+            </div>
+          `;
+        }
         break;
     }
 
     // Add help text if provided
-    if (field.helpText) {
+    if (field.helpText && !field.isAuditField) {
       fieldHTML += `<small class="form-help">${field.helpText}</small>`;
     }
 
@@ -1094,6 +1240,26 @@ class ModalComponent extends BaseComponent {
    * Handle button action
    */
   handleButtonAction(action) {
+    // Check for custom button click handler first
+    if (
+      this.config.onButtonClick &&
+      typeof this.config.onButtonClick === "function"
+    ) {
+      try {
+        const result = this.config.onButtonClick(action);
+        // If handler returns true, it handled the action (including closing if needed)
+        if (result === true) {
+          return;
+        }
+      } catch (error) {
+        console.error(
+          "[ModalComponent] Error in custom button click handler:",
+          error,
+        );
+      }
+    }
+
+    // Default button handling
     switch (action) {
       case "close":
       case "cancel":

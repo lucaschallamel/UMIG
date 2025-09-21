@@ -81,17 +81,26 @@ class BaseComponent {
 5. `unmount()` - DOM cleanup
 6. `destroy()` - Memory cleanup
 
-#### TableComponent.js (Advanced Data Table)
+#### TableComponent.js (Advanced Data Table - BULLETPROOF)
 
-**Enterprise data table with sorting, filtering, and pagination**
+**Enterprise data table with bulletproof sorting, filtering, and client-side pagination**
 
 **Features**:
 
-- Advanced sorting with multi-column support
-- Client-side and server-side filtering
-- Performance-optimized pagination
+- **BULLETPROOF Sorting**: UMIG-prefixed event delegation prevents Confluence interference
+- Advanced sorting with multi-column support and capture-phase event handling
+- Client-side pagination optimized for full dataset handling (US-087 enhancement)
+- **Color Mapping Support**: Data-attribute based cell coloring for visual status indicators
+- Client-side and server-side filtering with performance optimization
 - Responsive design with mobile support
 - Accessibility compliance (WCAG 2.1 AA)
+
+**Recent Enhancements (Sprint 7)**:
+
+- UMIG-specific CSS classes (`umig-sortable`, `umig-sorted`) prevent conflicts
+- Capture-phase event delegation for maximum reliability
+- Multiple column identification fallback mechanisms
+- Client-side pagination for datasets up to 1000 records
 
 #### ModalComponent.js (Feature-Rich Modal System)
 

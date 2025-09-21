@@ -118,8 +118,8 @@
       "usr_is_admin": "boolean",
       "usr_active": "boolean",
       "rls_id": "integer",
-      "created_at": "timestamp",
-      "updated_at": "timestamp",
+      "role_code": "string",
+      "role_description": "string",
       "teams": [
         {
           "tms_id": "integer",
@@ -127,7 +127,11 @@
           "tms_description": "string",
           "tms_email": "string"
         }
-      ]
+      ],
+      "created_at": "timestamp",
+      "created_by": "string",
+      "updated_at": "timestamp",
+      "updated_by": "string"
     }
   ],
   "totalElements": "integer",
@@ -145,19 +149,93 @@
 
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
-- **Schema:** Same as individual user object above
+- **Schema:**
+
+```json
+{
+  "usr_id": "integer",
+  "usr_code": "string",
+  "usr_first_name": "string",
+  "usr_last_name": "string",
+  "usr_email": "string",
+  "usr_is_admin": "boolean",
+  "usr_active": "boolean",
+  "rls_id": "integer",
+  "role_code": "string",
+  "role_description": "string",
+  "teams": [
+    {
+      "tms_id": "integer",
+      "tms_name": "string",
+      "tms_description": "string",
+      "tms_email": "string"
+    }
+  ],
+  "created_at": "timestamp",
+  "created_by": "string",
+  "updated_at": "timestamp",
+  "updated_by": "string"
+}
+```
 
 #### POST /users
 
 - **Status Code:** 201 Created
 - **Content-Type:** application/json
-- **Schema:** Same as individual user object above
+- **Schema:**
+
+```json
+{
+  "usr_id": "integer",
+  "usr_code": "string",
+  "usr_first_name": "string",
+  "usr_last_name": "string",
+  "usr_email": "string",
+  "usr_is_admin": "boolean",
+  "usr_active": "boolean",
+  "rls_id": "integer",
+  "role_code": "string",
+  "role_description": "string",
+  "teams": [],
+  "created_at": "timestamp",
+  "created_by": "string",
+  "updated_at": "timestamp",
+  "updated_by": "string"
+}
+```
 
 #### PUT /users/{id}
 
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
-- **Schema:** Same as individual user object above
+- **Schema:**
+
+```json
+{
+  "usr_id": "integer",
+  "usr_code": "string",
+  "usr_first_name": "string",
+  "usr_last_name": "string",
+  "usr_email": "string",
+  "usr_is_admin": "boolean",
+  "usr_active": "boolean",
+  "rls_id": "integer",
+  "role_code": "string",
+  "role_description": "string",
+  "teams": [
+    {
+      "tms_id": "integer",
+      "tms_name": "string",
+      "tms_description": "string",
+      "tms_email": "string"
+    }
+  ],
+  "created_at": "timestamp",
+  "created_by": "string",
+  "updated_at": "timestamp",
+  "updated_by": "string"
+}
+```
 
 #### DELETE /users/{id}
 
@@ -297,7 +375,14 @@ GET /users?userCode=JDO
     "usr_email": "john.doe@example.com",
     "usr_is_admin": false,
     "usr_active": true,
-    "rls_id": 2
+    "rls_id": 2,
+    "role_code": "NORMAL",
+    "role_description": "Standard User Role",
+    "teams": [],
+    "created_at": "2025-09-21T10:30:00Z",
+    "created_by": "admin",
+    "updated_at": "2025-09-21T10:30:00Z",
+    "updated_by": "admin"
   }
 ]
 ```
@@ -345,7 +430,45 @@ The API provides detailed constraint violation messages:
 }
 ```
 
-## 12. Changelog
+## 12. Enhanced Role and Audit Information
+
+### Role Fields in All Responses
+
+All user endpoints now include comprehensive role information in their responses:
+
+- **`role_code`**: The role code (ADMIN, NORMAL, PILOT)
+- **`role_description`**: Human-readable role description
+- **`rls_id`**: Numeric role identifier
+
+**Example role mappings:**
+
+| rls_id | role_code | role_description   |
+| ------ | --------- | ------------------ |
+| 1      | ADMIN     | Administrator Role |
+| 2      | NORMAL    | Standard User Role |
+| 3      | PILOT     | Pilot User Role    |
+
+### Audit Trail Fields
+
+All user responses include comprehensive audit information:
+
+- **`created_at`**: ISO 8601 timestamp of user creation
+- **`created_by`**: Username of the user who created this record
+- **`updated_at`**: ISO 8601 timestamp of last update
+- **`updated_by`**: Username of the user who last updated this record
+
+### Consistency Across Endpoints
+
+**Important**: Both the paginated list endpoint (`GET /users`) and individual user endpoint (`GET /users/{id}`) now return identical field structures, including role information and audit trails. This ensures consistent data presentation across all user operations.
+
+## 13. Changelog
+
+### Version 2.2.0 (September 21, 2025)
+
+- **Enhanced Role Information**: Added `role_code` and `role_description` fields to all user responses
+- **Comprehensive Audit Fields**: Added `created_at`, `created_by`, `updated_at`, `updated_by` to all responses
+- **Pagination Consistency**: Fixed pagination endpoint to return complete role information matching individual user endpoints
+- **Field Standardization**: Ensured all endpoints return consistent field structures for better API usability
 
 ### Version 2.1.0 (August 25, 2025)
 

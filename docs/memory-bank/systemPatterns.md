@@ -1,12 +1,86 @@
 # System Patterns
 
-**Last Updated**: September 20, 2025 (Evening Update)
-**Status**: Strategic Completion Excellence & Multi-Stream Pattern Implementation + US-084 Strategic Achievement
-**Key Achievement**: **US-084 COMPLETE** with strategic scope transfer, critical system restoration patterns, StatusProvider lazy initialization, TD-003A through TD-008 documented, and multi-stream development excellence proven
-**Revolutionary Patterns**: Strategic scope transfer methodology, Critical system restoration patterns, StatusProvider lazy initialization, Column configuration standardisation, Crisis resolution methodologies, Multi-stream development coordination
-**Security Architecture**: 8.5/10 enterprise rating maintained with race condition prevention patterns
-**Performance Excellence**: 75% architectural efficiency gain, 0%→100% API restoration, lazy loading race prevention, enterprise caching strategies
-**Business Impact**: Strategic development efficiency patterns, crisis prevention methodologies, architectural consistency frameworks
+**Last Updated**: September 21, 2025 (Late Morning Update)
+**Status**: ADR-061 CSS Namespace Isolation COMPLETE + Session Authentication Patterns + Modal Enhancement Patterns
+**Key Achievement**: **ADR-061 COMPLETE** with comprehensive umig- prefix isolation, TD-008 session authentication infrastructure, VIEW modal patterns with audit fields, role display corrections
+**Revolutionary Patterns**: CSS namespace isolation methodology, Cross-platform authentication patterns, Modal render override patterns, Lazy initialization patterns, Component loading strategies
+**Security Architecture**: 8.5/10 enterprise rating maintained with SecurityUtils integration
+**Performance Excellence**: 100% component loading, Complete functional isolation from Confluence, Session validation patterns
+**Business Impact**: Eliminated authentication barriers, Resolved UI conflicts, Enhanced developer experience
+
+## CSS Namespace Isolation & Authentication Patterns (September 21, 2025)
+
+### CSS Namespace Isolation Pattern (ADR-061)
+
+**Pattern**: Comprehensive umig- prefix isolation preventing platform conflicts
+**Implementation**: All CSS classes prefixed to avoid Confluence interference
+
+```css
+/* BEFORE - Conflicts with Confluence */
+.data-table {
+}
+.modal-header {
+}
+.btn-primary {
+}
+
+/* AFTER - Complete isolation */
+.umig-data-table {
+}
+.umig-modal-header {
+}
+.umig-btn-primary {
+}
+```
+
+**Application**:
+
+- All component CSS classes must use umig- prefix
+- Data attributes use data-umig- prefix
+- Event handlers use umig: namespace
+- Complete isolation from host platform
+
+### Cross-Platform Authentication Pattern (TD-008)
+
+**Pattern**: Node.js-based session capture replacing shell scripts
+**Tools**: browser-session-capture.js with interactive guidance
+
+```javascript
+// Session capture workflow
+async function captureSession() {
+  // 1. Guide user to extract JSESSIONID
+  const sessionId = await promptForCookie();
+
+  // 2. Validate session against API
+  const isValid = await validateSession(sessionId);
+
+  // 3. Generate templates for CURL/POSTMAN
+  generateTemplates(sessionId);
+}
+```
+
+**Benefits**:
+
+- 100% cross-platform compatibility
+- Eliminates Windows shell script failures
+- Interactive guidance for all browsers
+- Session validation before use
+
+### Modal Render Override Pattern (ADR-061 Critical Fix)
+
+**Pattern**: Prevent container clearing to maintain modal structure
+**Critical**: Modal must NOT clear container
+
+```javascript
+// Override render to prevent clearing modal container
+render() {
+  // Do NOT call parent render which would clear container
+  // Instead, directly call onRender
+  this.onRender();
+}
+```
+
+**Application**: All modal-based components must override render method
 
 ## Strategic Completion & Multi-Stream Development Patterns (September 20, 2025)
 

@@ -17,9 +17,12 @@ class UserRepository {
     def findUserById(int userId) {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
-                FROM users_usr
-                WHERE usr_id = :userId
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email,
+                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                WHERE u.usr_id = :userId
             """, [userId: userId])
             if (!user) return null
             // Always attach teams array
@@ -42,7 +45,7 @@ class UserRepository {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
                 SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email,
-                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at,
+                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
                        r.rls_code as role_code, r.rls_description as role_description
                 FROM users_usr u
                 LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
@@ -70,9 +73,11 @@ class UserRepository {
     def findAllUsers() {
         DatabaseUtil.withSql { sql ->
             def users = sql.rows("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
-                FROM users_usr
-                ORDER BY usr_id
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                ORDER BY u.usr_id
             """)
             // Attach teams for each user
             users.each { user ->
@@ -147,7 +152,8 @@ class UserRepository {
             
             // Get paginated users with role information for sorting
             def usersQuery = """
-                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
                 FROM users_usr u
                 LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
                 ${whereClause}
@@ -161,7 +167,7 @@ class UserRepository {
             
             
             def users = sql.rows(usersQuery, params)
-            
+
             // Attach teams for each user
             users.each { user ->
                 user.teams = sql.rows("""

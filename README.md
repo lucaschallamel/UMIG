@@ -813,19 +813,28 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 
 ## API Testing
 
+### Session-Based Authentication
+
+UMIG APIs require session-based authentication for external testing. For complete setup instructions:
+
+- **Documentation**: See `local-dev-setup/SESSION_AUTH_UTILITIES.md` for cross-platform session capture utilities
+- **Quick Start**: Run `npm run auth:capture-session` to extract browser session for API testing
+- **Compatibility**: Works with CURL, POSTMAN, and all HTTP clients
+
 ### Postman Collection
 
 A comprehensive Postman collection is available for testing all API endpoints:
 
 - **Collection**: `docs/api/postman/UMIG_API_V2_Collection.postman_collection.json`
-- **Environment Variables**: Configure `baseUrl`, `username`, `password`
-- **Auto-generated**: Collection is generated from OpenAPI specification
+- **Authentication**: Uses session-based auth with JSESSIONID (see SESSION_AUTH_UTILITIES.md)
+- **Auto-generated**: Collection is generated from OpenAPI specification with session support
 
 ### Usage
 
-1. Import collection into Postman
-2. Configure environment variables for local development
-3. Run requests organized by entity tags (Users, Teams, Plans)
+1. Login to Confluence and capture session: `npm run auth:capture-session`
+2. Import collection into Postman
+3. Set collection variable: `jsessionid = YOUR_SESSION_ID`
+4. Run requests organized by entity tags (Users, Teams, Plans)
 
 ## Contributing
 

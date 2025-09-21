@@ -68,12 +68,25 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
             },
           },
           {
-            key: "usr_is_admin",
+            key: "role_code",
             label: "Role",
             sortable: true,
             renderer: (value, row) => {
-              // value parameter represents the usr_is_admin boolean value
-              return row.usr_is_admin ? "Admin" : "User";
+              // Use role_code from API response (should now be populated after Groovy changes)
+              const roleCode =
+                row.role_code || (row.usr_is_admin ? "ADMIN" : "NORMAL");
+
+              // Format role name with proper capitalization and descriptive suffix
+              switch (roleCode.toUpperCase()) {
+                case "ADMIN":
+                  return "Administrator Role";
+                case "NORMAL":
+                  return "Standard User Role";
+                case "PILOT":
+                  return "Pilot User Role";
+                default:
+                  return `${roleCode} Role`;
+              }
             },
           },
         ],
@@ -85,6 +98,26 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
         bulkActions: {
           delete: true,
           export: true,
+        },
+        colorMapping: {
+          enabled: true,
+          fields: {
+            usr_active: {
+              attribute: "data-user-status",
+              values: {
+                true: "active",
+                false: "inactive",
+              },
+            },
+            role_code: {
+              attribute: "data-user-role",
+              values: {
+                ADMIN: "admin",
+                PILOT: "pilot",
+                NORMAL: "user",
+              },
+            },
+          },
         },
       },
       modalConfig: {
@@ -171,7 +204,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       },
       paginationConfig: {
         containerId: "paginationContainer",
-        pageSize: 50,
+        pageSize: 100, // Increased from 50 to 100 to show all users by default
         pageSizeOptions: [10, 25, 50, 100],
       },
     });
@@ -185,6 +218,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       "usr_email",
       "usr_code",
     ];
+
+    // Client-side pagination - TableComponent handles pagination of full dataset
+    this.paginationMode = "client";
 
     // Role hierarchy (matching Teams implementation)
     this.roleHierarchy = {
@@ -270,303 +306,18 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
   }
 
   /**
-   * Setup pagination event handlers for Users Entity Manager with comprehensive debugging
+   * Setup pagination event handlers - simplified for client-side pagination
    * @private
    */
   setupPaginationHandlers() {
     try {
-      console.log(
-        "[UsersEntityManager] PAGINATION DEBUG: Setting up pagination event handlers",
-      );
-      console.log(
-        "[UsersEntityManager] PAGINATION DEBUG: Orchestrator available:",
-        !!this.orchestrator,
-      );
+      console.log("[UsersEntityManager] Setting up client-side pagination");
 
-      // Listen for pagination events from the orchestrator
-      if (this.orchestrator) {
-        // Handle pagination changes
-        this.orchestrator.on("pagination:change", async (eventData) => {
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: pagination:change event received:",
-            eventData,
-          );
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: Event type:",
-            eventData.type,
-          );
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: Page size change:",
-            eventData.pageSize,
-            "(was:",
-            eventData.previousPageSize,
-            ")",
-          );
-
-          try {
-            // Update current page state
-            const oldPage = this.currentPage;
-            const oldPageSize = this.currentPageSize;
-
-            this.currentPage = eventData.page || eventData.currentPage || 1;
-
-            // If page size changed, update it
-            if (
-              eventData.pageSize &&
-              eventData.pageSize !== this.currentPageSize
-            ) {
-              console.log(
-                `[UsersEntityManager] PAGINATION DEBUG: Page size changed from ${this.currentPageSize} to ${eventData.pageSize}`,
-              );
-              this.currentPageSize = eventData.pageSize;
-            }
-
-            console.log(
-              `[UsersEntityManager] PAGINATION DEBUG: Updated state - page: ${oldPage} -> ${this.currentPage}, pageSize: ${oldPageSize} -> ${this.currentPageSize}`,
-            );
-
-            // Reload data with new pagination parameters
-            console.log(
-              `[UsersEntityManager] PAGINATION DEBUG: Reloading data with filters:`,
-              this.currentFilters || {},
-            );
-            await this.loadData(
-              this.currentFilters || {},
-              this.currentSort,
-              this.currentPage,
-              this.currentPageSize || 50,
-            );
-
-            console.log(
-              `[UsersEntityManager] PAGINATION DEBUG: ✓ Data reloaded successfully for page ${this.currentPage}`,
-            );
-          } catch (error) {
-            console.error(
-              "[UsersEntityManager] PAGINATION DEBUG: Error handling pagination change:",
-              error,
-            );
-
-            // Show error to user if notification system exists
-            if (window.AJS && window.AJS.flag) {
-              window.AJS.flag({
-                type: "error",
-                title: "Pagination Error",
-                body: "Failed to load page data. Please try again.",
-              });
-            }
-          }
-        });
-
-        // Handle direct component events (legacy support)
-        this.orchestrator.on("pageChange", async (eventData) => {
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: Legacy pageChange event received:",
-            eventData,
-          );
-          await this.handlePaginationChange(eventData);
-        });
-
-        this.orchestrator.on("pageSizeChange", async (eventData) => {
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: Legacy pageSizeChange event received:",
-            eventData,
-          );
-          await this.handlePaginationChange(eventData);
-        });
-
-        // Add additional event listeners for TableComponent events
-        this.orchestrator.on("paginationChange", async (eventData) => {
-          console.log(
-            "[UsersEntityManager] PAGINATION DEBUG: TableComponent paginationChange event received:",
-            eventData,
-          );
-          await this.handlePaginationChange(eventData);
-        });
-
-        console.log(
-          "[UsersEntityManager] PAGINATION DEBUG: ✓ All pagination event handlers registered successfully",
-        );
-      } else {
-        console.warn(
-          "[UsersEntityManager] PAGINATION DEBUG: ⚠ No orchestrator available for pagination event setup",
-        );
-      }
+      // With client-side pagination, no complex event handling needed
+      // TableComponent handles pagination internally with the full dataset
+      console.log("[UsersEntityManager] ✓ Client-side pagination ready");
     } catch (error) {
-      console.error(
-        "[UsersEntityManager] PAGINATION DEBUG: Error setting up pagination handlers:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Handle pagination changes (unified handler) with comprehensive debugging
-   * @private
-   */
-  async handlePaginationChange(eventData) {
-    try {
-      console.log(
-        "[UsersEntityManager] PAGINATION DEBUG: handlePaginationChange called with:",
-        eventData,
-      );
-      console.log(
-        "[UsersEntityManager] PAGINATION DEBUG: Current state - page:",
-        this.currentPage,
-        "pageSize:",
-        this.currentPageSize,
-      );
-
-      // Update state
-      const oldPage = this.currentPage;
-      const oldPageSize = this.currentPageSize;
-
-      if (eventData.currentPage !== undefined) {
-        this.currentPage = eventData.currentPage;
-        console.log(
-          `[UsersEntityManager] PAGINATION DEBUG: Updated currentPage: ${oldPage} -> ${this.currentPage}`,
-        );
-      }
-      if (eventData.page !== undefined) {
-        this.currentPage = eventData.page;
-        console.log(
-          `[UsersEntityManager] PAGINATION DEBUG: Updated currentPage via 'page': ${oldPage} -> ${this.currentPage}`,
-        );
-      }
-      if (eventData.pageSize !== undefined) {
-        this.currentPageSize = eventData.pageSize;
-        console.log(
-          `[UsersEntityManager] PAGINATION DEBUG: Updated pageSize: ${oldPageSize} -> ${this.currentPageSize}`,
-        );
-      }
-
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG: Final state - page: ${this.currentPage}, pageSize: ${this.currentPageSize}`,
-      );
-
-      // Reload data
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG: Reloading data with parameters:`,
-      );
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG:   filters:`,
-        this.currentFilters || {},
-      );
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG:   sort:`,
-        this.currentSort,
-      );
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG:   page:`,
-        this.currentPage,
-      );
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG:   pageSize:`,
-        this.currentPageSize || 50,
-      );
-
-      await this.loadData(
-        this.currentFilters || {},
-        this.currentSort,
-        this.currentPage,
-        this.currentPageSize || 50,
-      );
-
-      console.log(
-        `[UsersEntityManager] PAGINATION DEBUG: ✓ handlePaginationChange completed successfully`,
-      );
-    } catch (error) {
-      console.error(
-        "[UsersEntityManager] PAGINATION DEBUG: Error in handlePaginationChange:",
-        error,
-      );
-      throw error; // Re-throw to be handled by caller
-    }
-  }
-
-  /**
-   * Override loadData to ensure pagination component is updated
-   * @param {Object} filters - Filter parameters
-   * @param {Object} sort - Sort parameters
-   * @param {number} page - Page number
-   * @param {number} pageSize - Page size
-   * @returns {Promise<Object>} Load result
-   */
-  async loadData(filters = {}, sort = null, page = 1, pageSize = 50) {
-    try {
-      console.log("[UsersEntityManager] Loading data with pagination:", {
-        page,
-        pageSize,
-      });
-
-      // Call parent loadData method
-      const result = await super.loadData(filters, sort, page, pageSize);
-
-      // Ensure pagination component is updated with correct total
-      await this.updatePaginationState(result);
-
-      return result;
-    } catch (error) {
-      console.error("[UsersEntityManager] Error in loadData:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update pagination component state
-   * @private
-   */
-  async updatePaginationState(loadResult) {
-    try {
-      console.log(
-        "[UsersEntityManager] Updating pagination state:",
-        loadResult,
-      );
-
-      // Update pagination component if it exists
-      if (this.paginationComponent) {
-        console.log(
-          "[UsersEntityManager] Updating pagination component with total items:",
-          loadResult.total,
-        );
-
-        // Update total items in pagination component
-        if (typeof this.paginationComponent.setTotalItems === "function") {
-          this.paginationComponent.setTotalItems(loadResult.total || 0);
-        } else if (
-          typeof this.paginationComponent.updateConfig === "function"
-        ) {
-          this.paginationComponent.updateConfig({
-            totalItems: loadResult.total || 0,
-            currentPage: loadResult.page || 1,
-            pageSize: loadResult.pageSize || 50,
-          });
-        } else if (typeof this.paginationComponent.setState === "function") {
-          this.paginationComponent.setState({
-            totalItems: loadResult.total || 0,
-            currentPage: loadResult.page || 1,
-            pageSize: loadResult.pageSize || 50,
-          });
-        }
-
-        // Re-render pagination component
-        if (typeof this.paginationComponent.render === "function") {
-          this.paginationComponent.render();
-        }
-
-        console.log(
-          "[UsersEntityManager] ✓ Pagination component updated successfully",
-        );
-      } else {
-        console.warn(
-          "[UsersEntityManager] Pagination component not available for update",
-        );
-      }
-    } catch (error) {
-      console.error(
-        "[UsersEntityManager] Error updating pagination state:",
-        error,
-      );
-      // Don't throw - pagination failure shouldn't break data loading
+      console.error("[UsersEntityManager] Error setting up pagination:", error);
     }
   }
 
@@ -723,10 +474,16 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       return;
     }
 
-    // Update modal configuration for Edit mode
+    // Update modal configuration for Edit mode - restore original form without audit fields
     this.modalComponent.updateConfig({
       title: `Edit User: ${userData.usr_first_name} ${userData.usr_last_name}`,
       type: "form",
+      form: this.config.modalConfig.form, // Restore original form config
+      buttons: [
+        { text: "Cancel", action: "cancel", variant: "secondary" },
+        { text: "Save", action: "submit", variant: "primary" },
+      ],
+      onButtonClick: null, // Clear custom button handler
       onSubmit: async (formData) => {
         try {
           console.log("[UsersEntityManager] Submitting user update:", formData);
@@ -772,10 +529,137 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       },
     });
 
+    // Clear viewMode flag for edit mode
+    this.modalComponent.viewMode = false;
+
     // Set form data to current user values
     if (this.modalComponent.formData) {
       Object.assign(this.modalComponent.formData, userData);
     }
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Override the base _viewEntity method to provide form-based VIEW mode
+   * @param {Object} data - Entity data to view
+   * @private
+   */
+  async _viewEntity(data) {
+    console.log("[UsersEntityManager] Opening View User modal for:", data);
+    console.log("[UsersEntityManager] DEBUG: Audit field values:", {
+      created_at: data.created_at,
+      created_by: data.created_by,
+      updated_at: data.updated_at,
+      updated_by: data.updated_by,
+    });
+
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn("[UsersEntityManager] Modal component not available");
+      return;
+    }
+
+    // Create enhanced modal configuration for View mode with audit fields
+    const viewFormConfig = {
+      fields: [
+        ...this.config.modalConfig.form.fields, // Original form fields
+        // Add comprehensive role information
+        {
+          name: "usr_role",
+          type: "text",
+          label: "Role",
+          value: this._formatRoleDisplay(data),
+          readonly: true,
+        },
+        {
+          name: "usr_super_admin",
+          type: "text",
+          label: "Super-Administrator",
+          value: data.usr_is_admin ? "✓ Yes" : "✗ No",
+          readonly: true,
+        },
+        {
+          name: "usr_role_description",
+          type: "textarea",
+          label: "Role Description",
+          value: data.role_description || "No description available",
+          readonly: true,
+          rows: 2,
+        },
+        // Add audit information section
+        {
+          name: "audit_separator",
+          type: "separator",
+          label: "Audit Information",
+          isAuditField: true,
+        },
+        {
+          name: "usr_created_at",
+          type: "text",
+          label: "Created At",
+          value: this._formatDateTime(data.created_at),
+          isAuditField: true,
+        },
+        {
+          name: "usr_created_by",
+          type: "text",
+          label: "Created By",
+          value: data.created_by || "System",
+          isAuditField: true,
+        },
+        {
+          name: "usr_updated_at",
+          type: "text",
+          label: "Last Updated",
+          value: this._formatDateTime(data.updated_at),
+          isAuditField: true,
+        },
+        {
+          name: "usr_updated_by",
+          type: "text",
+          label: "Last Updated By",
+          value: data.updated_by || "System",
+          isAuditField: true,
+        },
+      ],
+    };
+
+    // Update modal configuration for View mode
+    this.modalComponent.updateConfig({
+      title: `View User: ${data.usr_first_name} ${data.usr_last_name}`,
+      type: "form",
+      size: "large",
+      closeable: true, // Ensure close button works
+      form: viewFormConfig,
+      buttons: [
+        { text: "Edit", action: "edit", variant: "primary" },
+        { text: "Close", action: "close", variant: "secondary" },
+      ],
+      onButtonClick: (action) => {
+        if (action === "edit") {
+          // Switch to edit mode - restore original form config
+          this.modalComponent.close();
+          this.handleEdit(data);
+          return true; // Close modal handled above
+        }
+        if (action === "close") {
+          // Explicitly handle close action to ensure it works
+          this.modalComponent.close();
+          return true; // Close modal handled above
+        }
+        return false; // Let default handling close the modal for other actions
+      },
+    });
+
+    // Set form data to current user values with readonly mode
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, data);
+    }
+
+    // Mark modal as in VIEW mode
+    this.modalComponent.viewMode = true;
 
     // Open the modal
     this.modalComponent.open();
@@ -1043,58 +927,6 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       if (now - entry.windowStart > maxWindowMs) {
         this.rateLimitTracker.delete(key);
       }
-    }
-  }
-
-  /**
-   * Initialize the entity manager with UI components
-   * @override
-   */
-  async initialize(container) {
-    // Validate container parameter
-    if (!container || !(container instanceof HTMLElement)) {
-      throw new window.SecurityUtils.ValidationException(
-        "Container must be a valid HTML element",
-        "container",
-        container,
-      );
-    }
-
-    const startTime = performance.now();
-
-    try {
-      await super.initialize(container);
-
-      // Initialize component orchestrator
-      this.orchestrator = new ComponentOrchestrator({
-        container,
-        entityType: "users",
-        eventNamespace: "users",
-      });
-
-      await this.orchestrator.initialize();
-
-      // Register event handlers
-      this._setupEventHandlers();
-
-      // Load initial data
-      await this.loadData();
-
-      const operationTime = performance.now() - startTime;
-      this._trackPerformance("initialization", operationTime);
-
-      console.log(
-        `[UsersEntityManager] Initialization completed in ${operationTime.toFixed(2)}ms`,
-      );
-
-      return {
-        success: true,
-        operationTime: Math.round(operationTime),
-      };
-    } catch (error) {
-      console.error("[UsersEntityManager] Initialization failed:", error);
-      this._trackError("initialization", error);
-      throw error;
     }
   }
 
@@ -2460,9 +2292,12 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
         this.usersApiUrl || "/rest/scriptrunner/latest/custom/users";
       const params = new URLSearchParams();
 
-      // Add pagination parameters
-      params.append("page", page);
-      params.append("size", pageSize);
+      // Force ALL users for client-side pagination (API defaults to pageSize=50)
+      params.append("page", 1);
+      params.append("size", 1000); // Large number to ensure we get all users
+      console.log(
+        "[UsersEntityManager] Using client-side pagination - fetching ALL users (page=1, size=1000)",
+      );
 
       // Add sort if provided
       if (sort && sort.key) {
@@ -2488,10 +2323,10 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       // Make API call
       const response = await fetch(url, {
         method: "GET",
-        headers: {
+        headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
           Accept: "application/json",
-        },
+        }),
         credentials: "same-origin",
       });
 
@@ -2506,18 +2341,19 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
         `[UsersEntityManager] Fetched ${data.content ? data.content.length : 0} users`,
       );
 
-      // Transform response to expected format
+      // Transform response to expected format for CLIENT-SIDE pagination
+      const users = data.content || data || [];
+      const totalUsers = data.totalElements || users.length;
+
+      console.log(
+        `[UsersEntityManager] Client-side pagination: ${totalUsers} total users loaded`,
+      );
+
       return {
-        data: data.content || data || [],
-        total:
-          data.totalElements ||
-          (data.content
-            ? data.content.length
-            : Array.isArray(data)
-              ? data.length
-              : 0),
-        page: data.pageNumber !== undefined ? data.pageNumber : page,
-        pageSize: data.pageSize || pageSize,
+        data: users,
+        total: totalUsers,
+        page: 1, // Always page 1 for client-side pagination
+        pageSize: totalUsers, // PageSize = total for client-side pagination
       };
     } catch (error) {
       console.error("[UsersEntityManager] Error fetching user data:", error);
@@ -2642,6 +2478,57 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     } catch (error) {
       console.error("[UsersEntityManager] Failed to delete user:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Format datetime for display in audit fields
+   * @param {string|Date} datetime - Datetime to format
+   * @returns {string} Formatted datetime string
+   * @private
+   */
+  _formatDateTime(datetime) {
+    if (!datetime) return "Not available";
+
+    try {
+      const date = new Date(datetime);
+      if (isNaN(date.getTime())) return "Invalid date";
+
+      // Format as: "Dec 21, 2024, 2:30 PM"
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.warn("[UsersEntityManager] Error formatting datetime:", error);
+      return "Format error";
+    }
+  }
+
+  /**
+   * Format role display for comprehensive role information
+   * @param {Object} data - User data containing role information
+   * @returns {string} Formatted role display
+   * @private
+   */
+  _formatRoleDisplay(data) {
+    // Use role_code from API response (should now be populated after Groovy changes)
+    const roleCode = data.role_code || (data.usr_is_admin ? "ADMIN" : "NORMAL");
+
+    // Format role name with proper capitalization and descriptive suffix
+    switch (roleCode.toUpperCase()) {
+      case "ADMIN":
+        return "Administrator Role";
+      case "NORMAL":
+        return "Standard User Role";
+      case "PILOT":
+        return "Pilot User Role";
+      default:
+        return `${roleCode} Role`;
     }
   }
 

@@ -214,6 +214,28 @@ All commands should be run from the `local-dev-setup` directory.
 npm install
 ```
 
+## Developer Utilities
+
+### Session-Based Authentication for API Testing
+
+UMIG APIs require session-based authentication for external testing with tools like CURL and POSTMAN. We provide cross-platform Node.js utilities to capture and manage browser sessions.
+
+- **📖 Complete Documentation**: [SESSION_AUTH_UTILITIES.md](SESSION_AUTH_UTILITIES.md)
+- **🚀 Quick Start**: `npm run auth:capture-session`
+- **✅ Cross-Platform**: Works on Windows, macOS, and Linux
+- **🔧 Integration**: CURL, POSTMAN, Jest tests, and all HTTP clients
+
+**Available Authentication Commands:**
+
+```bash
+npm run auth:capture-session     # Interactive session capture (RECOMMENDED)
+npm run auth:test-session        # Test session authentication
+npm run auth:test-utilities      # Validate utilities installation
+npm run auth:help                # Display help information
+```
+
+For detailed setup instructions, troubleshooting, and integration examples, see the [complete documentation](SESSION_AUTH_UTILITIES.md).
+
 ### Environment Management
 
 - **Start Environment:**
@@ -826,6 +848,9 @@ scripts/
 │   └── email/          # Email-related services
 ├── lib/                # Shared libraries and utilities
 ├── performance/        # Performance monitoring tools
+├── browser-session-capture.js  # Session authentication capture (TD-008)
+├── session-auth-test.js        # Session authentication testing
+├── test-auth-utilities.js      # Authentication utility validation
 ├── start.js            # Environment startup
 ├── stop.js             # Environment shutdown
 ├── restart.js          # Environment restart

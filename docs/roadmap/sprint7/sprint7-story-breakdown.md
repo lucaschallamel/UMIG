@@ -20,23 +20,24 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 
 ### COMMITTED SCOPE (User Final Decisions - MUST DELIVER)
 
-| Story ID      | Story Title                               | Points   | Priority | Dependencies        | Risk   | Status              |
-| ------------- | ----------------------------------------- | -------- | -------- | ------------------- | ------ | ------------------- |
-| US-082-C      | Entity Migration Standard                 | 6        | P1       | US-082-B Complete   | LOW    | ✅ COMPLETE         |
-| US-087        | Admin GUI Component Migration (Enhanced)  | 10       | P1       | US-082-C Complete   | LOW    | 🔄 PHASE 1 DONE     |
-| US-035-P1     | IterationView API Migration               | 7.5      | P1       | US-082-C Complete   | LOW    | 🔄 FOUNDATION (36%) |
-| US-058        | EmailService Refactoring                  | 9        | P1       | Current Email Infra | MEDIUM | READY               |
-| US-088        | Build Process & Deployment for UAT        | 5        | P1       | Current Infra       | MEDIUM | READY               |
-| US-049        | StepView Email Integration                | 5        | P2       | EmailService        | MEDIUM | READY               |
-| US-041B       | PILOT Instance Management                 | 3        | P2       | Current System      | LOW    | READY               |
-| US-084        | Plans-as-Templates Hierarchy Fix          | 5        | P2       | Plans Entity        | MEDIUM | ✅ COMPLETE         |
-| US-041A       | Audit Logging Infrastructure              | 5        | P2       | Current Infra       | MEDIUM | READY               |
-| TD-003A       | Eliminate Hardcoded Status Values         | 5        | P2       | Production Code     | LOW    | ✅ COMPLETE         |
-| TD-003B       | Test Suite Migration Plan                 | 3        | P2       | TD-003A Complete    | LOW    | PENDING             |
-| TD-004        | BaseEntityManager Interface Resolution    | 2        | P2       | Entity Architecture | LOW    | ✅ COMPLETE         |
-| TD-005        | JavaScript Test Infrastructure Resolution | 5        | P2       | Test Framework      | LOW    | ✅ COMPLETE         |
-| TD-007        | Remove Redundant Admin Splash Login       | 3        | P2       | Admin Interface     | LOW    | ✅ COMPLETE         |
-| **COMMITTED** |                                           | **75.5** |          |                     |        |                     |
+| Story ID      | Story Title                                 | Points   | Priority | Dependencies         | Risk   | Status              |
+| ------------- | ------------------------------------------- | -------- | -------- | -------------------- | ------ | ------------------- |
+| US-082-C      | Entity Migration Standard                   | 6        | P1       | US-082-B Complete    | LOW    | ✅ COMPLETE         |
+| US-087        | Admin GUI Component Migration (Enhanced)    | 10       | P1       | US-082-C Complete    | LOW    | 🔄 PHASE 1 DONE     |
+| US-035-P1     | IterationView API Migration                 | 7.5      | P1       | US-082-C Complete    | LOW    | 🔄 FOUNDATION (36%) |
+| US-058        | EmailService Refactoring                    | 9        | P1       | Current Email Infra  | MEDIUM | READY               |
+| US-088        | Build Process & Deployment for UAT          | 5        | P1       | Current Infra        | MEDIUM | READY               |
+| US-049        | StepView Email Integration                  | 5        | P2       | EmailService         | MEDIUM | READY               |
+| US-041B       | PILOT Instance Management                   | 3        | P2       | Current System       | LOW    | READY               |
+| US-084        | Plans-as-Templates Hierarchy Fix            | 5        | P2       | Plans Entity         | MEDIUM | ✅ COMPLETE         |
+| US-041A       | Audit Logging Infrastructure                | 5        | P2       | Current Infra        | MEDIUM | READY               |
+| TD-003A       | Eliminate Hardcoded Status Values           | 5        | P2       | Production Code      | LOW    | ✅ COMPLETE         |
+| TD-003B       | Test Suite Migration Plan                   | 3        | P2       | TD-003A Complete     | LOW    | PENDING             |
+| TD-004        | BaseEntityManager Interface Resolution      | 2        | P2       | Entity Architecture  | LOW    | ✅ COMPLETE         |
+| TD-005        | JavaScript Test Infrastructure Resolution   | 5        | P2       | Test Framework       | LOW    | ✅ COMPLETE         |
+| TD-007        | Remove Redundant Admin Splash Login         | 3        | P2       | Admin Interface      | LOW    | ✅ COMPLETE         |
+| TD-008        | Session-Based Authentication Infrastructure | 5        | P1       | Security Enhancement | LOW    | ✅ COMPLETE         |
+| **COMMITTED** |                                             | **80.5** |          |                      |        |                     |
 
 ### STRETCH GOALS (If Capacity Allows)
 

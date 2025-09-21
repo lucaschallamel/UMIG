@@ -41,29 +41,22 @@ async function generatePostmanCollection() {
     const collectionContent = fs.readFileSync(OUTPUT_FILE, "utf8");
     const collection = JSON.parse(collectionContent);
 
-    // Get auth configuration from environment
-    const authUsername = process.env.POSTMAN_AUTH_USERNAME || "admin";
-    const authPassword = process.env.POSTMAN_AUTH_PASSWORD || "Spaceop!13";
+    // Get configuration from environment
     const baseUrl = process.env.POSTMAN_BASE_URL || "http://localhost:8090";
+    const defaultSessionId =
+      process.env.POSTMAN_SESSION_ID || "EXTRACT_FROM_BROWSER";
 
-    log(yellow("Enhancing collection with authentication and variables..."));
+    log(
+      yellow(
+        "Enhancing collection with session-based authentication and variables...",
+      ),
+    );
 
-    // Add collection-level authentication
-    collection.auth = {
-      type: "basic",
-      basic: [
-        {
-          key: "username",
-          value: authUsername,
-          type: "string",
-        },
-        {
-          key: "password",
-          value: authPassword,
-          type: "string",
-        },
-      ],
-    };
+    // Remove any existing basic auth and set up for session-based auth
+    // Collection-level auth will be handled by environment variables and headers
+    if (collection.auth) {
+      delete collection.auth;
+    }
 
     // Add collection variables
     if (!collection.variable) {
@@ -83,86 +76,192 @@ async function generatePostmanCollection() {
       });
     }
 
-    // Add auth variables for potential override
+    // Add session-based authentication variables
     collection.variable.push(
       {
-        key: "authUsername",
-        value: authUsername,
+        key: "jsessionid",
+        value: defaultSessionId,
         type: "string",
+        description:
+          "Session ID extracted from browser. Extract from Developer Tools > Application > Cookies > JSESSIONID",
       },
       {
-        key: "authPassword",
-        value: authPassword,
+        key: "sessionCookie",
+        value: `JSESSIONID={{jsessionid}}`,
         type: "string",
+        description: "Complete cookie header value for session authentication",
       },
     );
 
-    // Update all requests to use the baseUrl variable
-    function updateRequestUrls(items) {
+    // Update all requests to use session-based authentication
+    function updateRequestsForSessionAuth(items) {
       items.forEach((item) => {
-        if (item.request && item.request.url) {
-          // Handle URL object format (most common in Postman collections)
-          if (typeof item.request.url === "object") {
-            // Update host to use variable
-            if (item.request.url.host) {
-              item.request.url.host = ["{{baseUrl}}"];
-            }
+        if (item.request) {
+          // Update URL to use baseUrl variable
+          if (item.request.url) {
+            // Handle URL object format (most common in Postman collections)
+            if (typeof item.request.url === "object") {
+              // Update host to use variable
+              if (item.request.url.host) {
+                item.request.url.host = ["{{baseUrl}}"];
+              }
 
-            // Update the raw URL to use baseUrl directly with the endpoint path
-            if (item.request.url.path && Array.isArray(item.request.url.path)) {
-              const endpointPath = "/" + item.request.url.path.join("/");
-              const queryParams =
-                item.request.url.query && item.request.url.query.length > 0
-                  ? "?" +
-                    item.request.url.query
-                      .map((q) => `${q.key}={{${q.key}}}`)
-                      .join("&")
-                  : "";
-              item.request.url.raw = `{{baseUrl}}${endpointPath}${queryParams}`;
+              // Update the raw URL to use baseUrl directly with the endpoint path
+              if (
+                item.request.url.path &&
+                Array.isArray(item.request.url.path)
+              ) {
+                const endpointPath = "/" + item.request.url.path.join("/");
+                const queryParams =
+                  item.request.url.query && item.request.url.query.length > 0
+                    ? "?" +
+                      item.request.url.query
+                        .map((q) => `${q.key}={{${q.key}}}`)
+                        .join("&")
+                    : "";
+                item.request.url.raw = `{{baseUrl}}${endpointPath}${queryParams}`;
+              }
+            } else if (typeof item.request.url === "string") {
+              // Handle string format (less common)
+              // Simply replace any base URL with {{baseUrl}}
+              item.request.url = item.request.url.replace(
+                /^https?:\/\/[^\/]+\/rest\/scriptrunner\/latest\/custom/,
+                "{{baseUrl}}",
+              );
             }
-          } else if (typeof item.request.url === "string") {
-            // Handle string format (less common)
-            // Simply replace any base URL with {{baseUrl}}
-            item.request.url = item.request.url.replace(
-              /^https?:\/\/[^\/]+\/rest\/scriptrunner\/latest\/custom/,
-              "{{baseUrl}}",
+          }
+
+          // Remove any existing basic auth
+          if (item.request.auth) {
+            delete item.request.auth;
+          }
+
+          // Ensure headers array exists
+          if (!item.request.header) {
+            item.request.header = [];
+          }
+
+          // Remove existing basic auth headers if any
+          item.request.header = item.request.header.filter(
+            (header) => header.key !== "Authorization",
+          );
+
+          // Add required session-based headers
+          const requiredHeaders = [
+            {
+              key: "Cookie",
+              value: "{{sessionCookie}}",
+              type: "text",
+              description: "Session cookie for authentication",
+            },
+            {
+              key: "X-Requested-With",
+              value: "XMLHttpRequest",
+              type: "text",
+              description: "Required header for AJAX requests",
+            },
+          ];
+
+          // Add headers if they don't already exist
+          requiredHeaders.forEach((requiredHeader) => {
+            const existingHeader = item.request.header.find(
+              (header) => header.key === requiredHeader.key,
             );
+            if (!existingHeader) {
+              item.request.header.push(requiredHeader);
+            } else {
+              // Update existing header to use session values
+              existingHeader.value = requiredHeader.value;
+              existingHeader.description = requiredHeader.description;
+            }
+          });
+
+          // Ensure Accept header exists with proper value
+          const acceptHeader = item.request.header.find(
+            (header) => header.key === "Accept",
+          );
+          if (acceptHeader) {
+            acceptHeader.value = "application/json";
+          } else {
+            item.request.header.push({
+              key: "Accept",
+              value: "application/json",
+              type: "text",
+              description: "Content type for API responses",
+            });
+          }
+
+          // For POST/PUT requests, ensure Content-Type is set
+          if (item.request.method === "POST" || item.request.method === "PUT") {
+            const contentTypeHeader = item.request.header.find(
+              (header) => header.key === "Content-Type",
+            );
+            if (!contentTypeHeader) {
+              item.request.header.push({
+                key: "Content-Type",
+                value: "application/json",
+                type: "text",
+                description: "Content type for request body",
+              });
+            }
           }
         }
 
         // Recursively process sub-items (folders)
         if (item.item && Array.isArray(item.item)) {
-          updateRequestUrls(item.item);
+          updateRequestsForSessionAuth(item.item);
         }
       });
     }
 
-    // Apply URL updates to all items
+    // Apply session-based authentication updates to all items
     if (collection.item && Array.isArray(collection.item)) {
-      updateRequestUrls(collection.item);
+      updateRequestsForSessionAuth(collection.item);
     }
 
-    // Add collection description with configuration info
+    // Add collection description with session configuration info
     collection.info.description =
       (collection.info.description || "") +
-      `\n\n## Configuration\n` +
-      `This collection is configured with:\n` +
+      `\n\n## ✅ Session-Based Authentication Configuration\n` +
+      `This collection is configured for session-based authentication with:\n` +
       `- **Base URL**: \`{{baseUrl}}\` (default: ${baseUrl})\n` +
-      `- **Authentication**: Basic Auth with username \`{{authUsername}}\` and password \`{{authPassword}}\`\n\n` +
-      `The base URL includes the full ScriptRunner REST endpoint path.\n` +
-      `You can override these values in your Postman environment.`;
+      `- **Session Cookie**: \`{{sessionCookie}}\` (extract JSESSIONID from browser)\n` +
+      `- **Required Headers**: Cookie, X-Requested-With, Accept\n\n` +
+      `### Setup Instructions:\n` +
+      `1. Login to Confluence at ${baseUrl}\n` +
+      `2. Open Developer Tools → Application → Cookies\n` +
+      `3. Copy JSESSIONID value\n` +
+      `4. Update {{jsessionid}} environment variable\n\n` +
+      `### Working Example:\n` +
+      `\`\`\`bash\n` +
+      `curl -H "Cookie: JSESSIONID=YOUR_SESSION_ID" \\\n` +
+      `     -H "X-Requested-With: XMLHttpRequest" \\\n` +
+      `     -H "Accept: application/json" \\\n` +
+      `     "${baseUrl}/rest/scriptrunner/latest/custom/teams"\n` +
+      `\`\`\`\n\n` +
+      `**Note**: Sessions expire after ~30 minutes of inactivity. Re-extract JSESSIONID when needed.`;
 
     // Write the enhanced collection back
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify(collection, null, 2));
 
-    log(green("✓ Collection enhanced with authentication and variables"));
+    log(
+      green(
+        "✓ Collection enhanced with session-based authentication and variables",
+      ),
+    );
     log(green(`✓ Postman collection saved to: ${OUTPUT_FILE}`));
 
     // Log configuration summary
-    log("\n" + yellow("Configuration applied:"));
+    log("\n" + yellow("Session-based authentication configuration applied:"));
     log(`  Base URL: ${green(baseUrl)}`);
-    log(`  Username: ${green(authUsername)}`);
-    log(`  Password: ${green("*".repeat(authPassword.length))}`);
+    log(`  Session Variable: ${green("{{jsessionid}}")}`);
+    log(`  Cookie Header: ${green("{{sessionCookie}}")}`);
+    log(`  Required Headers: ${green("Cookie, X-Requested-With, Accept")}`);
+    log("\n" + yellow("Next steps:"));
+    log(`  1. Login to Confluence at ${baseUrl}`);
+    log(`  2. Extract JSESSIONID from browser Developer Tools`);
+    log(`  3. Update {{jsessionid}} environment variable in Postman`);
+    log(`  4. Test with teams endpoint first`);
   } catch (error) {
     log(red("Failed to generate Postman collection:"));
     log(red(error.message));
