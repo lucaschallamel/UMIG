@@ -36,8 +36,8 @@ window.adminGui = {
   state: {
     isAuthenticated: false,
     currentUser: null,
-    currentSection: "users",
-    currentEntity: "users",
+    currentSection: "welcome",
+    currentEntity: "welcome",
     currentPage: 1,
     pageSize: 50,
     searchTerm: "",
@@ -1773,9 +1773,10 @@ window.adminGui = {
 
     // Navigation menu
     document.addEventListener("click", (e) => {
-      if (e.target.matches(".nav-item")) {
+      const navItem = e.target.closest(".nav-item");
+      if (navItem) {
         e.preventDefault();
-        this.handleNavigation(e.target);
+        this.handleNavigation(navItem);
       }
     });
 
@@ -2349,6 +2350,106 @@ window.adminGui = {
     this.activeTimeouts.add(timeoutId);
   },
 
+  // Load Welcome Component for welcome section
+  loadWelcomeComponent: function () {
+    console.log("[UMIG] Loading WelcomeComponent...");
+
+    try {
+      // Clean up any existing welcome component before creating a new one
+      if (this.currentWelcomeComponent) {
+        console.log("[UMIG] Destroying existing WelcomeComponent");
+        if (typeof this.currentWelcomeComponent.destroy === "function") {
+          this.currentWelcomeComponent.destroy();
+        }
+        this.currentWelcomeComponent = null;
+      }
+
+      // Update the header for Welcome section - no buttons needed
+      const contentTitle = document.getElementById("contentTitle");
+      const contentDescription = document.getElementById("contentDescription");
+      const refreshBtn = document.getElementById("refreshBtn");
+      const addNewBtn = document.getElementById("addNewBtn");
+
+      if (contentTitle) {
+        contentTitle.textContent = "Welcome";
+      }
+      if (contentDescription) {
+        contentDescription.textContent = "UMIG Administration Dashboard";
+      }
+      // Hide the action buttons for welcome section
+      if (refreshBtn) {
+        refreshBtn.style.display = "none";
+      }
+      if (addNewBtn) {
+        addNewBtn.style.display = "none";
+      }
+
+      // Get the main content container
+      const contentArea =
+        document.getElementById("mainContent") ||
+        document.getElementById("content");
+      if (!contentArea) {
+        console.error("[UMIG] Content area not found for WelcomeComponent");
+        return;
+      }
+
+      // Clear existing content
+      contentArea.innerHTML =
+        '<div id="welcomeContainer" class="umig-welcome-container-root"></div>';
+
+      // Check if WelcomeComponent is available
+      if (typeof window.UmigWelcomeComponent === "undefined") {
+        console.error("[UMIG] UmigWelcomeComponent not available");
+        contentArea.innerHTML = `
+          <div class="aui-message aui-message-error">
+            <p>Welcome component not loaded. Please refresh the page.</p>
+            <p><button class="aui-button" onclick="location.reload()">Refresh Page</button></p>
+          </div>
+        `;
+        return;
+      }
+
+      // Create and initialize WelcomeComponent
+      this.currentWelcomeComponent = new window.UmigWelcomeComponent(
+        "welcomeContainer",
+        {
+          debug: true,
+          showSystemOverview: true,
+          showQuickActions: true,
+          showNavigationGuide: true,
+        },
+      );
+
+      // Initialize and render the component following BaseComponent lifecycle
+      try {
+        this.currentWelcomeComponent.initialize();
+        this.currentWelcomeComponent.render();
+        console.log("[UMIG] WelcomeComponent loaded successfully");
+      } catch (error) {
+        console.error("[UMIG] WelcomeComponent error:", error);
+        contentArea.innerHTML = `
+          <div class="aui-message aui-message-error">
+            <p>Error loading welcome component: ${error.message}</p>
+            <p><button class="aui-button" onclick="AdminGUI.loadWelcomeComponent()">Try Again</button></p>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error("[UMIG] Failed to load WelcomeComponent:", error);
+      const contentArea =
+        document.getElementById("mainContent") ||
+        document.getElementById("content");
+      if (contentArea) {
+        contentArea.innerHTML = `
+          <div class="aui-message aui-message-error">
+            <p>Failed to load welcome interface: ${error.message}</p>
+            <p><button class="aui-button" onclick="location.reload()">Refresh Page</button></p>
+          </div>
+        `;
+      }
+    }
+  },
+
   // Add required CSS styles
   addRequiredCSS: function () {
     if (document.getElementById("adminGuiStyles")) {
@@ -2845,31 +2946,11 @@ window.adminGui = {
       defaultSection = entityParam;
       defaultEntity = entityParam;
     } else {
-      // Set default based on user role
+      // Always default to welcome section for all users
+      defaultSection = "welcome";
+      defaultEntity = "welcome";
       const role = this.state.currentUser?.role || "user";
-
-      switch (role) {
-        case "superadmin":
-          defaultSection = "users";
-          defaultEntity = "users";
-          console.log("[UMIG] SUPERADMIN default: Users management");
-          break;
-        case "admin":
-          defaultSection = "migrations";
-          defaultEntity = "migrations";
-          console.log("[UMIG] ADMIN default: Migrations management");
-          break;
-        case "pilot":
-          defaultSection = "iterations";
-          defaultEntity = "iterations";
-          console.log("[UMIG] PILOT default: Iterations management");
-          break;
-        default:
-          // Fallback for unexpected roles
-          defaultSection = "users";
-          defaultEntity = "users";
-          console.warn(`[UMIG] Unknown role ${role}, defaulting to users`);
-      }
+      console.log(`[UMIG] Default: Welcome dashboard for ${role} user`);
     }
 
     // Update state
@@ -2972,6 +3053,7 @@ window.adminGui = {
           const contentDescription =
             document.getElementById("contentDescription");
           const addNewBtn = document.getElementById("addNewBtn");
+          const refreshBtn = document.getElementById("refreshBtn");
 
           if (contentTitle) {
             contentTitle.textContent = `${entity.name} Management`;
@@ -2981,7 +3063,14 @@ window.adminGui = {
             contentDescription.textContent = entity.description;
           }
 
+          // Show the action buttons when navigating to non-welcome sections
+          if (refreshBtn) {
+            refreshBtn.style.display = "inline-block";
+          }
+
           if (addNewBtn) {
+            addNewBtn.style.display = "inline-block";
+
             // Secure alternative to innerHTML - use safe HTML setting
             if (
               window.SecurityUtils &&
@@ -3014,9 +3103,43 @@ window.adminGui = {
       `[UMIG DEBUG] ====== STARTING loadCurrentSection for entity: ${entity} ======`,
     );
 
+    // Prevent rapid duplicate calls (debouncing)
+    if (this.loadingSectionEntity === entity && this.isLoadingSection) {
+      console.log(
+        `[UMIG DEBUG] Already loading ${entity}, skipping duplicate call`,
+      );
+      return;
+    }
+
+    // Mark as loading
+    this.loadingSectionEntity = entity;
+    this.isLoadingSection = true;
+
+    // Clean up WelcomeComponent if we're switching away from welcome
+    if (this.currentWelcomeComponent && entity !== "welcome") {
+      console.log(
+        "[UMIG] Cleaning up WelcomeComponent before switching sections",
+      );
+      if (typeof this.currentWelcomeComponent.destroy === "function") {
+        this.currentWelcomeComponent.destroy();
+      }
+      this.currentWelcomeComponent = null;
+    }
+
     if (!entity || entity === "dashboard") {
       console.log(`[UMIG DEBUG] Showing dashboard for entity: ${entity}`);
       this.showDashboard();
+      this.isLoadingSection = false; // Reset loading flag
+      return;
+    }
+
+    // Handle welcome section with WelcomeComponent
+    if (entity === "welcome") {
+      console.log(
+        `[UMIG DEBUG] Loading Welcome component for entity: ${entity}`,
+      );
+      this.loadWelcomeComponent();
+      this.isLoadingSection = false; // Reset loading flag
       return;
     }
 
@@ -3051,12 +3174,16 @@ window.adminGui = {
               `[US-087] Failed to dynamically load ${entity} EntityManager:`,
               error,
             );
-            return this.loadCurrentSectionLegacy();
+            const result = await this.loadCurrentSectionLegacy();
+            this.isLoadingSection = false; // Reset loading flag
+            return result;
           }
         }
       }
 
-      return this.loadWithEntityManager(entity);
+      const result = await this.loadWithEntityManager(entity);
+      this.isLoadingSection = false; // Reset loading flag after component load
+      return result;
     }
 
     // US-087: Legacy fallback for entities not yet migrated
@@ -3458,15 +3585,26 @@ window.adminGui = {
 
       // Initialize the manager if not already done
       if (!manager.isInitialized) {
+        console.log(
+          `[US-087] Initializing ${entity} EntityManager for first time`,
+        );
         await manager.initialize(container);
       } else {
         // Update manager's container if already initialized
+        console.log(
+          `[US-087] ${entity} EntityManager already initialized, updating container`,
+        );
         manager.setContainer(container);
       }
 
       // Mount the manager to the container (CRITICAL: Required before render())
       if (!manager.mounted) {
+        console.log(`[US-087] Mounting ${entity} EntityManager`);
         await manager.mount(container);
+      } else {
+        console.log(
+          `[US-087] ${entity} EntityManager already mounted, skipping mount`,
+        );
       }
 
       // Load data with current state
@@ -3502,6 +3640,9 @@ window.adminGui = {
 
       // Listen for EntityManager events
       this.setupEntityManagerEventListeners(entity, manager);
+
+      // Reset loading flag on successful completion
+      this.isLoadingSection = false;
     } catch (error) {
       console.error(
         `[US-087] Failed to load ${entity} with EntityManager:`,
@@ -3529,6 +3670,9 @@ window.adminGui = {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
+
+      // Reset loading flag on error
+      this.isLoadingSection = false;
     }
   },
 

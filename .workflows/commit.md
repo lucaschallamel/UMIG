@@ -158,6 +158,12 @@ Please work with our GENDEV documentation generator to create a comprehensive co
 
 ## MANDATORY VERIFICATION
 
+**CRITICAL COMMIT MESSAGE SAFEGUARDS**:
+- [ ] **NO SHELL SYNTAX**: Verify commit message contains ZERO heredoc (`<<EOF`, `$(cat <<'EOF'`), bash commands, or shell constructs
+- [ ] **CLEAN TEXT ONLY**: Ensure message is pure text without any executable syntax
+- [ ] **PREFIX VALIDATION**: Confirm no command prefixes, shell artifacts, or syntax pollution
+
+**CONTENT VERIFICATION**:
 - [ ] Read the generated commit message to confirm it follows Conventional Commits 1.0
 - [ ] Verify the message targets expert-level developers with appropriate technical depth
 - [ ] Check that all staged changes are properly reflected in the message
@@ -237,6 +243,7 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 - [ ] Information is organized in logical flow
 - [ ] Appropriate level of detail for future developers
 - [ ] Conventional Commits format is followed
+- [ ] **SYNTAX PURITY**: ZERO shell syntax, heredoc, or command artifacts in commit message
 
 **Completeness Verification:**
 

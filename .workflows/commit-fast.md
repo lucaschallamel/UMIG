@@ -81,6 +81,13 @@ Run: `git diff --staged --stat && git status --porcelain`
 ## Phase 3: Commit Message Generation
 
 Direct documentation generator: commit message type, standard validation.
+
+**CRITICAL COMMIT MESSAGE SAFEGUARDS**:
+- **NO HEREDOC SYNTAX**: Ensure no `$(cat <<'EOF'`, `<<EOF`, or similar shell constructs
+- **CLEAN TEXT ONLY**: Commit message must be plain text without shell commands
+- **FORMAT VALIDATION**: Must follow exact Conventional Commits format without prefixes
+- **SYNTAX CHECK**: Verify no bash/shell syntax artifacts before committing
+
 **Output**: Conventional Commits format, multi-stream narrative, context-rich body, proper footers
 
 ## Phase 4: Anti-Tunnel Vision Verification
@@ -94,6 +101,7 @@ Deploy code reviewer for final validation.
 - **Format**: Conventional Commits 1.0 compliance
 - **Context**: Business/technical rationale clear
 - **Completeness**: No missing work streams
+- **Syntax Purity**: ZERO shell syntax, heredoc, or command artifacts in commit message
 
 ## Success Criteria
 
