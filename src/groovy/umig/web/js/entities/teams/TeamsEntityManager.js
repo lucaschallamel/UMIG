@@ -54,12 +54,19 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
             sortable: true,
             searchable: true,
             type: "email",
-            // Custom renderer for email with secure HTML
+            // Custom renderer for email with secure HTML using EmailUtils
             renderer: (value, row) => {
               if (!value) return "";
-              // Sanitize email value to prevent XSS
+              // Use EmailUtils if available for consistent email link rendering
+              if (window.EmailUtils) {
+                return window.EmailUtils.formatSingleEmail(value, {
+                  linkClass: "umig-table-email-link",
+                  addTitle: true,
+                });
+              }
+              // Fallback to sanitized email without link
               const sanitizedEmail = value.replace(/[<>"']/g, "");
-              return `<a href="mailto:${sanitizedEmail}" class="email-link">${sanitizedEmail}</a>`;
+              return sanitizedEmail;
             },
           },
           {

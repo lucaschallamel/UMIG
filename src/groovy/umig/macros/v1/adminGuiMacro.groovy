@@ -28,7 +28,7 @@ def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
 
 // Version string for JavaScript files (update when deploying changes)
 // Using a stable version instead of System.currentTimeMillis() for better caching
-def jsVersion = "3.0.0"
+def jsVersion = "3.9.1"
 
 // Performance configuration constants
 def PERFORMANCE_CONFIG = [
@@ -434,12 +434,14 @@ console.log('[UMIG] Admin GUI loading...');
 
 <!-- Component system -->
 <script src="${webResourcesPath}/js/components/SecurityUtils.js?v=${jsVersion}"></script>
+<script src="${webResourcesPath}/js/components/EmailUtils.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/BaseComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/ComponentOrchestrator.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/TableComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/ModalComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/FilterComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/PaginationComponent.js?v=${jsVersion}"></script>
+<script src="${webResourcesPath}/js/components/WelcomeComponent.js?v=${jsVersion}"></script>
 
 <!-- Status provider (needs SecurityUtils) -->
 <script src="${webResourcesPath}/js/utils/StatusProvider.js?v=${jsVersion}"></script>

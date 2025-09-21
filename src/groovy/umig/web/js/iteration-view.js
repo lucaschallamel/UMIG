@@ -16,7 +16,7 @@
 class StepsAPIv2Client {
   constructor() {
     this.baseUrl =
-      (AJS.contextPath() || "/confluence") + "/rest/scriptrunner/latest/custom";
+      (AJS.contextPath() || "") + "/rest/scriptrunner/latest/custom";
     this.endpoint = "/steps";
     this.cache = new Map();
     this.maxCacheSize = 100; // Maximum cache entries for memory management
@@ -297,6 +297,7 @@ class StepsAPIv2Client {
       "iterationId",
       "teamId",
       "status",
+      "statusId",
       "phaseId",
       "sequenceId",
       "planId",
@@ -721,6 +722,9 @@ const populateFilter = (selector, url, defaultOptionText) => {
   console.log(`populateFilter: Loading ${url} for ${selector}`);
   select.innerHTML = `<option value="">Loading...</option>`;
 
+  // Save current selection to preserve user choice
+  const currentValue = select.value;
+
   fetch(url)
     .then((response) => {
       console.log(
@@ -741,12 +745,31 @@ const populateFilter = (selector, url, defaultOptionText) => {
       select.innerHTML = `<option value="">${defaultOptionText}</option>`;
 
       if (Array.isArray(items)) {
+        let preservedSelectionFound = false;
         items.forEach((item) => {
           const option = document.createElement("option");
           option.value = item.id;
           option.textContent = item.name || "(Unnamed)";
           select.appendChild(option);
+
+          // Check if this item matches the previously selected value
+          if (currentValue && item.id.toString() === currentValue.toString()) {
+            preservedSelectionFound = true;
+          }
         });
+
+        // Restore previous selection if it still exists in the new list
+        if (preservedSelectionFound && currentValue) {
+          select.value = currentValue;
+          console.log(
+            `populateFilter: Preserved selection "${currentValue}" for ${selector}`,
+          );
+        } else if (currentValue) {
+          console.log(
+            `populateFilter: Previous selection "${currentValue}" no longer available for ${selector}`,
+          );
+        }
+
         console.log(
           `populateFilter: Successfully populated ${items.length} options for ${selector}`,
         );
@@ -845,6 +868,7 @@ class IterationView {
       team: "",
       label: "",
       myTeamsOnly: false,
+      statusFilter: "", // Status filtering for runsheet header buttons
     };
 
     this.userRole = null;
@@ -853,9 +877,7 @@ class IterationView {
     this.activeTimeouts = new Set(); // Track active timeouts for cleanup
     this.config = window.UMIG_ITERATION_CONFIG || {
       api: {
-        baseUrl:
-          (AJS.contextPath() || "/confluence") +
-          "/rest/scriptrunner/latest/custom",
+        baseUrl: (AJS.contextPath() || "") + "/rest/scriptrunner/latest/custom",
       },
     };
 
@@ -1097,6 +1119,14 @@ class IterationView {
 
   async init() {
     await this.initializeSelectors();
+
+    // Load status data first - this creates the dynamic mappings needed for filtering
+    await this.loadStepStatusesForFiltering();
+
+    // Render dynamic status buttons in the runsheet header
+    await this.renderStatusButtons();
+
+    // Bind events after status mappings are loaded
     this.bindEvents();
 
     // Load status colors asynchronously with retry logic to handle authentication timing
@@ -1273,10 +1303,23 @@ class IterationView {
 
     if (teamFilter) {
       teamFilter.addEventListener("change", async (e) => {
-        this.filters.team = e.target.value;
+        const selectedTeamId = e.target.value;
+        const selectedTeamName = e.target.options[e.target.selectedIndex].text;
+
+        console.log("=== TEAM FILTER CHANGE ===");
+        console.log("Selected team ID:", selectedTeamId);
+        console.log("Selected team name:", selectedTeamName);
+        console.log("Previous team filter:", this.filters.team);
+
+        this.filters.team = selectedTeamId;
         this.apiClient.clearCache();
-        console.log("Team filter changed: Cache cleared");
+
+        console.log("Updated this.filters.team to:", this.filters.team);
+        console.log("About to apply filters...");
+
         await this.applyFilters();
+
+        console.log("=== TEAM FILTER CHANGE COMPLETE ===");
       });
     }
 
@@ -1300,6 +1343,17 @@ class IterationView {
 
     // Step action buttons
     this.bindStepActions();
+
+    // Status filter buttons
+    this.bindStatusFilterEvents();
+
+    // If status filter events weren't bound due to missing mappings, retry after a delay
+    if (!this.statusFilterMappings) {
+      setTimeout(() => {
+        console.log("Retrying status filter event binding...");
+        this.bindStatusFilterEvents();
+      }, 1000);
+    }
   }
 
   bindStepActions() {
@@ -1324,6 +1378,162 @@ class IterationView {
       commentBtn.addEventListener("click", () => this.addComment());
     }
   }
+
+  /**
+   * Bind click event listeners to status count elements for filtering
+   * Uses dynamic status mappings loaded from the Status API
+   */
+  bindStatusFilterEvents() {
+    // Use dynamic status filter mappings if available, otherwise wait for them
+    if (!this.statusFilterMappings) {
+      console.log(
+        "Status filter mappings not yet loaded, deferring event binding",
+      );
+      return;
+    }
+
+    console.log(
+      "Binding status filter events for",
+      this.statusFilterMappings.length,
+      "status types",
+    );
+
+    this.statusFilterMappings.forEach(
+      ({ elementId, statusValue, displayName, color }) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          // Add pointer cursor to indicate clickability
+          element.style.cursor = "pointer";
+          element.style.userSelect = "none";
+          element.title = `Click to filter by ${displayName}`;
+
+          element.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log(
+              `Status filter clicked: ${displayName} (${statusValue})`,
+            );
+
+            // Update filter
+            this.filters.statusFilter = statusValue;
+
+            // Clear cache and apply filters
+            this.apiClient.clearCache();
+            console.log("Status filter changed: Cache cleared");
+
+            // Update visual feedback
+            this.updateStatusFilterVisualFeedback(elementId);
+
+            // Apply filters to reload steps
+            await this.applyFilters();
+
+            // Show notification
+            const filterText = statusValue ? `${displayName}` : "All Steps";
+            this.showNotification(`Filtering by: ${filterText}`, "info");
+          });
+        }
+      },
+    );
+  }
+
+  /**
+   * Update visual feedback for active status filter button
+   * Uses dynamic status mappings when available
+   * @param {string} activeElementId - ID of the currently active status filter element
+   */
+  updateStatusFilterVisualFeedback(activeElementId) {
+    // Get all status element IDs from dynamic mappings or use fallback
+    let statusElementIds = ["total-steps"];
+
+    if (this.statusFilterMappings) {
+      statusElementIds = this.statusFilterMappings.map(
+        (mapping) => mapping.elementId,
+      );
+    } else {
+      // Fallback to hardcoded IDs for backward compatibility
+      statusElementIds = [
+        "total-steps",
+        "pending-steps",
+        "todo-steps",
+        "progress-steps",
+        "completed-steps",
+        "failed-steps",
+        "blocked-steps",
+        "cancelled-steps",
+      ];
+    }
+
+    statusElementIds.forEach((elementId) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        if (elementId === activeElementId) {
+          // Add active state styling
+          element.style.outline = "2px solid #0052cc";
+          element.style.outlineOffset = "1px";
+          element.style.fontWeight = "bold";
+          element.style.transform = "scale(1.05)";
+          element.style.transition = "all 0.2s ease";
+          element.style.zIndex = "10";
+          element.style.position = "relative";
+
+          // Add active class for CSS targeting
+          element.classList.add("status-filter-active");
+        } else {
+          // Remove active state styling
+          element.style.outline = "";
+          element.style.outlineOffset = "";
+          element.style.fontWeight = "";
+          element.style.transform = "";
+          element.style.zIndex = "";
+          element.style.position = "";
+
+          // Remove active class
+          element.classList.remove("status-filter-active");
+        }
+      }
+    });
+  }
+
+  /**
+   * Restore visual feedback for active status filter after steps are loaded
+   * Uses dynamic status mappings when available
+   */
+  restoreStatusFilterVisualFeedback() {
+    if (this.filters.statusFilter) {
+      let activeElementId = null;
+
+      // Find element ID from dynamic mappings
+      if (this.statusFilterMappings) {
+        const mapping = this.statusFilterMappings.find(
+          (m) => m.statusValue === this.filters.statusFilter,
+        );
+        if (mapping) {
+          activeElementId = mapping.elementId;
+        }
+      } else {
+        // Fallback to hardcoded mapping for backward compatibility
+        const statusToElementMap = {
+          PENDING: "pending-steps",
+          TODO: "todo-steps",
+          IN_PROGRESS: "progress-steps",
+          COMPLETED: "completed-steps",
+          FAILED: "failed-steps",
+          BLOCKED: "blocked-steps",
+          CANCELLED: "cancelled-steps",
+        };
+        activeElementId = statusToElementMap[this.filters.statusFilter];
+      }
+
+      if (activeElementId) {
+        this.updateStatusFilterVisualFeedback(activeElementId);
+      }
+    } else {
+      // If no status filter is active, highlight "total-steps" (All Steps)
+      this.updateStatusFilterVisualFeedback("total-steps");
+    }
+  }
+
   // US-084: Load plan templates using new template-focused API
   async loadPlanTemplates() {
     const select = document.getElementById("plan-template-select");
@@ -1891,6 +2101,272 @@ class IterationView {
         }
       }
     }
+  }
+
+  /**
+   * Load and cache step statuses for filtering system
+   * This method creates the dynamic filter mappings and counter mappings
+   */
+  async loadStepStatusesForFiltering() {
+    try {
+      console.log("Loading step statuses for filtering system...");
+
+      // Fetch statuses from API
+      const statuses = await this.fetchStepStatusesWithRetry();
+
+      if (!statuses || statuses.length === 0) {
+        console.warn("No statuses available for filtering, using fallback");
+        this.initializeFallbackStatusMappings();
+        return;
+      }
+
+      // Store statuses for reference
+      this.stepStatuses = statuses;
+
+      // Create dynamic status filter mappings
+      this.statusFilterMappings = [
+        { elementId: "total-steps", statusValue: "", displayName: "All Steps" },
+      ];
+
+      // Add mappings for each status from the database
+      statuses.forEach((status) => {
+        const statusName = status.name || status.sts_name; // Handle both API response formats
+        const statusId = status.id || status.sts_id; // Handle both API response formats
+        const elementId = this.generateElementIdFromStatus(statusName);
+        const displayName = this.formatDisplayName(statusName);
+
+        this.statusFilterMappings.push({
+          elementId: elementId,
+          statusValue: statusName, // Keep for display purposes
+          statusId: statusId, // Add for API calls
+          displayName: displayName,
+          color: status.color || status.sts_color, // Handle both API response formats
+        });
+      });
+
+      // Create dynamic counter mappings for status counts
+      this.statusCounterMappings = statuses.map((status) => {
+        const statusName = status.name || status.sts_name;
+        return {
+          elementId: this.generateElementIdFromStatus(statusName),
+          statusKey: statusName,
+          color: status.color || status.sts_color,
+        };
+      });
+
+      console.log(
+        `Loaded ${statuses.length} statuses for filtering:`,
+        this.statusFilterMappings.map((m) => m.statusValue).filter((v) => v),
+      );
+    } catch (error) {
+      console.error("Error loading step statuses for filtering:", error);
+      this.initializeFallbackStatusMappings();
+    }
+  }
+
+  /**
+   * Generate consistent element ID from status name
+   */
+  generateElementIdFromStatus(statusName) {
+    // Handle special cases to match existing HTML element IDs
+    const specialCases = {
+      IN_PROGRESS: "progress-steps",
+      "IN PROGRESS": "progress-steps",
+    };
+
+    if (specialCases[statusName]) {
+      return specialCases[statusName];
+    }
+
+    return `${statusName.toLowerCase().replace(/_/g, "-").replace(/\s+/g, "-")}-steps`;
+  }
+
+  /**
+   * Format status name for display
+   */
+  formatDisplayName(statusName) {
+    return statusName
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  /**
+   * Render dynamic status buttons using data from Status API
+   */
+  async renderStatusButtons() {
+    console.log("Rendering dynamic status buttons");
+
+    // Find the summary stats container
+    const summaryStats = document.querySelector(".summary-stats");
+    if (!summaryStats) {
+      console.warn("Summary stats container not found");
+      return;
+    }
+
+    // Update existing status span elements to be clickable with dynamic colors
+    this.statusFilterMappings.forEach((mapping) => {
+      const element = document.getElementById(mapping.elementId);
+      if (!element) {
+        console.warn(`Status element not found: ${mapping.elementId}`);
+        return;
+      }
+
+      // Make the parent span clickable
+      const parentSpan = element.closest(".stat");
+      if (parentSpan) {
+        // Add CSS classes for styling
+        parentSpan.classList.add("status-filter-btn", "clickable-status");
+        parentSpan.setAttribute("data-status-value", mapping.statusValue);
+
+        // Apply database color if available
+        if (mapping.color) {
+          parentSpan.style.backgroundColor = mapping.color;
+          parentSpan.style.borderColor = mapping.color;
+          parentSpan.style.border = `2px solid ${mapping.color}`;
+          parentSpan.style.borderRadius = "4px";
+          parentSpan.style.padding = "4px 8px";
+          parentSpan.style.cursor = "pointer";
+
+          // Determine text color based on background brightness
+          const brightness = this.getColorBrightness(mapping.color);
+          parentSpan.style.color = brightness > 128 ? "#000000" : "#ffffff";
+        } else {
+          // Default styling for elements without database colors
+          parentSpan.style.cursor = "pointer";
+          parentSpan.style.padding = "4px 8px";
+          parentSpan.style.borderRadius = "4px";
+          parentSpan.style.border = "2px solid #ccc";
+        }
+
+        // Add click event for filtering
+        parentSpan.addEventListener("click", () => {
+          this.filterStepsByStatus(
+            mapping.statusId || mapping.statusValue,
+            parentSpan,
+          );
+        });
+      }
+    });
+
+    console.log(
+      `Updated ${this.statusFilterMappings.length} dynamic status elements`,
+    );
+  }
+
+  /**
+   * Calculate color brightness to determine text color
+   */
+  getColorBrightness(hexColor) {
+    // Remove # if present
+    const color = hexColor.replace("#", "");
+
+    // Convert to RGB
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+
+    // Calculate brightness using standard formula
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  }
+
+  /**
+   * Filter steps by status and update UI
+   */
+  filterStepsByStatus(statusValue, buttonElement) {
+    console.log(`Filtering steps by status: ${statusValue}`);
+
+    // Update active button state - remove active class from all status elements
+    document.querySelectorAll(".status-filter-btn").forEach((btn) => {
+      btn.classList.remove("active");
+      // Reset border style for inactive buttons
+      if (btn !== buttonElement) {
+        const originalColor = btn.style.borderColor;
+        if (originalColor) {
+          btn.style.border = `2px solid ${originalColor}`;
+        } else {
+          btn.style.border = "2px solid #ccc";
+        }
+      }
+    });
+
+    // Add active class and enhanced styling to clicked element
+    buttonElement.classList.add("active");
+    buttonElement.style.border = `3px solid #000`;
+    buttonElement.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+
+    // Apply filter to steps - use statusId for API calls
+    if (
+      statusValue === "" ||
+      statusValue === null ||
+      statusValue === undefined
+    ) {
+      // Clear status filter for "All Steps"
+      this.filters.statusId = null;
+      this.filters.statusFilter = null;
+    } else if (typeof statusValue === "number") {
+      // Use statusId for API calls (integer)
+      this.filters.statusId = statusValue;
+      this.filters.statusFilter = null; // Clear old string-based filter
+    } else {
+      // Fallback for backward compatibility with string status names
+      this.filters.statusFilter = statusValue;
+      this.filters.statusId = null;
+    }
+
+    this.loadSteps();
+  }
+
+  /**
+   * Initialize fallback status mappings when API is not available
+   */
+  initializeFallbackStatusMappings() {
+    console.log("Initializing fallback status mappings");
+
+    // Fallback to hardcoded status mappings for backward compatibility
+    this.statusFilterMappings = [
+      { elementId: "total-steps", statusValue: "", displayName: "All Steps" },
+      {
+        elementId: "pending-steps",
+        statusValue: "PENDING",
+        displayName: "Pending",
+      },
+      { elementId: "todo-steps", statusValue: "TODO", displayName: "Todo" },
+      {
+        elementId: "progress-steps",
+        statusValue: "IN_PROGRESS",
+        displayName: "In Progress",
+      },
+      {
+        elementId: "completed-steps",
+        statusValue: "COMPLETED",
+        displayName: "Completed",
+      },
+      {
+        elementId: "failed-steps",
+        statusValue: "FAILED",
+        displayName: "Failed",
+      },
+      {
+        elementId: "blocked-steps",
+        statusValue: "BLOCKED",
+        displayName: "Blocked",
+      },
+      {
+        elementId: "cancelled-steps",
+        statusValue: "CANCELLED",
+        displayName: "Cancelled",
+      },
+    ];
+
+    this.statusCounterMappings = [
+      { elementId: "pending-steps", statusKey: "PENDING" },
+      { elementId: "todo-steps", statusKey: "TODO" },
+      { elementId: "progress-steps", statusKey: "IN_PROGRESS" },
+      { elementId: "completed-steps", statusKey: "COMPLETED" },
+      { elementId: "failed-steps", statusKey: "FAILED" },
+      { elementId: "blocked-steps", statusKey: "BLOCKED" },
+      { elementId: "cancelled-steps", statusKey: "CANCELLED" },
+    ];
   }
 
   /**
@@ -2867,14 +3343,34 @@ class IterationView {
       // The sequence/phase/team/label filters should work independently
       if (this.filters.sequence) filters.sequenceId = this.filters.sequence;
       if (this.filters.phase) filters.phaseId = this.filters.phase;
-      if (this.filters.team) filters.teamId = this.filters.team;
+      if (this.filters.team) {
+        filters.teamId = this.filters.team;
+        console.log("Team filter applied - teamId:", filters.teamId);
+
+        // Validate that teamId is a valid number
+        if (isNaN(parseInt(filters.teamId))) {
+          console.error("Invalid team ID format:", filters.teamId);
+          this.showNotification("Invalid team selection", "error");
+          return;
+        }
+      }
       if (this.filters.label) filters.labelId = this.filters.label;
+
+      // Apply status filter for runsheet header buttons
+      if (this.filters.statusId) {
+        filters.statusId = this.filters.statusId;
+        console.log("Status ID filter applied:", filters.statusId);
+      } else if (this.filters.statusFilter) {
+        filters.status = this.filters.statusFilter;
+        console.log("Status filter applied:", filters.status);
+      }
 
       // Apply quick filters and myTeamsOnly from main filters
       if (this.filters.myTeamsOnly) filters.myTeamOnly = true;
       if (this.quickFilters.myAssignedSteps) filters.assignedToMe = true;
       if (this.quickFilters.criticalSteps) filters.priority = "HIGH";
-      if (this.quickFilters.blockedSteps)
+      // Note: blockedSteps quick filter is overridden by status filter if both are set
+      if (this.quickFilters.blockedSteps && !this.filters.statusFilter)
         filters.status = await this.getStatusName("BLOCKED");
 
       // Options for performance optimization
@@ -2983,11 +3479,16 @@ class IterationView {
       }
 
       // Update team filter based on actual steps data
-      this.updateTeamFilterFromSteps(sequences);
+      // DISABLED: Creates inconsistent UX - teams dropdown should behave like labels dropdown
+      // User preference: Keep dropdowns static, filter only affects runsheet content
+      // this.updateTeamFilterFromSteps(sequences);
 
       // Render with performance optimizations
       await this.renderRunsheetOptimized(sequences);
       this.calculateAndUpdateStepCounts(sequences);
+
+      // Restore visual feedback for active status filter
+      this.restoreStatusFilterVisualFeedback();
 
       // Start real-time updates if not already running
       if (!this.realTimeSync.isPolling) {
@@ -3709,94 +4210,113 @@ class IterationView {
 
   /**
    * Calculate and update step counts from sequences data
+   * Uses dynamic status definitions from the Status API
    */
   calculateAndUpdateStepCounts(sequences) {
     let total = 0;
-    let pending = 0;
-    let todo = 0;
-    let progress = 0;
-    let completed = 0;
-    let failed = 0;
-    let blocked = 0;
-    let cancelled = 0;
+    const statusCounts = new Map();
 
+    // Initialize status counters using dynamic status mappings
+    if (this.statusCounterMappings) {
+      this.statusCounterMappings.forEach(({ statusKey }) => {
+        statusCounts.set(statusKey, 0);
+      });
+    }
+
+    // Add fallback counters for backward compatibility
+    const fallbackStatuses = [
+      "PENDING",
+      "TODO",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "FAILED",
+      "BLOCKED",
+      "CANCELLED",
+    ];
+    fallbackStatuses.forEach((status) => {
+      if (!statusCounts.has(status)) {
+        statusCounts.set(status, 0);
+      }
+    });
+
+    // Count steps by status
     sequences.forEach((sequence) => {
       sequence.phases.forEach((phase) => {
         phase.steps.forEach((step) => {
           total++;
 
-          // Use exact status matching from status_sts table
-          if (!step.status) {
-            pending++;
-            return;
-          }
+          const stepStatus = step.status
+            ? step.status.toUpperCase()
+            : "PENDING";
 
-          switch (step.status.toUpperCase()) {
-            case "COMPLETED":
-              completed++;
-              break;
-            case "IN_PROGRESS":
-              progress++;
-              break;
-            case "FAILED":
-              failed++;
-              break;
-            case "BLOCKED":
-              blocked++;
-              break;
-            case "CANCELLED":
-              cancelled++;
-              break;
-            case "TODO":
-              todo++;
-              break;
-            case "PENDING":
-              pending++;
-              break;
-            default:
-              // Fallback to old logic for backward compatibility
-              const statusClass = this.getStatusClass(step.status);
-              switch (statusClass) {
-                case "status-completed":
-                  completed++;
-                  break;
-                case "status-progress":
-                  progress++;
-                  break;
-                case "status-failed":
-                  failed++;
-                  break;
-                case "status-blocked":
-                  blocked++;
-                  break;
-                case "status-cancelled":
-                  cancelled++;
-                  break;
-                case "status-todo":
-                  todo++;
-                  break;
-                default:
-                  pending++;
-              }
+          // Increment counter for this status
+          if (statusCounts.has(stepStatus)) {
+            statusCounts.set(stepStatus, statusCounts.get(stepStatus) + 1);
+          } else {
+            // Handle unknown status - add to PENDING or a fallback
+            console.warn(
+              `Unknown status encountered: ${stepStatus}, counting as PENDING`,
+            );
+            statusCounts.set("PENDING", statusCounts.get("PENDING") + 1);
           }
         });
       });
     });
 
-    this.updateStepCounts(
-      total,
-      pending,
-      todo,
-      progress,
-      completed,
-      failed,
-      blocked,
-      cancelled,
-    );
+    // Update the UI with dynamic counts
+    this.updateStepCountsFromMap(total, statusCounts);
   }
 
   /**
-   * Update step count display
+   * Update step count display using dynamic status counts
+   */
+  updateStepCountsFromMap(total, statusCounts) {
+    // Update total steps count
+    this.updateElementText("total-steps", total);
+
+    // Update each status count using dynamic mappings
+    if (this.statusCounterMappings) {
+      this.statusCounterMappings.forEach(({ elementId, statusKey }) => {
+        const count = statusCounts.get(statusKey) || 0;
+        this.updateElementText(elementId, count);
+      });
+    } else {
+      // Fallback to hardcoded element IDs for backward compatibility
+      this.updateElementText("pending-steps", statusCounts.get("PENDING") || 0);
+      this.updateElementText("todo-steps", statusCounts.get("TODO") || 0);
+      this.updateElementText(
+        "progress-steps",
+        statusCounts.get("IN_PROGRESS") || 0,
+      );
+      this.updateElementText(
+        "completed-steps",
+        statusCounts.get("COMPLETED") || 0,
+      );
+      this.updateElementText("failed-steps", statusCounts.get("FAILED") || 0);
+      this.updateElementText("blocked-steps", statusCounts.get("BLOCKED") || 0);
+      this.updateElementText(
+        "cancelled-steps",
+        statusCounts.get("CANCELLED") || 0,
+      );
+    }
+
+    console.log("Updated step counts:", Array.from(statusCounts.entries()));
+  }
+
+  /**
+   * Helper method to update element text content safely
+   */
+  updateElementText(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = value;
+    } else {
+      console.warn(`Element not found: ${elementId}`);
+    }
+  }
+
+  /**
+   * Update step count display (legacy method for backward compatibility)
    */
   updateStepCounts(
     total,
@@ -3917,12 +4437,13 @@ class IterationView {
 
   /**
    * Apply dynamic colors to step count elements
+   * Uses dynamic counter mappings loaded from the Status API
    */
   applyCounterColors() {
-    if (!this.statusColors) return;
+    if (!this.statusColors && !this.statusCounterMappings) return;
 
-    // TD-003 Phase 2H: Fixed UI element to status mappings (intentionally hardcoded)
-    const counterMappings = [
+    // Use dynamic counter mappings if available, otherwise use fallback
+    const counterMappings = this.statusCounterMappings || [
       { elementId: "pending-steps", statusKey: "PENDING" },
       { elementId: "todo-steps", statusKey: "TODO" },
       { elementId: "progress-steps", statusKey: "IN_PROGRESS" },
@@ -3932,10 +4453,12 @@ class IterationView {
       { elementId: "cancelled-steps", statusKey: "CANCELLED" },
     ];
 
-    counterMappings.forEach(({ elementId, statusKey }) => {
+    counterMappings.forEach(({ elementId, statusKey, color: mappingColor }) => {
       const element = document.getElementById(elementId);
       if (element) {
-        const color = this.statusColors.get(statusKey) || "#DDDDDD";
+        // Prefer color from statusColors map, fallback to mapping color or default
+        const color =
+          this.statusColors?.get(statusKey) || mappingColor || "#DDDDDD";
         const textColor = this.getTextColorForBackground(color);
 
         element.style.backgroundColor = color;

@@ -919,24 +919,21 @@ if (typeof BaseEntityManager === "undefined") {
         const sanitizedId = validationResult.sanitizedData.id;
 
         // Rate limiting check for delete operations
-        if (
-          !window.SecurityUtils.checkRateLimit(
-            `${this.entityType}_delete`,
-            5,
-            60000,
-          )
-        ) {
-          window.SecurityUtils.logSecurityEvent(
-            "rate_limit_exceeded_delete",
-            "warning",
-            {
-              entityType: this.entityType,
-              entityId: sanitizedId,
-              sessionId: this.securityContext?.sessionId,
-            },
-          );
+        const rateLimitResult = window.SecurityUtils.checkRateLimit(
+          `${this.entityType}_delete`,
+          5,
+          60000,
+        );
+
+        if (!rateLimitResult.allowed) {
+          window.SecurityUtils.logSecurityEvent("rate_limit_exceeded_delete", {
+            entityType: this.entityType,
+            entityId: sanitizedId,
+            sessionId: this.securityContext?.sessionId,
+            retryAfter: rateLimitResult.retryAfter,
+          });
           throw new window.SecurityUtils.SecurityException(
-            "Rate limit exceeded for entity deletion",
+            "Rate limit exceeded for entity deletion. Please try again later.",
           );
         }
 
@@ -1811,7 +1808,63 @@ if (typeof BaseEntityManager === "undefined") {
           `Are you sure you want to delete this ${this.entityType.slice(0, -1)}?`,
         )
       ) {
-        await this.deleteEntity(data.id);
+        // Use the configured primary key instead of hardcoded 'id'
+        const primaryKey = this.config?.tableConfig?.primaryKey || "id";
+        const entityId = data[primaryKey];
+
+        console.log(
+          `[BaseEntityManager] Deleting entity with ${primaryKey}: ${entityId}`,
+          { data, primaryKey, entityId },
+        );
+
+        if (!entityId) {
+          console.error(
+            `[BaseEntityManager] No ${primaryKey} found in data:`,
+            data,
+          );
+          alert(`Error: Could not find ${primaryKey} for deletion`);
+          return;
+        }
+
+        try {
+          await this.deleteEntity(entityId);
+
+          // Show success message
+          if (window.AJS && window.AJS.flag) {
+            window.AJS.flag({
+              type: "success",
+              title: "Deletion Successful",
+              body: `${this.entityType.slice(0, -1)} has been deleted successfully.`,
+            });
+          }
+        } catch (error) {
+          console.error(`[BaseEntityManager] Delete failed:`, error);
+
+          // Show detailed error message to user
+          if (window.AJS && window.AJS.flag) {
+            // Check if this is a constraint error with detailed relationships
+            if (error.isConstraintError && error.blockingRelationships) {
+              window.AJS.flag({
+                type: "error",
+                title: "Cannot Delete",
+                body: error.message,
+                close: "manual", // Let user close manually for detailed messages
+              });
+            } else {
+              // Standard error message
+              window.AJS.flag({
+                type: "error",
+                title: "Deletion Failed",
+                body:
+                  error.message ||
+                  `Failed to delete ${this.entityType.slice(0, -1)}`,
+              });
+            }
+          } else {
+            // Fallback to alert if AJS not available
+            alert(`Delete failed: ${error.message || "Unknown error"}`);
+          }
+        }
       }
     }
 

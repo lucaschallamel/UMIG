@@ -819,7 +819,17 @@
      */
     loadCurrentSection: function () {
       const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
-      const currentEntity = state.currentEntity || "users";
+      const currentEntity = state.currentEntity;
+
+      // Handle welcome state - no entity selected or explicitly welcome
+      if (
+        !currentEntity ||
+        currentEntity === "welcome" ||
+        currentEntity === "dashboard"
+      ) {
+        this.loadWelcomeComponent();
+        return;
+      }
 
       // Update content header
       this.updateContentHeader(currentEntity);
@@ -847,14 +857,47 @@
      * @param {string} entityType - Entity type
      */
     updateContentHeader: function (entityType) {
+      const titleEl = document.getElementById("contentTitle");
+      const descriptionEl = document.getElementById("contentDescription");
+      const addNewBtnText = document.getElementById("addNewBtnText");
+
+      // Handle welcome state
+      if (entityType === "welcome" || entityType === "dashboard") {
+        if (titleEl) {
+          titleEl.textContent = "Welcome";
+        }
+        if (descriptionEl) {
+          descriptionEl.textContent = "UMIG Administration Dashboard";
+        }
+        // Hide add button for welcome state
+        const addNewBtn = document.getElementById("addNewBtn");
+        if (addNewBtn) {
+          addNewBtn.style.display = "none";
+        }
+        return;
+      }
+
       const entity = window.EntityConfig
         ? window.EntityConfig.getEntity(entityType)
         : null;
       if (!entity) return;
 
-      const titleEl = document.getElementById("contentTitle");
-      const descriptionEl = document.getElementById("contentDescription");
-      const addNewBtnText = document.getElementById("addNewBtnText");
+      // Show add button for entity states, except for modernized entities
+      const addNewBtn = document.getElementById("addNewBtn");
+      if (addNewBtn) {
+        // Hide legacy button for entities that have modern component-based buttons
+        if (entityType === "users") {
+          addNewBtn.style.display = "none";
+          console.log(
+            "[AdminGuiController] Legacy add button hidden for Users - using modern UsersEntityManager button",
+          );
+
+          // Initialize and mount the modern UsersEntityManager
+          this.initializeModernUsersComponent();
+        } else {
+          addNewBtn.style.display = "inline-block";
+        }
+      }
 
       if (titleEl) {
         titleEl.textContent = entity.name;
@@ -868,6 +911,174 @@
           ? entity.name.slice(0, -1)
           : entity.name;
         addNewBtnText.textContent = `Add New ${singularName}`;
+      }
+    },
+
+    /**
+     * Load welcome component
+     */
+    loadWelcomeComponent: function () {
+      console.log("[AdminGuiController] Loading welcome component");
+
+      const mainContent = document.getElementById("mainContent");
+      if (!mainContent) {
+        console.error("[AdminGuiController] Main content container not found");
+        return;
+      }
+
+      try {
+        // Update content header for welcome state
+        this.updateContentHeader("welcome");
+
+        // Clear existing content
+        mainContent.innerHTML = `
+          <div id="welcomeContainer" class="welcome-component-container">
+            <div class="loading-message">
+              <p>Loading welcome dashboard...</p>
+            </div>
+          </div>
+        `;
+
+        // Initialize welcome component if available
+        if (window.UmigWelcomeComponent) {
+          const welcomeComponent = new window.UmigWelcomeComponent(
+            "welcomeContainer",
+            {
+              debug: false,
+              showSystemOverview: true,
+              showQuickActions: true,
+              showNavigationGuide: true,
+              animationEnabled: true,
+            },
+          );
+
+          // Initialize and render the component
+          welcomeComponent
+            .initialize()
+            .then((success) => {
+              if (success) {
+                welcomeComponent.mount();
+                welcomeComponent.render();
+                console.log(
+                  "[AdminGuiController] Welcome component loaded successfully",
+                );
+              } else {
+                console.error(
+                  "[AdminGuiController] Welcome component initialization failed",
+                );
+                this.showWelcomeFallback();
+              }
+            })
+            .catch((error) => {
+              console.error(
+                "[AdminGuiController] Welcome component error:",
+                error,
+              );
+              this.showWelcomeFallback();
+            });
+
+          // Register with ComponentOrchestrator if available
+          if (window.ComponentOrchestrator) {
+            window.ComponentOrchestrator.registerComponent(
+              "welcome",
+              welcomeComponent,
+            );
+          }
+        } else {
+          console.warn(
+            "[AdminGuiController] UmigWelcomeComponent not available, showing fallback",
+          );
+          this.showWelcomeFallback();
+        }
+      } catch (error) {
+        console.error(
+          "[AdminGuiController] Failed to load welcome component:",
+          error,
+        );
+        this.showWelcomeFallback();
+      }
+    },
+
+    /**
+     * Show welcome fallback content
+     */
+    showWelcomeFallback: function () {
+      const mainContent = document.getElementById("mainContent");
+      if (!mainContent) return;
+
+      mainContent.innerHTML = `
+        <div class="welcome-fallback">
+          <div class="aui-message aui-message-info">
+            <p class="title">
+              <strong>Welcome to UMIG Administration</strong>
+            </p>
+            <p>Select an item from the menu to get started with managing your migration infrastructure.</p>
+            <div class="welcome-actions" style="margin-top: 16px;">
+              <button class="aui-button aui-button-primary" onclick="window.AdminGuiController.handleNavigation('users')">
+                Manage Users
+              </button>
+              <button class="aui-button" onclick="window.AdminGuiController.handleNavigation('teams')" style="margin-left: 8px;">
+                Manage Teams
+              </button>
+              <button class="aui-button" onclick="window.AdminGuiController.handleNavigation('environments')" style="margin-left: 8px;">
+                Manage Environments
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    /**
+     * Initialize and mount modern UsersEntityManager component
+     * Called when navigating to Users entity to properly set up modern component system
+     */
+    initializeModernUsersComponent: function () {
+      try {
+        console.log(
+          "[AdminGuiController] Initializing modern UsersEntityManager component...",
+        );
+
+        // Get the admin-gui instance to access componentManagers
+        const adminGui = window.AdminGUI || this;
+        const usersManager = adminGui.componentManagers?.users;
+
+        if (!usersManager) {
+          console.error(
+            "[AdminGuiController] UsersEntityManager instance not found in componentManagers",
+          );
+          return;
+        }
+
+        // Initialize the component with the dataTable container
+        const container = document.getElementById("dataTable");
+        if (!container) {
+          console.error("[AdminGuiController] dataTable container not found");
+          return;
+        }
+
+        // Initialize and mount the UsersEntityManager
+        usersManager
+          .initialize(container)
+          .then(() => {
+            console.log(
+              "[AdminGuiController] UsersEntityManager initialized successfully",
+            );
+
+            // The createToolbar() call happens automatically during initialization
+            // This will create the modern "Add New User" button with proper event handlers
+          })
+          .catch((error) => {
+            console.error(
+              "[AdminGuiController] Failed to initialize UsersEntityManager:",
+              error,
+            );
+          });
+      } catch (error) {
+        console.error(
+          "[AdminGuiController] Error in initializeModernUsersComponent:",
+          error,
+        );
       }
     },
 

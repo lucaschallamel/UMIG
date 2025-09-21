@@ -419,6 +419,55 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Team membership must be managed via the Teams API. The 'teams' field is not accepted here."]).toString()).build()
         }
 
+        // Add validation for required fields and data types (matching POST endpoint validation)
+        def validationErrors = []
+
+        // Validate first name if provided
+        if (userData.containsKey('usr_first_name')) {
+            if (!userData.usr_first_name || !(userData.usr_first_name instanceof String) || (userData.usr_first_name as String).trim().isEmpty()) {
+                validationErrors << 'usr_first_name must be a non-empty string'
+            }
+        }
+
+        // Validate last name if provided
+        if (userData.containsKey('usr_last_name')) {
+            if (!userData.usr_last_name || !(userData.usr_last_name instanceof String) || (userData.usr_last_name as String).trim().isEmpty()) {
+                validationErrors << 'usr_last_name must be a non-empty string'
+            }
+        }
+
+        // Validate usr_is_admin if provided (this is the key fix for the reported issue)
+        if (userData.containsKey('usr_is_admin')) {
+            if (userData.usr_is_admin == null || !(userData.usr_is_admin instanceof Boolean)) {
+                validationErrors << 'usr_is_admin must be a boolean value (true or false)'
+            }
+        }
+
+        // Validate usr_active if provided
+        if (userData.containsKey('usr_active')) {
+            if (userData.usr_active == null || !(userData.usr_active instanceof Boolean)) {
+                validationErrors << 'usr_active must be a boolean value (true or false)'
+            }
+        }
+
+        // Validate usr_code if provided
+        if (userData.containsKey('usr_code')) {
+            if (!userData.usr_code || !(userData.usr_code instanceof String) || (userData.usr_code as String).trim().isEmpty()) {
+                validationErrors << 'usr_code must be a non-empty string'
+            }
+        }
+
+        // Validate usr_email if provided
+        if (userData.containsKey('usr_email')) {
+            if (!userData.usr_email || !(userData.usr_email instanceof String) || (userData.usr_email as String).trim().isEmpty()) {
+                validationErrors << 'usr_email must be a non-empty string'
+            }
+        }
+
+        if (validationErrors) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Validation failed: ${validationErrors.join(', ')}"]).toString()).build()
+        }
+
         if (userRepository.findUserById(userId) == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
         }

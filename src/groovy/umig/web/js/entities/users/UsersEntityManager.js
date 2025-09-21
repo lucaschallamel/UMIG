@@ -57,14 +57,31 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               return fullNameA.localeCompare(fullNameB);
             },
           },
-          { key: "usr_email", label: "Email", sortable: true },
+          {
+            key: "usr_email",
+            label: "Email",
+            sortable: true,
+            renderer: (value, row) => {
+              // Use EmailUtils if available to create mailto: link
+              if (window.EmailUtils && value) {
+                return window.EmailUtils.formatSingleEmail(value, {
+                  linkClass: "umig-table-email-link",
+                  addTitle: true,
+                });
+              }
+              return value || "";
+            },
+          },
           {
             key: "usr_active",
             label: "Active",
             sortable: true,
             renderer: (value, row) => {
-              // value parameter represents the usr_active boolean value
-              return row.usr_active ? "Yes" : "No";
+              // Use generic boolean styling for consistent appearance
+              const isYes = row.usr_active;
+              const text = isYes ? "Yes" : "No";
+              const cssClass = isYes ? "umig-boolean-yes" : "umig-boolean-no";
+              return `<span class="${cssClass}">${text}</span>`;
             },
           },
           {
@@ -89,6 +106,18 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               }
             },
           },
+          {
+            key: "usr_is_admin",
+            label: "SUPERADMIN",
+            sortable: true,
+            renderer: (value, row) => {
+              // Use generic boolean styling for consistent appearance
+              const isYes = row.usr_is_admin;
+              const text = isYes ? "Yes" : "No";
+              const cssClass = isYes ? "umig-boolean-yes" : "umig-boolean-no";
+              return `<span class="${cssClass}">${text}</span>`;
+            },
+          },
         ],
         actions: {
           view: true,
@@ -107,6 +136,22 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               values: {
                 true: "active",
                 false: "inactive",
+              },
+            },
+            // Boolean cell background styling for usr_active
+            usr_active: {
+              attribute: "data-boolean-value",
+              values: {
+                true: "yes",
+                false: "no",
+              },
+            },
+            // Boolean cell background styling for usr_is_admin (SUPERADMIN column)
+            usr_is_admin: {
+              attribute: "data-boolean-value",
+              values: {
+                true: "yes",
+                false: "no",
               },
             },
             role_code: {
@@ -328,42 +373,63 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
   createToolbar() {
     try {
       // Find the container for the toolbar (above the table)
-      const container = document.getElementById(this.container);
+      // Handle both string IDs and HTMLElement objects
+      let container;
+      if (this.container && this.container instanceof HTMLElement) {
+        // If this.container is already an HTMLElement
+        container = this.container;
+      } else {
+        // If it's a string ID or fallback to default
+        const containerId =
+          this.container || this.tableConfig?.containerId || "dataTable";
+        container = document.getElementById(containerId);
+      }
+
       if (!container) {
-        console.warn("[UsersEntityManager] Container not found for toolbar");
+        console.warn(`[UsersEntityManager] Container not found for toolbar:`, {
+          containerType: typeof this.container,
+          container: this.container,
+          tableConfigContainerId: this.tableConfig?.containerId,
+        });
         return;
       }
 
-      // Check if toolbar already exists
+      // Always recreate toolbar to ensure it exists after container clearing
       let toolbar = container.querySelector(".entity-toolbar");
-      if (!toolbar) {
-        toolbar = document.createElement("div");
-        toolbar.className = "entity-toolbar";
-        toolbar.style.cssText =
-          "margin-bottom: 15px; display: flex; gap: 10px; align-items: center;";
-
-        // Insert toolbar before the dataTable
-        const dataTable = container.querySelector("#dataTable");
-        if (dataTable) {
-          container.insertBefore(toolbar, dataTable);
-        } else {
-          container.appendChild(toolbar);
-        }
+      if (toolbar) {
+        toolbar.remove(); // Remove existing toolbar
+        console.log("[UsersEntityManager] Removed existing toolbar");
       }
 
-      // Create Add New User button
+      toolbar = document.createElement("div");
+      toolbar.className = "entity-toolbar";
+      toolbar.style.cssText =
+        "margin-bottom: 15px; display: flex; gap: 10px; align-items: center;";
+
+      // Insert toolbar before the dataTable
+      const dataTable = container.querySelector("#dataTable");
+      if (dataTable) {
+        container.insertBefore(toolbar, dataTable);
+      } else {
+        container.appendChild(toolbar);
+      }
+
+      console.log("[UsersEntityManager] Created new toolbar");
+
+      // Create Add New User button with UMIG-prefixed classes to avoid Confluence conflicts
       const addButton = document.createElement("button");
-      addButton.className = "aui-button aui-button-primary";
+      addButton.className = "umig-btn-primary umig-button";
+      addButton.id = "umig-add-new-user-btn"; // Use UMIG-prefixed ID to avoid legacy conflicts
       addButton.innerHTML =
-        '<span class="aui-icon aui-icon-small aui-iconfont-add"></span> Add New User';
+        '<span class="umig-btn-icon">➕</span> Add New User';
       addButton.setAttribute("data-action", "add");
       addButton.onclick = () => this.handleAdd();
 
-      // Create Refresh button
+      // Create Refresh button with UMIG-prefixed classes
       const refreshButton = document.createElement("button");
-      refreshButton.className = "aui-button";
-      refreshButton.innerHTML =
-        '<span class="aui-icon aui-icon-small aui-iconfont-refresh"></span> Refresh';
+      refreshButton.className = "umig-btn-secondary umig-button";
+      refreshButton.id = "umig-refresh-users-btn";
+      refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
       refreshButton.onclick = () => this.loadData();
 
       // Clear and add buttons to toolbar
@@ -641,7 +707,10 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
         if (action === "edit") {
           // Switch to edit mode - restore original form config
           this.modalComponent.close();
-          this.handleEdit(data);
+          // Wait for close animation to complete before opening edit modal
+          setTimeout(() => {
+            this.handleEdit(data);
+          }, 350); // 350ms to ensure close animation (300ms) completes
           return true; // Close modal handled above
         }
         if (action === "close") {
@@ -2468,7 +2537,49 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to delete user: ${response.status}`);
+        // Parse the error response to get detailed error information
+        let errorMessage = `Failed to delete user (${response.status})`;
+        let blockingRelationships = null;
+
+        try {
+          const errorData = await response.json();
+          console.log("[UsersEntityManager] Delete error response:", errorData);
+
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+
+          // Extract blocking relationships for user-friendly display
+          if (errorData.blocking_relationships) {
+            blockingRelationships = errorData.blocking_relationships;
+          }
+        } catch (parseError) {
+          console.warn(
+            "[UsersEntityManager] Could not parse error response:",
+            parseError,
+          );
+          // Use default error message if JSON parsing fails
+        }
+
+        // Create a user-friendly error message
+        if (response.status === 409 && blockingRelationships) {
+          // HTTP 409 Conflict - User has relationships that prevent deletion
+          const relationshipDetails = this._formatBlockingRelationships(
+            blockingRelationships,
+          );
+          const detailedError = new Error(
+            `${errorMessage}\n\nThis user cannot be deleted because they are referenced by:\n${relationshipDetails}`,
+          );
+          detailedError.isConstraintError = true;
+          detailedError.blockingRelationships = blockingRelationships;
+          throw detailedError;
+        } else if (response.status === 404) {
+          // HTTP 404 Not Found
+          throw new Error("User not found. It may have already been deleted.");
+        } else {
+          // Other errors
+          throw new Error(errorMessage);
+        }
       }
 
       console.log("[UsersEntityManager] User deleted successfully");
@@ -2479,6 +2590,52 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       console.error("[UsersEntityManager] Failed to delete user:", error);
       throw error;
     }
+  }
+
+  /**
+   * Format blocking relationships for user-friendly error display
+   * @param {Object} blockingRelationships - Blocking relationships object from API
+   * @returns {string} Formatted relationship details
+   * @private
+   */
+  _formatBlockingRelationships(blockingRelationships) {
+    const details = [];
+
+    // Map relationship types to user-friendly descriptions
+    const relationshipDescriptions = {
+      teams: "Team memberships",
+      migrations_owned: "Migrations they own",
+      plan_instances_owned: "Plan instances they own",
+      step_instances_owned: "Step instances they own",
+      step_instances_assigned: "Step instances assigned to them",
+      instructions_completed: "Instructions they have completed",
+      controls_it_validated: "Controls they have validated (IT)",
+      controls_biz_validated: "Controls they have validated (Business)",
+      audit_logs: "Audit log entries",
+      pilot_comments_created: "Pilot comments they created",
+      pilot_comments_updated: "Pilot comments they updated",
+      step_comments_created: "Step comments they created",
+      step_comments_updated: "Step comments they updated",
+    };
+
+    // Process each relationship type
+    Object.entries(blockingRelationships).forEach(
+      ([relationshipType, records]) => {
+        if (records && records.length > 0) {
+          const description =
+            relationshipDescriptions[relationshipType] || relationshipType;
+          details.push(
+            `• ${description} (${records.length} record${records.length > 1 ? "s" : ""})`,
+          );
+        }
+      },
+    );
+
+    if (details.length === 0) {
+      return "Unknown relationships (details not available)";
+    }
+
+    return details.join("\n");
   }
 
   /**

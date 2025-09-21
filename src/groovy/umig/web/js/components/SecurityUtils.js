@@ -1454,6 +1454,9 @@ if (typeof SecurityUtils === "undefined") {
   // Attach to window for browser compatibility
   if (typeof window !== "undefined") {
     window.SecurityUtils = SecurityUtils;
+    // Get the singleton instance for instance methods
+    const securityInstance = SecurityUtils.getInstance();
+
     // Ensure all static methods are directly callable - force assignment
     window.SecurityUtils.logSecurityEvent = SecurityUtils.logSecurityEvent;
     window.SecurityUtils.generateNonce = SecurityUtils.generateNonce;
@@ -1468,6 +1471,19 @@ if (typeof SecurityUtils === "undefined") {
     window.SecurityUtils.validateLocalStorageData =
       SecurityUtils.validateLocalStorageData;
     window.SecurityUtils.validateDataSchema = SecurityUtils.validateDataSchema;
+
+    // Expose instance methods that are commonly used
+    window.SecurityUtils.checkRateLimit =
+      securityInstance.checkRateLimit.bind(securityInstance);
+    window.SecurityUtils.clearRateLimit =
+      securityInstance.clearRateLimit.bind(securityInstance);
+    window.SecurityUtils.getCSRFToken =
+      securityInstance.getCSRFToken.bind(securityInstance);
+
+    // Expose exception classes for error handling
+    window.SecurityUtils.SecurityException = SecurityUtils.SecurityException;
+    window.SecurityUtils.ValidationException =
+      SecurityUtils.ValidationException;
 
     // Log successful exposure
     console.log("[SecurityUtils] All methods exposed to window:", {
@@ -1488,6 +1504,13 @@ if (typeof SecurityUtils === "undefined") {
         typeof window.SecurityUtils.validateLocalStorageData === "function",
       validateDataSchema:
         typeof window.SecurityUtils.validateDataSchema === "function",
+      checkRateLimit: typeof window.SecurityUtils.checkRateLimit === "function",
+      clearRateLimit: typeof window.SecurityUtils.clearRateLimit === "function",
+      getCSRFToken: typeof window.SecurityUtils.getCSRFToken === "function",
+      SecurityException:
+        typeof window.SecurityUtils.SecurityException === "function",
+      ValidationException:
+        typeof window.SecurityUtils.ValidationException === "function",
     });
   }
 } // End of SecurityUtils undefined check

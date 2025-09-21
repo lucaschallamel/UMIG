@@ -3304,10 +3304,27 @@ class StepRepository {
                 log.info("Added phase filter: phi.phi_id = ${params.phaseId}")
             }
 
-            if (filters.assignedTeamId) {
-                whereConditions << "tms.tms_id = :assignedTeamId"
-                params.assignedTeamId = UUID.fromString(filters.assignedTeamId as String)
-                log.info("Added team filter: tms.tms_id = ${params.assignedTeamId}")
+            if (filters.teamId) {
+                whereConditions << "stm.tms_id_owner = :teamId"
+                params.teamId = Integer.parseInt(filters.teamId as String)
+                log.info("Added team filter: stm.tms_id_owner = ${params.teamId}")
+            }
+
+            // Add status filter
+            if (filters.statusId) {
+                whereConditions << "sti.sti_status = :statusId"
+                params.statusId = Integer.parseInt(filters.statusId as String)
+                log.info("Added status filter: sti.sti_status = ${params.statusId}")
+            }
+
+            // Add label filter (through step-label join table)
+            if (filters.labelId) {
+                whereConditions << '''EXISTS (
+                    SELECT 1 FROM labels_lbl_x_steps_master_stm lxs
+                    WHERE lxs.stm_id = stm.stm_id AND lxs.lbl_id = :labelId
+                )'''
+                params.labelId = Integer.parseInt(filters.labelId as String)
+                log.info("Added label filter: lxs.lbl_id = ${params.labelId}")
             }
 
             if (filters.status) {

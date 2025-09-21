@@ -1993,8 +1993,21 @@ class ComponentOrchestrator {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            if (entry.duration > 100) {
-              this.logWarning(`Long task detected: ${entry.duration}ms`);
+            // Only warn on tasks that are significantly long (500ms+)
+            // to reduce noise while still catching real performance issues
+            if (entry.duration > 500) {
+              this.logWarning(`Long task detected: ${entry.duration}ms`, {
+                startTime: entry.startTime,
+                name: entry.name,
+                duration: entry.duration,
+              });
+            } else if (entry.duration > 150) {
+              // Log moderate tasks at debug level for investigation
+              this.logDebug(`Moderate task detected: ${entry.duration}ms`, {
+                startTime: entry.startTime,
+                name: entry.name,
+                duration: entry.duration,
+              });
             }
           }
         });

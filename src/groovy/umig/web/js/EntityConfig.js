@@ -100,6 +100,32 @@
 
   // Entity configurations
   const ENTITY_CONFIG = {
+    welcome: {
+      name: "Welcome",
+      description: "UMIG Administration Dashboard",
+      icon: "🏠",
+      isVirtual: true, // Virtual entity - not backed by API
+      showInMenu: false, // Don't show in side menu
+      allowCreate: false, // No create functionality
+      allowEdit: false, // No edit functionality
+      allowDelete: false, // No delete functionality
+      fields: [], // No fields needed for welcome
+      tableColumns: [], // No table columns needed
+      sortMapping: {}, // No sorting needed
+      filters: [], // No filters needed
+      permissions: {
+        view: true, // Everyone can view welcome
+        create: false,
+        edit: false,
+        delete: false,
+      },
+      apiEndpoint: null, // No API endpoint
+      searchFields: [], // No search fields
+      customRenderers: {}, // No custom renderers
+      cacheConfig: {
+        enabled: false, // No caching needed
+      },
+    },
     users: {
       name: "Users",
       description: "Manage user accounts, roles, and permissions",

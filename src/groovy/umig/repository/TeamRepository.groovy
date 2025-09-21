@@ -387,20 +387,19 @@ class TeamRepository {
     def findTeamsByIterationId(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT 
-                    t.tms_id, 
-                    t.tms_name, 
-                    t.tms_description, 
+                SELECT DISTINCT
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
                     t.tms_email,
                     COALESCE(m.member_count, 0) as member_count,
                     COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
-                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
-                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
-                JOIN phases_master_phm p ON s.phm_id = p.phm_id
-                JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
-                JOIN plans_master_plm pl ON sq.plm_id = pl.plm_id
-                JOIN iterations_ite i ON pl.plm_id = i.plm_id
+                JOIN steps_master_stm s ON t.tms_id = s.tms_id_owner
+                JOIN steps_instance_sti si ON s.stm_id = si.stm_id
+                JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                 LEFT JOIN (
                     SELECT tms_id, COUNT(*) as member_count
                     FROM teams_tms_x_users_usr
@@ -411,7 +410,7 @@ class TeamRepository {
                     FROM teams_tms_x_applications_app
                     GROUP BY tms_id
                 ) a ON t.tms_id = a.tms_id
-                WHERE i.ite_id = :iterationId
+                WHERE pli.ite_id = :iterationId
                 ORDER BY t.tms_name
             """, [iterationId: iterationId])
             
@@ -486,18 +485,18 @@ class TeamRepository {
     def findTeamsBySequenceId(UUID sequenceInstanceId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT 
-                    t.tms_id, 
-                    t.tms_name, 
-                    t.tms_description, 
+                SELECT DISTINCT
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
                     t.tms_email,
                     COALESCE(m.member_count, 0) as member_count,
                     COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
-                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
-                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
-                JOIN phases_master_phm p ON s.phm_id = p.phm_id
-                JOIN sequences_instance_sqi sqi ON p.sqm_id = sqi.sqm_id
+                JOIN steps_master_stm s ON t.tms_id = s.tms_id_owner
+                JOIN steps_instance_sti si ON s.stm_id = si.stm_id
+                JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                 LEFT JOIN (
                     SELECT tms_id, COUNT(*) as member_count
                     FROM teams_tms_x_users_usr
@@ -534,17 +533,17 @@ class TeamRepository {
     def findTeamsByPhaseId(UUID phaseInstanceId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT 
-                    t.tms_id, 
-                    t.tms_name, 
-                    t.tms_description, 
+                SELECT DISTINCT
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
                     t.tms_email,
                     COALESCE(m.member_count, 0) as member_count,
                     COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
-                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
-                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
-                JOIN phases_instance_phi phi ON s.phm_id = phi.phm_id
+                JOIN steps_master_stm s ON t.tms_id = s.tms_id_owner
+                JOIN steps_instance_sti si ON s.stm_id = si.stm_id
+                JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
                 LEFT JOIN (
                     SELECT tms_id, COUNT(*) as member_count
                     FROM teams_tms_x_users_usr

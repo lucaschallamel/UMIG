@@ -1523,8 +1523,8 @@ class TableComponent extends BaseComponent {
             `[TableComponent] PAGINATION DEBUG: ✓ ${pageSizeSelects.length} direct page size listeners attached`,
           );
         } else {
-          console.warn(
-            "[TableComponent] PAGINATION DEBUG: ⚠ No .page-size-select elements found for direct listeners",
+          console.log(
+            "[TableComponent] PAGINATION DEBUG: No .page-size-select elements found (pagination may not be enabled)",
           );
         }
 

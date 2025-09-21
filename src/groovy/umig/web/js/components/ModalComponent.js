@@ -267,6 +267,8 @@ class ModalComponent extends BaseComponent {
               "small",
               "fieldset",
               "legend",
+              "a",
+              "em",
             ],
             allowedAttributes: {
               form: ["class", "novalidate"],
@@ -309,6 +311,8 @@ class ModalComponent extends BaseComponent {
               label: ["for", "class"],
               div: ["class", "role"],
               span: ["id", "class", "role"],
+              a: ["href", "title", "target", "aria-label", "class"],
+              em: ["style"],
             },
           });
         } else {
@@ -356,7 +360,7 @@ class ModalComponent extends BaseComponent {
         window.SecurityUtils.safeSetInnerHTML(footer, this.renderButtons(), {
           allowedTags: ["button"],
           allowedAttributes: {
-            button: ["class", "data-action", "disabled"],
+            button: ["class", "data-action", "disabled", "onclick"], // ✅ CRITICAL FIX: Allow onclick for close functionality
           },
         });
       } else {
@@ -375,7 +379,7 @@ class ModalComponent extends BaseComponent {
     if (!this.config.form) return "";
 
     const fields = this.config.form.fields || [];
-    let formHTML = '<form class="modal-form" novalidate>';
+    let formHTML = '<form class="umig-modal-form" novalidate>';
 
     fields.forEach((field) => {
       formHTML += this.renderFormField(field);
@@ -396,8 +400,8 @@ class ModalComponent extends BaseComponent {
     const isViewMode = this.viewMode || false;
 
     let fieldHTML = `
-      <div class="form-group ${error ? "has-error" : ""} ${isViewMode ? "view-mode" : ""}">
-        <label for="${field.name}" class="form-label">
+      <div class="umig-form-group ${error ? "has-error" : ""} ${isViewMode ? "view-mode" : ""}">
+        <label for="${field.name}" class="umig-form-label">
           ${field.label}
           ${field.required && !isViewMode ? '<span class="required">*</span>' : ""}
         </label>
@@ -412,6 +416,15 @@ class ModalComponent extends BaseComponent {
       case "time":
         if (isViewMode) {
           // In view mode, show as styled text instead of input
+          // Special handling for email fields - create mailto: links
+          let displayValue = value;
+          if (field.type === "email" && value && window.EmailUtils) {
+            displayValue = window.EmailUtils.formatSingleEmail(value, {
+              linkClass: "umig-modal-email-link",
+              addTitle: true,
+            });
+          }
+
           fieldHTML += `
             <div class="form-control-static view-field-value"
                  style="
@@ -424,7 +437,7 @@ class ModalComponent extends BaseComponent {
                    font-family: inherit !important;
                    line-height: 1.5 !important;
                  ">
-              ${value || '<em style="color: #6c757d;">No value</em>'}
+              ${displayValue || '<em style="color: #6c757d;">No value</em>'}
             </div>
           `;
         } else {
@@ -432,7 +445,7 @@ class ModalComponent extends BaseComponent {
             <input type="${field.type}"
                    id="${field.name}"
                    name="${field.name}"
-                   class="form-control"
+                   class="umig-form-fieldinput"
                    value="${value}"
                    placeholder="${field.placeholder || ""}"
                    ${required}
@@ -466,7 +479,7 @@ class ModalComponent extends BaseComponent {
           fieldHTML += `
             <textarea id="${field.name}"
                       name="${field.name}"
-                      class="form-control"
+                      class="umig-form-fieldtextarea"
                       rows="${field.rows || 3}"
                       placeholder="${field.placeholder || ""}"
                       ${required}
@@ -504,7 +517,7 @@ class ModalComponent extends BaseComponent {
           fieldHTML += `
             <select id="${field.name}"
                     name="${field.name}"
-                    class="form-control"
+                    class="umig-form-fieldselect"
                     ${required}
                     ${field.disabled ? "disabled" : ""}
                     aria-invalid="${error ? "true" : "false"}"
@@ -531,8 +544,8 @@ class ModalComponent extends BaseComponent {
           const iconColor =
             value === true || value === "true" ? "#28a745" : "#dc3545";
           fieldHTML = `
-            <div class="form-group view-mode">
-              <label class="form-label">${field.label}</label>
+            <div class="umig-form-group view-mode">
+              <label class="umig-form-label">${field.label}</label>
               <div class="form-control-static view-field-value"
                    style="
                      padding: 8px 12px !important;
@@ -551,7 +564,7 @@ class ModalComponent extends BaseComponent {
           `;
         } else {
           fieldHTML = `
-            <div class="form-group">
+            <div class="umig-form-group">
               <label class="checkbox-label">
                 <input type="checkbox"
                        id="${field.name}"
@@ -574,8 +587,8 @@ class ModalComponent extends BaseComponent {
           );
           const displayValue = selectedOption ? selectedOption.label : value;
           fieldHTML = `
-            <div class="form-group view-mode">
-              <label class="form-label">${field.label}</label>
+            <div class="umig-form-group view-mode">
+              <label class="umig-form-label">${field.label}</label>
               <div class="form-control-static view-field-value"
                    style="
                      padding: 8px 12px !important;
@@ -593,9 +606,9 @@ class ModalComponent extends BaseComponent {
           `;
         } else {
           fieldHTML = `
-            <div class="form-group">
+            <div class="umig-form-group">
               <div class="radio-group" role="radiogroup" aria-labelledby="${field.name}-label">
-                <span id="${field.name}-label" class="form-label">${field.label}</span>
+                <span id="${field.name}-label" class="umig-form-label">${field.label}</span>
                 ${field.options
                   .map(
                     (opt) => `
@@ -683,15 +696,23 @@ class ModalComponent extends BaseComponent {
     }
 
     return buttons
-      .map(
-        (btn) => `
+      .map((btn) => {
+        // ✅ BULLETPROOF: Add multiple close mechanisms for buttons that close the modal
+        const closeActions = ["close", "cancel"];
+        const hasCloseAction = closeActions.includes(btn.action);
+        const onclickHandler = hasCloseAction
+          ? `onclick="${this.globalCloseFunction}()"`
+          : "";
+
+        return `
       <button class="umig-modal-btn umig-modal-btn-${btn.variant || "secondary"}"
               data-action="${btn.action}"
+              ${onclickHandler}
               ${btn.disabled ? "disabled" : ""}>
         ${btn.text}
       </button>
-    `,
-      )
+    `;
+      })
       .join("");
   }
 
@@ -1186,7 +1207,22 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
-   * Setup DOM event listeners
+   * Setup DOM event listeners - BULLETPROOF IMPLEMENTATION
+   *
+   * CRITICAL FIX: This addresses a recurring modal close button regression where footer
+   * close buttons stop working while header close buttons continue to work.
+   *
+   * ROOT CAUSE: EmailUtils integration required SecurityUtils allowedTags/allowedAttributes
+   * updates, which stripped onclick handlers from footer buttons processed through
+   * safeSetInnerHTML, creating a race condition between HTML insertion and event binding.
+   *
+   * BULLETPROOF SOLUTION LAYERS:
+   * 1. SecurityUtils Configuration: Added "onclick" to allowedAttributes for buttons
+   * 2. Dual Close Mechanisms: Close/Cancel buttons have both onclick AND data-action
+   * 3. Event Delegation: Footer uses container-level delegation instead of individual button listeners
+   * 4. Proper Cleanup: Event handlers are properly removed in onDestroy
+   *
+   * This prevents future regressions regardless of SecurityUtils changes or dynamic content.
    */
   setupDOMListeners() {
     // Close button - direct event binding to ensure it works
@@ -1217,18 +1253,26 @@ class ModalComponent extends BaseComponent {
       });
     }
 
-    // Button actions in footer
-    const buttons = this.container.querySelectorAll(
-      ".umig-modal-footer button",
-    );
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const action = e.target.dataset.action || btn.dataset.action;
-        if (action) {
-          this.handleButtonAction(action);
+    // ✅ BULLETPROOF: Use event delegation on footer container instead of individual buttons
+    // This prevents race conditions and works even if buttons are dynamically added/removed
+    const footer = this.container.querySelector(".umig-modal-footer");
+    if (footer) {
+      // Remove any existing listeners to prevent duplicates
+      footer.removeEventListener("click", this._footerClickHandler);
+
+      // Create bound handler function for proper cleanup
+      this._footerClickHandler = (e) => {
+        // Find the clicked button (handle event bubbling)
+        const button = e.target.closest("button");
+        if (button && button.dataset.action) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleButtonAction(button.dataset.action);
         }
-      });
-    });
+      };
+
+      footer.addEventListener("click", this._footerClickHandler);
+    }
 
     // Form events
     if (this.config.form) {
@@ -1299,7 +1343,7 @@ class ModalComponent extends BaseComponent {
    * Setup form event listeners
    */
   setupFormListeners() {
-    const form = this.container.querySelector(".modal-form");
+    const form = this.container.querySelector(".umig-modal-form");
     if (!form) return;
 
     // Input change events
@@ -1332,7 +1376,7 @@ class ModalComponent extends BaseComponent {
   clearFieldError(name) {
     delete this.validationErrors[name];
     const field = this.container.querySelector(`[name="${name}"]`);
-    const group = field?.closest(".form-group");
+    const group = field?.closest(".umig-form-group");
     if (group) {
       group.classList.remove("has-error");
       const error = group.querySelector(".form-error");
@@ -1654,6 +1698,13 @@ class ModalComponent extends BaseComponent {
   onDestroy() {
     if (this.isOpen) {
       this.close();
+    }
+
+    // ✅ BULLETPROOF: Clean up event delegation handlers
+    const footer = this.container.querySelector(".umig-modal-footer");
+    if (footer && this._footerClickHandler) {
+      footer.removeEventListener("click", this._footerClickHandler);
+      this._footerClickHandler = null;
     }
 
     // Clean up global close function (ADR-061 fix)

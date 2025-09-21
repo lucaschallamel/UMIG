@@ -351,6 +351,20 @@
   background-color: var(--bg-secondary);
 }
 
+/* Button shared styles and icons */
+.umig-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.umig-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+}
+
 /* Action Buttons */
 .umig-btn-table-action {
   background: transparent;
@@ -1429,6 +1443,113 @@
 
 .detail-value a:hover {
   text-decoration: underline;
+}
+
+/* Email Link Styles - UMIG Prefixed for Confluence Isolation */
+.umig-email-link,
+.umig-table-email-link,
+.umig-modal-email-link {
+  color: #0969da !important;
+  text-decoration: none !important;
+  border-bottom: 1px dotted #0969da !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.umig-email-link:hover,
+.umig-table-email-link:hover,
+.umig-modal-email-link:hover {
+  color: #0860ca !important;
+  text-decoration: underline !important;
+  border-bottom-style: solid !important;
+}
+
+.umig-email-link:focus,
+.umig-table-email-link:focus,
+.umig-modal-email-link:focus {
+  outline: 2px solid #0969da !important;
+  outline-offset: 2px !important;
+  border-radius: 2px !important;
+}
+
+/* Ensure email links in tables maintain proper alignment */
+.umig-data-table td .umig-table-email-link {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Email links in modal forms */
+.umig-modal-body .umig-modal-email-link {
+  display: inline-block;
+  word-break: break-all; /* Allow long emails to break */
+}
+
+/* Generic Boolean Cell Background Styles - Data Attribute Based */
+[data-boolean-value="yes"] {
+  background-color: #e3fcef !important; /* Light green background */
+  color: #006644 !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+[data-boolean-value="no"] {
+  background-color: #f4f5f7 !important; /* Light grey background */
+  color: #6b778c !important;
+  font-weight: normal !important;
+  text-align: center !important;
+}
+
+/* Generic Boolean Cell Background Styles - Class Based (fallback) */
+.umig-boolean-cell-yes {
+  background-color: #e3fcef !important; /* Light green background */
+  color: #006644 !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  padding: 8px 12px !important;
+}
+
+.umig-boolean-cell-no {
+  background-color: #f4f5f7 !important; /* Light grey background */
+  color: #6b778c !important;
+  font-weight: normal !important;
+  text-align: center !important;
+  padding: 8px 12px !important;
+}
+
+/* Alternative: Text-only boolean styles (for non-cell contexts) */
+.umig-boolean-yes {
+  color: #006644 !important;
+  font-weight: 600 !important;
+}
+
+.umig-boolean-no {
+  color: #6b778c !important;
+  font-weight: normal !important;
+}
+
+/* Boolean Badge Styles - Enhanced visibility with background */
+.umig-boolean-badge-yes {
+  background-color: #e3fcef;
+  color: #006644;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-block;
+  min-width: 32px;
+  text-align: center;
+}
+
+.umig-boolean-badge-no {
+  background-color: #f4f5f7;
+  color: #6b778c;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: normal;
+  font-size: 12px;
+  display: inline-block;
+  min-width: 32px;
+  text-align: center;
 }
 
 /* Table Cell Color Coding - Data Attribute Based Styling */
