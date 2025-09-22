@@ -51,6 +51,9 @@ class ModalComponent extends BaseComponent {
     this.formData = {};
     this.validationErrors = {};
 
+    // Modal mode for readonly field evaluation ('create' or 'edit')
+    this.mode = config.mode || 'create';
+
     // Tab functionality state (US-087 extension)
     this.tabs = new Map();
     this.activeTabId = null;
@@ -390,6 +393,35 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
+   * Evaluate if a field should be readonly based on configuration and current mode
+   * @param {Object} field - Field configuration
+   * @returns {boolean} True if field should be readonly
+   * @private
+   */
+  _evaluateReadonly(field) {
+    if (field.readonly === undefined || field.readonly === null) {
+      return false; // Default to editable
+    }
+
+    if (typeof field.readonly === 'boolean') {
+      return field.readonly; // Static boolean value
+    }
+
+    if (typeof field.readonly === 'function') {
+      try {
+        // Dynamic evaluation based on mode and current form data
+        return field.readonly(this.mode, this.formData);
+      } catch (error) {
+        console.warn('[ModalComponent] Error evaluating readonly function for field', field.name, error);
+        return false; // Default to editable on error
+      }
+    }
+
+    console.warn('[ModalComponent] Invalid readonly configuration for field', field.name, 'Expected boolean or function, got:', typeof field.readonly);
+    return false; // Default to editable for invalid configuration
+  }
+
+  /**
    * Render individual form field
    */
   renderFormField(field) {
@@ -398,12 +430,13 @@ class ModalComponent extends BaseComponent {
     const value =
       this.formData[field.name] || field.value || field.defaultValue || "";
     const isViewMode = this.viewMode || false;
+    const isReadonly = this._evaluateReadonly(field);
 
     let fieldHTML = `
-      <div class="umig-form-group ${error ? "has-error" : ""} ${isViewMode ? "view-mode" : ""}">
+      <div class="umig-form-group ${error ? "has-error" : ""} ${isViewMode ? "view-mode" : ""} ${isReadonly && !isViewMode ? "umig-readonly" : ""}">
         <label for="${field.name}" class="umig-form-label">
           ${field.label}
-          ${field.required && !isViewMode ? '<span class="required">*</span>' : ""}
+          ${field.required && !isViewMode && !isReadonly ? '<span class="required">*</span>' : ""}
         </label>
     `;
 
@@ -445,11 +478,11 @@ class ModalComponent extends BaseComponent {
             <input type="${field.type}"
                    id="${field.name}"
                    name="${field.name}"
-                   class="umig-form-fieldinput"
+                   class="umig-form-fieldinput ${isReadonly ? "umig-readonly-field" : ""}"
                    value="${value}"
                    placeholder="${field.placeholder || ""}"
                    ${required}
-                   ${field.readonly ? "readonly" : ""}
+                   ${isReadonly ? "readonly" : ""}
                    ${field.disabled ? "disabled" : ""}
                    aria-invalid="${error ? "true" : "false"}"
                    aria-describedby="${error ? field.name + "-error" : ""}">
@@ -479,11 +512,11 @@ class ModalComponent extends BaseComponent {
           fieldHTML += `
             <textarea id="${field.name}"
                       name="${field.name}"
-                      class="umig-form-fieldtextarea"
+                      class="umig-form-fieldtextarea ${isReadonly ? "umig-readonly-field" : ""}"
                       rows="${field.rows || 3}"
                       placeholder="${field.placeholder || ""}"
                       ${required}
-                      ${field.readonly ? "readonly" : ""}
+                      ${isReadonly ? "readonly" : ""}
                       ${field.disabled ? "disabled" : ""}
                       aria-invalid="${error ? "true" : "false"}"
                       aria-describedby="${error ? field.name + "-error" : ""}">${value}</textarea>
@@ -1350,7 +1383,40 @@ class ModalComponent extends BaseComponent {
     form.addEventListener("input", (e) => {
       const field = e.target;
       if (field.name) {
-        this.updateFormData(field.name, field.value);
+        let value = field.value;
+
+        // Handle checkboxes - get boolean value
+        if (field.type === "checkbox") {
+          value = field.checked;
+        }
+
+        // Handle select fields - convert to number if the value is numeric
+        if (field.type === "select-one" && value && !isNaN(value)) {
+          value = parseInt(value, 10);
+        }
+
+        this.updateFormData(field.name, value);
+        this.clearFieldError(field.name);
+      }
+    });
+
+    // Also listen for change events (important for checkboxes and select elements)
+    form.addEventListener("change", (e) => {
+      const field = e.target;
+      if (field.name) {
+        let value = field.value;
+
+        // Handle checkboxes - get boolean value
+        if (field.type === "checkbox") {
+          value = field.checked;
+        }
+
+        // Handle select fields - convert to number if the value is numeric
+        if (field.type === "select-one" && value && !isNaN(value)) {
+          value = parseInt(value, 10);
+        }
+
+        this.updateFormData(field.name, value);
         this.clearFieldError(field.name);
       }
     });
@@ -1532,6 +1598,12 @@ class ModalComponent extends BaseComponent {
    */
   updateConfig(config) {
     this.config = { ...this.config, ...config };
+
+    // Update mode if provided
+    if (config.mode !== undefined) {
+      this.mode = config.mode;
+    }
+
     if (this.isOpen) {
       this.render();
     }
@@ -2162,6 +2234,29 @@ if (
       background: #f6f8fa !important;
       color: #6a737d !important;
       cursor: not-allowed !important;
+    }
+
+    /* Readonly Field Styling with UMIG Prefix */
+    html body .umig-modal-wrapper .umig-readonly-field,
+    html body div.umig-modal-wrapper .umig-readonly-field,
+    html body .page-container .umig-modal-wrapper .umig-readonly-field {
+      background: #f8f9fa !important;
+      color: #6a737d !important;
+      border-color: #e1e5e9 !important;
+      cursor: default !important;
+    }
+
+    html body .umig-modal-wrapper .umig-form-group.umig-readonly .umig-form-label,
+    html body div.umig-modal-wrapper .umig-form-group.umig-readonly .umig-form-label,
+    html body .page-container .umig-modal-wrapper .umig-form-group.umig-readonly .umig-form-label {
+      color: #6a737d !important;
+    }
+
+    html body .umig-modal-wrapper .umig-readonly-field:focus,
+    html body div.umig-modal-wrapper .umig-readonly-field:focus,
+    html body .page-container .umig-modal-wrapper .umig-readonly-field:focus {
+      border-color: #d0d7de !important;
+      box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.05) !important;
     }
 
     html body .umig-modal-wrapper .umig-modal-btn:disabled,

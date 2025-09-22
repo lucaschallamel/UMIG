@@ -239,10 +239,28 @@
         });
       }
 
-      // Add new button
+      // Add new button - delegate to modern entity managers for supported entities
       const addNewBtn = document.getElementById("addNewBtn");
       if (addNewBtn) {
         addNewBtn.addEventListener("click", () => {
+          const currentSection = window.AdminGuiState?.section?.getCurrentSection() ||
+                                 window.adminGui?.state?.currentSection || 'unknown';
+
+          // For Users entity, delegate to UsersEntityManager (US-087 Phase 2)
+          if (currentSection === 'users') {
+            const adminGui = window.AdminGUI || window.adminGui;
+            const usersManager = adminGui?.componentManagers?.users;
+
+            if (usersManager && typeof usersManager.handleAdd === 'function') {
+              console.log('[AdminGuiController] Delegating Add New User to UsersEntityManager');
+              usersManager.handleAdd();
+              return;
+            } else {
+              console.warn('[AdminGuiController] UsersEntityManager not available, falling back to legacy modal');
+            }
+          }
+
+          // Fallback to legacy modal for non-migrated entities
           if (window.ModalManager) {
             window.ModalManager.showEditModal(null);
           }

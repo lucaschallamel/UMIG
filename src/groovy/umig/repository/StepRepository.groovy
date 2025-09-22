@@ -525,7 +525,7 @@ class StepRepository {
                 println "  - userId: ${userId}"
                 
                 // Validate status exists and get status name
-                def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
+                def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'",
                     [statusId: statusId])
                 
                 if (!status) {
@@ -633,6 +633,7 @@ class StepRepository {
                 ''')
 
                 // Send email notifications (non-blocking - failures don't break status update)
+                def emailsSent = 0
                 try {
                     println "[NOTIFICATION] Preparing to send email for step status change..."
                     println "  - Step: ${stepInstance.sti_name}"
@@ -665,12 +666,43 @@ class StepRepository {
                         contextData?.mig_code as String,
                         contextData?.ite_code as String
                     )
-                    println "[NOTIFICATION] ✅ Email notification sent successfully to ${teams.size()} teams"
+
+                    // Calculate total emails attempted (teams + cutover team if exists)
+                    emailsSent = teams.size() + (cutoverTeam ? 1 : 0)
+                    println "[NOTIFICATION] ✅ Email notification sent successfully to ${emailsSent} recipients"
                 } catch (Exception emailError) {
                     // Log but don't fail the status update
+                    emailsSent = 0  // No emails sent due to error
                     println "[NOTIFICATION] ⚠️ WARNING: Email notification failed but status was updated successfully"
                     println "  - Error: ${emailError.message}"
                     emailError.printStackTrace()
+
+                    // Log the email failure as an audit event
+                    try {
+                        // Calculate recipient list for audit
+                        def recipientEmails = []
+                        teams.each { team ->
+                            if (team.tms_email) {
+                                recipientEmails.add(team.tms_email as String)
+                            }
+                        }
+                        if (cutoverTeam?.tms_email) {
+                            recipientEmails.add(cutoverTeam.tms_email as String)
+                        }
+
+                        AuditLogRepository.logEmailFailed(
+                            sql,
+                            userId,
+                            stepInstanceId,
+                            recipientEmails,
+                            "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                            emailError.message,
+                            'STEP_INSTANCE'  // Entity type for step status changes
+                        )
+                        println "[AUDIT] ✅ Email failure logged to audit trail"
+                    } catch (Exception auditLogError) {
+                        println "[AUDIT] ⚠️ Failed to log email failure to audit: ${auditLogError.message}"
+                    }
                 }
 
                 // Add audit log entry (within the same transaction)
@@ -695,7 +727,7 @@ class StepRepository {
                     auditError.printStackTrace()
                 }
 
-                return [success: true, statusChanged: true, oldStatus: oldStatus, newStatus: statusName]
+                return [success: true, statusChanged: true, oldStatus: oldStatus, newStatus: statusName, emailsSent: emailsSent]
                 
             } catch (Exception e) {
                 return [success: false, error: e.message]

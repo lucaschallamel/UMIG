@@ -238,6 +238,17 @@ class EmailService {
                 def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
                 if (!template) {
                     println "EmailService: No active template found for INSTRUCTION_COMPLETED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Instruction Completed: ${instruction.ini_name}",
+                        "No active email template found for INSTRUCTION_COMPLETED",
+                        'INSTRUCTION_INSTANCE'
+                    )
                     return
                 }
                 
@@ -331,6 +342,17 @@ class EmailService {
                     println "  - Fallback to INSTRUCTION_COMPLETED template found: ${template != null}"
                     if (!template) {
                         println "EmailService: No active template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED"
+
+                        // Log missing template as audit event
+                        AuditLogRepository.logEmailFailed(
+                            sql,
+                            userId,
+                            UUID.fromString(instruction.ini_id as String),
+                            extractTeamEmails(teams),
+                            "[UMIG] Instruction Uncompleted: ${instruction.ini_name}",
+                            "No active email template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED",
+                            'INSTRUCTION_INSTANCE'
+                        )
                         return
                     }
                 }
@@ -442,6 +464,16 @@ class EmailService {
                 def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
                 if (!template) {
                     println "EmailService: No active template found for STEP_STATUS_CHANGED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        extractTeamEmails(allTeams),
+                        "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                        "No active email template found for STEP_STATUS_CHANGED"
+                    )
                     return
                 }
                 

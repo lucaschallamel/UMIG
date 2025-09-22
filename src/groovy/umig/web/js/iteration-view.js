@@ -14,10 +14,11 @@
  * StepsAPI v2 Client - High-performance API integration with caching
  */
 class StepsAPIv2Client {
-  constructor() {
+  constructor(userContext) {
     this.baseUrl =
       (AJS.contextPath() || "") + "/rest/scriptrunner/latest/custom";
     this.endpoint = "/steps";
+    this.userContext = userContext; // Store user context for API calls
     this.cache = new Map();
     this.maxCacheSize = 100; // Maximum cache entries for memory management
     this.cacheTimeout = 30000; // 30 seconds
@@ -131,6 +132,7 @@ class StepsAPIv2Client {
     try {
       const requestBody = {
         statusId: parseInt(statusId), // REFACTORED: Send statusId as integer, not status name
+        userId: this.userContext?.userId || null, // Include userId for proper audit logging
       };
 
       console.log(
@@ -882,7 +884,7 @@ class IterationView {
     };
 
     // Initialize enhanced API client and real-time sync
-    this.apiClient = new StepsAPIv2Client();
+    this.apiClient = new StepsAPIv2Client(this.userContext);
     this.realTimeSync = new RealTimeSync(this.apiClient, this);
 
     // Performance tracking
@@ -945,6 +947,11 @@ class IterationView {
           this.isAdmin = context.isAdmin || false;
           this.userContext = context;
 
+          // Recreate the API client now that we have the user context
+          this.apiClient = new StepsAPIv2Client(this.userContext);
+          this.realTimeSync = new RealTimeSync(this.apiClient, this);
+          console.log("API client recreated with user context:", this.userContext);
+
           // Apply role-based UI controls once DOM is ready
           if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () =>
@@ -973,6 +980,19 @@ class IterationView {
             console.log("Standard user detected:", username);
           }
 
+          // Create minimal userContext for fallback
+          this.userContext = {
+            userId: null, // Will be populated from current user if available
+            username: username,
+            role: this.userRole,
+            isAdmin: this.isAdmin
+          };
+
+          // Recreate API client with fallback context
+          this.apiClient = new StepsAPIv2Client(this.userContext);
+          this.realTimeSync = new RealTimeSync(this.apiClient, this);
+          console.log("API client recreated with fallback context:", this.userContext);
+
           this.applyRoleBasedControls();
         }
       } catch (error) {
@@ -987,6 +1007,19 @@ class IterationView {
           this.userRole = "NORMAL";
           this.isAdmin = false;
         }
+
+        // Create minimal userContext for error fallback
+        this.userContext = {
+          userId: null,
+          username: username || 'unknown',
+          role: this.userRole,
+          isAdmin: this.isAdmin
+        };
+
+        // Recreate API client with error fallback context
+        this.apiClient = new StepsAPIv2Client(this.userContext);
+        this.realTimeSync = new RealTimeSync(this.apiClient, this);
+        console.log("API client recreated with error fallback context:", this.userContext);
 
         this.applyRoleBasedControls();
       }

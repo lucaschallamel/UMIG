@@ -311,11 +311,8 @@ class UserRepository {
             def plans = sql.rows("SELECT pli_id FROM plans_instance_pli WHERE usr_id_owner = :userId", [userId: userId])
             if (plans) blocking['plan_instances_owned'] = plans
 
-            // Step instances owned/assigned
-            def step_instances_owned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_owner = :userId", [userId: userId])
-            if (step_instances_owned) blocking['step_instances_owned'] = step_instances_owned
-            def step_instances_assigned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_assignee = :userId", [userId: userId])
-            if (step_instances_assigned) blocking['step_instances_assigned'] = step_instances_assigned
+            // Step instances - Note: usr_id_owner and usr_id_assignee columns were removed in migration 015
+            // These queries have been removed as the columns no longer exist in the database
 
             // Instructions completed
             def instructions = sql.rows("SELECT ini_id FROM instructions_instance_ini WHERE usr_id_completed_by = :userId", [userId: userId])

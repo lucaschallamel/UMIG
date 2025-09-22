@@ -24,10 +24,10 @@ class EmailTemplateRepository {
         try {
             def template = sql.firstRow("""
                 SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
-                       emt_is_active, emt_created_date, emt_updated_date
-                FROM email_templates_emt 
+                       emt_is_active, created_at, updated_at
+                FROM email_templates_emt
                 WHERE emt_type = ? AND emt_is_active = true
-                ORDER BY emt_updated_date DESC
+                ORDER BY updated_at DESC
                 LIMIT 1
             """, [templateType])
             
@@ -50,15 +50,15 @@ class EmailTemplateRepository {
         try {
             def query = """
                 SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
-                       emt_is_active, emt_created_date, emt_updated_date
+                       emt_is_active, created_at, updated_at
                 FROM email_templates_emt
             """
-            
+
             if (activeOnly) {
                 query += " WHERE emt_is_active = true"
             }
-            
-            query += " ORDER BY emt_type, emt_updated_date DESC"
+
+            query += " ORDER BY emt_type, updated_at DESC"
             
             return sql.rows(query).collect { row -> row as Map }
             
@@ -82,7 +82,7 @@ class EmailTemplateRepository {
             sql.execute("""
                 INSERT INTO email_templates_emt (
                     emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
-                    emt_is_active, emt_created_by, emt_updated_by
+                    emt_is_active, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, [
                 templateId,
@@ -122,8 +122,8 @@ class EmailTemplateRepository {
                     emt_body_html = ?,
                     emt_body_text = ?,
                     emt_is_active = ?,
-                    emt_updated_date = NOW(),
-                    emt_updated_by = ?
+                    updated_at = NOW(),
+                    updated_by = ?
                 WHERE emt_id = ?
             """, [
                 templateData.emt_type,
@@ -157,8 +157,8 @@ class EmailTemplateRepository {
             def rowsUpdated = sql.executeUpdate("""
                 UPDATE email_templates_emt SET
                     emt_is_active = false,
-                    emt_updated_date = NOW(),
-                    emt_updated_by = ?
+                    updated_at = NOW(),
+                    updated_by = ?
                 WHERE emt_id = ?
             """, [updatedBy, templateId])
             

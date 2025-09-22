@@ -97,16 +97,8 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             // Return current user with role information
             def userMap = currentUser as Map
 
-            // Get the role code from the role ID
-            def roleCode = 'USER' // Default
-            if (userMap.rls_id) {
-                switch(userMap.rls_id) {
-                    case 1: roleCode = 'ADMIN'; break
-                    case 2: roleCode = 'USER'; break
-                    case 3: roleCode = 'PILOT'; break
-                    default: roleCode = 'USER'
-                }
-            }
+            // Use the role code directly from the database
+            def roleCode = userMap.role_code ?: 'USER' // Default to USER if no role
 
             return Response.ok(new JsonBuilder([
                 userId: userMap.usr_id,
@@ -596,19 +588,9 @@ user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPara
             // Return user context with role information
             def userMap = user as Map
             
-            // Get the role code from the role ID
-            def roleCode = 'NORMAL' // Default
-            if (userMap.rls_id) {
-                // Need to add DatabaseUtil import and fetch role
-                // For now, let's map role IDs directly
-                switch(userMap.rls_id) {
-                    case 1: roleCode = 'ADMIN'; break
-                    case 2: roleCode = 'NORMAL'; break
-                    case 3: roleCode = 'PILOT'; break
-                    default: roleCode = 'NORMAL'
-                }
-            }
-            
+            // Use the role code directly from the database
+            def roleCode = userMap.role_code ?: 'NORMAL' // Default to NORMAL if no role
+
             return Response.ok(new JsonBuilder([
                 userId: userMap.usr_id,
                 username: userMap.usr_code,

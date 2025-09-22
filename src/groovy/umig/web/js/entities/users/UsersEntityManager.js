@@ -89,21 +89,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
             label: "Role",
             sortable: true,
             renderer: (value, row) => {
-              // Use role_code from API response (should now be populated after Groovy changes)
-              const roleCode =
-                row.role_code || (row.usr_is_admin ? "ADMIN" : "NORMAL");
-
-              // Format role name with proper capitalization and descriptive suffix
-              switch (roleCode.toUpperCase()) {
-                case "ADMIN":
-                  return "Administrator Role";
-                case "NORMAL":
-                  return "Standard User Role";
-                case "PILOT":
-                  return "Pilot User Role";
-                default:
-                  return `${roleCode} Role`;
-              }
+              // Display the actual role_code from the database without transformation
+              const roleCode = row.role_code || (row.usr_is_admin ? "ADMIN" : "NORMAL");
+              return roleCode;
             },
           },
           {
@@ -177,6 +165,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               required: true,
               label: "User Code",
               placeholder: "Enter user code (e.g., john.doe)",
+              readonly: (mode, data) => mode === 'edit', // Readonly in edit mode, editable in create mode
               validation: {
                 minLength: 2,
                 maxLength: 50,
@@ -225,6 +214,16 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               },
             },
             {
+              name: "rls_id",
+              type: "select",
+              required: true,
+              label: "Role",
+              placeholder: "Select user role",
+              defaultValue: 2, // NORMAL role by default
+              options: [], // Will be populated dynamically
+              helpText: "Select the user's role level for system access",
+            },
+            {
               name: "usr_active",
               type: "checkbox",
               required: false,
@@ -236,10 +235,10 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               name: "usr_is_admin",
               type: "checkbox",
               required: false,
-              label: "Administrator Role",
+              label: "SuperAdmin Privileges",
               defaultValue: false,
               helpText:
-                "Administrators have full access to all system features",
+                "SuperAdmins have full access to all system features",
             },
           ],
         },
@@ -296,6 +295,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     this.teamsApiUrl = "/rest/scriptrunner/latest/custom/teams";
     this.relationshipsApiUrl =
       "/rest/scriptrunner/latest/custom/users/relationships";
+    this.rolesApiUrl = "/rest/scriptrunner/latest/custom/roles";
 
     // Component orchestrator for UI management
     this.orchestrator = null;
@@ -330,6 +330,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     // Rate limiting tracker
     this.rateLimitTracker = new Map();
 
+    // Roles data cache
+    this.rolesData = [];
+
     console.log("[UsersEntityManager] Initialized with component architecture");
   }
 
@@ -342,6 +345,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
   async initialize(containerOrOptions = {}, options = {}) {
     // Call parent initialize
     await super.initialize(containerOrOptions, options);
+
+    // Load roles data for dropdown
+    await this.loadRoles();
 
     // Setup pagination event handlers
     this.setupPaginationHandlers();
@@ -363,6 +369,68 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       console.log("[UsersEntityManager] ✓ Client-side pagination ready");
     } catch (error) {
       console.error("[UsersEntityManager] Error setting up pagination:", error);
+    }
+  }
+
+  /**
+   * Load roles data from the API and update the modal field configuration
+   * @returns {Promise<void>}
+   * @public
+   */
+  async loadRoles() {
+    try {
+      console.log("[UsersEntityManager] Loading roles from API...");
+
+      const response = await fetch(this.rolesApiUrl, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load roles: ${response.status} ${response.statusText}`);
+      }
+
+      const roles = await response.json();
+      this.rolesData = roles;
+
+      // Update the modal configuration with the roles options
+      const roleField = this.config.modalConfig.form.fields.find(field => field.name === 'rls_id');
+      if (roleField) {
+        roleField.options = roles.map(role => ({
+          value: role.rls_id,
+          label: `${role.rls_code} - ${role.rls_description}`,
+          text: `${role.rls_code} - ${role.rls_description}`
+        }));
+
+        console.log(`[UsersEntityManager] ✓ Loaded ${roles.length} roles for dropdown`);
+      } else {
+        console.warn("[UsersEntityManager] Role field not found in modal configuration");
+      }
+
+    } catch (error) {
+      console.error("[UsersEntityManager] Error loading roles:", error);
+
+      // Fallback to default roles if API fails
+      const defaultRoles = [
+        { rls_id: 1, rls_code: "ADMIN", rls_description: "Full access to all system features" },
+        { rls_id: 2, rls_code: "NORMAL", rls_description: "Standard user with access to create and manage implementation plans" },
+        { rls_id: 3, rls_code: "PILOT", rls_description: "User with access to pilot features and functionalities" }
+      ];
+
+      this.rolesData = defaultRoles;
+      const roleField = this.config.modalConfig.form.fields.find(field => field.name === 'rls_id');
+      if (roleField) {
+        roleField.options = defaultRoles.map(role => ({
+          value: role.rls_id,
+          label: `${role.rls_code} - ${role.rls_description}`,
+          text: `${role.rls_code} - ${role.rls_description}`
+        }));
+
+        console.log("[UsersEntityManager] ✓ Using fallback roles data");
+      }
     }
   }
 
@@ -462,6 +530,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       usr_first_name: "",
       usr_last_name: "",
       usr_email: "",
+      rls_id: 2, // Default to NORMAL role
       usr_active: true,
       usr_is_admin: false,
     };
@@ -470,6 +539,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     this.modalComponent.updateConfig({
       title: "Add New User",
       type: "form",
+      mode: "create", // Set mode to create for new users
       onSubmit: async (formData) => {
         try {
           console.log("[UsersEntityManager] Submitting new user:", formData);
@@ -544,6 +614,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     this.modalComponent.updateConfig({
       title: `Edit User: ${userData.usr_first_name} ${userData.usr_last_name}`,
       type: "form",
+      mode: "edit", // Set mode to edit for existing users
       form: this.config.modalConfig.form, // Restore original form config
       buttons: [
         { text: "Cancel", action: "cancel", variant: "secondary" },
@@ -2673,20 +2744,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
    * @private
    */
   _formatRoleDisplay(data) {
-    // Use role_code from API response (should now be populated after Groovy changes)
+    // Display the actual role_code from the database without transformation
     const roleCode = data.role_code || (data.usr_is_admin ? "ADMIN" : "NORMAL");
-
-    // Format role name with proper capitalization and descriptive suffix
-    switch (roleCode.toUpperCase()) {
-      case "ADMIN":
-        return "Administrator Role";
-      case "NORMAL":
-        return "Standard User Role";
-      case "PILOT":
-        return "Pilot User Role";
-      default:
-        return `${roleCode} Role`;
-    }
+    return roleCode;
   }
 
   /**
