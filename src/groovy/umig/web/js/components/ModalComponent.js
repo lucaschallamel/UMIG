@@ -52,7 +52,7 @@ class ModalComponent extends BaseComponent {
     this.validationErrors = {};
 
     // Modal mode for readonly field evaluation ('create' or 'edit')
-    this.mode = config.mode || 'create';
+    this.mode = config.mode || "create";
 
     // Tab functionality state (US-087 extension)
     this.tabs = new Map();
@@ -403,21 +403,30 @@ class ModalComponent extends BaseComponent {
       return false; // Default to editable
     }
 
-    if (typeof field.readonly === 'boolean') {
+    if (typeof field.readonly === "boolean") {
       return field.readonly; // Static boolean value
     }
 
-    if (typeof field.readonly === 'function') {
+    if (typeof field.readonly === "function") {
       try {
         // Dynamic evaluation based on mode and current form data
         return field.readonly(this.mode, this.formData);
       } catch (error) {
-        console.warn('[ModalComponent] Error evaluating readonly function for field', field.name, error);
+        console.warn(
+          "[ModalComponent] Error evaluating readonly function for field",
+          field.name,
+          error,
+        );
         return false; // Default to editable on error
       }
     }
 
-    console.warn('[ModalComponent] Invalid readonly configuration for field', field.name, 'Expected boolean or function, got:', typeof field.readonly);
+    console.warn(
+      "[ModalComponent] Invalid readonly configuration for field",
+      field.name,
+      "Expected boolean or function, got:",
+      typeof field.readonly,
+    );
     return false; // Default to editable for invalid configuration
   }
 
@@ -2405,31 +2414,34 @@ if (
 function createDeleteConfirmation(config) {
   // Validate required parameters
   if (!config || !config.entityName || !config.onConfirm) {
-    throw new Error('[ModalComponent] createDeleteConfirmation requires entityName and onConfirm callback');
+    throw new Error(
+      "[ModalComponent] createDeleteConfirmation requires entityName and onConfirm callback",
+    );
   }
 
   // Generate unique container ID for this modal
   const containerId = `delete-confirmation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   // Create container element in body
-  const container = document.createElement('div');
+  const container = document.createElement("div");
   container.id = containerId;
-  container.style.display = 'none'; // Initially hidden
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '100%';
-  container.style.height = '100%';
-  container.style.zIndex = '999999';
+  container.style.display = "none"; // Initially hidden
+  container.style.position = "fixed";
+  container.style.top = "0";
+  container.style.left = "0";
+  container.style.width = "100%";
+  container.style.height = "100%";
+  container.style.zIndex = "999999";
   document.body.appendChild(container);
 
   // Determine entity type display name
-  const entityType = config.entityType || 'item';
-  const displayEntityType = entityType.charAt(0).toUpperCase() + entityType.slice(1);
+  const entityType = config.entityType || "item";
+  const displayEntityType =
+    entityType.charAt(0).toUpperCase() + entityType.slice(1);
 
   // Create modal configuration
   const modalConfig = {
-    type: 'warning',
+    type: "warning",
     title: `⚠️ Delete ${displayEntityType}`,
     content: `
       <div style="text-align: center; padding: 20px 10px;">
@@ -2443,7 +2455,7 @@ function createDeleteConfirmation(config) {
         </div>
       </div>
     `,
-    size: 'small',
+    size: "small",
     centered: true,
     closeOnOverlay: false,
     closeOnEscape: true,
@@ -2451,35 +2463,40 @@ function createDeleteConfirmation(config) {
     animated: true,
     buttons: [
       {
-        text: 'Cancel',
-        action: 'cancel',
-        variant: 'secondary'
+        text: "Cancel",
+        action: "cancel",
+        variant: "secondary",
       },
       {
-        text: 'Delete',
-        action: 'confirm',
-        variant: 'danger'
-      }
+        text: "Delete",
+        action: "confirm",
+        variant: "danger",
+      },
     ],
     onButtonClick: (action) => {
-      if (action === 'confirm') {
+      if (action === "confirm") {
         // Execute the confirmation callback
         try {
           const result = config.onConfirm();
           // If callback returns a promise, handle it
-          if (result && typeof result.then === 'function') {
-            result.then(() => {
-              modal.close();
-              // Clean up container after modal closes
-              setTimeout(() => {
-                if (container.parentNode) {
-                  container.parentNode.removeChild(container);
-                }
-              }, 100);
-            }).catch((error) => {
-              console.error('[ModalComponent] Delete confirmation callback error:', error);
-              // Don't close modal on error, let user retry or cancel
-            });
+          if (result && typeof result.then === "function") {
+            result
+              .then(() => {
+                modal.close();
+                // Clean up container after modal closes
+                setTimeout(() => {
+                  if (container.parentNode) {
+                    container.parentNode.removeChild(container);
+                  }
+                }, 100);
+              })
+              .catch((error) => {
+                console.error(
+                  "[ModalComponent] Delete confirmation callback error:",
+                  error,
+                );
+                // Don't close modal on error, let user retry or cancel
+              });
           } else {
             // Synchronous callback completed
             modal.close();
@@ -2491,17 +2508,23 @@ function createDeleteConfirmation(config) {
             }, 100);
           }
         } catch (error) {
-          console.error('[ModalComponent] Delete confirmation callback error:', error);
+          console.error(
+            "[ModalComponent] Delete confirmation callback error:",
+            error,
+          );
           // Don't close modal on error, let user retry or cancel
         }
         return true; // Indicate we handled the action
-      } else if (action === 'cancel') {
+      } else if (action === "cancel") {
         // Execute the cancel callback if provided
-        if (config.onCancel && typeof config.onCancel === 'function') {
+        if (config.onCancel && typeof config.onCancel === "function") {
           try {
             config.onCancel();
           } catch (error) {
-            console.error('[ModalComponent] Delete cancellation callback error:', error);
+            console.error(
+              "[ModalComponent] Delete cancellation callback error:",
+              error,
+            );
           }
         }
         modal.close();
@@ -2522,7 +2545,7 @@ function createDeleteConfirmation(config) {
           container.parentNode.removeChild(container);
         }
       }, 100);
-    }
+    },
   };
 
   // Create and initialize the modal

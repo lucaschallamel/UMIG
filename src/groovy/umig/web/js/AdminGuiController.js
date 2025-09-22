@@ -243,20 +243,26 @@
       const addNewBtn = document.getElementById("addNewBtn");
       if (addNewBtn) {
         addNewBtn.addEventListener("click", () => {
-          const currentSection = window.AdminGuiState?.section?.getCurrentSection() ||
-                                 window.adminGui?.state?.currentSection || 'unknown';
+          const currentSection =
+            window.AdminGuiState?.section?.getCurrentSection() ||
+            window.adminGui?.state?.currentSection ||
+            "unknown";
 
           // For Users entity, delegate to UsersEntityManager (US-087 Phase 2)
-          if (currentSection === 'users') {
+          if (currentSection === "users") {
             const adminGui = window.AdminGUI || window.adminGui;
             const usersManager = adminGui?.componentManagers?.users;
 
-            if (usersManager && typeof usersManager.handleAdd === 'function') {
-              console.log('[AdminGuiController] Delegating Add New User to UsersEntityManager');
+            if (usersManager && typeof usersManager.handleAdd === "function") {
+              console.log(
+                "[AdminGuiController] Delegating Add New User to UsersEntityManager",
+              );
               usersManager.handleAdd();
               return;
             } else {
-              console.warn('[AdminGuiController] UsersEntityManager not available, falling back to legacy modal');
+              console.warn(
+                "[AdminGuiController] UsersEntityManager not available, falling back to legacy modal",
+              );
             }
           }
 

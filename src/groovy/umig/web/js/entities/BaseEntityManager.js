@@ -343,7 +343,7 @@ if (typeof BaseEntityManager === "undefined") {
             type: type,
             title: title,
             body: message,
-            ...options
+            ...options,
           };
 
           // Auto-dismiss success notifications after 3 seconds
@@ -355,7 +355,7 @@ if (typeof BaseEntityManager === "undefined") {
             const flagId = window.AJS.flag(flagOptions);
 
             // Auto-dismiss after 3000ms (3 seconds) for success notifications
-            if (flagId && typeof flagId === 'string') {
+            if (flagId && typeof flagId === "string") {
               setTimeout(() => {
                 try {
                   if (window.AJS && window.AJS.flag && window.AJS.flag.close) {
@@ -363,7 +363,10 @@ if (typeof BaseEntityManager === "undefined") {
                   }
                 } catch (closeError) {
                   // Silently handle if flag was already closed
-                  console.debug(`[BaseEntityManager] Flag already closed or error closing:`, closeError);
+                  console.debug(
+                    `[BaseEntityManager] Flag already closed or error closing:`,
+                    closeError,
+                  );
                 }
               }, 3000);
             }
@@ -459,9 +462,37 @@ if (typeof BaseEntityManager === "undefined") {
           pageSize,
         );
 
-        // Update state
-        this.currentData = response.data || [];
-        this.totalRecords = response.total || 0;
+        // Update state with defensive array checking
+        const responseData = response.data || [];
+
+        // CRITICAL FIX: Ensure currentData is always an array for TableComponent compatibility
+        if (Array.isArray(responseData)) {
+          this.currentData = responseData;
+        } else {
+          console.warn(
+            `[BaseEntityManager] _fetchEntityData returned non-array data for ${this.entityType}:`,
+            responseData,
+          );
+          // If it's an object with content property (paginated API response)
+          if (
+            responseData &&
+            responseData.content &&
+            Array.isArray(responseData.content)
+          ) {
+            this.currentData = responseData.content;
+            console.log(
+              `[BaseEntityManager] Extracted array from response.content for ${this.entityType}`,
+            );
+          } else {
+            // Last resort: wrap single object in array or use empty array
+            this.currentData = responseData ? [responseData] : [];
+            console.warn(
+              `[BaseEntityManager] Wrapped non-array data in array for ${this.entityType}`,
+            );
+          }
+        }
+
+        this.totalRecords = response.total || this.currentData.length;
 
         // Update components
         await this._updateComponents();
@@ -1686,7 +1717,7 @@ if (typeof BaseEntityManager === "undefined") {
               this._showNotification(
                 "success",
                 `${this.entityType.slice(0, -1)} Updated`,
-                `The ${this.entityType.slice(0, -1).toLowerCase()} has been updated successfully.`
+                `The ${this.entityType.slice(0, -1).toLowerCase()} has been updated successfully.`,
               );
 
               return true; // Close modal
@@ -1701,7 +1732,7 @@ if (typeof BaseEntityManager === "undefined") {
                 "error",
                 `Error Updating ${this.entityType.slice(0, -1)}`,
                 error.message ||
-                  `An error occurred while updating the ${this.entityType.slice(0, -1).toLowerCase()}.`
+                  `An error occurred while updating the ${this.entityType.slice(0, -1).toLowerCase()}.`,
               );
 
               return false; // Keep modal open
@@ -1853,8 +1884,10 @@ if (typeof BaseEntityManager === "undefined") {
      */
     async _confirmDeleteEntity(data) {
       // Check if ModalComponent is available
-      if (typeof window.ModalComponent === 'undefined') {
-        console.warn('[BaseEntityManager] ModalComponent not available, falling back to standard confirm()');
+      if (typeof window.ModalComponent === "undefined") {
+        console.warn(
+          "[BaseEntityManager] ModalComponent not available, falling back to standard confirm()",
+        );
         // Fallback to standard confirm for backward compatibility
         if (
           confirm(
@@ -1878,11 +1911,11 @@ if (typeof BaseEntityManager === "undefined") {
         entityName = data.label;
       } else if (data.title) {
         entityName = data.title;
-      } else if (data.email && this.entityType === 'users') {
+      } else if (data.email && this.entityType === "users") {
         entityName = data.email;
-      } else if (data.environment_name && this.entityType === 'environments') {
+      } else if (data.environment_name && this.entityType === "environments") {
         entityName = data.environment_name;
-      } else if (data.application_name && this.entityType === 'applications') {
+      } else if (data.application_name && this.entityType === "applications") {
         entityName = data.application_name;
       }
 
@@ -1895,8 +1928,10 @@ if (typeof BaseEntityManager === "undefined") {
           return this._performDelete(data);
         },
         onCancel: () => {
-          console.log(`[BaseEntityManager] Deletion of ${this.entityType.slice(0, -1)} cancelled by user`);
-        }
+          console.log(
+            `[BaseEntityManager] Deletion of ${this.entityType.slice(0, -1)} cancelled by user`,
+          );
+        },
       });
 
       // Open the modal
@@ -1934,7 +1969,7 @@ if (typeof BaseEntityManager === "undefined") {
         this._showNotification(
           "success",
           "Deletion Successful",
-          `${this.entityType.slice(0, -1)} has been deleted successfully.`
+          `${this.entityType.slice(0, -1)} has been deleted successfully.`,
         );
       } catch (error) {
         console.error(`[BaseEntityManager] Delete failed:`, error);
@@ -1945,14 +1980,14 @@ if (typeof BaseEntityManager === "undefined") {
             "error",
             "Cannot Delete",
             error.message,
-            { close: "manual" } // Let user close manually for detailed messages
+            { close: "manual" }, // Let user close manually for detailed messages
           );
         } else {
           // Standard error message
           this._showNotification(
             "error",
             "Deletion Failed",
-            error.message || `Failed to delete ${this.entityType.slice(0, -1)}`
+            error.message || `Failed to delete ${this.entityType.slice(0, -1)}`,
           );
         }
       }
@@ -2016,13 +2051,23 @@ if (typeof BaseEntityManager === "undefined") {
               typeof this.tableComponent === "object" &&
               this.tableComponent !== null
             ) {
+              // CRITICAL FIX: Ensure data passed to TableComponent is always an array
+              const safeCurrentData = Array.isArray(this.currentData)
+                ? this.currentData
+                : [];
+              if (safeCurrentData !== this.currentData) {
+                console.warn(
+                  `[BaseEntityManager] currentData was not an array for ${this.entityType}, using empty array for table update`,
+                );
+              }
+
               // Primary method: updateData (preferred alias)
               if (typeof this.tableComponent.updateData === "function") {
                 updateAttempts.table.method = "updateData";
                 console.log(
-                  `[BaseEntityManager] Updating table via updateData() with ${this.currentData?.length || 0} records`,
+                  `[BaseEntityManager] Updating table via updateData() with ${safeCurrentData.length} records`,
                 );
-                await this.tableComponent.updateData(this.currentData);
+                await this.tableComponent.updateData(safeCurrentData);
                 updateAttempts.table.successful = true;
 
                 // Fallback method: setData (original method)
@@ -2031,7 +2076,7 @@ if (typeof BaseEntityManager === "undefined") {
                 console.log(
                   `[BaseEntityManager] Falling back to setData() method for table component`,
                 );
-                await this.tableComponent.setData(this.currentData);
+                await this.tableComponent.setData(safeCurrentData);
                 updateAttempts.table.successful = true;
 
                 // Component exists but lacks required methods
@@ -2369,13 +2414,21 @@ if (typeof BaseEntityManager === "undefined") {
               await this.tableComponent.render();
             }
 
-            // Load initial data if available
-            if (this.currentData && this.currentData.length > 0) {
+            // Load initial data if available with array safety
+            if (
+              this.currentData &&
+              Array.isArray(this.currentData) &&
+              this.currentData.length > 0
+            ) {
               if (typeof this.tableComponent.updateData === "function") {
                 await this.tableComponent.updateData(this.currentData);
               } else if (typeof this.tableComponent.setData === "function") {
                 await this.tableComponent.setData(this.currentData);
               }
+            } else if (this.currentData && !Array.isArray(this.currentData)) {
+              console.warn(
+                `[BaseEntityManager] currentData is not an array in _renderComponents for ${this.entityType}, skipping table data load`,
+              );
             }
 
             console.log(
@@ -2430,8 +2483,30 @@ if (typeof BaseEntityManager === "undefined") {
      * @private
      */
     _trackPerformance(operation, duration) {
-      if (this.performanceTracker) {
-        this.performanceTracker.trackPerformance(operation, duration);
+      if (this.performanceTracker && this.performanceTracker.trackPerformance) {
+        try {
+          // EntityMigrationTracker expects: trackPerformance(architecture, operation, duration, metadata)
+          // Provide required parameters with entity-specific metadata
+          const architecture = "new"; // All entity managers use new component architecture
+          const metadata = {
+            entityType: this.entityType || "unknown",
+            timestamp: new Date().toISOString(),
+            componentCount: this.components ? this.components.size : 0,
+            recordCount: this.currentData ? this.currentData.length : 0,
+          };
+
+          this.performanceTracker.trackPerformance(
+            architecture,
+            operation,
+            duration,
+            metadata,
+          );
+        } catch (error) {
+          console.warn(
+            `[BaseEntityManager] Performance tracking failed for ${this.entityType}:`,
+            error.message,
+          );
+        }
       }
     }
 
@@ -2442,8 +2517,66 @@ if (typeof BaseEntityManager === "undefined") {
      * @private
      */
     _trackError(operation, error) {
-      if (this.performanceTracker) {
-        this.performanceTracker.trackError(operation, error);
+      try {
+        // Defensive checks for parameters
+        if (typeof operation !== "string") {
+          console.warn(
+            "[BaseEntityManager] _trackError called with invalid operation parameter:",
+            operation,
+          );
+          operation = "unknown_operation";
+        }
+
+        if (!error || typeof error.message === "undefined") {
+          console.warn(
+            "[BaseEntityManager] _trackError called with invalid error parameter:",
+            error,
+          );
+          // Create a proper error object if needed
+          error = new Error(error ? String(error) : "Unknown error occurred");
+        }
+
+        // Track error with performance tracker if available
+        if (
+          this.performanceTracker &&
+          typeof this.performanceTracker.trackError === "function"
+        ) {
+          this.performanceTracker.trackError(operation, error);
+        } else {
+          // Fallback logging when performanceTracker is not available
+          console.error(
+            `[BaseEntityManager] Error tracking (${operation}):`,
+            error,
+          );
+
+          // Store error in internal log if available
+          if (this.errorLog && Array.isArray(this.errorLog)) {
+            this.errorLog.push({
+              timestamp: new Date().toISOString(),
+              operation,
+              error: {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+              },
+            });
+
+            // Keep only last 50 errors to prevent memory issues
+            if (this.errorLog.length > 50) {
+              this.errorLog = this.errorLog.slice(-50);
+            }
+          }
+        }
+      } catch (trackingError) {
+        console.error(
+          "[BaseEntityManager] Error in _trackError method itself:",
+          trackingError,
+        );
+        // Prevent infinite recursion - just log directly
+        console.error(
+          `[BaseEntityManager] Original error (${operation}):`,
+          error,
+        );
       }
     }
 

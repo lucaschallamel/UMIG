@@ -1813,31 +1813,39 @@ window.adminGui = {
     const addNewBtn = document.getElementById("addNewBtn");
     if (addNewBtn) {
       addNewBtn.addEventListener("click", () => {
-        const currentSection = this.state?.currentSection || 'unknown';
+        const currentSection = this.state?.currentSection || "unknown";
 
         // For Users entity, delegate to UsersEntityManager (US-087 Phase 2)
-        if (currentSection === 'users') {
+        if (currentSection === "users") {
           const usersManager = this.componentManagers?.users;
 
-          if (usersManager && typeof usersManager.handleAdd === 'function') {
-            console.log('[AdminGUI] Delegating Add New User to UsersEntityManager');
+          if (usersManager && typeof usersManager.handleAdd === "function") {
+            console.log(
+              "[AdminGUI] Delegating Add New User to UsersEntityManager",
+            );
             usersManager.handleAdd();
             return;
           } else {
-            console.warn('[AdminGUI] UsersEntityManager not available, falling back to legacy modal');
+            console.warn(
+              "[AdminGUI] UsersEntityManager not available, falling back to legacy modal",
+            );
           }
         }
 
         // For Teams entity, delegate to TeamsEntityManager (US-087 Phase 1)
-        if (currentSection === 'teams') {
+        if (currentSection === "teams") {
           const teamsManager = this.componentManagers?.teams;
 
-          if (teamsManager && typeof teamsManager.handleAdd === 'function') {
-            console.log('[AdminGUI] Delegating Add New Team to TeamsEntityManager');
+          if (teamsManager && typeof teamsManager.handleAdd === "function") {
+            console.log(
+              "[AdminGUI] Delegating Add New Team to TeamsEntityManager",
+            );
             teamsManager.handleAdd();
             return;
           } else {
-            console.warn('[AdminGUI] TeamsEntityManager not available, falling back to legacy modal');
+            console.warn(
+              "[AdminGUI] TeamsEntityManager not available, falling back to legacy modal",
+            );
           }
         }
 
@@ -2752,26 +2760,26 @@ window.adminGui = {
                 <div id="superadminSection" style="display: none;">
                   <h3>Super Admin</h3>
                   <ul class="aui-nav">
-                    <li><a href="#" onclick="adminGui.navigateToSection('users')">Users</a></li>
-                    <li><a href="#" onclick="adminGui.navigateToSection('teams')">Teams</a></li>
+                    <li class="nav-item" data-section="users"><a href="#" onclick="adminGui.navigateToSection('users')">Users</a></li>
+                    <li class="nav-item" data-section="teams"><a href="#" onclick="adminGui.navigateToSection('teams')">Teams</a></li>
                   </ul>
                 </div>
 
                 <div id="adminSection" style="display: none;">
                   <h3>Admin</h3>
                   <ul class="aui-nav">
-                    <li><a href="#" onclick="adminGui.navigateToSection('environments')">Environments</a></li>
-                    <li><a href="#" onclick="adminGui.navigateToSection('applications')">Applications</a></li>
-                    <li><a href="#" onclick="adminGui.navigateToSection('labels')">Labels</a></li>
-                    <li><a href="#" onclick="adminGui.navigateToSection('migrationTypes')">Migration Types</a></li>
-                    <li><a href="#" onclick="adminGui.navigateToSection('iterationTypes')">Iteration Types</a></li>
+                    <li class="nav-item" data-section="environments"><a href="#" onclick="adminGui.navigateToSection('environments')">Environments</a></li>
+                    <li class="nav-item" data-section="applications"><a href="#" onclick="adminGui.navigateToSection('applications')">Applications</a></li>
+                    <li class="nav-item" data-section="labels"><a href="#" onclick="adminGui.navigateToSection('labels')">Labels</a></li>
+                    <li class="nav-item" data-section="migrationTypes"><a href="#" onclick="adminGui.navigateToSection('migrationTypes')">Migration Types</a></li>
+                    <li class="nav-item" data-section="iterationTypes"><a href="#" onclick="adminGui.navigateToSection('iterationTypes')">Iteration Types</a></li>
                   </ul>
                 </div>
 
                 <div id="pilotSection" style="display: none;">
                   <h3>Pilot</h3>
                   <ul class="aui-nav">
-                    <li><a href="#" onclick="adminGui.navigateToSection('migrations')">Migrations</a></li>
+                    <li class="nav-item" data-section="migrations"><a href="#" onclick="adminGui.navigateToSection('migrations')">Migrations</a></li>
                   </ul>
                 </div>
               </div>
@@ -3101,7 +3109,7 @@ window.adminGui = {
             "applications",
             "labels",
             "migrationTypes",
-            "iterationTypes"
+            "iterationTypes",
           ];
 
           if (refreshBtn) {
@@ -3118,7 +3126,9 @@ window.adminGui = {
             if (componentBasedEntities.includes(this.state.currentEntity)) {
               // Hide legacy button for component-based entities to prevent conflicts
               addNewBtn.style.display = "none";
-              console.log(`[US-087] Hidden legacy addNewBtn for component-based entity: ${this.state.currentEntity}`);
+              console.log(
+                `[US-087] Hidden legacy addNewBtn for component-based entity: ${this.state.currentEntity}`,
+              );
             } else {
               // Show legacy button for non-migrated entities
               addNewBtn.style.display = "inline-block";

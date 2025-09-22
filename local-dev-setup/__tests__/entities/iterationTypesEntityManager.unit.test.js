@@ -40,6 +40,10 @@ jest.mock(
   },
 );
 
+// Make BaseEntityManager available globally for class extension
+const { BaseEntityManager } = require("../__mocks__/BaseEntityManager.js");
+global.BaseEntityManager = BaseEntityManager;
+
 // Mock ComponentOrchestrator
 jest.mock(
   "../../../src/groovy/umig/web/js/components/ComponentOrchestrator.js",
@@ -81,7 +85,7 @@ jest.mock("../../../src/groovy/umig/web/js/components/SecurityUtils.js", () => {
   };
 });
 
-import { IterationTypesEntityManager } from "../../../src/groovy/umig/web/js/entities/iteration-types/IterationTypesEntityManager.js";
+const IterationTypesEntityManager = require("../../../src/groovy/umig/web/js/entities/iteration-types/IterationTypesEntityManager.js");
 
 // Mock dependencies
 const mockComponentOrchestrator = {

@@ -3,6 +3,7 @@
 ## Problem
 
 The email notification system is failing with the error:
+
 ```
 Database row transformation failed: No such property: stm_name for class: groovy.sql.GroovyRowResult
 ```
@@ -12,6 +13,7 @@ Database row transformation failed: No such property: stm_name for class: groovy
 Based on the error message and codebase analysis:
 
 1. **SQL Query Aliasing**: The SQL query in `buildEmailNotificationDTO` method (around lines 454-501) aliases the step master name as:
+
    ```sql
    stm.stm_name as step_master_name
    ```
@@ -26,16 +28,19 @@ Based on the error message and codebase analysis:
 ## Evidence from Codebase
 
 From `debug-labels-issue.js` line 156:
+
 ```javascript
 const stepName = step.stepName || step.stm_name || `Unknown Step ${i + 1}`;
 ```
 
 From `labels-display-pipeline.integration.test.js` line 345:
+
 ```javascript
 <td class="col-step-name">${step.stepName || step.stm_name}</td>
 ```
 
 From the documentation `timestamp-to-localdatetime-conversion-fix.md` line 62:
+
 ```groovy
 .stepName(stepData.stm_name?.toString())
 ```
@@ -45,12 +50,14 @@ From the documentation `timestamp-to-localdatetime-conversion-fix.md` line 62:
 ### 1. Fix DTO Building Method
 
 In the `buildEmailNotificationDTO` method, replace:
+
 ```groovy
 // ❌ INCORRECT - stm_name doesn't exist in result
 .stepName(stepData.stm_name?.toString())
 ```
 
 With:
+
 ```groovy
 // ✅ CORRECT - Use the actual SQL alias
 .stepName(stepData.step_master_name?.toString())
@@ -59,6 +66,7 @@ With:
 ### 2. Alternative: Update SQL Alias
 
 If you prefer to keep the `stm_name` property access, update the SQL query to alias as:
+
 ```sql
 -- Change from:
 stm.stm_name as step_master_name
@@ -70,6 +78,7 @@ stm.stm_name as stm_name
 ### 3. Defensive Programming Pattern
 
 For maximum robustness, use a defensive pattern that handles both cases:
+
 ```groovy
 .stepName((stepData.step_master_name ?: stepData.stm_name ?: stepData.stepName)?.toString())
 ```
@@ -121,6 +130,7 @@ private StepInstanceDTO buildEmailNotificationDTO(Map stepData) {
 ## Files to Update
 
 Based on the error location, likely files include:
+
 - `src/groovy/umig/service/EmailService.groovy` (if it exists)
 - `src/groovy/umig/integration/StepNotificationIntegration.groovy` (if it exists)
 - Any file containing the `buildEmailNotificationDTO` method
@@ -128,6 +138,7 @@ Based on the error location, likely files include:
 ## Additional Consistency Fixes
 
 Consider updating other files for consistency:
+
 - `debug-labels-issue.js` line 156
 - Test files that use similar patterns
 - Any other places where `stm_name` is accessed but the SQL aliases it differently

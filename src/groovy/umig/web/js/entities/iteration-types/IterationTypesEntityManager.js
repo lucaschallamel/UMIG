@@ -35,61 +35,254 @@
  * @performance <200ms target with intelligent caching and optimized queries
  */
 
-// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Browser-compatible - follows proven TeamsEntityManager pattern (ADR-057)
 // Dependencies: BaseEntityManager, ComponentOrchestrator, SecurityUtils (accessed via window.X)
-
-// Utility function to get dependencies safely
-function getDependency(name, fallback = {}) {
-  return window[name] || fallback;
-}
 
 class IterationTypesEntityManager extends (window.BaseEntityManager ||
   class {}) {
   /**
-   * Initialize IterationTypesEntityManager with specific configuration
-   * @param {Object} config - Configuration object
+   * Initialize IterationTypesEntityManager with Applications-style proven pattern
+   * @param {Object} options - Configuration options from admin-gui.js
    */
-  constructor(config = {}) {
-    // Call super constructor first with basic configuration
-    const basicConfig = {
-      entityType: "iteration-types",
-      // Merge with any additional config
-      ...config,
-    };
-
-    super(basicConfig);
-
-    // Initialize all properties first (can be overridden by config)
-    this.apiEndpoint = "/rest/scriptrunner/latest/custom/iterationTypes";
-    this.permissionLevel = null;
-    this.colorValidationEnabled =
-      config.colorValidationEnabled !== undefined
-        ? config.colorValidationEnabled
-        : true;
-    this.iconValidationEnabled =
-      config.iconValidationEnabled !== undefined
-        ? config.iconValidationEnabled
-        : true;
-
-    // Apply any additional custom properties from config
-    Object.keys(config).forEach((key) => {
-      if (!this.hasOwnProperty(key)) {
-        this[key] = config[key];
-      }
+  constructor(options = {}) {
+    // Call super constructor with merged configuration following Applications pattern
+    super({
+      entityType: "iterationTypes",
+      ...options, // Include apiBase, endpoints, orchestrator, performanceMonitor
+      tableConfig: {
+        containerId: "dataTable",
+        primaryKey: "itt_code", // Add primary key for proper row identification
+        sorting: {
+          enabled: true,
+          column: null,
+          direction: "asc",
+        },
+        columns: [
+          { key: "itt_code", label: "Code", sortable: true },
+          { key: "itt_name", label: "Name", sortable: true },
+          {
+            key: "itt_description",
+            label: "Description",
+            sortable: true,
+            renderer: (value, row) => {
+              const desc = value || "";
+              const truncated =
+                desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
+              return window.SecurityUtils?.sanitizeHtml
+                ? window.SecurityUtils.sanitizeHtml(truncated)
+                : truncated;
+            },
+          },
+          {
+            key: "itt_color",
+            label: "Color",
+            sortable: true,
+            renderer: (value) =>
+              `<div class="color-swatch" style="background-color: ${value || "#6B73FF"};" title="${value || "#6B73FF"}"></div>`,
+          },
+          {
+            key: "itt_icon",
+            label: "Icon",
+            sortable: true,
+            renderer: (value) =>
+              `<i class="fas fa-${value || "circle"}" title="${value || "circle"}"></i>`,
+          },
+          {
+            key: "itt_display_order",
+            label: "Order",
+            sortable: true,
+            renderer: (value) => `<span class="order-badge">${value}</span>`,
+          },
+          {
+            key: "itt_active",
+            label: "Status",
+            sortable: true,
+            renderer: (value) => {
+              const badgeClass = value ? "badge-success" : "badge-secondary";
+              const badgeText = value ? "Active" : "Inactive";
+              return `<span class="badge ${badgeClass}">${badgeText}</span>`;
+            },
+          },
+        ],
+        actions: {
+          view: true,
+          edit: true,
+          delete: true,
+        },
+        bulkActions: {
+          delete: true,
+          export: true,
+        },
+        colorMapping: {
+          enabled: false,
+        },
+      },
+      modalConfig: {
+        containerId: "editModal",
+        title: "Iteration Type Management",
+        size: "large",
+        form: {
+          fields: [
+            {
+              name: "itt_code",
+              type: "text",
+              required: true,
+              label: "Code",
+              placeholder: "e.g., RUN, DR, CUTOVER",
+              readonly: (mode, data) => mode === "edit", // Readonly in edit mode
+              validation: {
+                minLength: 2,
+                maxLength: 20,
+                pattern: /^[a-zA-Z0-9_-]+$/,
+                message:
+                  "Code must contain only alphanumeric characters, underscores, and dashes",
+              },
+            },
+            {
+              name: "itt_name",
+              type: "text",
+              required: true,
+              label: "Name",
+              placeholder: "e.g., Production Run, Disaster Recovery",
+              validation: {
+                minLength: 1,
+                maxLength: 100,
+                message: "Name must be between 1 and 100 characters",
+              },
+            },
+            {
+              name: "itt_description",
+              type: "textarea",
+              required: false,
+              label: "Description",
+              placeholder:
+                "Describe the purpose and usage of this iteration type",
+              rows: 3,
+              validation: {
+                maxLength: 500,
+                message: "Description must be 500 characters or less",
+              },
+            },
+            {
+              name: "itt_color",
+              type: "color",
+              required: false,
+              label: "Color",
+              placeholder: "Select iteration type color",
+              defaultValue: "#6B73FF",
+              validation: {
+                pattern: /^#[0-9A-Fa-f]{6}$/,
+                message: "Color must be a valid hex code (e.g., #6B73FF)",
+              },
+            },
+            {
+              name: "itt_icon",
+              type: "text",
+              required: false,
+              label: "Icon",
+              placeholder: "e.g., play-circle, shield-alt",
+              defaultValue: "play-circle",
+              validation: {
+                pattern: /^[a-zA-Z0-9_-]+$/,
+                message:
+                  "Icon name must contain only alphanumeric characters, underscores, and dashes",
+              },
+            },
+            {
+              name: "itt_display_order",
+              type: "number",
+              required: false,
+              label: "Display Order",
+              placeholder: "Order for display",
+              defaultValue: 0,
+              min: 0,
+              max: 999,
+            },
+            {
+              name: "itt_active",
+              type: "select",
+              required: true,
+              label: "Status",
+              placeholder: "Select status",
+              defaultValue: "true",
+              options: [
+                { value: "true", label: "Active" },
+                { value: "false", label: "Inactive" },
+              ],
+              helpText:
+                "Inactive iteration types cannot be used in new iterations",
+            },
+          ],
+        },
+      },
+      filterConfig: {
+        fields: ["itt_code", "itt_name", "itt_description"],
+      },
+      paginationConfig: {
+        containerId: "paginationContainer",
+        pageSize: 50, // Standard page size for iteration types
+        pageSizeOptions: [10, 25, 50, 100],
+      },
     });
 
-    // Caching for performance optimization
+    // Entity-specific configuration following Applications pattern
+    this.primaryKey = "itt_code";
+    this.displayField = "itt_name";
+    this.searchFields = ["itt_code", "itt_name", "itt_description"];
+    // Client-side pagination - TableComponent handles pagination of full dataset
+    this.paginationMode = "client";
+
+    // Iteration type lifecycle states
+    this.lifecycleStates = ["active", "inactive"];
+    this.stateTransitions = {
+      active: ["inactive"],
+      inactive: ["active"],
+    };
+
+    // Performance thresholds following Applications pattern
+    this.performanceThresholds = {
+      iterationTypeLoad: 200,
+      iterationTypeUpdate: 300,
+      orderUpdate: 250,
+      colorUpdate: 200,
+      batchOperation: 1000,
+    };
+
+    // API endpoints following Applications pattern
+    this.iterationTypesApiUrl =
+      "/rest/scriptrunner/latest/custom/iterationTypes";
+
+    // Component orchestrator for UI management
+    this.orchestrator = null;
+    this.components = new Map();
+
+    // Cache configuration following Applications pattern
+    this.cacheConfig = {
+      enabled: true,
+      ttl: 5 * 60 * 1000, // 5 minutes
+      maxSize: 100,
+    };
+    this.cache = new Map();
+    this.performanceMetrics = {};
+    this.auditCache = [];
+    this.errorLog = [];
+
+    // Initialize cache tracking variables
+    this.cacheHitCount = 0;
+    this.cacheMissCount = 0;
+
+    // Caching for performance optimization (legacy properties maintained for compatibility)
     this.usageStatsCache = new Map();
     this.blockingRelationshipsCache = new Map();
     this.validationCache = new Map();
-    this.batchCache = new Map(); // For batch operation results
+    this.batchCache = new Map();
 
     // Security context for admin checks
     this.userPermissions = null;
 
     // Error handling and circuit breaker
-    this.errorBoundary = new Map(); // Track error rates by operation
-    this.circuitBreaker = new Map(); // Circuit breaker state
+    this.errorBoundary = new Map();
+    this.circuitBreaker = new Map();
     this.retryConfig = {
       maxRetries: 3,
       retryDelay: 1000,
@@ -97,7 +290,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     };
 
     // Error boundary cleanup configuration
-    this.MAX_ERROR_BOUNDARY_SIZE = 1000; // Maximum entries before cleanup
+    this.MAX_ERROR_BOUNDARY_SIZE = 1000;
     this.ERROR_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
     // Initialize periodic error boundary cleanup
@@ -110,17 +303,8 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       code: /^[a-zA-Z0-9_-]+$/,
     };
 
-    // Now we can safely call instance methods to add specific configurations
-    this.config = {
-      ...this.config,
-      tableConfig: this._getTableConfig(),
-      modalConfig: this._getModalConfig(),
-      filterConfig: this._getFilterConfig(),
-      paginationConfig: this._getPaginationConfig(),
-    };
-
     console.log(
-      "[IterationTypesEntityManager] Initialized with enterprise security and validation",
+      "[IterationTypesEntityManager] Initialized with Applications-style proven pattern and enterprise security",
     );
   }
 
@@ -184,40 +368,456 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Initialize with enhanced security checks and permission validation
-   * @param {HTMLElement} container - DOM container
-   * @param {Object} options - Initialization options
+   * Override initialize to add toolbar creation and pagination setup following Applications pattern
+   * @param {HTMLElement|Object} containerOrOptions - Container element or options
+   * @param {Object} options - Additional options
    * @returns {Promise<void>}
    */
-  async initialize(container, options = {}) {
+  async initialize(containerOrOptions = {}, options = {}) {
+    // Call parent initialize
+    await super.initialize(containerOrOptions, options);
+
+    // Setup pagination event handlers
+    this.setupPaginationHandlers();
+
+    // Load real user permissions for admin operations
+    await this._loadUserPermissions();
+
+    // Initialize color picker and icon selector components
+    await this._initializeColorIconComponents();
+
+    // Set up drag-and-drop for display order management
+    await this._initializeDragAndDrop();
+
+    // Initialize usage statistics monitoring
+    await this._initializeUsageMonitoring();
+
+    // Toolbar will be created after container is stable in render()
+  }
+
+  /**
+   * Setup pagination event handlers - simplified for client-side pagination
+   * @private
+   */
+  setupPaginationHandlers() {
     try {
       console.log(
-        "[IterationTypesEntityManager] Initializing with permission validation",
+        "[IterationTypesEntityManager] Setting up client-side pagination",
       );
-
-      // Initialize base entity manager
-      await super.initialize(container, options);
-
-      // Check user permissions for admin operations
-      await this._checkUserPermissions();
-
-      // Initialize color picker and icon selector components
-      await this._initializeColorIconComponents();
-
-      // Set up drag-and-drop for display order management
-      await this._initializeDragAndDrop();
-
-      // Initialize usage statistics monitoring
-      await this._initializeUsageMonitoring();
-
-      console.log("[IterationTypesEntityManager] Initialization complete");
+      // With client-side pagination, no complex event handling needed
+      // TableComponent handles pagination internally with the full dataset
+      console.log(
+        "[IterationTypesEntityManager] ✓ Client-side pagination ready",
+      );
     } catch (error) {
       console.error(
-        "[IterationTypesEntityManager] Initialization failed:",
+        "[IterationTypesEntityManager] Error setting up pagination:",
         error,
       );
+    }
+  }
+
+  /**
+   * Override render to create toolbar after container is stable
+   * @returns {Promise<void>}
+   */
+  async render() {
+    try {
+      // Call parent render first
+      await super.render();
+
+      // Create toolbar after parent rendering is complete
+      console.log(
+        "[IterationTypesEntityManager] Creating toolbar after render",
+      );
+      this.createToolbar();
+    } catch (error) {
+      console.error("[IterationTypesEntityManager] Failed to render:", error);
       throw error;
     }
+  }
+
+  /**
+   * Create toolbar with Add New button following Applications pattern
+   * @public
+   */
+  createToolbar() {
+    try {
+      // Find the container for the toolbar (above the table)
+      // Handle both string IDs and HTMLElement objects
+      let container;
+      if (this.container && this.container instanceof HTMLElement) {
+        // If this.container is already an HTMLElement
+        container = this.container;
+      } else {
+        // If it's a string ID or fallback to default
+        const containerId =
+          (typeof this.container === "string" ? this.container : null) ||
+          this.tableConfig?.containerId ||
+          "dataTable";
+        container = document.getElementById(containerId);
+      }
+
+      if (!container) {
+        console.warn(
+          `[IterationTypesEntityManager] Container not found for toolbar:`,
+          {
+            containerType: typeof this.container,
+            container: this.container,
+            tableConfigContainerId: this.tableConfig?.containerId,
+          },
+        );
+        return;
+      }
+
+      // Always recreate toolbar to ensure it exists after container clearing
+      let toolbar = container.querySelector(".entity-toolbar");
+      if (toolbar) {
+        toolbar.remove(); // Remove existing toolbar
+        console.log("[IterationTypesEntityManager] Removed existing toolbar");
+      }
+
+      toolbar = document.createElement("div");
+      toolbar.className = "entity-toolbar";
+      toolbar.style.cssText =
+        "margin-bottom: 15px; display: flex; gap: 10px; align-items: center;";
+
+      // Insert toolbar before the dataTable
+      const dataTable = container.querySelector("#dataTable");
+      if (dataTable) {
+        container.insertBefore(toolbar, dataTable);
+      } else {
+        container.appendChild(toolbar);
+      }
+
+      console.log("[IterationTypesEntityManager] Created new toolbar");
+
+      // Create Add New Iteration Type button with UMIG-prefixed classes to avoid Confluence conflicts
+      const addButton = document.createElement("button");
+      addButton.className = "umig-btn-primary umig-button";
+      addButton.id = "umig-add-new-iteration-type-btn"; // Use UMIG-prefixed ID to avoid legacy conflicts
+      addButton.innerHTML =
+        '<span class="umig-btn-icon">➕</span> Add New Iteration Type';
+      addButton.setAttribute("data-action", "add");
+      addButton.onclick = () => this.handleAdd();
+
+      // Create Refresh button with UMIG-prefixed classes (matching Applications pattern)
+      const refreshButton = document.createElement("button");
+      refreshButton.className = "umig-btn-secondary umig-button";
+      refreshButton.id = "umig-refresh-iteration-types-btn";
+      refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
+      // Use addEventListener instead of onclick for better reliability (ADR-057 compliance)
+      refreshButton.addEventListener("click", async () => {
+        console.log("[IterationTypesEntityManager] Refresh button clicked");
+        await this._handleRefreshWithFeedback(refreshButton);
+      });
+
+      // Clear and add buttons to toolbar
+      toolbar.innerHTML = "";
+      toolbar.appendChild(addButton);
+      toolbar.appendChild(refreshButton);
+
+      console.log("[IterationTypesEntityManager] Toolbar created successfully");
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error creating toolbar:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Handle Add New Iteration Type action following Applications pattern
+   * @private
+   */
+  handleAdd() {
+    console.log(
+      "[IterationTypesEntityManager] Opening Add Iteration Type modal",
+    );
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[IterationTypesEntityManager] Modal component not available",
+      );
+      return;
+    }
+
+    // Prepare empty data for new iteration type
+    const newIterationTypeData = {
+      itt_code: "",
+      itt_name: "",
+      itt_description: "",
+      itt_color: "#6B73FF",
+      itt_icon: "play-circle",
+      itt_display_order: 0,
+      itt_active: "true",
+    };
+
+    // Update modal configuration for Add mode
+    this.modalComponent.updateConfig({
+      title: "Add New Iteration Type",
+      type: "form",
+      mode: "create", // Set mode to create for new iteration types
+      onSubmit: async (formData) => {
+        try {
+          console.log(
+            "[IterationTypesEntityManager] Submitting new iteration type:",
+            formData,
+          );
+          const result = await this._createEntityData(formData);
+          console.log(
+            "[IterationTypesEntityManager] Iteration type created successfully:",
+            result,
+          );
+          // Refresh the table data
+          await this.loadData();
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Iteration Type Created",
+            `Iteration type ${formData.itt_name} has been created successfully.`,
+          );
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error(
+            "[IterationTypesEntityManager] Error creating iteration type:",
+            error,
+          );
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Creating Iteration Type",
+            error.message ||
+              "An error occurred while creating the iteration type.",
+          );
+          // Return false to keep modal open with error
+          return false;
+        }
+      },
+    });
+
+    // Reset form data to new iteration type defaults
+    if (this.modalComponent.resetForm) {
+      this.modalComponent.resetForm();
+    }
+
+    // Set form data to default values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, newIterationTypeData);
+    }
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Handle Edit Iteration Type action following Applications pattern
+   * @param {Object} iterationTypeData - Iteration type data to edit
+   * @private
+   */
+  handleEdit(iterationTypeData) {
+    console.log(
+      "[IterationTypesEntityManager] Opening Edit Iteration Type modal for:",
+      iterationTypeData,
+    );
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[IterationTypesEntityManager] Modal component not available",
+      );
+      return;
+    }
+
+    // Update modal configuration for Edit mode - restore original form without audit fields
+    this.modalComponent.updateConfig({
+      title: `Edit Iteration Type: ${iterationTypeData.itt_name}`,
+      type: "form",
+      mode: "edit", // Set mode to edit for existing iteration types
+      form: this.config.modalConfig.form, // Restore original form config
+      buttons: [
+        { text: "Cancel", action: "cancel", variant: "secondary" },
+        { text: "Save", action: "submit", variant: "primary" },
+      ],
+      onButtonClick: null, // Clear custom button handler
+      onSubmit: async (formData) => {
+        try {
+          console.log(
+            "[IterationTypesEntityManager] Submitting iteration type update:",
+            formData,
+          );
+          const result = await this._updateEntityData(
+            iterationTypeData.itt_code,
+            formData,
+          );
+          console.log(
+            "[IterationTypesEntityManager] Iteration type updated successfully:",
+            result,
+          );
+          // Refresh the table data
+          await this.loadData();
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Iteration Type Updated",
+            `Iteration type ${formData.itt_name} has been updated successfully.`,
+          );
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error(
+            "[IterationTypesEntityManager] Error updating iteration type:",
+            error,
+          );
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Updating Iteration Type",
+            error.message ||
+              "An error occurred while updating the iteration type.",
+          );
+          // Return false to keep modal open with error
+          return false;
+        }
+      },
+    });
+
+    // Clear viewMode flag for edit mode
+    this.modalComponent.viewMode = false;
+
+    // Set form data to current iteration type values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, iterationTypeData);
+    }
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Override the base _viewEntity method to provide form-based VIEW mode following Applications pattern
+   * @param {Object} data - Entity data to view
+   * @private
+   */
+  async _viewEntity(data) {
+    console.log(
+      "[IterationTypesEntityManager] Opening View Iteration Type modal for:",
+      data,
+    );
+    console.log("[IterationTypesEntityManager] DEBUG: Audit field values:", {
+      created_at: data.created_at,
+      created_by: data.created_by,
+      updated_at: data.updated_at,
+      updated_by: data.updated_by,
+    });
+
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[IterationTypesEntityManager] Modal component not available",
+      );
+      return;
+    }
+
+    // Create enhanced modal configuration for View mode with audit fields
+    const viewFormConfig = {
+      fields: [
+        ...this.config.modalConfig.form.fields, // Original form fields
+        // Add usage information
+        {
+          name: "itt_usage_count",
+          type: "text",
+          label: "Usage Count",
+          value: `${data.usage_count || 0} iteration(s) using this type`,
+          readonly: true,
+        },
+        // Add audit information section
+        {
+          name: "audit_separator",
+          type: "separator",
+          label: "Audit Information",
+          isAuditField: true,
+        },
+        {
+          name: "itt_created_at",
+          type: "text",
+          label: "Created At",
+          value: this._formatDateTime(data.created_at),
+          isAuditField: true,
+        },
+        {
+          name: "itt_created_by",
+          type: "text",
+          label: "Created By",
+          value: data.created_by || "System",
+          isAuditField: true,
+        },
+        {
+          name: "itt_updated_at",
+          type: "text",
+          label: "Last Updated",
+          value: this._formatDateTime(data.updated_at),
+          isAuditField: true,
+        },
+        {
+          name: "itt_updated_by",
+          type: "text",
+          label: "Last Updated By",
+          value: data.updated_by || "System",
+          isAuditField: true,
+        },
+      ],
+    };
+
+    // Update modal configuration for View mode
+    this.modalComponent.updateConfig({
+      title: `View Iteration Type: ${data.itt_name}`,
+      type: "form",
+      size: "large",
+      closeable: true, // Ensure close button works
+      form: viewFormConfig,
+      buttons: [
+        { text: "Edit", action: "edit", variant: "primary" },
+        { text: "Close", action: "close", variant: "secondary" },
+      ],
+      onButtonClick: (action) => {
+        if (action === "edit") {
+          // Switch to edit mode - restore original form config
+          this.modalComponent.close();
+          // Wait for close animation to complete before opening edit modal
+          setTimeout(() => {
+            this.handleEdit(data);
+          }, 350); // 350ms to ensure close animation (300ms) completes
+          return true; // Close modal handled above
+        }
+        if (action === "close") {
+          // Explicitly handle close action to ensure it works
+          this.modalComponent.close();
+          return true; // Close modal handled above
+        }
+        return false; // Let default handling close the modal for other actions
+      },
+    });
+
+    // Set form data to current iteration type values with readonly mode
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, data);
+    }
+
+    // Mark modal as in VIEW mode
+    this.modalComponent.viewMode = true;
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Override the base _editEntity method to use our custom handleEdit
+   * @param {Object} data - Entity data to edit
+   * @private
+   */
+  async _editEntity(data) {
+    this.handleEdit(data);
   }
 
   /**
@@ -440,96 +1040,316 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Fetch iteration types data from API
+   * Fetch iteration types data from API following Applications pattern
    * @param {Object} filters - Filter parameters
    * @param {Object} sort - Sort parameters
    * @param {number} page - Page number
    * @param {number} pageSize - Page size
-   * @returns {Promise<Object>} API response
-   * @private
+   * @returns {Promise<Object>} API response with data and metadata
+   * @protected
    */
   async _fetchEntityData(filters = {}, sort = null, page = 1, pageSize = 20) {
-    const startTime = performance.now();
-
     try {
-      console.log("[IterationTypesEntityManager] Fetching data:", {
-        filters,
-        sort,
-        page,
-        pageSize,
-      });
+      console.log(
+        "[IterationTypesEntityManager] Fetching iteration type data",
+        {
+          filters,
+          sort,
+          page,
+          pageSize,
+        },
+      );
 
-      // Build query parameters
+      // Construct API URL with pagination
+      const baseUrl =
+        this.iterationTypesApiUrl ||
+        "/rest/scriptrunner/latest/custom/iterationTypes";
       const params = new URLSearchParams();
 
-      // Add pagination parameters
-      params.append("page", page.toString());
-      params.append("size", pageSize.toString());
+      // Force ALL iteration types for client-side pagination (API defaults to pageSize=50)
+      params.append("page", 1);
+      params.append("size", 1000); // Large number to ensure we get all iteration types
 
-      // Add sort parameters
-      if (sort?.field) {
-        params.append("sort", sort.field);
-        params.append("direction", sort.direction || "asc");
+      console.log(
+        "[IterationTypesEntityManager] Using client-side pagination - fetching ALL iteration types (page=1, size=1000)",
+      );
+
+      // Add sort if provided
+      if (sort && sort.key) {
+        params.append("sort", `${sort.key},${sort.order || "asc"}`);
       }
 
-      // Add filter parameters
-      if (filters.includeInactive === true) {
-        params.append("includeInactive", "true");
-      }
+      // Add filters if provided - CRITICAL FIX: Exclude pagination parameters to prevent duplicates
+      const excludedParams = new Set(["page", "size", "pageSize"]);
+      Object.keys(filters).forEach((key) => {
+        if (
+          !excludedParams.has(key) &&
+          filters[key] !== null &&
+          filters[key] !== undefined &&
+          filters[key] !== ""
+        ) {
+          params.append(key, filters[key]);
+        }
+      });
 
-      if (filters.stats === true) {
-        params.append("stats", "true");
-      }
+      const url = `${baseUrl}?${params.toString()}`;
+      console.log("[IterationTypesEntityManager] API URL:", url);
 
-      const url = `${this.apiEndpoint}?${params.toString()}`;
-
-      // Make API request with timeout and retry logic
-      const response = await this._makeApiRequest("GET", url);
+      // Make API call
+      const response = await fetch(url, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        }),
+        credentials: "same-origin",
+      });
 
       if (!response.ok) {
         throw new Error(
-          `API request failed: ${response.status} ${response.statusText}`,
+          `Failed to fetch iteration types: ${response.status} ${response.statusText}`,
         );
       }
 
       const data = await response.json();
-
-      // Track performance
-      const fetchTime = performance.now() - startTime;
-      this._trackPerformance("fetch", fetchTime);
-
       console.log(
-        `[IterationTypesEntityManager] Data fetched in ${fetchTime.toFixed(2)}ms`,
+        `[IterationTypesEntityManager] Fetched ${data.content ? data.content.length : 0} iteration types`,
       );
 
-      // Handle paginated vs legacy response formats
-      if (data.pagination) {
-        return {
-          data: data.data || [],
-          total: data.pagination.total || 0,
-          page: data.pagination.page || page,
-          pageSize: data.pagination.size || pageSize,
-          totalPages: data.pagination.totalPages || 0,
-        };
+      // Transform response to expected format for CLIENT-SIDE pagination
+      // CRITICAL FIX: Ensure iterationTypes is always an array
+      let iterationTypes = [];
+
+      if (Array.isArray(data)) {
+        // Direct array response
+        iterationTypes = data;
+      } else if (data && Array.isArray(data.content)) {
+        // Paginated response with content property
+        iterationTypes = data.content;
+      } else if (data && Array.isArray(data.data)) {
+        // Response with data property
+        iterationTypes = data.data;
+      } else if (data && typeof data === "object") {
+        console.warn(
+          "[IterationTypesEntityManager] Unexpected API response format:",
+          data,
+        );
+        // Last resort: wrap single object or use empty array
+        iterationTypes = data.length !== undefined ? [] : [data];
       } else {
-        // Legacy format - return as-is
-        return {
-          data: Array.isArray(data) ? data : [],
-          total: Array.isArray(data) ? data.length : 0,
-          page: page,
-          pageSize: pageSize,
-          totalPages: 1,
-        };
+        console.warn(
+          "[IterationTypesEntityManager] API returned non-object response:",
+          data,
+        );
+        iterationTypes = [];
       }
+
+      const totalIterationTypes = data.totalElements || iterationTypes.length;
+      console.log(
+        `[IterationTypesEntityManager] Client-side pagination: ${totalIterationTypes} total iteration types loaded`,
+      );
+
+      return {
+        data: iterationTypes,
+        total: totalIterationTypes,
+        page: 1, // Always page 1 for client-side pagination
+        pageSize: totalIterationTypes, // PageSize = total for client-side pagination
+      };
     } catch (error) {
-      console.error("[IterationTypesEntityManager] Fetch error:", error);
-      this._trackError("fetch", error);
+      console.error(
+        "[IterationTypesEntityManager] Error fetching iteration type data:",
+        error,
+      );
       throw error;
     }
   }
 
   /**
-   * Create new iteration type
+   * Handle refresh with visual feedback following Applications pattern
+   * @param {HTMLElement} button - Refresh button element
+   * @private
+   */
+  async _handleRefreshWithFeedback(button) {
+    const originalText = button.innerHTML;
+    const originalDisabled = button.disabled;
+    try {
+      // Provide visual feedback
+      button.innerHTML = '<span class="umig-btn-icon">⏳</span> Refreshing...';
+      button.disabled = true;
+      // Refresh data
+      await this.loadData();
+      // Success feedback
+      button.innerHTML = '<span class="umig-btn-icon">✅</span> Refreshed';
+      // Restore original state after 1 second
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = originalDisabled;
+      }, 1000);
+    } catch (error) {
+      console.error("[IterationTypesEntityManager] Refresh failed:", error);
+      // Error feedback
+      button.innerHTML = '<span class="umig-btn-icon">❌</span> Error';
+      // Restore original state after 2 seconds
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = originalDisabled;
+      }, 2000);
+      this._showNotification(
+        "error",
+        "Refresh Failed",
+        error.message || "An error occurred while refreshing.",
+      );
+    }
+  }
+
+  /**
+   * Format date-time for display following Applications pattern
+   * @param {string} dateTimeString - ISO date time string
+   * @returns {string} Formatted date time
+   * @private
+   */
+  _formatDateTime(dateTimeString) {
+    if (!dateTimeString) {
+      return "Not available";
+    }
+    try {
+      const date = new Date(dateTimeString);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      // Format as "Dec 15, 2023 at 2:30 PM"
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error formatting date:",
+        error,
+      );
+      return "Format error";
+    }
+  }
+
+  /**
+   * Show notification message using proven pattern following Applications pattern
+   * @param {string} type - Notification type (success, error, warning, info)
+   * @param {string} title - Notification title
+   * @param {string} message - Notification message
+   * @private
+   */
+  _showNotification(type, title, message) {
+    try {
+      // Use ComponentOrchestrator for notifications if available
+      if (this.orchestrator && this.orchestrator.showNotification) {
+        this.orchestrator.showNotification(type, title, message);
+        return;
+      }
+      // Fallback to console logging if no notification system available
+      const logLevel =
+        type === "error" ? "error" : type === "warning" ? "warn" : "log";
+      console[logLevel](`[IterationTypesEntityManager] ${title}: ${message}`);
+      // Additional fallback for critical errors - show alert
+      if (type === "error") {
+        // Use setTimeout to avoid blocking UI updates
+        setTimeout(() => {
+          alert(`${title}\n\n${message}`);
+        }, 100);
+      }
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error showing notification:",
+        error,
+      );
+      // Final fallback - console log only
+      console.log(
+        `[Notification] ${type.toUpperCase()}: ${title} - ${message}`,
+      );
+    }
+  }
+
+  /**
+   * Clear cache for a specific entity or all entities following Applications pattern
+   * @param {string} id - Entity ID to clear from cache, or 'all' to clear everything
+   * @private
+   */
+  _invalidateCache(id) {
+    try {
+      if (!this.cache) {
+        return;
+      }
+      if (id === "all") {
+        this.cache.clear();
+        console.log("[IterationTypesEntityManager] Cleared all cache");
+      } else {
+        // Clear specific entity cache
+        const keysToDelete = [];
+        this.cache.forEach((value, key) => {
+          if (key.includes(id)) {
+            keysToDelete.push(key);
+          }
+        });
+        keysToDelete.forEach((key) => this.cache.delete(key));
+        console.log(
+          `[IterationTypesEntityManager] Cleared cache for ${id} (${keysToDelete.length} entries)`,
+        );
+      }
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error invalidating cache:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Create new iteration type via API following Applications pattern
+   * @param {Object} data - Iteration type data
+   * @returns {Promise<Object>} Created iteration type
+   * @protected
+   */
+  async _createEntityData(data) {
+    try {
+      console.log(
+        "[IterationTypesEntityManager] Creating new iteration type:",
+        data,
+      );
+      // Security validation
+      window.SecurityUtils.validateInput(data);
+      const response = await fetch(this.iterationTypesApiUrl, {
+        method: "POST",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(data),
+        credentials: "same-origin",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to create iteration type: ${response.status}`);
+      }
+      const createdIterationType = await response.json();
+      console.log(
+        "[IterationTypesEntityManager] Iteration type created:",
+        createdIterationType,
+      );
+      // Clear relevant caches
+      this._invalidateCache("all");
+      return createdIterationType;
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Failed to create iteration type:",
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Create new iteration type (Public API)
    * @param {Object} data - Iteration type data
    * @returns {Promise<Object>} Created iteration type
    */
@@ -549,28 +1369,16 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       const validationResult =
         await this._validateIterationTypeData(sanitizedInput);
       if (!validationResult.isValid) {
-        throw new SecurityUtils.ValidationException(
+        const SecurityUtils = window.SecurityUtils || {};
+        throw new (SecurityUtils.ValidationException || Error)(
           `Validation failed: ${validationResult.errors.join(", ")}`,
-          "create",
-          data,
         );
       }
 
-      // Make API request
-      const response = await this._makeApiRequest("POST", this.apiEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(validationResult.sanitizedData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Create failed: ${response.status}`);
-      }
-
-      const result = await response.json();
+      // Call protected method for actual API call
+      const result = await this._createEntityData(
+        validationResult.sanitizedData,
+      );
 
       // Clear caches
       this._clearCaches();
@@ -592,7 +1400,81 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Update existing iteration type
+   * Update iteration type via API following Applications pattern
+   * @param {string} id - Iteration type ID
+   * @param {Object} data - Updated iteration type data
+   * @returns {Promise<Object>} Updated iteration type
+   * @protected
+   */
+  async _updateEntityData(id, data) {
+    try {
+      console.log(
+        "[IterationTypesEntityManager] Updating iteration type:",
+        id,
+        data,
+      );
+      // Filter out read-only fields that shouldn't be sent in updates
+      const readOnlyFields = [
+        "itt_code",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+      ];
+      const updateData = {};
+      // Only include updatable fields (matching IterationTypeRepository whitelist)
+      const updatableFields = [
+        "itt_name",
+        "itt_description",
+        "itt_color",
+        "itt_icon",
+        "itt_display_order",
+        "itt_active",
+      ];
+      Object.keys(data).forEach((key) => {
+        if (updatableFields.includes(key) && !readOnlyFields.includes(key)) {
+          updateData[key] = data[key];
+        }
+      });
+      console.log(
+        "[IterationTypesEntityManager] Filtered update data:",
+        updateData,
+      );
+      // Security validation
+      window.SecurityUtils.validateInput({ id, ...updateData });
+      const response = await fetch(
+        `${this.iterationTypesApiUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(updateData),
+          credentials: "same-origin",
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to update iteration type: ${response.status}`);
+      }
+      const updatedIterationType = await response.json();
+      console.log(
+        "[IterationTypesEntityManager] Iteration type updated:",
+        updatedIterationType,
+      );
+      // Clear relevant caches
+      this._invalidateCache(id);
+      return updatedIterationType;
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Failed to update iteration type:",
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update existing iteration type (Public API)
    * @param {string} code - Iteration type code
    * @param {Object} data - Updated data
    * @returns {Promise<Object>} Updated iteration type
@@ -616,32 +1498,17 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         true,
       );
       if (!validationResult.isValid) {
-        throw new SecurityUtils.ValidationException(
+        const SecurityUtils = window.SecurityUtils || {};
+        throw new (SecurityUtils.ValidationException || Error)(
           `Validation failed: ${validationResult.errors.join(", ")}`,
-          "update",
-          data,
         );
       }
 
-      // Make API request
-      const response = await this._makeApiRequest(
-        "PUT",
-        `${this.apiEndpoint}/${code}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validationResult.sanitizedData),
-        },
+      // Call protected method for actual API call
+      const result = await this._updateEntityData(
+        code,
+        validationResult.sanitizedData,
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Update failed: ${response.status}`);
-      }
-
-      const result = await response.json();
 
       // Clear caches
       this._clearCaches();
@@ -663,7 +1530,110 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Delete iteration type (soft delete)
+   * Delete iteration type via API following Applications pattern
+   * @param {string} id - Iteration type ID
+   * @returns {Promise<void>}
+   * @protected
+   */
+  async _deleteEntityData(id) {
+    try {
+      console.log("[IterationTypesEntityManager] Deleting iteration type:", id);
+      // Security validation
+      window.SecurityUtils.validateInput({ id });
+      const response = await fetch(
+        `${this.iterationTypesApiUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          credentials: "same-origin",
+        },
+      );
+      if (!response.ok) {
+        // Parse the error response to get detailed error information
+        let errorMessage = `Failed to delete iteration type (${response.status})`;
+        let blockingRelationships = null;
+        try {
+          const errorData = await response.json();
+          console.log(
+            "[IterationTypesEntityManager] Delete error response:",
+            errorData,
+          );
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          // Extract blocking relationships for user-friendly display
+          if (errorData.blocking_relationships) {
+            blockingRelationships = errorData.blocking_relationships;
+          }
+        } catch (parseError) {
+          console.warn(
+            "[IterationTypesEntityManager] Could not parse error response:",
+            parseError,
+          );
+          // Use default error message if JSON parsing fails
+        }
+        // Create a user-friendly error message
+        if (response.status === 409 && blockingRelationships) {
+          // HTTP 409 Conflict - Iteration type has relationships that prevent deletion
+          const relationshipDetails = this._formatBlockingRelationships(
+            blockingRelationships,
+          );
+          const detailedError = new Error(
+            `${errorMessage}\n\nThis iteration type cannot be deleted because it is referenced by:\n${relationshipDetails}`,
+          );
+          detailedError.isConstraintError = true;
+          detailedError.blockingRelationships = blockingRelationships;
+          throw detailedError;
+        } else if (response.status === 404) {
+          // HTTP 404 Not Found
+          throw new Error(
+            "Iteration type not found. It may have already been deleted.",
+          );
+        } else {
+          // Other errors
+          throw new Error(errorMessage);
+        }
+      }
+      console.log(
+        "[IterationTypesEntityManager] Iteration type deleted successfully",
+      );
+      // Clear relevant caches
+      this._invalidateCache(id);
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Failed to delete iteration type:",
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Format blocking relationships for user-friendly error messages following Applications pattern
+   * @param {Object} blockingRelationships - Relationships preventing deletion
+   * @returns {string} Formatted relationship details
+   * @private
+   */
+  _formatBlockingRelationships(blockingRelationships) {
+    const details = [];
+    Object.entries(blockingRelationships).forEach(([type, items]) => {
+      if (Array.isArray(items) && items.length > 0) {
+        const count = items.length;
+        const firstFew = items
+          .slice(0, 3)
+          .map((item) => item.name || item.code || item.id)
+          .join(", ");
+        const extra = count > 3 ? ` and ${count - 3} more` : "";
+        details.push(`- ${type}: ${firstFew}${extra}`);
+      }
+    });
+    return details.join("\n");
+  }
+
+  /**
+   * Delete iteration type (Public API with relationship checking)
    * @param {string} code - Iteration type code
    * @returns {Promise<boolean>} Success status
    */
@@ -685,19 +1655,8 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         );
       }
 
-      // Make API request
-      const response = await this._makeApiRequest(
-        "DELETE",
-        `${this.apiEndpoint}/${code}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Delete failed: ${response.status}`);
-      }
+      // Call protected method for actual API call
+      const result = await this._deleteEntityData(code);
 
       // Clear caches
       this._clearCaches();
@@ -710,7 +1669,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         `[IterationTypesEntityManager] Iteration type deleted in ${deleteTime.toFixed(2)}ms`,
       );
 
-      return true;
+      return result;
     } catch (error) {
       console.error("[IterationTypesEntityManager] Delete error:", error);
       this._trackError("delete", error);
@@ -739,11 +1698,14 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         }
       }
 
-      // Fetch from API
-      const response = await this._makeApiRequest(
-        "GET",
-        `${this.apiEndpoint}?stats=true`,
-      );
+      // Fetch from API with proper security
+      const response = await fetch(`${this.apiEndpoint}?stats=true`, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Stats request failed: ${response.status}`);
@@ -816,33 +1778,113 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   // ========================================================================================
 
   /**
-   * Check user permissions for admin operations
+   * Load real user permissions following Users/Teams pattern
    * @returns {Promise<void>}
    * @private
    */
-  async _checkUserPermissions() {
+  async _loadUserPermissions() {
     try {
-      // In a real implementation, this would check with the authentication system
-      // For now, assume admin permissions are available
-      this.userPermissions = {
-        canCreate: true,
-        canUpdate: true,
-        canDelete: true,
-        isAdmin: true,
-      };
+      console.log("[IterationTypesEntityManager] Loading user permissions");
 
-      console.log("[IterationTypesEntityManager] User permissions checked");
+      // Wait for SecurityUtils to be available (race condition fix)
+      let waited = 0;
+      const maxWait = 5000; // 5 seconds max wait
+      while (
+        (!window.SecurityUtils ||
+          typeof window.SecurityUtils.validateInput !== "function") &&
+        waited < maxWait
+      ) {
+        console.log(
+          `[IterationTypesEntityManager] Waiting for SecurityUtils to be available... (${waited}ms)`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        waited += 100;
+      }
+
+      // Enhanced SecurityUtils availability check with detailed error information
+      if (
+        typeof window.SecurityUtils === "undefined" ||
+        !window.SecurityUtils
+      ) {
+        console.error(
+          "[IterationTypesEntityManager] SecurityUtils not available on window object after waiting",
+        );
+        console.error(
+          "[IterationTypesEntityManager] Available window properties:",
+          Object.keys(window).filter((key) => key.includes("Security")),
+        );
+        throw new Error(
+          "SecurityUtils validation service not available. Ensure SecurityUtils.js is loaded before IterationTypesEntityManager.",
+        );
+      }
+
+      if (typeof window.SecurityUtils.validateInput !== "function") {
+        console.error(
+          "[IterationTypesEntityManager] SecurityUtils.validateInput method not available",
+        );
+        console.error(
+          "[IterationTypesEntityManager] Available SecurityUtils methods:",
+          Object.keys(window.SecurityUtils).filter(
+            (key) => typeof window.SecurityUtils[key] === "function",
+          ),
+        );
+        throw new Error(
+          "SecurityUtils.validateInput method not available. SecurityUtils may not be fully initialized.",
+        );
+      }
+
+      // Real authentication check - call current user API
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/users/current",
+        {
+          method: "GET",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          credentials: "same-origin",
+        },
+      );
+
+      if (response.ok) {
+        const userData = await response.json();
+        this.currentUserRole = userData;
+
+        // Set permissions based on actual user data
+        this.userPermissions = {
+          canCreate: userData.usr_is_admin || userData.role_code === "ADMIN",
+          canUpdate: userData.usr_is_admin || userData.role_code === "ADMIN",
+          canDelete: userData.usr_is_admin || userData.role_code === "ADMIN",
+          isAdmin: userData.usr_is_admin || false,
+        };
+
+        console.log(
+          "[IterationTypesEntityManager] User permissions loaded:",
+          this.userPermissions,
+        );
+      } else {
+        console.warn(
+          "[IterationTypesEntityManager] Failed to load user info, using default permissions",
+        );
+        this.userPermissions = {
+          canCreate: false,
+          canUpdate: false,
+          canDelete: false,
+          isAdmin: false,
+        };
+      }
     } catch (error) {
-      console.warn(
-        "[IterationTypesEntityManager] Permission check failed:",
+      console.error(
+        "[IterationTypesEntityManager] Permission loading failed:",
         error,
       );
+      // Fail secure - no permissions if auth fails
       this.userPermissions = {
         canCreate: false,
         canUpdate: false,
         canDelete: false,
         isAdmin: false,
       };
+      throw error;
     }
   }
 
@@ -853,25 +1895,11 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    */
   async _initializeColorIconComponents() {
     try {
-      // Initialize color picker component
-      if (this.orchestrator) {
-        await this.orchestrator.registerComponent("color-picker", {
-          template: this._getColorPickerTemplate(),
-          events: {
-            change: (event) => this._handleColorChange(event),
-          },
-        });
-
-        await this.orchestrator.registerComponent("icon-picker", {
-          template: this._getIconPickerTemplate(),
-          events: {
-            change: (event) => this._handleIconChange(event),
-          },
-        });
-      }
-
+      // Skip component registration for now - focus on core functionality
+      // ComponentOrchestrator doesn't support custom component interfaces yet
+      // This prevents the "Invalid component interface: color-picker" error
       console.log(
-        "[IterationTypesEntityManager] Color and icon components initialized",
+        "[IterationTypesEntityManager] Color and icon components initialization skipped (not required for core functionality)",
       );
     } catch (error) {
       console.warn(
@@ -987,18 +2015,17 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       }
 
       // Sanitize string fields
+      const SecurityUtils = window.SecurityUtils || {};
+      const sanitizeString = SecurityUtils.sanitizeString || ((str) => str);
+
       if (data.itt_code) {
-        sanitizedData.itt_code = SecurityUtils.sanitizeString(
-          data.itt_code.trim(),
-        );
+        sanitizedData.itt_code = sanitizeString(data.itt_code.trim());
       }
       if (data.itt_name) {
-        sanitizedData.itt_name = SecurityUtils.sanitizeString(
-          data.itt_name.trim(),
-        );
+        sanitizedData.itt_name = sanitizeString(data.itt_name.trim());
       }
       if (data.itt_description) {
-        sanitizedData.itt_description = SecurityUtils.sanitizeString(
+        sanitizedData.itt_description = sanitizeString(
           data.itt_description.trim(),
         );
       }
@@ -1080,77 +2107,6 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Make API request with retry logic and circuit breaker
-   * @param {string} method - HTTP method
-   * @param {string} url - Request URL
-   * @param {Object} options - Fetch options
-   * @returns {Promise<Response>} Fetch response
-   * @private
-   */
-  async _makeApiRequest(method, url, options = {}) {
-    const operationKey = `${method}_${url}`;
-
-    // Check circuit breaker
-    if (this.circuitBreaker.has(operationKey)) {
-      const breaker = this.circuitBreaker.get(operationKey);
-      if (
-        breaker.state === "OPEN" &&
-        Date.now() - breaker.lastFailure < 60000
-      ) {
-        throw new Error(`Circuit breaker OPEN for ${operationKey}`);
-      }
-    }
-
-    let lastError;
-    for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            Accept: "application/json",
-            ...options.headers,
-          },
-          ...options,
-        });
-
-        // Reset circuit breaker on success
-        if (this.circuitBreaker.has(operationKey)) {
-          this.circuitBreaker.delete(operationKey);
-        }
-
-        return response;
-      } catch (error) {
-        lastError = error;
-        console.warn(
-          `[IterationTypesEntityManager] API request attempt ${attempt} failed:`,
-          error,
-        );
-
-        // Track error
-        this._trackError(operationKey, error);
-
-        // Check if we should open circuit breaker
-        const errorCount = this.errorBoundary.get(operationKey) || 0;
-        if (errorCount >= this.retryConfig.circuitBreakerThreshold) {
-          this.circuitBreaker.set(operationKey, {
-            state: "OPEN",
-            lastFailure: Date.now(),
-          });
-        }
-
-        // Wait before retry (except on last attempt)
-        if (attempt < this.retryConfig.maxRetries) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, this.retryConfig.retryDelay * attempt),
-          );
-        }
-      }
-    }
-
-    throw lastError;
-  }
-
-  /**
    * Track performance metrics
    * @param {string} operation - Operation name
    * @param {number} duration - Duration in milliseconds
@@ -1161,9 +2117,31 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       `[IterationTypesEntityManager] Performance - ${operation}: ${duration.toFixed(2)}ms`,
     );
 
-    // Track for A/B testing and optimization
-    if (this.performanceTracker) {
-      this.performanceTracker.track(operation, duration);
+    // Track for A/B testing and optimization using BaseEntityManager pattern
+    if (this.performanceTracker && this.performanceTracker.trackPerformance) {
+      try {
+        // EntityMigrationTracker expects: trackPerformance(architecture, operation, duration, metadata)
+        // Provide required parameters with entity-specific metadata
+        const architecture = "new"; // All entity managers use new component architecture
+        const metadata = {
+          entityType: this.entityType,
+          timestamp: new Date().toISOString(),
+          componentCount: this.components ? this.components.size : 0,
+          recordCount: this.currentData ? this.currentData.length : 0,
+        };
+
+        this.performanceTracker.trackPerformance(
+          architecture,
+          operation,
+          duration,
+          metadata,
+        );
+      } catch (error) {
+        console.warn(
+          `[IterationTypesEntityManager] Performance tracking failed for ${this.entityType}:`,
+          error.message,
+        );
+      }
     }
   }
 
@@ -1412,10 +2390,13 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       return {};
     }
 
+    const SecurityUtils = window.SecurityUtils || {};
+    const sanitizeString = SecurityUtils.sanitizeString || ((str) => str);
+
     const sanitized = {};
     for (const [key, value] of Object.entries(data)) {
       if (typeof value === "string") {
-        sanitized[key] = SecurityUtils.sanitizeString(value);
+        sanitized[key] = sanitizeString(value);
       } else {
         sanitized[key] = value;
       }
@@ -1462,5 +2443,12 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 }
 
-// Export for use in other modules
-window.IterationTypesEntityManager = IterationTypesEntityManager;
+// Attach to window for browser compatibility
+if (typeof window !== "undefined") {
+  window.IterationTypesEntityManager = IterationTypesEntityManager;
+}
+
+// CommonJS export for Jest compatibility
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = IterationTypesEntityManager;
+}

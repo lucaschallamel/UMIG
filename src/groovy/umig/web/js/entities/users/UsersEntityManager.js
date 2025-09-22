@@ -90,7 +90,8 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
             sortable: true,
             renderer: (value, row) => {
               // Display the actual role_code from the database without transformation
-              const roleCode = row.role_code || (row.usr_is_admin ? "ADMIN" : "NORMAL");
+              const roleCode =
+                row.role_code || (row.usr_is_admin ? "ADMIN" : "NORMAL");
               return roleCode;
             },
           },
@@ -165,7 +166,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               required: true,
               label: "User Code",
               placeholder: "Enter user code (e.g., john.doe)",
-              readonly: (mode, data) => mode === 'edit', // Readonly in edit mode, editable in create mode
+              readonly: (mode, data) => mode === "edit", // Readonly in edit mode, editable in create mode
               validation: {
                 minLength: 2,
                 maxLength: 50,
@@ -237,8 +238,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
               required: false,
               label: "SuperAdmin Privileges",
               defaultValue: false,
-              helpText:
-                "SuperAdmins have full access to all system features",
+              helpText: "SuperAdmins have full access to all system features",
             },
           ],
         },
@@ -389,43 +389,66 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to load roles: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to load roles: ${response.status} ${response.statusText}`,
+        );
       }
 
       const roles = await response.json();
       this.rolesData = roles;
 
       // Update the modal configuration with the roles options
-      const roleField = this.config.modalConfig.form.fields.find(field => field.name === 'rls_id');
+      const roleField = this.config.modalConfig.form.fields.find(
+        (field) => field.name === "rls_id",
+      );
       if (roleField) {
-        roleField.options = roles.map(role => ({
+        roleField.options = roles.map((role) => ({
           value: role.rls_id,
           label: `${role.rls_code} - ${role.rls_description}`,
-          text: `${role.rls_code} - ${role.rls_description}`
+          text: `${role.rls_code} - ${role.rls_description}`,
         }));
 
-        console.log(`[UsersEntityManager] ✓ Loaded ${roles.length} roles for dropdown`);
+        console.log(
+          `[UsersEntityManager] ✓ Loaded ${roles.length} roles for dropdown`,
+        );
       } else {
-        console.warn("[UsersEntityManager] Role field not found in modal configuration");
+        console.warn(
+          "[UsersEntityManager] Role field not found in modal configuration",
+        );
       }
-
     } catch (error) {
       console.error("[UsersEntityManager] Error loading roles:", error);
 
       // Fallback to default roles if API fails
       const defaultRoles = [
-        { rls_id: 1, rls_code: "ADMIN", rls_description: "Full access to all system features" },
-        { rls_id: 2, rls_code: "NORMAL", rls_description: "Standard user with access to create and manage implementation plans" },
-        { rls_id: 3, rls_code: "PILOT", rls_description: "User with access to pilot features and functionalities" }
+        {
+          rls_id: 1,
+          rls_code: "ADMIN",
+          rls_description: "Full access to all system features",
+        },
+        {
+          rls_id: 2,
+          rls_code: "NORMAL",
+          rls_description:
+            "Standard user with access to create and manage implementation plans",
+        },
+        {
+          rls_id: 3,
+          rls_code: "PILOT",
+          rls_description:
+            "User with access to pilot features and functionalities",
+        },
       ];
 
       this.rolesData = defaultRoles;
-      const roleField = this.config.modalConfig.form.fields.find(field => field.name === 'rls_id');
+      const roleField = this.config.modalConfig.form.fields.find(
+        (field) => field.name === "rls_id",
+      );
       if (roleField) {
-        roleField.options = defaultRoles.map(role => ({
+        roleField.options = defaultRoles.map((role) => ({
           value: role.rls_id,
           label: `${role.rls_code} - ${role.rls_description}`,
-          text: `${role.rls_code} - ${role.rls_description}`
+          text: `${role.rls_code} - ${role.rls_description}`,
         }));
 
         console.log("[UsersEntityManager] ✓ Using fallback roles data");
@@ -580,7 +603,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "success",
             "User Created",
-            `User ${formData.usr_first_name} ${formData.usr_last_name} has been created successfully.`
+            `User ${formData.usr_first_name} ${formData.usr_last_name} has been created successfully.`,
           );
 
           // Return true to close modal automatically
@@ -592,7 +615,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "error",
             "Error Creating User",
-            error.message || "An error occurred while creating the user."
+            error.message || "An error occurred while creating the user.",
           );
 
           // Return false to keep modal open with error
@@ -659,7 +682,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "success",
             "User Updated",
-            `User ${formData.usr_first_name} ${formData.usr_last_name} has been updated successfully.`
+            `User ${formData.usr_first_name} ${formData.usr_last_name} has been updated successfully.`,
           );
 
           // Return true to close modal automatically
@@ -671,7 +694,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "error",
             "Error Updating User",
-            error.message || "An error occurred while updating the user."
+            error.message || "An error occurred while updating the user.",
           );
 
           // Return false to keep modal open with error
@@ -2566,13 +2589,28 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       console.log("[UsersEntityManager] Updating user:", id, data);
 
       // Filter out read-only fields that shouldn't be sent in updates
-      const readOnlyFields = ['usr_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'teams'];
+      const readOnlyFields = [
+        "usr_id",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+        "teams",
+      ];
       const updateData = {};
 
       // Only include updatable fields (matching UserRepository whitelist)
-      const updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id'];
+      const updatableFields = [
+        "usr_code",
+        "usr_first_name",
+        "usr_last_name",
+        "usr_email",
+        "usr_is_admin",
+        "usr_active",
+        "rls_id",
+      ];
 
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         if (updatableFields.includes(key) && !readOnlyFields.includes(key)) {
           updateData[key] = data[key];
         }
@@ -2791,14 +2829,16 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       this._setRefreshButtonLoadingState(refreshButton, true);
 
       // Step 2: Add visual feedback to table (fade effect)
-      const tableContainer = document.querySelector('#dataTable');
+      const tableContainer = document.querySelector("#dataTable");
       if (tableContainer) {
-        tableContainer.style.transition = 'opacity 0.2s ease-in-out';
-        tableContainer.style.opacity = '0.6';
+        tableContainer.style.transition = "opacity 0.2s ease-in-out";
+        tableContainer.style.opacity = "0.6";
       }
 
       // Step 3: Perform the actual refresh
-      console.log("[UsersEntityManager] Starting data refresh with visual feedback");
+      console.log(
+        "[UsersEntityManager] Starting data refresh with visual feedback",
+      );
       await this.loadData(
         this.currentFilters,
         this.currentSort,
@@ -2811,31 +2851,31 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       // Step 5: Restore table opacity with slight delay for visual feedback
       if (tableContainer) {
         // Small delay to ensure user sees the refresh happening
-        await new Promise(resolve => setTimeout(resolve, 150));
-        tableContainer.style.opacity = '1';
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        tableContainer.style.opacity = "1";
       }
 
       // Step 6: Show success feedback
       this._showRefreshSuccessMessage(operationTime);
 
-      console.log(`[UsersEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`);
-
+      console.log(
+        `[UsersEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`,
+      );
     } catch (error) {
       console.error("[UsersEntityManager] Error refreshing data:", error);
 
       // Restore table opacity on error
-      const tableContainer = document.querySelector('#dataTable');
+      const tableContainer = document.querySelector("#dataTable");
       if (tableContainer) {
-        tableContainer.style.opacity = '1';
+        tableContainer.style.opacity = "1";
       }
 
       // Show error message
       this._showNotification(
         "error",
         "Refresh Failed",
-        "Failed to refresh user data. Please try again."
+        "Failed to refresh user data. Please try again.",
       );
-
     } finally {
       // Step 7: Always restore button state
       this._setRefreshButtonLoadingState(refreshButton, false);
@@ -2856,15 +2896,16 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       button._originalHTML = button.innerHTML;
 
       // Update to loading state
-      button.innerHTML = '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">⟳</span> Refreshing...';
+      button.innerHTML =
+        '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">⟳</span> Refreshing...';
       button.disabled = true;
-      button.style.opacity = '0.7';
-      button.style.cursor = 'not-allowed';
+      button.style.opacity = "0.7";
+      button.style.cursor = "not-allowed";
 
       // Add spinning animation if not already defined
-      if (!document.querySelector('#refresh-spinner-styles')) {
-        const style = document.createElement('style');
-        style.id = 'refresh-spinner-styles';
+      if (!document.querySelector("#refresh-spinner-styles")) {
+        const style = document.createElement("style");
+        style.id = "refresh-spinner-styles";
         style.textContent = `
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -2873,15 +2914,14 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
         `;
         document.head.appendChild(style);
       }
-
     } else {
       // Restore original state
       if (button._originalHTML) {
         button.innerHTML = button._originalHTML;
       }
       button.disabled = false;
-      button.style.opacity = '1';
-      button.style.cursor = 'pointer';
+      button.style.opacity = "1";
+      button.style.cursor = "pointer";
     }
   }
 
@@ -2892,7 +2932,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
    */
   _showRefreshSuccessMessage(operationTime) {
     // Create a temporary success indicator
-    const successIndicator = document.createElement('div');
+    const successIndicator = document.createElement("div");
     successIndicator.style.cssText = `
       position: fixed;
       top: 20px;
@@ -2915,9 +2955,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     `;
 
     // Add fade in/out animation
-    if (!document.querySelector('#success-indicator-styles')) {
-      const style = document.createElement('style');
-      style.id = 'success-indicator-styles';
+    if (!document.querySelector("#success-indicator-styles")) {
+      const style = document.createElement("style");
+      style.id = "success-indicator-styles";
       style.textContent = `
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(-10px); }

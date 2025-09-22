@@ -950,7 +950,10 @@ class IterationView {
           // Recreate the API client now that we have the user context
           this.apiClient = new StepsAPIv2Client(this.userContext);
           this.realTimeSync = new RealTimeSync(this.apiClient, this);
-          console.log("API client recreated with user context:", this.userContext);
+          console.log(
+            "API client recreated with user context:",
+            this.userContext,
+          );
 
           // Apply role-based UI controls once DOM is ready
           if (document.readyState === "loading") {
@@ -985,13 +988,16 @@ class IterationView {
             userId: null, // Will be populated from current user if available
             username: username,
             role: this.userRole,
-            isAdmin: this.isAdmin
+            isAdmin: this.isAdmin,
           };
 
           // Recreate API client with fallback context
           this.apiClient = new StepsAPIv2Client(this.userContext);
           this.realTimeSync = new RealTimeSync(this.apiClient, this);
-          console.log("API client recreated with fallback context:", this.userContext);
+          console.log(
+            "API client recreated with fallback context:",
+            this.userContext,
+          );
 
           this.applyRoleBasedControls();
         }
@@ -1011,15 +1017,18 @@ class IterationView {
         // Create minimal userContext for error fallback
         this.userContext = {
           userId: null,
-          username: username || 'unknown',
+          username: username || "unknown",
           role: this.userRole,
-          isAdmin: this.isAdmin
+          isAdmin: this.isAdmin,
         };
 
         // Recreate API client with error fallback context
         this.apiClient = new StepsAPIv2Client(this.userContext);
         this.realTimeSync = new RealTimeSync(this.apiClient, this);
-        console.log("API client recreated with error fallback context:", this.userContext);
+        console.log(
+          "API client recreated with error fallback context:",
+          this.userContext,
+        );
 
         this.applyRoleBasedControls();
       }

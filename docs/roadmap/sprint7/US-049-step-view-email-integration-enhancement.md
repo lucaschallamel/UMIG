@@ -588,38 +588,235 @@ class AsyncEmailProcessor {
 | Privacy concerns with email data    | High   | Low         | GDPR compliance, data minimization    |
 | Integration with existing workflows | Medium | Low         | Gradual rollout, user training        |
 
+## COMPREHENSIVE IMPLEMENTATION PLAN
+
+### 3-Phase Development Strategy
+
+Based on requirements analyst and project planner comprehensive analysis, US-049 is structured as a **3-phase implementation** with **strategic dependency management** and **risk mitigation**:
+
+#### **PHASE 1: Core API Foundation** (2 points, Day 1)
+
+**Timeline**: Day 1
+**Dependencies**: US-058 Phase 1 (EmailService security infrastructure)
+**Scope**: Essential API endpoint and basic email integration
+
+**Deliverables**:
+
+- Core API endpoint: `/stepViewApi/email` with permission validation
+- EmailService integration using US-058 foundation
+- Step email template with hierarchy context
+- Basic recipient logic and audit logging
+- Performance validation (<800ms total, <500ms email composition)
+
+**Quality Gates**:
+
+- API response time <200ms for step data retrieval
+- Email processing <500ms (non-blocking)
+- Security validation passes for all endpoints
+- Basic integration tests pass (>85% coverage)
+
+#### **PHASE 2: Enhanced Email Features** (2 points, Day 2-3)
+
+**Timeline**: Day 2-3
+**Dependencies**: Phase 1 completion + US-058 Phase 2
+**Scope**: Advanced email functionality and instruction tracking
+
+**Deliverables**:
+
+- Instruction completion email notifications
+- Advanced email templates for all step events
+- Email notification preferences management
+- Enhanced audit trail with email logging
+- Bulk operation support with consolidated notifications
+
+**Quality Gates**:
+
+- All email notification types functional and tested
+- Template system integrated and validated
+- Performance targets maintained with enhanced features
+- Integration tests pass for all email scenarios
+
+#### **PHASE 3: System Integration** (1 point, Day 4)
+
+**Timeline**: Day 4
+**Dependencies**: Phase 1-2 completion
+**Scope**: IterationView integration and optimization
+
+**Deliverables**:
+
+- IterationView integration points established
+- Cross-component email service patterns
+- System-wide email notification coordination
+- Final performance optimization and monitoring
+- Comprehensive documentation and training materials
+
+**Quality Gates**:
+
+- Complete system integration verified
+- Performance benchmarks exceed targets
+- All acceptance criteria validated
+- User acceptance testing completed
+
+### Resource Allocation and Risk Management
+
+#### **Day 1 Focus** (Phase 1 - 2 points)
+
+**Primary Developer**: Backend specialist for API development
+**Secondary Developer**: Email integration specialist for EmailService connection
+**QA Engineer**: Concurrent testing of API endpoints and basic email functionality
+
+**Critical Path Items**:
+
+1. `/stepViewApi/email` endpoint implementation (4 hours)
+2. EmailService integration with US-058 foundation (3 hours)
+3. Basic email template creation and testing (1 hour)
+
+**Risk Mitigation**:
+
+- **US-058 Dependency**: Phase 1 only requires US-058 Phase 1 completion (security infrastructure)
+- **Performance Validation**: Continuous monitoring with <800ms total response time target
+- **Fallback Strategy**: If email integration encounters issues, core API can function independently
+
+#### **Risk Assessment Matrix**
+
+| Risk Category                 | Phase 1 Impact | Probability | Mitigation Strategy                                 |
+| ----------------------------- | -------------- | ----------- | --------------------------------------------------- |
+| US-058 Integration Complexity | High           | Low         | Incremental integration, US-058 Phase 1 foundation  |
+| Email Performance Impact      | Medium         | Medium      | Asynchronous processing, performance monitoring     |
+| API Endpoint Complexity       | Low            | Low         | Leverage existing StepView patterns and US-056 DTOs |
+| Template Compatibility        | Medium         | Low         | Use proven template patterns from US-058            |
+
+### Technical Specifications
+
+#### **Core API Endpoint Architecture**
+
+```groovy
+// Phase 1 Implementation - /stepViewApi/email
+@Path("/stepViewApi/email")
+stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
+    def requestBody = new JsonSlurper().parseText(request.body)
+    def stepInstanceId = UUID.fromString(requestBody.stepInstanceId as String)
+
+    // Performance checkpoint 1: Step data retrieval (<200ms)
+    def startTime = System.currentTimeMillis()
+    def stepData = StepRepository.findInstanceByUuidWithEmailContext(stepInstanceId)
+    def dataRetrievalTime = System.currentTimeMillis() - startTime
+
+    if (dataRetrievalTime > 200) {
+        log.warn("Step data retrieval exceeded 200ms: ${dataRetrievalTime}ms")
+    }
+
+    // Performance checkpoint 2: Email composition and sending (<500ms)
+    def emailStartTime = System.currentTimeMillis()
+    def emailService = getEmailService() // US-058 integration
+    def emailResult = emailService.sendStepNotification(stepData, requestBody.notificationType)
+    def emailProcessingTime = System.currentTimeMillis() - emailStartTime
+
+    if (emailProcessingTime > 500) {
+        log.warn("Email processing exceeded 500ms: ${emailProcessingTime}ms")
+    }
+
+    // Audit logging
+    AuditLogRepository.logStepEmailNotification(
+        stepInstanceId,
+        requestBody.notificationType,
+        getCurrentUser(),
+        "step-view-api"
+    )
+
+    return Response.ok(new JsonBuilder([
+        success: true,
+        stepData: stepData,
+        emailResult: emailResult,
+        performanceMetrics: [
+            dataRetrievalTime: dataRetrievalTime,
+            emailProcessingTime: emailProcessingTime,
+            totalTime: dataRetrievalTime + emailProcessingTime
+        ]
+    ]).toString()).build()
+}
+```
+
+#### **Success Metrics and Quality Gates**
+
+**Phase 1 Success Criteria**:
+
+- [ ] Core API endpoint functional with <800ms total response time
+- [ ] EmailService integration successful using US-058 foundation
+- [ ] Basic email template renders correctly with step hierarchy context
+- [ ] Recipient logic validates permissions and roles correctly
+- [ ] Audit logging captures all email notification events
+- [ ] Security validation passes for all permission checks
+- [ ] Performance targets met: <200ms data retrieval, <500ms email processing
+
+**Quality Gates**:
+
+- **Performance Gate**: 95% of API calls complete within 800ms target
+- **Security Gate**: 100% of permission validation tests pass
+- **Integration Gate**: EmailService connection stable with <5% failure rate
+- **Testing Gate**: >85% unit test coverage, >80% integration test coverage
+- **Audit Gate**: 100% of email events logged with complete context
+
+### Timeline and Dependencies
+
+**Day 1 Schedule**:
+
+- **Morning (4 hours)**: Core API endpoint implementation
+- **Afternoon (3 hours)**: EmailService integration and basic template setup
+- **End of Day (1 hour)**: Testing, validation, and performance verification
+
+**Dependency Management**:
+
+- **US-058 Dependency**: Only requires Phase 1 security infrastructure (available)
+- **US-056 Dependency**: StepDTO architecture patterns (available)
+- **Database Dependency**: Existing step_instance table structure (available)
+
+**Phase 1 Completion Criteria**:
+All success criteria met + Quality gates passed + Performance targets achieved
+
 ## Definition of Done
 
-### Technical Completion
+### Phase 1 Technical Completion (Day 1)
 
-- [ ] UUID-based Step View fully functional with single API endpoint
-- [ ] EmailService integration complete with all notification types
-- [ ] StepDTO architecture integrated for consistent data handling
-- [ ] Performance targets met: <500ms step load, asynchronous email processing
-- [ ] Security validation for email recipients and data privacy
-- [ ] Comprehensive test coverage: 90% unit tests, 85% integration tests
+- [ ] Core API endpoint `/stepViewApi/email` fully functional
+- [ ] EmailService integration using US-058 Phase 1 foundation
+- [ ] Step email template with hierarchy context operational
+- [ ] Basic recipient logic with permission validation
+- [ ] Audit logging for all email notification events
+- [ ] Performance targets met: <800ms total, <200ms data, <500ms email
+- [ ] Security validation passes for all permission checks
 
-### Email Integration Completion
+### Phase 2 Email Integration Completion (Day 2-3)
 
-- [ ] Step status change email notifications implemented and tested
-- [ ] Instruction completion/uncompletion email notifications functional
-- [ ] Email templates integrated for all step-related notifications
-- [ ] Audit trail integration with email logging complete
-- [ ] Integration points established for IterationView and other components
-- [ ] Email notification preferences and history management implemented
+- [ ] Instruction completion email notifications implemented
+- [ ] Advanced email templates for all step events
+- [ ] Email notification preferences management
+- [ ] Enhanced audit trail with comprehensive email logging
+- [ ] Bulk operation support with consolidated notifications
+- [ ] Integration testing with US-058 EmailService complete
+
+### Phase 3 System Integration Completion (Day 4)
+
+- [ ] IterationView integration points established
+- [ ] Cross-component email service patterns implemented
+- [ ] System-wide email notification coordination functional
+- [ ] Final performance optimization completed
+- [ ] Comprehensive documentation and training materials
 
 ### Quality Assurance
 
 - [ ] All existing Step View functionality preserved and enhanced
 - [ ] Email notifications tested across all step operation scenarios
-- [ ] Integration testing with US-058 EmailService refactoring complete
-- [ ] Performance benchmarking shows no regression in step operations
+- [ ] Performance benchmarking shows improvement over baseline
 - [ ] Security review completed for email integration components
 - [ ] User acceptance testing passed for enhanced step workflows
+- [ ] Complete test coverage: >90% unit tests, >85% integration tests
 
 ---
 
 **Created**: 2025-07-16
-**Status**: Sprint 7 - Ready for Development
-**Dependencies**: US-058 (EmailService Refactoring), US-056 (StepDTO Architecture)
+**Updated**: 2025-09-22 (Added comprehensive implementation plan)
+**Status**: Sprint 7 - Phase 1 Ready for Development
+**Dependencies**: US-058 Phase 1 (EmailService security), US-056 (StepDTO Architecture)
 **Integration**: Foundation for IterationView email capabilities and system-wide step notifications
+**Phase 1 Timeline**: Day 1 (2 points) - Core API and basic email integration

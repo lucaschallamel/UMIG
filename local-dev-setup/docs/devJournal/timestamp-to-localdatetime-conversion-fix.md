@@ -114,6 +114,7 @@ Replace lines 539-540 in your `buildEmailNotificationDTO` method:
 ## Testing
 
 After applying the fix, test with:
+
 ```bash
 npm run test:groovy:integration
 # or specific test for email service integration

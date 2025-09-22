@@ -83,6 +83,7 @@ Run: `git diff --staged --stat && git status --porcelain`
 Direct documentation generator: commit message type, standard validation.
 
 **CRITICAL COMMIT MESSAGE SAFEGUARDS**:
+
 - **NO HEREDOC SYNTAX**: Ensure no `$(cat <<'EOF'`, `<<EOF`, or similar shell constructs
 - **CLEAN TEXT ONLY**: Commit message must be plain text without shell commands
 - **FORMAT VALIDATION**: Must follow exact Conventional Commits format without prefixes

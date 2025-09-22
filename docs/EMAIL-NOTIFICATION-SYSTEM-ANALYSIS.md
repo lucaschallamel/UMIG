@@ -7,13 +7,16 @@
 ## 🔴 Critical Issue Found & Fixed
 
 ### Root Cause
+
 The `EmailTemplatesApi.groovy` was using incorrect column names:
+
 - **Wrong**: `emt_created_date`, `emt_updated_date`, `emt_created_by`, `emt_updated_by`
 - **Correct**: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 This mismatch caused the error: `"ERROR: column \"emt_created_date\" does not exist"`
 
 ### Fix Applied
+
 Updated `EmailTemplatesApi.groovy` lines 48, 142, and 236 to use the correct column names.
 
 ## 📧 Email Notification Architecture
@@ -21,12 +24,14 @@ Updated `EmailTemplatesApi.groovy` lines 48, 142, and 236 to use the correct col
 ### Two Notification Types
 
 #### 1. Step Status Changes
+
 - **Trigger**: When step status changes (TODO → IN_PROGRESS → COMPLETED, etc.)
 - **Recipients**: Assigned team, impacted teams, IT Cutover team
 - **Method**: `EmailService.sendStepStatusChangedNotification()`
 - **Template Type**: `STEP_STATUS_CHANGED`
 
 #### 2. Instruction Completion/Uncompletion
+
 - **Trigger**: When instruction marked complete/incomplete
 - **Recipients**: Instruction team, step owner team, impacted teams
 - **Methods**:
@@ -37,6 +42,7 @@ Updated `EmailTemplatesApi.groovy` lines 48, 142, and 236 to use the correct col
 ## ✅ System Features
 
 ### Robust Design
+
 1. **Non-blocking**: Email failures don't break business operations
 2. **Comprehensive Audit**: All attempts logged with detailed context
 3. **Graceful Degradation**: Falls back to default templates if custom not found
@@ -45,7 +51,9 @@ Updated `EmailTemplatesApi.groovy` lines 48, 142, and 236 to use the correct col
 6. **Multi-environment**: MailHog for dev, Confluence mail for production
 
 ### Audit Logging
+
 Both systems properly log:
+
 - User ID of who made the change
 - Timestamp of the change
 - Old and new values (for status changes)
@@ -55,6 +63,7 @@ Both systems properly log:
 ## 🔍 Current Behavior Analysis
 
 From the audit logs shown:
+
 1. **Instruction events ARE being audited correctly** ✅
    - `INSTRUCTION_COMPLETED` and `INSTRUCTION_UNCOMPLETED` events recorded
    - User ID properly captured
@@ -71,18 +80,21 @@ From the audit logs shown:
 ## 📋 Testing Instructions
 
 ### 1. Refresh ScriptRunner Cache
+
 ```bash
 # In Confluence Admin → ScriptRunner → Built-in Scripts → Clear Caches
 # Or restart the application
 ```
 
 ### 2. Run Comprehensive Test
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts
 node test-email-notifications.js
 ```
 
 This test will:
+
 - Check email templates exist
 - Test step status change notification
 - Test instruction completion notification
@@ -92,6 +104,7 @@ This test will:
 ### 3. Manual Testing
 
 #### Test Step Status Change:
+
 1. Open iteration view
 2. Click on a step to view details
 3. Change the status using the dropdown
@@ -100,6 +113,7 @@ This test will:
    - MailHog: http://localhost:8025
 
 #### Test Instruction Completion:
+
 1. Open a step with instructions
 2. Click checkbox to complete an instruction
 3. Check:
@@ -116,6 +130,7 @@ This test will:
 ## 📊 Verification Queries
 
 ### Check Email Templates
+
 ```sql
 SELECT emt_type, emt_name, emt_is_active, created_at
 FROM email_templates_emt
@@ -123,6 +138,7 @@ WHERE emt_is_active = true;
 ```
 
 ### Check Recent Email Attempts
+
 ```sql
 SELECT aud_action, aud_details->>'status' as status,
        aud_details->>'error_message' as error,
@@ -134,6 +150,7 @@ LIMIT 10;
 ```
 
 ### Check Step Status Changes
+
 ```sql
 SELECT aud_action, aud_entity_id, aud_details, aud_timestamp
 FROM audit_log_aud
@@ -152,6 +169,7 @@ LIMIT 5;
 ## 📝 Technical Debt Note
 
 While the current implementation works, consider future improvements:
+
 1. **Service Layer**: Extract email logic from Repository to Service layer
 2. **Template Management**: UI for managing email templates
 3. **Retry Logic**: Implement retry for failed email sends

@@ -105,44 +105,44 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         size: "large",
         form: {
           fields: [
-          {
-            name: "tms_name", // Fixed: Use database field name
-            type: "text",
-            required: true,
-            label: "Team Name",
-            placeholder: "Enter team name",
-            validation: {
-              minLength: 2,
-              maxLength: 100,
-              pattern: /^[a-zA-Z0-9\s\-_]+$/,
-              message:
-                "Team name must contain only letters, numbers, spaces, hyphens, and underscores",
+            {
+              name: "tms_name", // Fixed: Use database field name
+              type: "text",
+              required: true,
+              label: "Team Name",
+              placeholder: "Enter team name",
+              validation: {
+                minLength: 2,
+                maxLength: 100,
+                pattern: /^[a-zA-Z0-9\s\-_]+$/,
+                message:
+                  "Team name must contain only letters, numbers, spaces, hyphens, and underscores",
+              },
             },
-          },
-          {
-            name: "tms_description", // Fixed: Use database field name
-            type: "textarea",
-            required: false,
-            label: "Description",
-            placeholder: "Enter team description (optional)",
-            rows: 4,
-            validation: {
-              maxLength: 500,
+            {
+              name: "tms_description", // Fixed: Use database field name
+              type: "textarea",
+              required: false,
+              label: "Description",
+              placeholder: "Enter team description (optional)",
+              rows: 4,
+              validation: {
+                maxLength: 500,
+              },
             },
-          },
-          {
-            name: "tms_email", // Fixed: Use database field name
-            type: "email",
-            required: true,
-            label: "Team Email",
-            placeholder: "Enter team email (required)",
-            validation: {
-              maxLength: 255,
-              pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Please enter a valid email address",
+            {
+              name: "tms_email", // Fixed: Use database field name
+              type: "email",
+              required: true,
+              label: "Team Email",
+              placeholder: "Enter team email (required)",
+              validation: {
+                maxLength: 255,
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Please enter a valid email address",
+              },
             },
-          },
-        ]
+          ],
         },
         title: {
           create: "Create New Team",
@@ -191,7 +191,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     });
 
     // PHASE 2: Add modal mode support (following Users pattern)
-    this.mode = options.mode || 'create';
+    this.mode = options.mode || "create";
 
     // Teams-specific properties
     this.apiBaseUrl = "/rest/scriptrunner/latest/custom/teams";
@@ -273,7 +273,9 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     // Client-side pagination - TableComponent handles pagination of full dataset
     this.paginationMode = "client";
 
-    console.log("[TeamsEntityManager] Initialized with component architecture and interface compliance");
+    console.log(
+      "[TeamsEntityManager] Initialized with component architecture and interface compliance",
+    );
   }
 
   /**
@@ -621,7 +623,8 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       const addButton = document.createElement("button");
       addButton.className = "umig-btn-primary umig-button";
       addButton.id = "umig-add-new-team-btn"; // Use UMIG-prefixed ID to avoid legacy conflicts
-      addButton.innerHTML = '<span class="umig-btn-icon">➕</span> Add New Team';
+      addButton.innerHTML =
+        '<span class="umig-btn-icon">➕</span> Add New Team';
       addButton.setAttribute("data-action", "add");
       addButton.onclick = () => {
         console.log("[TeamsEntityManager] Add New Team button clicked");
@@ -1023,7 +1026,12 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @param {Object} operationData - Operation-specific data
    * @returns {Promise<Object>} Bulk operation result
    */
-  async bulkOperation(operation, teamIds, operationData = {}, userContext = {}) {
+  async bulkOperation(
+    operation,
+    teamIds,
+    operationData = {},
+    userContext = {},
+  ) {
     const startTime = performance.now();
 
     try {
@@ -1046,7 +1054,8 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
             validator: (value) => {
               if (!Array.isArray(value)) return "teamIds must be an array";
               if (value.length === 0) return "teamIds cannot be empty";
-              if (value.length > 50) return "Cannot process more than 50 teams at once";
+              if (value.length > 50)
+                return "Cannot process more than 50 teams at once";
               return true;
             },
           },
@@ -1058,7 +1067,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       );
 
       // Rate limiting for bulk operations - critical security measure
-      this._checkRateLimit("bulkOperation", userContext.performedBy || "system");
+      this._checkRateLimit(
+        "bulkOperation",
+        userContext.performedBy || "system",
+      );
 
       this._checkPermission("bulk");
 
@@ -1074,13 +1086,27 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       let result;
       switch (operation) {
         case "delete":
-          result = await this._bulkDeleteWithProgress(teamIds, progressTracker, userContext);
+          result = await this._bulkDeleteWithProgress(
+            teamIds,
+            progressTracker,
+            userContext,
+          );
           break;
         case "export":
-          result = await this._bulkExportWithProgress(teamIds, operationData, progressTracker, userContext);
+          result = await this._bulkExportWithProgress(
+            teamIds,
+            operationData,
+            progressTracker,
+            userContext,
+          );
           break;
         case "setStatus":
-          result = await this._bulkSetStatusWithProgress(teamIds, operationData.status, progressTracker, userContext);
+          result = await this._bulkSetStatusWithProgress(
+            teamIds,
+            operationData.status,
+            progressTracker,
+            userContext,
+          );
           break;
         default:
           throw new Error(`Unsupported bulk operation: ${operation}`);
@@ -1104,7 +1130,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           total: progressTracker.total,
           completed: progressTracker.completed,
           failed: progressTracker.failed,
-          successRate: ((progressTracker.completed / progressTracker.total) * 100).toFixed(2) + '%',
+          successRate:
+            ((progressTracker.completed / progressTracker.total) * 100).toFixed(
+              2,
+            ) + "%",
           duration: operationTime,
           errors: progressTracker.errors,
         },
@@ -1144,7 +1173,9 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @private
    */
   async _bulkDeleteWithProgress(teamIds, progressTracker, userContext = {}) {
-    console.log(`[TeamsEntityManager] Starting bulk delete of ${teamIds.length} teams`);
+    console.log(
+      `[TeamsEntityManager] Starting bulk delete of ${teamIds.length} teams`,
+    );
 
     const results = {
       deleted: [],
@@ -1165,8 +1196,8 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
           // Progress notification
           if (this.orchestrator) {
-            this.orchestrator.emit('bulk:progress', {
-              operation: 'delete',
+            this.orchestrator.emit("bulk:progress", {
+              operation: "delete",
               completed: progressTracker.completed,
               total: progressTracker.total,
               currentItem: teamId,
@@ -1177,7 +1208,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           results.failed.push(teamId);
           results.errors.push({ teamId, error: error.message });
           progressTracker.errors.push({ teamId, error: error.message });
-          console.error(`[TeamsEntityManager] Failed to delete team ${teamId}:`, error);
+          console.error(
+            `[TeamsEntityManager] Failed to delete team ${teamId}:`,
+            error,
+          );
         }
       });
 
@@ -1186,7 +1220,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
       // Small delay between batches to prevent server overload
       if (i + batchSize < teamIds.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -1202,8 +1236,15 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @returns {Promise<Object>} Bulk export result
    * @private
    */
-  async _bulkExportWithProgress(teamIds, operationData, progressTracker, userContext = {}) {
-    console.log(`[TeamsEntityManager] Starting bulk export of ${teamIds.length} teams`);
+  async _bulkExportWithProgress(
+    teamIds,
+    operationData,
+    progressTracker,
+    userContext = {},
+  ) {
+    console.log(
+      `[TeamsEntityManager] Starting bulk export of ${teamIds.length} teams`,
+    );
 
     const exportData = [];
     const results = {
@@ -1218,12 +1259,15 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       const teamId = teamIds[i];
       try {
         // Fetch team details from API
-        const response = await fetch(`${this.apiBaseUrl}/${encodeURIComponent(teamId)}`, {
-          method: 'GET',
-          headers: window.SecurityUtils.addCSRFProtection({
-            'Content-Type': 'application/json',
-          }),
-        });
+        const response = await fetch(
+          `${this.apiBaseUrl}/${encodeURIComponent(teamId)}`,
+          {
+            method: "GET",
+            headers: window.SecurityUtils.addCSRFProtection({
+              "Content-Type": "application/json",
+            }),
+          },
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to fetch team ${teamId}: ${response.status}`);
@@ -1236,8 +1280,8 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
         // Progress notification
         if (this.orchestrator) {
-          this.orchestrator.emit('bulk:progress', {
-            operation: 'export',
+          this.orchestrator.emit("bulk:progress", {
+            operation: "export",
             completed: progressTracker.completed,
             total: progressTracker.total,
             currentItem: teamId,
@@ -1248,30 +1292,37 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         results.failed.push(teamId);
         results.errors.push({ teamId, error: error.message });
         progressTracker.errors.push({ teamId, error: error.message });
-        console.error(`[TeamsEntityManager] Failed to export team ${teamId}:`, error);
+        console.error(
+          `[TeamsEntityManager] Failed to export team ${teamId}:`,
+          error,
+        );
       }
     }
 
     // Generate export file
     if (exportData.length > 0) {
       try {
-        const format = operationData.format || 'csv';
+        const format = operationData.format || "csv";
         let content, mimeType, fileName;
 
-        if (format === 'json') {
+        if (format === "json") {
           content = JSON.stringify(exportData, null, 2);
-          mimeType = 'application/json';
+          mimeType = "application/json";
           fileName = `teams_export_${new Date().toISOString().slice(0, 10)}.json`;
         } else {
           // CSV format
-          const headers = Object.keys(exportData[0]).join(',');
-          const rows = exportData.map(team =>
-            Object.values(team).map(value =>
-              typeof value === 'string' && value.includes(',') ? `"${value}"` : value
-            ).join(',')
+          const headers = Object.keys(exportData[0]).join(",");
+          const rows = exportData.map((team) =>
+            Object.values(team)
+              .map((value) =>
+                typeof value === "string" && value.includes(",")
+                  ? `"${value}"`
+                  : value,
+              )
+              .join(","),
           );
-          content = [headers, ...rows].join('\n');
-          mimeType = 'text/csv';
+          content = [headers, ...rows].join("\n");
+          mimeType = "text/csv";
           fileName = `teams_export_${new Date().toISOString().slice(0, 10)}.csv`;
         }
 
@@ -1280,8 +1331,11 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         results.downloadUrl = URL.createObjectURL(blob);
         results.fileName = fileName;
       } catch (error) {
-        console.error('[TeamsEntityManager] Failed to generate export file:', error);
-        results.errors.push({ error: 'Failed to generate export file' });
+        console.error(
+          "[TeamsEntityManager] Failed to generate export file:",
+          error,
+        );
+        results.errors.push({ error: "Failed to generate export file" });
       }
     }
 
@@ -1297,11 +1351,18 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    * @returns {Promise<Object>} Bulk status update result
    * @private
    */
-  async _bulkSetStatusWithProgress(teamIds, newStatus, progressTracker, userContext = {}) {
-    console.log(`[TeamsEntityManager] Starting bulk status update of ${teamIds.length} teams to ${newStatus}`);
+  async _bulkSetStatusWithProgress(
+    teamIds,
+    newStatus,
+    progressTracker,
+    userContext = {},
+  ) {
+    console.log(
+      `[TeamsEntityManager] Starting bulk status update of ${teamIds.length} teams to ${newStatus}`,
+    );
 
     // Validate status value
-    if (!['active', 'inactive', 'archived'].includes(newStatus)) {
+    if (!["active", "inactive", "archived"].includes(newStatus)) {
       throw new Error(`Invalid status: ${newStatus}`);
     }
 
@@ -1318,14 +1379,18 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
       const batchPromises = batch.map(async (teamId) => {
         try {
-          await this._updateEntityData(teamId, { status: newStatus }, userContext);
+          await this._updateEntityData(
+            teamId,
+            { status: newStatus },
+            userContext,
+          );
           progressTracker.completed++;
           results.updated.push(teamId);
 
           // Progress notification
           if (this.orchestrator) {
-            this.orchestrator.emit('bulk:progress', {
-              operation: 'setStatus',
+            this.orchestrator.emit("bulk:progress", {
+              operation: "setStatus",
               completed: progressTracker.completed,
               total: progressTracker.total,
               currentItem: teamId,
@@ -1337,7 +1402,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           results.failed.push(teamId);
           results.errors.push({ teamId, error: error.message });
           progressTracker.errors.push({ teamId, error: error.message });
-          console.error(`[TeamsEntityManager] Failed to update status for team ${teamId}:`, error);
+          console.error(
+            `[TeamsEntityManager] Failed to update status for team ${teamId}:`,
+            error,
+          );
         }
       });
 
@@ -1346,7 +1414,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
       // Small delay between batches
       if (i + batchSize < teamIds.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -1513,26 +1581,42 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     this._checkPermission("edit");
 
     // PHASE 1: Filter out read-only fields that shouldn't be sent in updates (matching Users pattern)
-    const readOnlyFields = ['tms_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'member_count', 'app_count'];
+    const readOnlyFields = [
+      "tms_id",
+      "created_at",
+      "updated_at",
+      "created_by",
+      "updated_by",
+      "member_count",
+      "app_count",
+    ];
 
     // CRITICAL FIX: Map frontend field names to database field names
     const fieldMapping = {
-      'name': 'tms_name',
-      'description': 'tms_description',
-      'email': 'tms_email',
-      'status': 'tms_status'
+      name: "tms_name",
+      description: "tms_description",
+      email: "tms_email",
+      status: "tms_status",
     };
 
     const updateData = {};
 
     // Only include updatable fields (matching TeamRepository expectations - using database field names)
-    const updatableFields = ['tms_name', 'tms_description', 'tms_email', 'tms_status'];
+    const updatableFields = [
+      "tms_name",
+      "tms_description",
+      "tms_email",
+      "tms_status",
+    ];
 
-    Object.keys(data).forEach(key => {
+    Object.keys(data).forEach((key) => {
       // Map frontend field name to database field name
       const dbFieldName = fieldMapping[key] || key;
 
-      if (updatableFields.includes(dbFieldName) && !readOnlyFields.includes(key)) {
+      if (
+        updatableFields.includes(dbFieldName) &&
+        !readOnlyFields.includes(key)
+      ) {
         updateData[dbFieldName] = data[key];
       }
     });
@@ -1818,12 +1902,12 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     let waited = 0;
 
     while (!window.SecurityUtils && waited < maxWaitTime) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
       waited += pollInterval;
     }
 
     if (!window.SecurityUtils) {
-      throw new Error('SecurityUtils not available for input validation');
+      throw new Error("SecurityUtils not available for input validation");
     }
 
     // Validate each parameter against its rules
@@ -1832,36 +1916,48 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       if (!rule) continue;
 
       // Check required fields
-      if (rule.required && (paramValue === null || paramValue === undefined || paramValue === '')) {
+      if (
+        rule.required &&
+        (paramValue === null || paramValue === undefined || paramValue === "")
+      ) {
         throw new Error(`${paramName} is required`);
       }
 
       // Skip further validation for empty optional fields
-      if (!rule.required && (paramValue === null || paramValue === undefined || paramValue === '')) {
+      if (
+        !rule.required &&
+        (paramValue === null || paramValue === undefined || paramValue === "")
+      ) {
         continue;
       }
 
       // Type validation
       if (rule.type) {
         switch (rule.type) {
-          case 'string':
-            if (typeof paramValue !== 'string') {
+          case "string":
+            if (typeof paramValue !== "string") {
               throw new Error(`${paramName} must be a string`);
             }
             break;
-          case 'number':
-          case 'integer':
-            if (typeof paramValue !== 'number' || (rule.type === 'integer' && !Number.isInteger(paramValue))) {
+          case "number":
+          case "integer":
+            if (
+              typeof paramValue !== "number" ||
+              (rule.type === "integer" && !Number.isInteger(paramValue))
+            ) {
               throw new Error(`${paramName} must be a ${rule.type}`);
             }
             break;
-          case 'boolean':
-            if (typeof paramValue !== 'boolean') {
+          case "boolean":
+            if (typeof paramValue !== "boolean") {
               throw new Error(`${paramName} must be a boolean`);
             }
             break;
-          case 'email':
-            if (typeof paramValue !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paramValue)) {
+          case "email":
+            if (
+              typeof paramValue !== "string" ||
+              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paramValue)
+            ) {
               throw new Error(`${paramName} must be a valid email address`);
             }
             break;
@@ -1869,17 +1965,21 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // Length validation for strings
-      if (typeof paramValue === 'string') {
+      if (typeof paramValue === "string") {
         if (rule.minLength && paramValue.length < rule.minLength) {
-          throw new Error(`${paramName} must be at least ${rule.minLength} characters`);
+          throw new Error(
+            `${paramName} must be at least ${rule.minLength} characters`,
+          );
         }
         if (rule.maxLength && paramValue.length > rule.maxLength) {
-          throw new Error(`${paramName} must not exceed ${rule.maxLength} characters`);
+          throw new Error(
+            `${paramName} must not exceed ${rule.maxLength} characters`,
+          );
         }
       }
 
       // Numeric range validation
-      if (typeof paramValue === 'number') {
+      if (typeof paramValue === "number") {
         if (rule.min !== undefined && paramValue < rule.min) {
           throw new Error(`${paramName} must be at least ${rule.min}`);
         }
@@ -1889,14 +1989,16 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // Pattern validation
-      if (rule.pattern && typeof paramValue === 'string') {
+      if (rule.pattern && typeof paramValue === "string") {
         if (!rule.pattern.test(paramValue)) {
-          throw new Error(`${paramName} format is invalid${rule.message ? ': ' + rule.message : ''}`);
+          throw new Error(
+            `${paramName} format is invalid${rule.message ? ": " + rule.message : ""}`,
+          );
         }
       }
 
       // Custom validation function
-      if (rule.validator && typeof rule.validator === 'function') {
+      if (rule.validator && typeof rule.validator === "function") {
         const validationResult = rule.validator(paramValue);
         if (validationResult !== true) {
           throw new Error(validationResult || `${paramName} validation failed`);
@@ -1904,7 +2006,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // XSS protection
-      if (typeof paramValue === 'string') {
+      if (typeof paramValue === "string") {
         const sanitizedValue = window.SecurityUtils.sanitizeInput(paramValue);
         if (sanitizedValue !== paramValue) {
           throw new Error(`${paramName} contains potentially unsafe content`);
@@ -1949,7 +2051,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       const resetTime = entry.windowStart + config.windowMs;
       const secondsToReset = Math.ceil((resetTime - now) / 1000);
       throw new Error(
-        `Rate limit exceeded for ${operation}. Try again in ${secondsToReset} seconds.`
+        `Rate limit exceeded for ${operation}. Try again in ${secondsToReset} seconds.`,
       );
     }
 
@@ -1989,9 +2091,9 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       const auditEntry = {
         timestamp: new Date().toISOString(),
         action,
-        entityType: 'team',
+        entityType: "team",
         entityId,
-        userId: details.userContext?.performedBy || 'system',
+        userId: details.userContext?.performedBy || "system",
         details: {
           ...details,
           userAgent: navigator.userAgent,
@@ -2006,9 +2108,12 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         this.auditCache.splice(0, 100); // Remove oldest 100 entries
       }
 
-      console.log(`[TeamsEntityManager] Audit: ${action} on ${entityId}`, auditEntry);
+      console.log(
+        `[TeamsEntityManager] Audit: ${action} on ${entityId}`,
+        auditEntry,
+      );
     } catch (error) {
-      console.error('[TeamsEntityManager] Failed to log audit entry:', error);
+      console.error("[TeamsEntityManager] Failed to log audit entry:", error);
     }
   }
 
@@ -2043,7 +2148,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
       console.error(`[TeamsEntityManager] Error in ${operation}:`, errorEntry);
     } catch (logError) {
-      console.error('[TeamsEntityManager] Failed to track error:', logError);
+      console.error("[TeamsEntityManager] Failed to track error:", logError);
     }
   }
 
@@ -2167,7 +2272,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     const headerTitle = document.createElement("h4");
     // XSS PROTECTION: Use textContent instead of innerHTML for dynamic data
     // Handle case where teamData is undefined or missing member_count (e.g., for new teams)
-    const memberCount = (teamData && typeof teamData.member_count === 'number') ? teamData.member_count : 0;
+    const memberCount =
+      teamData && typeof teamData.member_count === "number"
+        ? teamData.member_count
+        : 0;
     // textContent already provides XSS protection, no need to escape a number
     headerTitle.textContent = `Team Members (${memberCount})`;
 
@@ -2191,7 +2299,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     membersList.className = "members-list";
     // XSS PROTECTION: Sanitize team ID before setting as attribute
     // Handle case where teamData is undefined or missing id (e.g., for new teams)
-    const teamId = (teamData && teamData.id) ? teamData.id : '';
+    const teamId = teamData && teamData.id ? teamData.id : "";
     membersList.setAttribute(
       "data-team-id",
       window.SecurityUtils.sanitizeForAttribute(teamId),
@@ -3591,26 +3699,42 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log("[TeamsEntityManager] Updating team:", id, data);
 
       // PHASE 1: Filter out read-only fields that shouldn't be sent in updates (matching Users pattern)
-      const readOnlyFields = ['tms_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'member_count', 'app_count'];
+      const readOnlyFields = [
+        "tms_id",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+        "member_count",
+        "app_count",
+      ];
 
       // CRITICAL FIX: Map frontend field names to database field names
       const fieldMapping = {
-        'name': 'tms_name',
-        'description': 'tms_description',
-        'email': 'tms_email',
-        'status': 'tms_status'
+        name: "tms_name",
+        description: "tms_description",
+        email: "tms_email",
+        status: "tms_status",
       };
 
       const updateData = {};
 
       // Only include updatable fields (matching TeamRepository expectations - using database field names)
-      const updatableFields = ['tms_name', 'tms_description', 'tms_email', 'tms_status'];
+      const updatableFields = [
+        "tms_name",
+        "tms_description",
+        "tms_email",
+        "tms_status",
+      ];
 
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         // Map frontend field name to database field name
         const dbFieldName = fieldMapping[key] || key;
 
-        if (updatableFields.includes(dbFieldName) && !readOnlyFields.includes(key)) {
+        if (
+          updatableFields.includes(dbFieldName) &&
+          !readOnlyFields.includes(key)
+        ) {
           updateData[dbFieldName] = data[key];
         }
       });
@@ -3747,7 +3871,9 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
 
     // Prevent duplicate modal creation - check if modal is already open
     if (this.modalComponent.isOpen) {
-      console.log("[TeamsEntityManager] Modal is already open - ignoring duplicate request");
+      console.log(
+        "[TeamsEntityManager] Modal is already open - ignoring duplicate request",
+      );
       return;
     }
 
@@ -3791,7 +3917,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "success",
             "Team Created",
-            `Team ${formData.tms_name} has been created successfully.`
+            `Team ${formData.tms_name} has been created successfully.`,
           );
 
           // Return true to close modal automatically
@@ -3803,7 +3929,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "error",
             "Error Creating Team",
-            error.message || "An error occurred while creating the team."
+            error.message || "An error occurred while creating the team.",
           );
 
           // Return false to keep modal open with error
@@ -3870,7 +3996,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "success",
             "Team Updated",
-            `Team ${formData.tms_name} has been updated successfully.`
+            `Team ${formData.tms_name} has been updated successfully.`,
           );
 
           // Return true to close modal automatically
@@ -3882,7 +4008,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           this._showNotification(
             "error",
             "Error Updating Team",
-            error.message || "An error occurred while updating the team."
+            error.message || "An error occurred while updating the team.",
           );
 
           // Return false to keep modal open with error
@@ -4041,12 +4167,19 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   _showNotification(type, title, message, options = {}) {
     try {
-      console.log(`[TeamsEntityManager] Showing ${type} notification:`, title, message);
+      console.log(
+        `[TeamsEntityManager] Showing ${type} notification:`,
+        title,
+        message,
+      );
 
       // Try to use ComponentOrchestrator notification system if available
-      if (this.orchestrator && typeof this.orchestrator.showNotification === 'function') {
+      if (
+        this.orchestrator &&
+        typeof this.orchestrator.showNotification === "function"
+      ) {
         // Auto-dismiss success notifications after 3 seconds, manual dismiss for errors
-        const autoDismiss = type === 'success' ? 3000 : 0;
+        const autoDismiss = type === "success" ? 3000 : 0;
 
         this.orchestrator.showNotification({
           type: type,
@@ -4062,7 +4195,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         const flagOptions = {
           type: type,
           title: title,
-          body: message
+          body: message,
         };
 
         // Auto-dismiss success notifications after 3 seconds
@@ -4072,7 +4205,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
           // Create flag and set up auto-dismiss timer
           const flagId = window.AJS.flag(flagOptions);
           // Auto-dismiss after 3000ms (3 seconds) for success notifications
-          if (flagId && typeof flagId === 'string') {
+          if (flagId && typeof flagId === "string") {
             setTimeout(() => {
               try {
                 if (window.AJS && window.AJS.flag && window.AJS.flag.close) {
@@ -4080,7 +4213,10 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
                 }
               } catch (closeError) {
                 // Silently handle if flag was already closed
-                console.debug(`[TeamsEntityManager] Flag already closed or error closing:`, closeError);
+                console.debug(
+                  `[TeamsEntityManager] Flag already closed or error closing:`,
+                  closeError,
+                );
               }
             }, 3000);
           }
@@ -4093,16 +4229,20 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // Final fallback to console logging
-      console.log(`[TeamsEntityManager] Notification (${type}): ${title} - ${message}`);
+      console.log(
+        `[TeamsEntityManager] Notification (${type}): ${title} - ${message}`,
+      );
 
       // Show browser alert for critical errors
-      if (type === 'error') {
+      if (type === "error") {
         alert(`${title}: ${message}`);
       }
     } catch (error) {
-      console.error('[TeamsEntityManager] Error showing notification:', error);
+      console.error("[TeamsEntityManager] Error showing notification:", error);
       // Fallback to console for notification errors
-      console.log(`[TeamsEntityManager] Notification (${type}): ${title} - ${message}`);
+      console.log(
+        `[TeamsEntityManager] Notification (${type}): ${title} - ${message}`,
+      );
     }
   }
 
@@ -4124,17 +4264,17 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       // Format as: "YYYY-MM-DD HH:MM:SS"
-      return date.toLocaleString('en-AU', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      return date.toLocaleString("en-AU", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: false,
       });
     } catch (error) {
-      console.warn('[TeamsEntityManager] Error formatting date:', error);
+      console.warn("[TeamsEntityManager] Error formatting date:", error);
       return "Format error";
     }
   }
@@ -4220,14 +4360,16 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       this._setRefreshButtonLoadingState(refreshButton, true);
 
       // Step 2: Add visual feedback to table (fade effect)
-      const tableContainer = document.querySelector('#dataTable');
+      const tableContainer = document.querySelector("#dataTable");
       if (tableContainer) {
-        tableContainer.style.transition = 'opacity 0.2s ease-in-out';
-        tableContainer.style.opacity = '0.6';
+        tableContainer.style.transition = "opacity 0.2s ease-in-out";
+        tableContainer.style.opacity = "0.6";
       }
 
       // Step 3: Perform the actual refresh
-      console.log("[TeamsEntityManager] Starting data refresh with visual feedback");
+      console.log(
+        "[TeamsEntityManager] Starting data refresh with visual feedback",
+      );
       await this.loadData(
         this.currentFilters,
         this.currentSort,
@@ -4240,31 +4382,31 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       // Step 5: Restore table opacity with slight delay for visual feedback
       if (tableContainer) {
         // Small delay to ensure user sees the refresh happening
-        await new Promise(resolve => setTimeout(resolve, 150));
-        tableContainer.style.opacity = '1';
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        tableContainer.style.opacity = "1";
       }
 
       // Step 6: Show success feedback
       this._showRefreshSuccessMessage(operationTime);
 
-      console.log(`[TeamsEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`);
-
+      console.log(
+        `[TeamsEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`,
+      );
     } catch (error) {
       console.error("[TeamsEntityManager] Error refreshing data:", error);
 
       // Restore table opacity on error
-      const tableContainer = document.querySelector('#dataTable');
+      const tableContainer = document.querySelector("#dataTable");
       if (tableContainer) {
-        tableContainer.style.opacity = '1';
+        tableContainer.style.opacity = "1";
       }
 
       // Show error message
       this._showNotification(
         "error",
         "Refresh Failed",
-        "Failed to refresh team data. Please try again."
+        "Failed to refresh team data. Please try again.",
       );
-
     } finally {
       // Step 7: Always restore button state
       this._setRefreshButtonLoadingState(refreshButton, false);
@@ -4290,13 +4432,13 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         <span>Refreshing...</span>
       `;
       button.disabled = true;
-      button.style.opacity = '0.7';
-      button.style.cursor = 'not-allowed';
+      button.style.opacity = "0.7";
+      button.style.cursor = "not-allowed";
 
       // Add spinning animation if not already defined
-      if (!document.querySelector('#refresh-spinner-styles')) {
-        const style = document.createElement('style');
-        style.id = 'refresh-spinner-styles';
+      if (!document.querySelector("#refresh-spinner-styles")) {
+        const style = document.createElement("style");
+        style.id = "refresh-spinner-styles";
         style.textContent = `
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -4305,15 +4447,14 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
         `;
         document.head.appendChild(style);
       }
-
     } else {
       // Restore original state
       if (button._originalHTML) {
         button.innerHTML = button._originalHTML;
       }
       button.disabled = false;
-      button.style.opacity = '1';
-      button.style.cursor = 'pointer';
+      button.style.opacity = "1";
+      button.style.cursor = "pointer";
     }
   }
 
@@ -4324,7 +4465,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   _showRefreshSuccessMessage(operationTime) {
     // Create a temporary success indicator
-    const successIndicator = document.createElement('div');
+    const successIndicator = document.createElement("div");
     successIndicator.style.cssText = `
       position: fixed;
       top: 20px;
@@ -4347,9 +4488,9 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
     `;
 
     // Add fade in/out animation
-    if (!document.querySelector('#success-indicator-styles')) {
-      const style = document.createElement('style');
-      style.id = 'success-indicator-styles';
+    if (!document.querySelector("#success-indicator-styles")) {
+      const style = document.createElement("style");
+      style.id = "success-indicator-styles";
       style.textContent = `
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(-10px); }

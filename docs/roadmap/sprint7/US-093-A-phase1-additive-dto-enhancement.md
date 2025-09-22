@@ -1,6 +1,7 @@
 # US-093-A: Phase 1 - Additive DTO Enhancement Foundation
 
 ## Story Overview
+
 **Story Points**: 13 → **REVISED: 16-19 points actual**
 **Sprint**: 7 (Planning) / 8 (Implementation)
 **Priority**: High
@@ -11,12 +12,14 @@
 ## ⚠️ SCOPE REVISION ANALYSIS
 
 **Multi-Agent Analysis Findings (2025-09-22)**:
+
 - **Original Estimate**: 13 story points
 - **Actual Complexity**: 16-19 story points (25-45% underestimated)
 - **Root Cause**: Complex JOIN optimization requirements and performance constraints not fully captured
 - **Analysis Team**: Requirements Analyst, System Architect, Data Architect, Security Architect, Project Planner
 
 ### Complexity Factors Discovered
+
 1. **Database Performance Requirements**: ≤3 queries, ≤800ms response time targets
 2. **Complex JOIN Operations**: 6+ database tables with hierarchy relationships
 3. **Integration Dependencies**: US-058 EmailService changes affect DTO template integration
@@ -24,6 +27,7 @@
 5. **Memory Optimization**: Large result set handling for iteration views
 
 ### Sprint Capacity Impact
+
 - **Sprint 7 Status**: 83.5/80 points committed (**104% over-capacity**)
 - **Recommended Action**: Defer to Sprint 8 for proper implementation
 - **Integration Dependency**: Requires US-058 Phase 2 EmailService foundation
@@ -31,32 +35,39 @@
 ## 🎯 REVISED IMPLEMENTATION STRATEGY
 
 ### Phase 1: Foundation Architecture (8-10 points, Sprint 8 Week 1-2)
+
 **Dependencies**: US-058 Phase 2 completion
 **Scope**:
+
 - Enhanced DTO class definitions with additive fields
 - Database query optimization (≤3 queries target)
 - Performance baseline establishment
 - Backward compatibility validation (36 files)
 
 ### Phase 2: Integration & Performance (6-8 points, Sprint 8 Week 3-4)
+
 **Dependencies**: Phase 1 foundation complete
 **Scope**:
+
 - EmailService template integration
 - Performance validation (≤800ms target)
 - End-to-end testing with iteration views
 - Memory optimization for large result sets
 
 ## User Story
+
 **As a** UMIG system architect
 **I want to** enhance Step DTOs with additional fields and methods using an additive approach
 **So that** we can establish the foundation for canonical JSON format without breaking existing consumers
 
 ## Context
+
 This is Phase 1 of the Step DTO Canonical Format Architecture epic (US-093). The focus is on adding new capabilities while maintaining 100% backward compatibility with the 22 files using StepInstanceDTO and 14 files using StepMasterDTO.
 
 ## Acceptance Criteria
 
 ### DTO Enhancement
+
 - [ ] StepInstanceDTO includes new fields without modifying existing ones
   - [ ] stepMasterId reference added
   - [ ] impactedTeams collection added
@@ -71,12 +82,14 @@ This is Phase 1 of the Step DTO Canonical Format Architecture epic (US-093). The
   - [ ] Complete hierarchy navigation added
 
 ### Method Implementation
+
 - [ ] Existing toTemplateMap() method remains unchanged
 - [ ] New toCanonicalJson() method returns canonical format
 - [ ] Both methods coexist and function independently
 - [ ] Deprecated annotation NOT added yet (Phase 2)
 
 ### Repository Enhancement
+
 - [ ] New findCompleteStepInstance(UUID) method created
 - [ ] Method uses single optimized query with JOINs
 - [ ] Batch loading implemented for collections
@@ -84,6 +97,7 @@ This is Phase 1 of the Step DTO Canonical Format Architecture epic (US-093). The
 - [ ] Existing repository methods remain unchanged
 
 ### API Integration
+
 - [ ] GET /steps endpoint accepts ?canonical=true parameter
 - [ ] Default behavior (no parameter) returns legacy format
 - [ ] Canonical parameter returns new enhanced format
@@ -91,6 +105,7 @@ This is Phase 1 of the Step DTO Canonical Format Architecture epic (US-093). The
 - [ ] CSV export continues using legacy format
 
 ### Testing Requirements
+
 - [ ] 100% unit test coverage for new methods
 - [ ] Integration tests verify both formats work
 - [ ] Regression tests confirm no breaking changes
@@ -100,6 +115,7 @@ This is Phase 1 of the Step DTO Canonical Format Architecture epic (US-093). The
 ## Technical Design
 
 ### 1. StepInstanceDTO Enhancement
+
 ```groovy
 class StepInstanceDTO {
     // === EXISTING FIELDS (unchanged) ===
@@ -166,6 +182,7 @@ class StepInstanceDTO {
 ```
 
 ### 2. Repository Enhancement
+
 ```groovy
 class StepRepository {
     // New method for complete data retrieval
@@ -232,6 +249,7 @@ class StepRepository {
 ```
 
 ### 3. API Enhancement
+
 ```groovy
 // In StepsApi.groovy
 steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
@@ -253,6 +271,7 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## Implementation Tasks
 
 ### Database Layer (3 points)
+
 - [ ] Create findImpactedTeams() query method
 - [ ] Create findInstructions() query method
 - [ ] Create findEnvironment() query method
@@ -260,24 +279,28 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 - [ ] Optimize queries with appropriate indexes
 
 ### DTO Enhancement (3 points)
+
 - [ ] Add new fields to StepInstanceDTO
 - [ ] Implement toCanonicalJson() method
 - [ ] Add hierarchy fields to StepMasterDTO
 - [ ] Update validation rules for new fields
 
 ### Repository Layer (3 points)
+
 - [ ] Implement findCompleteStepInstance() method
 - [ ] Add batch loading optimization
 - [ ] Create transformation helpers
 - [ ] Ensure backward compatibility
 
 ### API Integration (2 points)
+
 - [ ] Add canonical parameter handling
 - [ ] Implement format negotiation logic
 - [ ] Update API documentation
 - [ ] Add response examples
 
 ### Testing (2 points)
+
 - [ ] Write unit tests for new methods
 - [ ] Create integration tests for both formats
 - [ ] Add performance tests
@@ -286,24 +309,28 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test toCanonicalJson() produces valid JSON
 - Test toTemplateMap() remains unchanged
 - Test new repository methods return correct data
 - Test field validation for new properties
 
 ### Integration Tests
+
 - Test API with canonical=true returns new format
 - Test API without parameter returns legacy format
 - Test EmailService continues working with toTemplateMap()
 - Test CSV export functions correctly
 
 ### Regression Tests
+
 - Run full test suite (95+ tests)
 - Verify no breaking changes in 22 files using StepInstanceDTO
 - Confirm EmailService notifications work
 - Validate Admin GUI functionality
 
 ### Performance Tests
+
 - Baseline: Current /steps endpoint response time
 - Target: ≤800ms for canonical format
 - Load test with 100+ concurrent requests
@@ -312,6 +339,7 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## Definition of Done
 
 ### Phase 1: Foundation Architecture (Sprint 8 Week 1-2)
+
 - [ ] **Enhanced DTO Classes**: All new fields added without breaking existing functionality
 - [ ] **Backward Compatibility**: 36 existing files (StepInstanceDTO: 22, StepMasterDTO: 14) remain functional
 - [ ] **Database Optimization**: Query architecture redesigned for ≤3 queries per request
@@ -323,6 +351,7 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 - [ ] **Development Deployment**: Code deployed to development environment
 
 ### Phase 2: Integration & Performance (Sprint 8 Week 3-4)
+
 - [ ] **EmailService Integration**: Template system updated for enhanced DTOs (US-058 dependency)
 - [ ] **Performance Validation**: ≤800ms response time target achieved under load
 - [ ] **Memory Optimization**: Large result set handling optimized for iteration views
@@ -334,12 +363,14 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## 📊 PERFORMANCE REQUIREMENTS
 
 ### Database Performance Targets
+
 - **Query Limit**: ≤3 database queries per DTO construction
 - **Response Time**: ≤800ms end-to-end for complete step data retrieval
 - **Memory Efficiency**: Handle 500+ step instances without memory issues
 - **Concurrent Load**: Support 10+ simultaneous requests without degradation
 
 ### Integration Performance (US-058 Dependencies)
+
 - **EmailService Template**: ≤100ms additional processing time with enhanced DTOs
 - **JSON Serialization**: ≤50ms for complete canonical format generation
 - **Cache Efficiency**: 80%+ cache hit rate for frequently accessed step data
@@ -347,6 +378,7 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## 🔗 INTEGRATION DEPENDENCIES
 
 ### US-058 EmailService Dependencies
+
 - **Phase 2 EmailService Foundation**: Required for template integration testing
 - **Performance Coordination**: Combined US-058 + US-093-A must meet ≤800ms total target
 - **Template System Updates**: Enhanced DTOs require template engine compatibility
@@ -355,23 +387,28 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 ## Risks and Mitigation
 
 ### Risk 1: Performance Impact
+
 **Risk**: Additional JOINs and data slow down API
 **Mitigation**: Use includes parameter for selective loading
 
 ### Risk 2: Memory Usage
+
 **Risk**: Large DTOs consume excessive memory
 **Mitigation**: Implement pagination and field filtering
 
 ### Risk 3: Backward Compatibility Break
+
 **Risk**: Accidental modification of existing behavior
 **Mitigation**: Comprehensive regression testing, additive-only approach
 
 ## Dependencies
+
 - Database schema supports required relationships
 - Test data includes complete hierarchy examples
 - Performance testing environment available
 
 ## Notes
+
 - This is Phase 1 of 3 for the canonical format transformation
 - Phase 2 (US-093-B) will handle API versioning and migration
 - Phase 3 (US-093-C) will optimize and remove deprecated code
@@ -379,6 +416,6 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 
 ---
 
-*Created: 2025-09-21*
-*Sprint: 7*
-*Status: Ready for Development*
+_Created: 2025-09-21_
+_Sprint: 7_
+_Status: Ready for Development_
