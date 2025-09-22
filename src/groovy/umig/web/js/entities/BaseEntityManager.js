@@ -329,6 +329,60 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
+     * Show notification with auto-dismiss for success messages (UMIG-prefixed utility)
+     * @param {string} type - Notification type (success, error, warning, info)
+     * @param {string} title - Notification title
+     * @param {string} message - Notification message
+     * @param {Object} options - Additional options
+     * @protected
+     */
+    _showNotification(type, title, message, options = {}) {
+      try {
+        if (window.AJS && window.AJS.flag) {
+          const flagOptions = {
+            type: type,
+            title: title,
+            body: message,
+            ...options
+          };
+
+          // Auto-dismiss success notifications after 3 seconds
+          // Keep error notifications manual for user attention
+          if (type === "success") {
+            flagOptions.close = "auto";
+
+            // Create flag and set up auto-dismiss timer
+            const flagId = window.AJS.flag(flagOptions);
+
+            // Auto-dismiss after 3000ms (3 seconds) for success notifications
+            if (flagId && typeof flagId === 'string') {
+              setTimeout(() => {
+                try {
+                  if (window.AJS && window.AJS.flag && window.AJS.flag.close) {
+                    window.AJS.flag.close(flagId);
+                  }
+                } catch (closeError) {
+                  // Silently handle if flag was already closed
+                  console.debug(`[BaseEntityManager] Flag already closed or error closing:`, closeError);
+                }
+              }, 3000);
+            }
+          } else {
+            // Error, warning, info notifications require manual dismissal
+            flagOptions.close = "manual";
+            window.AJS.flag(flagOptions);
+          }
+        } else {
+          console.warn(`[${type.toUpperCase()}] ${title}: ${message}`);
+        }
+      } catch (error) {
+        console.error(`[BaseEntityManager] Error showing notification:`, error);
+        // Fallback to console
+        console.warn(`[${type.toUpperCase()}] ${title}: ${message}`);
+      }
+    }
+
+    /**
      * Load entity data with performance tracking
      * @param {Object} filters - Filter parameters
      * @param {Object} sort - Sort parameters
@@ -1628,14 +1682,12 @@ if (typeof BaseEntityManager === "undefined") {
               // Refresh the table data
               await this.loadData();
 
-              // Show success message (if notification system exists)
-              if (window.AJS && window.AJS.flag) {
-                window.AJS.flag({
-                  type: "success",
-                  title: `${this.entityType.slice(0, -1)} Updated`,
-                  body: `The ${this.entityType.slice(0, -1).toLowerCase()} has been updated successfully.`,
-                });
-              }
+              // Show success message with auto-dismiss
+              this._showNotification(
+                "success",
+                `${this.entityType.slice(0, -1)} Updated`,
+                `The ${this.entityType.slice(0, -1).toLowerCase()} has been updated successfully.`
+              );
 
               return true; // Close modal
             } catch (error) {
@@ -1644,16 +1696,13 @@ if (typeof BaseEntityManager === "undefined") {
                 error,
               );
 
-              // Show error message
-              if (window.AJS && window.AJS.flag) {
-                window.AJS.flag({
-                  type: "error",
-                  title: `Error Updating ${this.entityType.slice(0, -1)}`,
-                  body:
-                    error.message ||
-                    `An error occurred while updating the ${this.entityType.slice(0, -1).toLowerCase()}.`,
-                });
-              }
+              // Show error message (manual dismiss for errors)
+              this._showNotification(
+                "error",
+                `Error Updating ${this.entityType.slice(0, -1)}`,
+                error.message ||
+                  `An error occurred while updating the ${this.entityType.slice(0, -1).toLowerCase()}.`
+              );
 
               return false; // Keep modal open
             }
@@ -1798,72 +1847,113 @@ if (typeof BaseEntityManager === "undefined") {
     }
 
     /**
-     * Confirm entity deletion
+     * Confirm entity deletion using custom modal
      * @param {Object} data - Entity data
      * @private
      */
     async _confirmDeleteEntity(data) {
-      if (
-        confirm(
-          `Are you sure you want to delete this ${this.entityType.slice(0, -1)}?`,
-        )
-      ) {
-        // Use the configured primary key instead of hardcoded 'id'
-        const primaryKey = this.config?.tableConfig?.primaryKey || "id";
-        const entityId = data[primaryKey];
-
-        console.log(
-          `[BaseEntityManager] Deleting entity with ${primaryKey}: ${entityId}`,
-          { data, primaryKey, entityId },
-        );
-
-        if (!entityId) {
-          console.error(
-            `[BaseEntityManager] No ${primaryKey} found in data:`,
-            data,
-          );
-          alert(`Error: Could not find ${primaryKey} for deletion`);
-          return;
+      // Check if ModalComponent is available
+      if (typeof window.ModalComponent === 'undefined') {
+        console.warn('[BaseEntityManager] ModalComponent not available, falling back to standard confirm()');
+        // Fallback to standard confirm for backward compatibility
+        if (
+          confirm(
+            `Are you sure you want to delete this ${this.entityType.slice(0, -1)}?`,
+          )
+        ) {
+          return this._performDelete(data);
         }
+        return;
+      }
 
-        try {
-          await this.deleteEntity(entityId);
+      // Get entity name for display
+      const primaryKey = this.config?.tableConfig?.primaryKey || "id";
+      const entityId = data[primaryKey];
 
-          // Show success message
-          if (window.AJS && window.AJS.flag) {
-            window.AJS.flag({
-              type: "success",
-              title: "Deletion Successful",
-              body: `${this.entityType.slice(0, -1)} has been deleted successfully.`,
-            });
-          }
-        } catch (error) {
-          console.error(`[BaseEntityManager] Delete failed:`, error);
+      // Determine entity display name
+      let entityName = entityId;
+      if (data.name) {
+        entityName = data.name;
+      } else if (data.label) {
+        entityName = data.label;
+      } else if (data.title) {
+        entityName = data.title;
+      } else if (data.email && this.entityType === 'users') {
+        entityName = data.email;
+      } else if (data.environment_name && this.entityType === 'environments') {
+        entityName = data.environment_name;
+      } else if (data.application_name && this.entityType === 'applications') {
+        entityName = data.application_name;
+      }
 
-          // Show detailed error message to user
-          if (window.AJS && window.AJS.flag) {
-            // Check if this is a constraint error with detailed relationships
-            if (error.isConstraintError && error.blockingRelationships) {
-              window.AJS.flag({
-                type: "error",
-                title: "Cannot Delete",
-                body: error.message,
-                close: "manual", // Let user close manually for detailed messages
-              });
-            } else {
-              // Standard error message
-              window.AJS.flag({
-                type: "error",
-                title: "Deletion Failed",
-                body:
-                  error.message ||
-                  `Failed to delete ${this.entityType.slice(0, -1)}`,
-              });
-            }
-          } else {
-            // Fallback to alert if AJS not available
-            alert(`Delete failed: ${error.message || "Unknown error"}`);
-          }
+      // Create and show custom deletion confirmation modal
+      const deleteModal = window.ModalComponent.createDeleteConfirmation({
+        entityName: entityName,
+        entityType: this.entityType.slice(0, -1), // Remove 's' from plural
+        onConfirm: () => {
+          // Return the delete promise so modal can handle it properly
+          return this._performDelete(data);
+        },
+        onCancel: () => {
+          console.log(`[BaseEntityManager] Deletion of ${this.entityType.slice(0, -1)} cancelled by user`);
+        }
+      });
+
+      // Open the modal
+      deleteModal.open();
+    }
+
+    /**
+     * Perform the actual deletion after confirmation
+     * @param {Object} data - Entity data
+     * @private
+     */
+    async _performDelete(data) {
+      // Use the configured primary key instead of hardcoded 'id'
+      const primaryKey = this.config?.tableConfig?.primaryKey || "id";
+      const entityId = data[primaryKey];
+
+      console.log(
+        `[BaseEntityManager] Deleting entity with ${primaryKey}: ${entityId}`,
+        { data, primaryKey, entityId },
+      );
+
+      if (!entityId) {
+        console.error(
+          `[BaseEntityManager] No ${primaryKey} found in data:`,
+          data,
+        );
+        alert(`Error: Could not find ${primaryKey} for deletion`);
+        return;
+      }
+
+      try {
+        await this.deleteEntity(entityId);
+
+        // Show success message with auto-dismiss
+        this._showNotification(
+          "success",
+          "Deletion Successful",
+          `${this.entityType.slice(0, -1)} has been deleted successfully.`
+        );
+      } catch (error) {
+        console.error(`[BaseEntityManager] Delete failed:`, error);
+
+        // Show detailed error message to user (manual dismiss for errors)
+        if (error.isConstraintError && error.blockingRelationships) {
+          this._showNotification(
+            "error",
+            "Cannot Delete",
+            error.message,
+            { close: "manual" } // Let user close manually for detailed messages
+          );
+        } else {
+          // Standard error message
+          this._showNotification(
+            "error",
+            "Deletion Failed",
+            error.message || `Failed to delete ${this.entityType.slice(0, -1)}`
+          );
         }
       }
     }

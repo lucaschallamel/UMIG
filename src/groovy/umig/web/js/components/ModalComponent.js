@@ -835,6 +835,26 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
+   * Clear all tabs and disable tab mode
+   * This method forces the modal to show form content instead of tabs
+   */
+  clearTabs() {
+    console.log("[Modal] Clearing all tabs and disabling tab mode");
+
+    // Clear all tabs
+    this.tabs.clear();
+    this.activeTabId = null;
+
+    // Keep tabsEnabled as configured, but ensure tabs are empty
+    // This allows form mode when no tabs are present
+
+    // Re-render if modal is open to show form content
+    if (this.isOpen) {
+      this.render();
+    }
+  }
+
+  /**
    * Switch to specific tab
    * @param {string} tabId - Tab identifier to activate
    */
@@ -1849,6 +1869,31 @@ if (
       animation: umigSlideIn 0.3s ease-out !important;
     }
 
+    /* Small Modal Size for Delete Confirmations */
+    html body .umig-modal-container.umig-modal-small,
+    html body div.umig-modal-container.umig-modal-small,
+    html body .page-container .umig-modal-container.umig-modal-small {
+      max-width: 480px !important;
+      width: 80% !important;
+      min-width: 360px !important;
+    }
+
+    /* Medium Modal Size */
+    html body .umig-modal-container.umig-modal-medium,
+    html body div.umig-modal-container.umig-modal-medium,
+    html body .page-container .umig-modal-container.umig-modal-medium {
+      max-width: 640px !important;
+      width: 85% !important;
+    }
+
+    /* Large Modal Size */
+    html body .umig-modal-container.umig-modal-large,
+    html body div.umig-modal-container.umig-modal-large,
+    html body .page-container .umig-modal-container.umig-modal-large {
+      max-width: 900px !important;
+      width: 95% !important;
+    }
+
     @keyframes umigFadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -2187,6 +2232,50 @@ if (
       border-color: #d0d7de !important;
     }
 
+    /* Danger Button Styling for Delete Confirmations */
+    html body .umig-modal-wrapper .umig-modal-btn-danger,
+    html body div.umig-modal-wrapper .umig-modal-btn-danger,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-danger {
+      background: #d73a49 !important;
+      color: white !important;
+      border-color: #d73a49 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-danger:hover,
+    html body div.umig-modal-wrapper .umig-modal-btn-danger:hover,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-danger:hover {
+      background: #cb2431 !important;
+      border-color: #cb2431 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-danger:focus,
+    html body div.umig-modal-wrapper .umig-modal-btn-danger:focus,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-danger:focus {
+      box-shadow: 0 0 0 3px rgba(215, 58, 73, 0.3) !important;
+    }
+
+    /* Warning Button Styling */
+    html body .umig-modal-wrapper .umig-modal-btn-warning,
+    html body div.umig-modal-wrapper .umig-modal-btn-warning,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-warning {
+      background: #e36209 !important;
+      color: white !important;
+      border-color: #e36209 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-warning:hover,
+    html body div.umig-modal-wrapper .umig-modal-btn-warning:hover,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-warning:hover {
+      background: #d15704 !important;
+      border-color: #d15704 !important;
+    }
+
+    html body .umig-modal-wrapper .umig-modal-btn-warning:focus,
+    html body div.umig-modal-wrapper .umig-modal-btn-warning:focus,
+    html body .page-container .umig-modal-wrapper .umig-modal-btn-warning:focus {
+      box-shadow: 0 0 0 3px rgba(227, 98, 9, 0.3) !important;
+    }
+
     /* Error and Success Message Styling */
     html body .umig-modal-wrapper .alert,
     html body div.umig-modal-wrapper .alert,
@@ -2303,6 +2392,148 @@ if (
   `;
   document.head.appendChild(style);
 }
+
+/**
+ * Factory function for creating deletion confirmation modals
+ * @param {Object} config - Configuration object
+ * @param {string} config.entityName - The name of the entity being deleted (e.g., "Team ABC", "User John Doe")
+ * @param {string} config.entityType - The type of entity being deleted (e.g., "team", "user")
+ * @param {Function} config.onConfirm - Callback function executed when deletion is confirmed
+ * @param {Function} config.onCancel - Optional callback function executed when deletion is cancelled
+ * @returns {ModalComponent} Configured modal instance ready for opening
+ */
+function createDeleteConfirmation(config) {
+  // Validate required parameters
+  if (!config || !config.entityName || !config.onConfirm) {
+    throw new Error('[ModalComponent] createDeleteConfirmation requires entityName and onConfirm callback');
+  }
+
+  // Generate unique container ID for this modal
+  const containerId = `delete-confirmation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  // Create container element in body
+  const container = document.createElement('div');
+  container.id = containerId;
+  container.style.display = 'none'; // Initially hidden
+  container.style.position = 'fixed';
+  container.style.top = '0';
+  container.style.left = '0';
+  container.style.width = '100%';
+  container.style.height = '100%';
+  container.style.zIndex = '999999';
+  document.body.appendChild(container);
+
+  // Determine entity type display name
+  const entityType = config.entityType || 'item';
+  const displayEntityType = entityType.charAt(0).toUpperCase() + entityType.slice(1);
+
+  // Create modal configuration
+  const modalConfig = {
+    type: 'warning',
+    title: `⚠️ Delete ${displayEntityType}`,
+    content: `
+      <div style="text-align: center; padding: 20px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px; color: #24292e; line-height: 1.5;">
+          Are you sure you want to delete <strong>"${config.entityName}"</strong>?
+        </p>
+        <div style="background: #fff8e1; border: 1px solid #ffecb3; border-radius: 6px; padding: 15px; margin: 10px 0;">
+          <p style="color: #d73a49; font-weight: 600; margin: 0; font-size: 14px;">
+            ⚠️ This action cannot be undone
+          </p>
+        </div>
+      </div>
+    `,
+    size: 'small',
+    centered: true,
+    closeOnOverlay: false,
+    closeOnEscape: true,
+    closeable: true,
+    animated: true,
+    buttons: [
+      {
+        text: 'Cancel',
+        action: 'cancel',
+        variant: 'secondary'
+      },
+      {
+        text: 'Delete',
+        action: 'confirm',
+        variant: 'danger'
+      }
+    ],
+    onButtonClick: (action) => {
+      if (action === 'confirm') {
+        // Execute the confirmation callback
+        try {
+          const result = config.onConfirm();
+          // If callback returns a promise, handle it
+          if (result && typeof result.then === 'function') {
+            result.then(() => {
+              modal.close();
+              // Clean up container after modal closes
+              setTimeout(() => {
+                if (container.parentNode) {
+                  container.parentNode.removeChild(container);
+                }
+              }, 100);
+            }).catch((error) => {
+              console.error('[ModalComponent] Delete confirmation callback error:', error);
+              // Don't close modal on error, let user retry or cancel
+            });
+          } else {
+            // Synchronous callback completed
+            modal.close();
+            // Clean up container after modal closes
+            setTimeout(() => {
+              if (container.parentNode) {
+                container.parentNode.removeChild(container);
+              }
+            }, 100);
+          }
+        } catch (error) {
+          console.error('[ModalComponent] Delete confirmation callback error:', error);
+          // Don't close modal on error, let user retry or cancel
+        }
+        return true; // Indicate we handled the action
+      } else if (action === 'cancel') {
+        // Execute the cancel callback if provided
+        if (config.onCancel && typeof config.onCancel === 'function') {
+          try {
+            config.onCancel();
+          } catch (error) {
+            console.error('[ModalComponent] Delete cancellation callback error:', error);
+          }
+        }
+        modal.close();
+        // Clean up container after modal closes
+        setTimeout(() => {
+          if (container.parentNode) {
+            container.parentNode.removeChild(container);
+          }
+        }, 100);
+        return true; // Indicate we handled the action
+      }
+      return false; // Let default handling occur
+    },
+    onClose: () => {
+      // Clean up container when modal is closed by any means
+      setTimeout(() => {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+      }, 100);
+    }
+  };
+
+  // Create and initialize the modal
+  const modal = new ModalComponent(containerId, modalConfig);
+  modal.initialize();
+
+  return modal;
+}
+
+// Attach factory method to ModalComponent
+ModalComponent.createDeleteConfirmation = createDeleteConfirmation;
 
 // Export for use
 if (typeof module !== "undefined" && module.exports) {

@@ -641,9 +641,9 @@ class StepRepository {
                     println "  - Teams to notify: ${teams.size()}"
                     println "  - Cutover team found: ${cutoverTeam != null}"
 
-                    // We need migration and iteration codes for the email URL construction
+                    // We need migration and iteration names for the email URL construction
                     def contextData = sql.firstRow('''
-                        SELECT m.mig_code, i.ite_code
+                        SELECT m.mig_name, i.ite_name
                         FROM steps_instance_sti si
                         JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
                         JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
@@ -653,8 +653,8 @@ class StepRepository {
                         WHERE si.sti_id = :stepInstanceId
                     ''', [stepInstanceId: stepInstanceId])
 
-                    println "  - Migration code: ${contextData?.mig_code}"
-                    println "  - Iteration code: ${contextData?.ite_code}"
+                    println "  - Migration name: ${contextData?.mig_name}"
+                    println "  - Iteration name: ${contextData?.ite_name}"
 
                     EmailService.sendStepStatusChangedNotification(
                         stepInstance as Map,
@@ -663,8 +663,8 @@ class StepRepository {
                         oldStatus as String,
                         statusName as String,
                         userId,
-                        contextData?.mig_code as String,
-                        contextData?.ite_code as String
+                        contextData?.mig_name as String,
+                        contextData?.ite_name as String
                     )
 
                     // Calculate total emails attempted (teams + cutover team if exists)
@@ -679,8 +679,8 @@ class StepRepository {
 
                     // Log the email failure as an audit event
                     try {
-                        // Calculate recipient list for audit
-                        def recipientEmails = []
+                        // Calculate recipient list for audit (explicit type per ADR-031/ADR-043)
+                        List<String> recipientEmails = []
                         teams.each { team ->
                             if (team.tms_email) {
                                 recipientEmails.add(team.tms_email as String)
@@ -695,8 +695,8 @@ class StepRepository {
                             userId,
                             stepInstanceId,
                             recipientEmails,
-                            "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
-                            emailError.message,
+                            "[UMIG] Step Status Changed: ${stepInstance.sti_name}" as String,
+                            emailError.message as String,
                             'STEP_INSTANCE'  // Entity type for step status changes
                         )
                         println "[AUDIT] ✅ Email failure logged to audit trail"

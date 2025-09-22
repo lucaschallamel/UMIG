@@ -1828,6 +1828,19 @@ window.adminGui = {
           }
         }
 
+        // For Teams entity, delegate to TeamsEntityManager (US-087 Phase 1)
+        if (currentSection === 'teams') {
+          const teamsManager = this.componentManagers?.teams;
+
+          if (teamsManager && typeof teamsManager.handleAdd === 'function') {
+            console.log('[AdminGUI] Delegating Add New Team to TeamsEntityManager');
+            teamsManager.handleAdd();
+            return;
+          } else {
+            console.warn('[AdminGUI] TeamsEntityManager not available, falling back to legacy modal');
+          }
+        }
+
         // Fallback to legacy modal for non-migrated entities
         this.showEditModal(null);
       });
@@ -3079,28 +3092,52 @@ window.adminGui = {
             contentDescription.textContent = entity.description;
           }
 
-          // Show the action buttons when navigating to non-welcome sections
+          // US-087: Component-based entities manage their own toolbars
+          // Hide top-level refresh button for entities that have toolbar refresh buttons
+          const componentBasedEntities = [
+            "teams",
+            "users",
+            "environments",
+            "applications",
+            "labels",
+            "migrationTypes",
+            "iterationTypes"
+          ];
+
           if (refreshBtn) {
-            refreshBtn.style.display = "inline-block";
+            if (componentBasedEntities.includes(this.state.currentEntity)) {
+              // Hide top refresh for component-based entities (they have their own toolbar refresh)
+              refreshBtn.style.display = "none";
+            } else {
+              // Show for legacy entities that don't have their own toolbar
+              refreshBtn.style.display = "inline-block";
+            }
           }
 
           if (addNewBtn) {
-            addNewBtn.style.display = "inline-block";
-
-            // Secure alternative to innerHTML - use safe HTML setting
-            if (
-              window.SecurityUtils &&
-              typeof window.SecurityUtils.safeSetInnerHTML === "function"
-            ) {
-              const entityName = entity.name.slice(0, -1);
-              const safeHTML = `<span class="btn-icon">➕</span> Add New ${entityName}`;
-              window.SecurityUtils.safeSetInnerHTML(addNewBtn, safeHTML, {
-                allowedTags: ["span"],
-                allowedAttributes: { span: ["class"] },
-              });
+            if (componentBasedEntities.includes(this.state.currentEntity)) {
+              // Hide legacy button for component-based entities to prevent conflicts
+              addNewBtn.style.display = "none";
+              console.log(`[US-087] Hidden legacy addNewBtn for component-based entity: ${this.state.currentEntity}`);
             } else {
-              // Fallback to textContent for safety
-              addNewBtn.textContent = `➕ Add New ${entity.name.slice(0, -1)}`;
+              // Show legacy button for non-migrated entities
+              addNewBtn.style.display = "inline-block";
+
+              // Secure alternative to innerHTML - use safe HTML setting
+              if (
+                window.SecurityUtils &&
+                typeof window.SecurityUtils.safeSetInnerHTML === "function"
+              ) {
+                const entityName = entity.name.slice(0, -1);
+                const safeHTML = `<span class="btn-icon">➕</span> Add New ${entityName}`;
+                window.SecurityUtils.safeSetInnerHTML(addNewBtn, safeHTML, {
+                  allowedTags: ["span"],
+                  allowedAttributes: { span: ["class"] },
+                });
+              } else {
+                // Fallback to textContent for safety
+                addNewBtn.textContent = `➕ Add New ${entity.name.slice(0, -1)}`;
+              }
             }
           }
         }

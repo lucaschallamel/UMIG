@@ -1,12 +1,50 @@
 # US-093-A: Phase 1 - Additive DTO Enhancement Foundation
 
 ## Story Overview
-**Story Points**: 13
-**Sprint**: 7
+**Story Points**: 13 → **REVISED: 16-19 points actual**
+**Sprint**: 7 (Planning) / 8 (Implementation)
 **Priority**: High
 **Type**: Technical Implementation
 **Parent Epic**: US-093
 **Risk**: Medium (backward compatibility focus reduces risk)
+
+## ⚠️ SCOPE REVISION ANALYSIS
+
+**Multi-Agent Analysis Findings (2025-09-22)**:
+- **Original Estimate**: 13 story points
+- **Actual Complexity**: 16-19 story points (25-45% underestimated)
+- **Root Cause**: Complex JOIN optimization requirements and performance constraints not fully captured
+- **Analysis Team**: Requirements Analyst, System Architect, Data Architect, Security Architect, Project Planner
+
+### Complexity Factors Discovered
+1. **Database Performance Requirements**: ≤3 queries, ≤800ms response time targets
+2. **Complex JOIN Operations**: 6+ database tables with hierarchy relationships
+3. **Integration Dependencies**: US-058 EmailService changes affect DTO template integration
+4. **Backward Compatibility**: 36 existing files (22 StepInstanceDTO + 14 StepMasterDTO) require validation
+5. **Memory Optimization**: Large result set handling for iteration views
+
+### Sprint Capacity Impact
+- **Sprint 7 Status**: 83.5/80 points committed (**104% over-capacity**)
+- **Recommended Action**: Defer to Sprint 8 for proper implementation
+- **Integration Dependency**: Requires US-058 Phase 2 EmailService foundation
+
+## 🎯 REVISED IMPLEMENTATION STRATEGY
+
+### Phase 1: Foundation Architecture (8-10 points, Sprint 8 Week 1-2)
+**Dependencies**: US-058 Phase 2 completion
+**Scope**:
+- Enhanced DTO class definitions with additive fields
+- Database query optimization (≤3 queries target)
+- Performance baseline establishment
+- Backward compatibility validation (36 files)
+
+### Phase 2: Integration & Performance (6-8 points, Sprint 8 Week 3-4)
+**Dependencies**: Phase 1 foundation complete
+**Scope**:
+- EmailService template integration
+- Performance validation (≤800ms target)
+- End-to-end testing with iteration views
+- Memory optimization for large result sets
 
 ## User Story
 **As a** UMIG system architect
@@ -272,14 +310,47 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 - Memory usage profiling
 
 ## Definition of Done
-- [ ] All code implemented and peer reviewed
-- [ ] Unit tests written and passing (100% coverage)
-- [ ] Integration tests passing
-- [ ] Regression tests confirm no breaking changes
-- [ ] Performance baseline established and met
-- [ ] API documentation updated
-- [ ] Code deployed to development environment
-- [ ] Acceptance criteria verified by QA
+
+### Phase 1: Foundation Architecture (Sprint 8 Week 1-2)
+- [ ] **Enhanced DTO Classes**: All new fields added without breaking existing functionality
+- [ ] **Backward Compatibility**: 36 existing files (StepInstanceDTO: 22, StepMasterDTO: 14) remain functional
+- [ ] **Database Optimization**: Query architecture redesigned for ≤3 queries per request
+- [ ] **Performance Baseline**: Response times measured and documented (target: ≤800ms)
+- [ ] **Canonical JSON Format**: Complete schema defined and documented
+- [ ] **Unit Testing**: All new functionality covered with 85%+ test coverage
+- [ ] **Integration Testing**: End-to-end scenarios validated with real data
+- [ ] **Code Review**: All code implemented and peer reviewed
+- [ ] **Development Deployment**: Code deployed to development environment
+
+### Phase 2: Integration & Performance (Sprint 8 Week 3-4)
+- [ ] **EmailService Integration**: Template system updated for enhanced DTOs (US-058 dependency)
+- [ ] **Performance Validation**: ≤800ms response time target achieved under load
+- [ ] **Memory Optimization**: Large result set handling optimized for iteration views
+- [ ] **End-to-End Testing**: Complete workflow validation with US-058 integration
+- [ ] **Regression Testing**: Confirm no breaking changes across 36 existing files
+- [ ] **API Documentation**: Updated with enhanced DTO capabilities and performance characteristics
+- [ ] **QA Validation**: Acceptance criteria verified by QA team
+
+## 📊 PERFORMANCE REQUIREMENTS
+
+### Database Performance Targets
+- **Query Limit**: ≤3 database queries per DTO construction
+- **Response Time**: ≤800ms end-to-end for complete step data retrieval
+- **Memory Efficiency**: Handle 500+ step instances without memory issues
+- **Concurrent Load**: Support 10+ simultaneous requests without degradation
+
+### Integration Performance (US-058 Dependencies)
+- **EmailService Template**: ≤100ms additional processing time with enhanced DTOs
+- **JSON Serialization**: ≤50ms for complete canonical format generation
+- **Cache Efficiency**: 80%+ cache hit rate for frequently accessed step data
+
+## 🔗 INTEGRATION DEPENDENCIES
+
+### US-058 EmailService Dependencies
+- **Phase 2 EmailService Foundation**: Required for template integration testing
+- **Performance Coordination**: Combined US-058 + US-093-A must meet ≤800ms total target
+- **Template System Updates**: Enhanced DTOs require template engine compatibility
+- **Security Integration**: Enhanced DTOs must pass US-058 Phase 1 security validation
 
 ## Risks and Mitigation
 

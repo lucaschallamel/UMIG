@@ -5,6 +5,7 @@ import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
 import umig.utils.DatabaseUtil
+import umig.utils.StepNotificationIntegration
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 import groovy.json.JsonBuilder
@@ -1047,18 +1048,22 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
-            // Update step status and send notifications
-            // Use script-level repository instance
-            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId)
-            def result = repositoryResult as Map
+            // Update step status and send enhanced notifications with URLs
+            // Use StepNotificationIntegration for enhanced email functionality
+            def integrationResult = StepNotificationIntegration.updateStepStatusWithEnhancedNotifications(stepInstanceUuid, statusId, userId)
+            def result = integrationResult as Map
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
-                    message: "Step status updated successfully",
+                    message: result.message ?: "Step status updated successfully",
                     stepInstanceId: stepInstanceId,
                     statusId: statusId,
-                    emailsSent: result.emailsSent ?: 0
+                    emailsSent: result.emailsSent ?: 0,
+                    enhancedNotification: result.enhancedNotification ?: false,
+                    migrationCode: result.migrationCode ?: null,
+                    iterationCode: result.iterationCode ?: null,
+                    contextMissing: result.contextMissing ?: false
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

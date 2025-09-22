@@ -352,8 +352,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     // Setup pagination event handlers
     this.setupPaginationHandlers();
 
-    // Create the toolbar after initialization
-    this.createToolbar();
+    // Toolbar will be created after container is stable in render()
   }
 
   /**
@@ -435,6 +434,24 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
   }
 
   /**
+   * Override render to create toolbar after container is stable
+   * @returns {Promise<void>}
+   */
+  async render() {
+    try {
+      // Call parent render first
+      await super.render();
+
+      // Create toolbar after parent rendering is complete
+      console.log("[UsersEntityManager] Creating toolbar after render");
+      this.createToolbar();
+    } catch (error) {
+      console.error("[UsersEntityManager] Failed to render:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Create toolbar with Add New button
    * @public
    */
@@ -449,7 +466,9 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       } else {
         // If it's a string ID or fallback to default
         const containerId =
-          this.container || this.tableConfig?.containerId || "dataTable";
+          (typeof this.container === "string" ? this.container : null) ||
+          this.tableConfig?.containerId ||
+          "dataTable";
         container = document.getElementById(containerId);
       }
 
@@ -493,12 +512,17 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
       addButton.setAttribute("data-action", "add");
       addButton.onclick = () => this.handleAdd();
 
-      // Create Refresh button with UMIG-prefixed classes
+      // Create Refresh button with UMIG-prefixed classes (matching TeamsEntityManager pattern)
       const refreshButton = document.createElement("button");
       refreshButton.className = "umig-btn-secondary umig-button";
       refreshButton.id = "umig-refresh-users-btn";
       refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
-      refreshButton.onclick = () => this.loadData();
+
+      // Use addEventListener instead of onclick for better reliability (ADR-057 compliance)
+      refreshButton.addEventListener("click", async () => {
+        console.log("[UsersEntityManager] Refresh button clicked");
+        await this._handleRefreshWithFeedback(refreshButton);
+      });
 
       // Clear and add buttons to toolbar
       toolbar.innerHTML = "";
@@ -552,29 +576,24 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           // Refresh the table data
           await this.loadData();
 
-          // Show success message (if notification system exists)
-          if (window.AJS && window.AJS.flag) {
-            window.AJS.flag({
-              type: "success",
-              title: "User Created",
-              body: `User ${formData.usr_first_name} ${formData.usr_last_name} has been created successfully.`,
-            });
-          }
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "User Created",
+            `User ${formData.usr_first_name} ${formData.usr_last_name} has been created successfully.`
+          );
 
           // Return true to close modal automatically
           return true;
         } catch (error) {
           console.error("[UsersEntityManager] Error creating user:", error);
 
-          // Show error message
-          if (window.AJS && window.AJS.flag) {
-            window.AJS.flag({
-              type: "error",
-              title: "Error Creating User",
-              body:
-                error.message || "An error occurred while creating the user.",
-            });
-          }
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Creating User",
+            error.message || "An error occurred while creating the user."
+          );
 
           // Return false to keep modal open with error
           return false;
@@ -636,29 +655,24 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           // Refresh the table data
           await this.loadData();
 
-          // Show success message (if notification system exists)
-          if (window.AJS && window.AJS.flag) {
-            window.AJS.flag({
-              type: "success",
-              title: "User Updated",
-              body: `User ${formData.usr_first_name} ${formData.usr_last_name} has been updated successfully.`,
-            });
-          }
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "User Updated",
+            `User ${formData.usr_first_name} ${formData.usr_last_name} has been updated successfully.`
+          );
 
           // Return true to close modal automatically
           return true;
         } catch (error) {
           console.error("[UsersEntityManager] Error updating user:", error);
 
-          // Show error message
-          if (window.AJS && window.AJS.flag) {
-            window.AJS.flag({
-              type: "error",
-              title: "Error Updating User",
-              body:
-                error.message || "An error occurred while updating the user.",
-            });
-          }
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Updating User",
+            error.message || "An error occurred while updating the user."
+          );
 
           // Return false to keep modal open with error
           return false;
@@ -2551,8 +2565,23 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     try {
       console.log("[UsersEntityManager] Updating user:", id, data);
 
+      // Filter out read-only fields that shouldn't be sent in updates
+      const readOnlyFields = ['usr_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'teams'];
+      const updateData = {};
+
+      // Only include updatable fields (matching UserRepository whitelist)
+      const updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id'];
+
+      Object.keys(data).forEach(key => {
+        if (updatableFields.includes(key) && !readOnlyFields.includes(key)) {
+          updateData[key] = data[key];
+        }
+      });
+
+      console.log("[UsersEntityManager] Filtered update data:", updateData);
+
       // Security validation
-      window.SecurityUtils.validateInput({ id, ...data });
+      window.SecurityUtils.validateInput({ id, ...updateData });
 
       const response = await fetch(
         `${this.usersApiUrl}/${encodeURIComponent(id)}`,
@@ -2561,7 +2590,7 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-          body: JSON.stringify(data),
+          body: JSON.stringify(updateData),
           credentials: "same-origin",
         },
       );
@@ -2747,6 +2776,167 @@ class UsersEntityManager extends (window.BaseEntityManager || class {}) {
     // Display the actual role_code from the database without transformation
     const roleCode = data.role_code || (data.usr_is_admin ? "ADMIN" : "NORMAL");
     return roleCode;
+  }
+
+  /**
+   * Handle refresh with comprehensive visual feedback
+   * @param {HTMLElement} refreshButton - The refresh button element
+   * @private
+   */
+  async _handleRefreshWithFeedback(refreshButton) {
+    const startTime = performance.now();
+
+    try {
+      // Step 1: Show loading state immediately
+      this._setRefreshButtonLoadingState(refreshButton, true);
+
+      // Step 2: Add visual feedback to table (fade effect)
+      const tableContainer = document.querySelector('#dataTable');
+      if (tableContainer) {
+        tableContainer.style.transition = 'opacity 0.2s ease-in-out';
+        tableContainer.style.opacity = '0.6';
+      }
+
+      // Step 3: Perform the actual refresh
+      console.log("[UsersEntityManager] Starting data refresh with visual feedback");
+      await this.loadData(
+        this.currentFilters,
+        this.currentSort,
+        this.currentPage,
+      );
+
+      // Step 4: Calculate operation time
+      const operationTime = performance.now() - startTime;
+
+      // Step 5: Restore table opacity with slight delay for visual feedback
+      if (tableContainer) {
+        // Small delay to ensure user sees the refresh happening
+        await new Promise(resolve => setTimeout(resolve, 150));
+        tableContainer.style.opacity = '1';
+      }
+
+      // Step 6: Show success feedback
+      this._showRefreshSuccessMessage(operationTime);
+
+      console.log(`[UsersEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`);
+
+    } catch (error) {
+      console.error("[UsersEntityManager] Error refreshing data:", error);
+
+      // Restore table opacity on error
+      const tableContainer = document.querySelector('#dataTable');
+      if (tableContainer) {
+        tableContainer.style.opacity = '1';
+      }
+
+      // Show error message
+      this._showNotification(
+        "error",
+        "Refresh Failed",
+        "Failed to refresh user data. Please try again."
+      );
+
+    } finally {
+      // Step 7: Always restore button state
+      this._setRefreshButtonLoadingState(refreshButton, false);
+    }
+  }
+
+  /**
+   * Set refresh button loading state with visual feedback
+   * @param {HTMLElement} button - The refresh button element
+   * @param {boolean} loading - Whether button should show loading state
+   * @private
+   */
+  _setRefreshButtonLoadingState(button, loading) {
+    if (!button) return;
+
+    if (loading) {
+      // Store original content
+      button._originalHTML = button.innerHTML;
+
+      // Update to loading state
+      button.innerHTML = '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">⟳</span> Refreshing...';
+      button.disabled = true;
+      button.style.opacity = '0.7';
+      button.style.cursor = 'not-allowed';
+
+      // Add spinning animation if not already defined
+      if (!document.querySelector('#refresh-spinner-styles')) {
+        const style = document.createElement('style');
+        style.id = 'refresh-spinner-styles';
+        style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+    } else {
+      // Restore original state
+      if (button._originalHTML) {
+        button.innerHTML = button._originalHTML;
+      }
+      button.disabled = false;
+      button.style.opacity = '1';
+      button.style.cursor = 'pointer';
+    }
+  }
+
+  /**
+   * Show refresh success message with timing information
+   * @param {number} operationTime - Time taken for the operation in milliseconds
+   * @private
+   */
+  _showRefreshSuccessMessage(operationTime) {
+    // Create a temporary success indicator
+    const successIndicator = document.createElement('div');
+    successIndicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 13px;
+      z-index: 10000;
+      animation: fadeInOut 2.5s ease-in-out forwards;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    `;
+
+    const userCount = this.currentData ? this.currentData.length : 0;
+    successIndicator.innerHTML = `
+      <strong>✓ Refreshed</strong><br>
+      ${userCount} users loaded in ${operationTime.toFixed(0)}ms
+    `;
+
+    // Add fade in/out animation
+    if (!document.querySelector('#success-indicator-styles')) {
+      const style = document.createElement('style');
+      style.id = 'success-indicator-styles';
+      style.textContent = `
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(-10px); }
+          15% { opacity: 1; transform: translateY(0); }
+          85% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(successIndicator);
+
+    // Remove indicator after animation completes
+    setTimeout(() => {
+      if (successIndicator.parentNode) {
+        successIndicator.parentNode.removeChild(successIndicator);
+      }
+    }, 2500);
   }
 
   /**

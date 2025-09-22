@@ -50,7 +50,8 @@ class TeamRepository {
     def findTeamById(int teamId) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT tms_id, tms_name, tms_description, tms_email
+                SELECT tms_id, tms_name, tms_description, tms_email,
+                       created_at, updated_at, created_by, updated_by
                 FROM teams_tms
                 WHERE tms_id = :teamId
             """, [teamId: teamId])
@@ -64,11 +65,15 @@ class TeamRepository {
     def findAllTeams() {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT 
-                    t.tms_id, 
-                    t.tms_name, 
-                    t.tms_description, 
+                SELECT
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
                     t.tms_email,
+                    t.created_at,
+                    t.updated_at,
+                    t.created_by,
+                    t.updated_by,
                     COALESCE(m.member_count, 0) as member_count,
                     COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
@@ -84,7 +89,7 @@ class TeamRepository {
                 ) a ON t.tms_id = a.tms_id
                 ORDER BY t.tms_name
             """)
-            
+
             // Return database field names for admin GUI compatibility
             return results
         }
@@ -130,11 +135,15 @@ class TeamRepository {
             
             // Build the main query
             def baseQuery = """
-                SELECT 
-                    t.tms_id, 
-                    t.tms_name, 
-                    t.tms_description, 
+                SELECT
+                    t.tms_id,
+                    t.tms_name,
+                    t.tms_description,
                     t.tms_email,
+                    t.created_at,
+                    t.updated_at,
+                    t.created_by,
+                    t.updated_by,
                     COALESCE(m.member_count, 0) as member_count,
                     COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
@@ -236,7 +245,7 @@ class TeamRepository {
 
             def setClauses = []
             def queryParams = [:]
-            def updatableFields = ['tms_name', 'tms_description', 'tms_email']
+            def updatableFields = ['tms_name', 'tms_description', 'tms_email', 'tms_status']
 
             teamData.each { key, value ->
                 if (key in updatableFields) {
