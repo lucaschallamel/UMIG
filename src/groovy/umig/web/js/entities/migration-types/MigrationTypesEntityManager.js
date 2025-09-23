@@ -36,134 +36,343 @@
  * @performance <200ms target with intelligent caching and lazy loading
  */
 
-// Browser-compatible - uses global objects directly to avoid duplicate declarations
+// Browser-compatible - uses direct global object access per ADR-057
 // Dependencies: BaseEntityManager, ComponentOrchestrator, SecurityUtils (accessed via window.X)
-
-// Utility function to get dependencies safely
-function getDependency(name, fallback = {}) {
-  return window[name] || fallback;
-}
 
 class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   class {}) {
   /**
-   * Initialize MigrationTypesEntityManager with specific configuration
-   * @param {Object} config - Configuration object
+   * Initialize MigrationTypesEntityManager with Applications/IterationTypes standardized pattern
+   * @param {Object} options - Configuration options from admin-gui.js
    */
-  constructor(config = {}) {
-    // Initialize parent with proper config including entityType
+  constructor(options = {}) {
+    // Call super constructor with merged configuration following Applications pattern
     super({
       entityType: "migration-types",
-      ...config,
+      ...options, // Include apiBase, endpoints, orchestrator, performanceMonitor
+      tableConfig: {
+        containerId: "dataTable",
+        primaryKey: "mit_id", // Fixed: Use mit_id to match actual database schema
+        sorting: {
+          enabled: true,
+          column: null,
+          direction: "asc",
+        },
+        columns: [
+          { key: "mit_code", label: "Code", sortable: true },
+          {
+            key: "mit_name",
+            label: "Migration Type Name",
+            sortable: true,
+            renderer: (value, row) => {
+              return window.SecurityUtils?.sanitizeHtml
+                ? window.SecurityUtils.sanitizeHtml(value || "")
+                : value || "";
+            },
+          },
+          {
+            key: "mit_description",
+            label: "Description",
+            sortable: true,
+            renderer: (value, row) => {
+              const desc = value || "";
+              const truncated =
+                desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
+              return window.SecurityUtils?.sanitizeHtml
+                ? window.SecurityUtils.sanitizeHtml(truncated)
+                : truncated;
+            },
+          },
+          {
+            key: "mit_active",
+            label: "Status",
+            sortable: true,
+            renderer: (value) => {
+              const isActive =
+                value === true || value === 1 || value === "true";
+              const config = isActive
+                ? { label: "Active", variant: "success" }
+                : { label: "Inactive", variant: "secondary" };
+              return `<span class="badge badge-${config.variant}">${config.label}</span>`;
+            },
+          },
+          {
+            key: "mit_color",
+            label: "Color",
+            sortable: true,
+            renderer: (value) => {
+              const color = value || "#6B73FF";
+              return `<span class="color-indicator" style="background-color: ${color}; width: 20px; height: 20px; display: inline-block; border-radius: 3px; margin-right: 5px;"></span>${color}`;
+            },
+          },
+          {
+            key: "mit_display_order",
+            label: "Order",
+            sortable: true,
+            renderer: (value) => {
+              const order = parseInt(value) || 0;
+              return `<span class="umig-badge">${order}</span>`;
+            },
+          },
+        ],
+        actions: {
+          view: true,
+          edit: true,
+          delete: true,
+        },
+        bulkActions: {
+          delete: true,
+          export: true,
+        },
+        colorMapping: {
+          enabled: false,
+        },
+      },
+      modalConfig: {
+        containerId: "editModal",
+        title: "Migration Type Management",
+        size: "large",
+        form: {
+          fields: [
+            {
+              name: "mit_code",
+              type: "text",
+              required: true,
+              label: "Migration Type Code",
+              placeholder: "e.g., INFRASTRUCTURE, APPLICATION, DATABASE",
+              readonly: (mode, data) => mode === "edit", // Readonly in edit mode
+              validation: {
+                minLength: 2,
+                maxLength: 20,
+                pattern: /^[A-Z][A-Z0-9_-]*$/,
+                message:
+                  "Code must start with uppercase letter and contain only uppercase letters, numbers, underscore, or hyphen",
+              },
+            },
+            {
+              name: "mit_name",
+              type: "text",
+              required: true,
+              label: "Migration Type Name",
+              placeholder: "e.g., Infrastructure Release, Application Release",
+              validation: {
+                minLength: 1,
+                maxLength: 100,
+                message: "Name must be between 1 and 100 characters",
+              },
+            },
+            {
+              name: "mit_description",
+              type: "textarea",
+              required: false,
+              label: "Description",
+              placeholder:
+                "Detailed description of this migration type and its purpose...",
+              rows: 4,
+              validation: {
+                maxLength: 4000,
+                message: "Description must be 4000 characters or less",
+              },
+            },
+            {
+              name: "mit_color",
+              type: "text",
+              required: false,
+              label: "Color",
+              placeholder: "#6B73FF",
+              defaultValue: "#6B73FF",
+              validation: {
+                pattern: /^#[0-9A-Fa-f]{6}$/,
+                message: "Color must be a valid hex color code (e.g., #6B73FF)",
+              },
+            },
+            {
+              name: "mit_icon",
+              type: "text",
+              required: false,
+              label: "Icon",
+              placeholder: "layers",
+              defaultValue: "layers",
+              validation: {
+                maxLength: 50,
+                message: "Icon must be 50 characters or less",
+              },
+            },
+            {
+              name: "mit_display_order",
+              type: "number",
+              required: false,
+              label: "Display Order",
+              placeholder: "0",
+              defaultValue: 0,
+              validation: {
+                min: 0,
+                max: 999,
+                message: "Display order must be between 0 and 999",
+              },
+            },
+            {
+              name: "mit_active",
+              type: "select",
+              required: true,
+              label: "Status",
+              placeholder: "Select status",
+              defaultValue: true,
+              options: [
+                { value: true, label: "Active - Available for Use" },
+                { value: false, label: "Inactive - Not Available" },
+              ],
+            },
+          ],
+        },
+      },
+      filterConfig: {
+        fields: ["mit_code", "mit_name", "mit_description"],
+      },
+      paginationConfig: {
+        containerId: "paginationContainer",
+        pageSize: 50, // Standard page size for migration types
+        pageSizeOptions: [10, 25, 50, 100],
+      },
     });
 
-    // Define migration-types-specific configuration after super()
-    const migrationTypesConfig = {
-      tableConfig: this._getTableConfig(),
-      modalConfig: this._getModalConfig(),
-      filterConfig: this._getFilterConfig(),
-      paginationConfig: this._getPaginationConfig(),
+    // Entity-specific properties following Applications pattern
+    this.primaryKey = "mit_id";
+    this.displayField = "mit_name";
+    this.searchFields = ["mit_code", "mit_name", "mit_description"];
+
+    // Client-side pagination - TableComponent handles pagination of full dataset
+    this.paginationMode = "client";
+
+    // Performance thresholds following Applications pattern
+    this.performanceThresholds = {
+      migrationTypeLoad: 200,
+      migrationTypeUpdate: 300,
+      templateManagement: 250,
+      approvalWorkflow: 400,
+      batchOperation: 1000,
     };
 
-    // Merge configuration into this instance (config is already initialized by super())
-    Object.assign(this.config, migrationTypesConfig);
+    // API endpoints following Applications pattern
+    this.migrationTypesApiUrl =
+      "/rest/scriptrunner/latest/custom/migrationTypes";
+    this.teamsApiUrl = "/rest/scriptrunner/latest/custom/teams";
+    this.migrationsApiUrl = "/rest/scriptrunner/latest/custom/migrations";
+    this.templatesApiUrl = "/rest/scriptrunner/latest/custom/templates";
+
+    // Component orchestrator for UI management
+    this.orchestrator = null;
+    this.components = new Map();
+
+    // Cache configuration following Applications pattern
+    this.cacheConfig = {
+      enabled: true,
+      ttl: 5 * 60 * 1000, // 5 minutes
+      maxSize: 100,
+    };
+    this.cache = new Map();
+    this.performanceMetrics = {};
+    this.auditCache = [];
+    this.errorLog = [];
+
+    // Initialize cache tracking variables
+    this.cacheHitCount = 0;
+    this.cacheMissCount = 0;
 
     // Migration Types specific properties
-    this.apiEndpoint = "/rest/scriptrunner/latest/custom/migration-types";
+    this.apiEndpoint = "/rest/scriptrunner/latest/custom/migrationTypes";
     this.permissionLevel = null;
     this.approvalWorkflowEnabled = true;
     this.templateVersioning = true;
-
-    // Caching for performance optimization
-    this.teamCache = new Map();
-    this.templateCache = new Map();
-    this.validationCache = new Map();
-    this.batchCache = new Map(); // For batch operation results
-
-    // Security context for SUPERADMIN checks
     this.userPermissions = null;
 
-    // Error handling and circuit breaker
-    this.errorBoundary = new Map(); // Track error rates by operation
-    this.circuitBreaker = new Map(); // Circuit breaker state
-    this.retryConfig = {
-      maxRetries: 3,
-      retryDelay: 1000,
-      circuitBreakerThreshold: 5,
-    };
+    // Teams data cache for dynamic field configuration
+    this.teamsData = [];
 
     console.log(
-      "[MigrationTypesEntityManager] Initialized with enterprise security and batch optimization",
+      "[MigrationTypesEntityManager] Initialized with standardized component architecture",
     );
   }
 
-  /**
-   * Initialize with enhanced security checks and permission validation
-   * @param {HTMLElement} container - DOM container
-   * @param {Object} options - Initialization options
-   * @returns {Promise<void>}
-   */
-  async initialize(container, options = {}) {
-    try {
-      console.log(
-        "[MigrationTypesEntityManager] Initializing with permission validation",
-      );
-
-      // Initialize base entity manager
-      await super.initialize(container, options);
-
-      // Load user permissions for SUPERADMIN checks
-      await this._loadUserPermissions();
-
-      // Initialize migration-specific components
-      await this._initializeMigrationTypeComponents();
-
-      // Setup migration-specific event handlers
-      this._setupMigrationTypeEventHandlers();
-
-      // Load related data for caching
-      await this._loadRelatedDataCache();
-
-      console.log(
-        "[MigrationTypesEntityManager] Initialization complete with security validation",
-      );
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Failed to initialize:",
-        error,
-      );
-      throw error;
-    }
-  }
+  // Protected Methods (Implementation of BaseEntityManager abstract methods)
 
   /**
-   * Enhanced data loading with caching and security filtering
+   * Fetch migration type data from API following Applications pattern
    * @param {Object} filters - Filter parameters
    * @param {Object} sort - Sort parameters
    * @param {number} page - Page number
    * @param {number} pageSize - Page size
-   * @returns {Promise<Object>} Data response with metadata
+   * @returns {Promise<Object>} API response
+   * @protected
    */
-  async loadData(filters = {}, sort = null, page = 1, pageSize = 20) {
+  async _fetchEntityData(filters = {}, sort = null, page = 1, pageSize = 20) {
+    const startTime = performance.now();
     try {
-      // Apply security filtering based on permissions
-      const securityFilters = await this._applySecurityFilters(filters);
+      console.log(
+        "[MigrationTypesEntityManager] Fetching migration type data",
+        {
+          filters,
+          sort,
+          page,
+          pageSize,
+        },
+      );
+      // Construct API URL with pagination
+      const baseUrl =
+        this.migrationTypesApiUrl ||
+        "/rest/scriptrunner/latest/custom/migrationTypes";
 
-      // Load data with performance tracking
-      const result = await super.loadData(
-        securityFilters,
-        sort,
-        page,
-        pageSize,
+      // Apply client-side filtering for this entity
+      let url = baseUrl;
+      if (filters && Object.keys(filters).length > 0) {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            params.append(key, value);
+          }
+        });
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+      }
+
+      // Security validation
+      window.SecurityUtils.validateInput(filters);
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "[MigrationTypesEntityManager] API Error:",
+          response.status,
+          errorText,
+        );
+        throw new Error(
+          `Failed to fetch migration types: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data = await response.json();
+      console.log(
+        `[MigrationTypesEntityManager] Successfully fetched ${data.length || 0} migration types`,
       );
 
-      // Enrich data with related information
-      result.data = await this._enrichMigrationTypeData(result.data);
+      // Track performance metrics
+      const fetchTime = performance.now() - startTime;
+      this._trackPerformance("load", fetchTime);
 
-      return result;
+      // Return data in expected format for client-side pagination
+      return Array.isArray(data) ? data : data.data || [];
     } catch (error) {
       console.error(
-        "[MigrationTypesEntityManager] Failed to load data:",
+        "[MigrationTypesEntityManager] Failed to fetch migration types:",
         error,
       );
       throw error;
@@ -171,46 +380,52 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Create migration type with enhanced validation
+   * Create migration type data via API following Applications pattern
    * @param {Object} data - Migration type data
    * @returns {Promise<Object>} Created migration type
+   * @protected
    */
-  async createEntity(data) {
+  async _createEntityData(data) {
+    const startTime = performance.now();
     try {
       console.log(
-        "[MigrationTypesEntityManager] Creating migration type with validation",
+        "[MigrationTypesEntityManager] Creating new migration type:",
+        data,
       );
-
-      // SUPERADMIN permission check
-      if (!this._isSuperAdmin()) {
-        throw new SecurityUtils.AuthorizationException(
-          "Only SUPERADMIN users can create migration types",
-          "create_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
+      // Security validation
+      window.SecurityUtils.validateInput(data);
+      const response = await fetch(this.migrationTypesApiUrl, {
+        method: "POST",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(data),
+        credentials: "same-origin",
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "[MigrationTypesEntityManager] Create Error:",
+          response.status,
+          errorText,
+        );
+        throw new Error(
+          `Failed to create migration type: ${response.status} ${response.statusText}`,
         );
       }
-
-      // Enhanced validation for migration types
-      await this._validateMigrationTypeData(data, "create");
-
-      // Process template and validation rules
-      data = await this._processMigrationTypeConfiguration(data);
-
-      // Create entity with audit trail
-      const result = await super.createEntity(data);
-
-      // Setup team permissions if specified
-      if (data.team_permissions && data.team_permissions.length > 0) {
-        await this._setupTeamPermissions(result.id, data.team_permissions);
-      }
-
-      // Clear related caches
-      this._clearRelatedCaches();
-
+      const createdMigrationType = await response.json();
       console.log(
-        "[MigrationTypesEntityManager] Migration type created successfully",
+        "[MigrationTypesEntityManager] Migration type created successfully:",
+        createdMigrationType,
       );
-      return result;
+
+      // Track performance metrics
+      const createTime = performance.now() - startTime;
+      this._trackPerformance("create", createTime);
+
+      // Invalidate cache to force fresh data on next load
+      this._invalidateCache("all");
+      return createdMigrationType;
     } catch (error) {
       console.error(
         "[MigrationTypesEntityManager] Failed to create migration type:",
@@ -221,61 +436,85 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Update migration type with approval workflow
+   * Update migration type data via API following Applications pattern
    * @param {string} id - Migration type ID
    * @param {Object} data - Updated data
    * @returns {Promise<Object>} Updated migration type
+   * @protected
    */
-  async updateEntity(id, data) {
+  async _updateEntityData(id, data) {
+    const startTime = performance.now();
     try {
       console.log(
-        "[MigrationTypesEntityManager] Updating migration type with workflow",
+        "[MigrationTypesEntityManager] Updating migration type:",
+        id,
+        data,
       );
-
-      // SUPERADMIN permission check
-      if (!this._isSuperAdmin()) {
-        throw new SecurityUtils.AuthorizationException(
-          "Only SUPERADMIN users can modify migration types",
-          "update_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
+      // Filter out read-only fields that shouldn't be sent in updates
+      const readOnlyFields = [
+        "mit_id",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+      ];
+      const updateData = {};
+      // Only include updatable fields (matching MigrationTypeRepository whitelist)
+      const updatableFields = [
+        "mit_code",
+        "mit_name",
+        "mit_description",
+        "mit_color",
+        "mit_icon",
+        "mit_display_order",
+        "mit_active",
+      ];
+      Object.keys(data).forEach((key) => {
+        if (updatableFields.includes(key) && !readOnlyFields.includes(key)) {
+          updateData[key] = data[key];
+        }
+      });
+      console.log(
+        "[MigrationTypesEntityManager] Filtered update data:",
+        updateData,
+      );
+      // Security validation
+      window.SecurityUtils.validateInput(updateData);
+      const response = await fetch(
+        `${this.migrationTypesApiUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(updateData),
+          credentials: "same-origin",
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "[MigrationTypesEntityManager] Update Error:",
+          response.status,
+          errorText,
+        );
+        throw new Error(
+          `Failed to update migration type: ${response.status} ${response.statusText}`,
         );
       }
-
-      // Get current data for status transition validation
-      const currentData = await this._fetchCurrentMigrationTypeData(id);
-
-      // Validate status transitions and approval workflow
-      await this._validateStatusTransition(currentData, data);
-
-      // Enhanced validation for migration types
-      await this._validateMigrationTypeData(data, "update", currentData);
-
-      // Process template and validation rules
-      data = await this._processMigrationTypeConfiguration(data);
-
-      // Handle version control for templates if changed
-      if (
-        this.templateVersioning &&
-        this._hasTemplateChanged(currentData, data)
-      ) {
-        data = await this._versionControlTemplate(currentData, data);
-      }
-
-      // Update entity with audit trail
-      const result = await super.updateEntity(id, data);
-
-      // Update team permissions if changed
-      if (data.team_permissions !== undefined) {
-        await this._updateTeamPermissions(id, data.team_permissions);
-      }
-
-      // Clear related caches
-      this._clearRelatedCaches();
-
+      const updatedMigrationType = await response.json();
       console.log(
-        "[MigrationTypesEntityManager] Migration type updated successfully",
+        "[MigrationTypesEntityManager] Migration type updated successfully:",
+        updatedMigrationType,
       );
-      return result;
+
+      // Track performance metrics
+      const updateTime = performance.now() - startTime;
+      this._trackPerformance("update", updateTime);
+
+      // Invalidate cache for this specific migration type
+      this._invalidateCache(id);
+      return updatedMigrationType;
     } catch (error) {
       console.error(
         "[MigrationTypesEntityManager] Failed to update migration type:",
@@ -286,44 +525,71 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Delete migration type with business rule validation
+   * Delete migration type data via API following Applications pattern
    * @param {string} id - Migration type ID
-   * @returns {Promise<boolean>} Success indicator
+   * @returns {Promise<void>}
+   * @protected
    */
-  async deleteEntity(id) {
+  async _deleteEntityData(id) {
+    const startTime = performance.now();
     try {
-      console.log(
-        "[MigrationTypesEntityManager] Deleting migration type with validation",
+      console.log("[MigrationTypesEntityManager] Deleting migration type:", id);
+      // Security validation
+      window.SecurityUtils.validateInput({ id });
+      const response = await fetch(
+        `${this.migrationTypesApiUrl}/${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          credentials: "same-origin",
+        },
       );
-
-      // SUPERADMIN permission check
-      if (!this._isSuperAdmin()) {
-        throw new SecurityUtils.AuthorizationException(
-          "Only SUPERADMIN users can delete migration types",
-          "delete_migration_type",
-          { requiredRole: "SUPERADMIN", userRole: this.userPermissions?.role },
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "[MigrationTypesEntityManager] Delete Error:",
+          response.status,
+          errorText,
+        );
+        // Handle blocking relationships (409 Conflict)
+        if (response.status === 409) {
+          let blockingRelationships = {};
+          try {
+            const errorData = JSON.parse(errorText);
+            blockingRelationships = errorData.blockingRelationships || {};
+          } catch (parseError) {
+            console.warn(
+              "[MigrationTypesEntityManager] Could not parse blocking relationships",
+            );
+          }
+          const errorMessage =
+            "Cannot delete migration type because it has dependent relationships.";
+          const relationshipDetails = this._formatBlockingRelationships(
+            blockingRelationships,
+          );
+          const detailedError = new Error(
+            `${errorMessage}\n\nThis migration type cannot be deleted because it is referenced by:\n${relationshipDetails}`,
+          );
+          detailedError.blockingRelationships = blockingRelationships;
+          throw detailedError;
+        }
+        throw new Error(
+          `Failed to delete migration type: ${response.status} ${response.statusText}`,
         );
       }
-
-      // Get current data for deletion validation
-      const currentData = await this._fetchCurrentMigrationTypeData(id);
-
-      // Validate deletion eligibility
-      await this._validateDeletion(currentData);
-
-      // Remove team permissions first
-      await this._removeAllTeamPermissions(id);
-
-      // Delete entity with audit trail
-      const result = await super.deleteEntity(id);
-
-      // Clear related caches
-      this._clearRelatedCaches();
-
       console.log(
-        "[MigrationTypesEntityManager] Migration type deleted successfully",
+        "[MigrationTypesEntityManager] Migration type deleted successfully:",
+        id,
       );
-      return result;
+
+      // Track performance metrics
+      const deleteTime = performance.now() - startTime;
+      this._trackPerformance("delete", deleteTime);
+
+      // Invalidate cache for this specific migration type
+      this._invalidateCache(id);
     } catch (error) {
       console.error(
         "[MigrationTypesEntityManager] Failed to delete migration type:",
@@ -333,1837 +599,521 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     }
   }
 
-  // Protected Methods (Implementation of BaseEntityManager abstract methods)
+  // Standardized UI Methods following Applications pattern
 
   /**
-   * Fetch migration type data from API
-   * @param {Object} filters - Filter parameters
-   * @param {Object} sort - Sort parameters
-   * @param {number} page - Page number
-   * @param {number} pageSize - Page size
-   * @returns {Promise<Object>} API response
-   * @protected
-   */
-  async _fetchEntityData(filters, sort, page, pageSize) {
-    const params = new URLSearchParams();
-
-    // Add filters
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        if (Array.isArray(value)) {
-          value.forEach((v) => params.append(key, v));
-        } else {
-          params.append(key, value);
-        }
-      }
-    });
-
-    // Add sorting
-    if (sort) {
-      params.append("sortBy", sort.column);
-      params.append("sortDirection", sort.direction || "asc");
-    }
-
-    // Add pagination
-    params.append("page", page);
-    params.append("pageSize", pageSize);
-
-    const response = await SecurityUtils.secureFetch(
-      `${this.apiEndpoint}?${params}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch migration types: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Create migration type data via API
-   * @param {Object} data - Migration type data
-   * @returns {Promise<Object>} Created migration type
-   * @protected
-   */
-  async _createEntityData(data) {
-    const response = await SecurityUtils.secureFetch(this.apiEndpoint, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          `Failed to create migration type: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Update migration type data via API
-   * @param {string} id - Migration type ID
-   * @param {Object} data - Updated data
-   * @returns {Promise<Object>} Updated migration type
-   * @protected
-   */
-  async _updateEntityData(id, data) {
-    const response = await SecurityUtils.secureFetch(
-      `${this.apiEndpoint}/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          `Failed to update migration type: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Delete migration type data via API
-   * @param {string} id - Migration type ID
+   * Override initialize to add toolbar creation and pagination setup
+   * @param {HTMLElement|Object} containerOrOptions - Container element or options
+   * @param {Object} options - Additional options
    * @returns {Promise<void>}
-   * @protected
    */
-  async _deleteEntityData(id) {
-    const response = await SecurityUtils.secureFetch(
-      `${this.apiEndpoint}/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          `Failed to delete migration type: ${response.status} ${response.statusText}`,
-      );
-    }
-  }
-
-  // Configuration Methods
-
-  /**
-   * Get table configuration for migration types
-   * @returns {Object} Table configuration
-   * @private
-   */
-  _getTableConfig() {
-    return {
-      columns: [
-        {
-          key: "mgt_name",
-          label: "Migration Type Name",
-          sortable: true,
-          searchable: true,
-          required: true,
-          maxLength: 255,
-          renderCell: (value, row) => {
-            const statusBadge = this._renderStatusBadge(row.mgt_status);
-            return `<div class="migration-type-name">
-                      <strong>${SecurityUtils.escapeHtml(value)}</strong>
-                      ${statusBadge}
-                    </div>`;
-          },
-        },
-        {
-          key: "mgt_description",
-          label: "Description",
-          sortable: false,
-          searchable: true,
-          maxLength: 2000,
-          renderCell: (value) => {
-            if (!value) return '<em class="text-muted">No description</em>';
-            const truncated =
-              value.length > 100 ? value.substring(0, 100) + "..." : value;
-            return `<span title="${SecurityUtils.escapeHtml(value)}">${SecurityUtils.escapeHtml(truncated)}</span>`;
-          },
-        },
-        {
-          key: "mgt_status",
-          label: "Status",
-          sortable: true,
-          searchable: true,
-          required: true,
-          enum: ["draft", "active", "archived", "deprecated"],
-          renderCell: (value) => this._renderStatusBadge(value),
-        },
-        {
-          key: "template_count",
-          label: "Templates",
-          sortable: true,
-          searchable: false,
-          renderCell: (value) => {
-            const count = parseInt(value) || 0;
-            return `<span class="badge badge-info">${count} template${count !== 1 ? "s" : ""}</span>`;
-          },
-        },
-        {
-          key: "migration_count",
-          label: "Migrations",
-          sortable: true,
-          searchable: false,
-          renderCell: (value) => {
-            const count = parseInt(value) || 0;
-            const variant = count > 0 ? "success" : "secondary";
-            return `<span class="badge badge-${variant}">${count} migration${count !== 1 ? "s" : ""}</span>`;
-          },
-        },
-        {
-          key: "mgt_created_at",
-          label: "Created",
-          sortable: true,
-          searchable: false,
-          renderCell: (value) => {
-            if (!value) return "";
-            return new Date(value).toLocaleDateString();
-          },
-        },
-        {
-          key: "created_by_name",
-          label: "Created By",
-          sortable: true,
-          searchable: true,
-          renderCell: (value) => SecurityUtils.escapeHtml(value || "System"),
-        },
-      ],
-      actions: {
-        view: true,
-        edit: true,
-        delete: false, // Controlled by business rules
-        custom: [
-          {
-            key: "manage_templates",
-            label: "Manage Templates",
-            icon: "aui-icon-document",
-            condition: (row) => ["draft", "active"].includes(row.mgt_status),
-            handler: (row) => this._manageTemplates(row),
-          },
-          {
-            key: "approve",
-            label: "Approve",
-            icon: "aui-icon-approve",
-            condition: (row) =>
-              row.mgt_status === "draft" && this._canApprove(),
-            handler: (row) => this._approveForActive(row),
-          },
-          {
-            key: "archive",
-            label: "Archive",
-            icon: "aui-icon-archive",
-            condition: (row) =>
-              row.mgt_status === "active" && row.migration_count === 0,
-            handler: (row) => this._archiveMigrationType(row),
-          },
-          {
-            key: "delete",
-            label: "Delete",
-            icon: "aui-icon-delete",
-            variant: "danger",
-            condition: (row) => this._canDelete(row),
-            handler: (row) => this._confirmDeleteEntity(row),
-          },
-        ],
-      },
-      sortable: true,
-      searchable: true,
-      defaultSort: { column: "mgt_name", direction: "asc" },
-    };
+  async initialize(containerOrOptions = {}, options = {}) {
+    // Call parent initialize
+    await super.initialize(containerOrOptions, options);
+    // Load teams data for dropdown
+    await this.loadTeams();
+    // Setup pagination event handlers
+    this.setupPaginationHandlers();
+    // Toolbar will be created after container is stable in render()
   }
 
   /**
-   * Get modal configuration for migration types
-   * @returns {Object} Modal configuration
+   * Setup pagination event handlers - simplified for client-side pagination
    * @private
    */
-  _getModalConfig() {
-    return {
-      fields: [
-        {
-          key: "mgt_name",
-          label: "Migration Type Name",
-          type: "text",
-          required: true,
-          maxLength: 255,
-          placeholder:
-            "e.g., Database Migration, Application Deployment, Infrastructure Update",
-          validation: {
-            pattern: "^[a-zA-Z0-9\\s\\-_()]+$",
-            message:
-              "Name can only contain letters, numbers, spaces, hyphens, underscores, and parentheses",
-          },
-        },
-        {
-          key: "mgt_description",
-          label: "Description",
-          type: "textarea",
-          required: false,
-          maxLength: 2000,
-          rows: 4,
-          placeholder:
-            "Detailed description of this migration type and its purpose...",
-        },
-        {
-          key: "mgt_status",
-          label: "Status",
-          type: "select",
-          required: true,
-          defaultValue: "draft",
-          options: [
-            { value: "draft", label: "Draft - Under Development" },
-            { value: "active", label: "Active - Ready for Use" },
-            { value: "archived", label: "Archived - No Longer Used" },
-            { value: "deprecated", label: "Deprecated - Being Phased Out" },
-          ],
-          disabled: (mode, data) => {
-            // Only allow status changes through approval workflow
-            return mode === "edit" && data?.mgt_status === "active";
-          },
-        },
-        {
-          key: "mgt_validation_rules",
-          label: "Validation Rules (JSON)",
-          type: "textarea",
-          required: false,
-          rows: 6,
-          placeholder:
-            '{\n  "required_fields": ["environment", "application"],\n  "approval_required": true,\n  "max_duration_hours": 24\n}',
-          validation: {
-            format: "json",
-            message: "Must be valid JSON format",
-          },
-        },
-        {
-          key: "mgt_template",
-          label: "Default Template (JSON)",
-          type: "textarea",
-          required: false,
-          rows: 8,
-          placeholder:
-            '{\n  "phases": [\n    {\n      "name": "Pre-Migration",\n      "steps": [...]\n    }\n  ]\n}',
-          validation: {
-            format: "json",
-            message: "Must be valid JSON format",
-          },
-        },
-        {
-          key: "team_permissions",
-          label: "Team Permissions",
-          type: "multi-select",
-          required: false,
-          placeholder: "Select teams that can use this migration type",
-          dataSource: "/rest/scriptrunner/latest/custom/teams",
-          displayField: "tms_name",
-          valueField: "tms_id",
-        },
-      ],
-      validation: true,
-      size: "large",
-      sections: [
-        {
-          title: "Basic Information",
-          fields: ["mgt_name", "mgt_description", "mgt_status"],
-        },
-        {
-          title: "Configuration",
-          fields: ["mgt_validation_rules", "mgt_template"],
-          collapsible: true,
-          collapsed: true,
-        },
-        {
-          title: "Permissions",
-          fields: ["team_permissions"],
-          collapsible: true,
-          collapsed: true,
-        },
-      ],
-    };
-  }
-
-  /**
-   * Get filter configuration for migration types
-   * @returns {Object} Filter configuration
-   * @private
-   */
-  _getFilterConfig() {
-    return {
-      enabled: true,
-      persistent: true,
-      filters: [
-        {
-          key: "status",
-          label: "Status",
-          type: "select",
-          multiple: true,
-          options: [
-            { value: "draft", label: "Draft" },
-            { value: "active", label: "Active" },
-            { value: "archived", label: "Archived" },
-            { value: "deprecated", label: "Deprecated" },
-          ],
-        },
-        {
-          key: "has_migrations",
-          label: "Has Migrations",
-          type: "select",
-          options: [
-            { value: "yes", label: "Has Migrations" },
-            { value: "no", label: "No Migrations" },
-          ],
-        },
-        {
-          key: "created_by",
-          label: "Created By",
-          type: "user-select",
-          dataSource: "/rest/scriptrunner/latest/custom/users",
-        },
-        {
-          key: "date_range",
-          label: "Created Date",
-          type: "date-range",
-        },
-      ],
-    };
-  }
-
-  /**
-   * Get pagination configuration for migration types
-   * @returns {Object} Pagination configuration
-   * @private
-   */
-  _getPaginationConfig() {
-    return {
-      pageSize: 20,
-      showPageSizer: true,
-      pageSizes: [10, 20, 50, 100],
-    };
-  }
-
-  // Migration Types Specific Private Methods
-
-  /**
-   * Load user permissions for SUPERADMIN validation
-   * @private
-   */
-  async _loadUserPermissions() {
-    try {
-      const response = await SecurityUtils.secureFetch(
-        "/rest/scriptrunner/latest/custom/users/current",
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        this.userPermissions = await response.json();
-        console.log(
-          "[MigrationTypesEntityManager] User permissions loaded:",
-          this.userPermissions?.role,
-        );
-      } else {
-        console.warn(
-          "[MigrationTypesEntityManager] Failed to load user permissions",
-        );
-        this.userPermissions = { role: "USER" }; // Default to restricted access
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Error loading user permissions:",
-        error,
-      );
-      this.userPermissions = { role: "USER" }; // Default to restricted access
-    }
-  }
-
-  /**
-   * Check if current user is SUPERADMIN
-   * @returns {boolean} True if user is SUPERADMIN
-   * @private
-   */
-  _isSuperAdmin() {
-    return (
-      this.userPermissions?.role === "SUPERADMIN" ||
-      this.userPermissions?.permissions?.includes("MIGRATION_TYPE_ADMIN")
-    );
-  }
-
-  /**
-   * Check if user can approve migration types
-   * @returns {boolean} True if user can approve
-   * @private
-   */
-  _canApprove() {
-    return (
-      this._isSuperAdmin() ||
-      this.userPermissions?.permissions?.includes("MIGRATION_TYPE_APPROVE")
-    );
-  }
-
-  /**
-   * Check if migration type can be deleted
-   * @param {Object} migrationTypeData - Migration type data
-   * @returns {boolean} True if can be deleted
-   * @private
-   */
-  _canDelete(migrationTypeData) {
-    if (!this._isSuperAdmin()) return false;
-
-    // Cannot delete if migrations exist
-    if (parseInt(migrationTypeData.migration_count) > 0) return false;
-
-    // Can only delete draft, archived, or deprecated
-    return ["draft", "archived", "deprecated"].includes(
-      migrationTypeData.mgt_status,
-    );
-  }
-
-  /**
-   * Render status badge for migration types
-   * @param {string} status - Status value
-   * @returns {string} HTML for status badge
-   * @private
-   */
-  _renderStatusBadge(status) {
-    const statusConfig = {
-      draft: { label: "Draft", variant: "secondary" },
-      active: { label: "Active", variant: "success" },
-      archived: { label: "Archived", variant: "warning" },
-      deprecated: { label: "Deprecated", variant: "danger" },
-    };
-
-    const config = statusConfig[status] || {
-      label: status,
-      variant: "secondary",
-    };
-    return `<span class="badge badge-${config.variant}">${config.label}</span>`;
-  }
-
-  /**
-   * Apply security filters based on user permissions
-   * @param {Object} filters - Original filters
-   * @returns {Promise<Object>} Filtered parameters
-   * @private
-   */
-  async _applySecurityFilters(filters) {
-    const securityFilters = { ...filters };
-
-    // Non-SUPERADMIN users can only see active migration types
-    if (!this._isSuperAdmin()) {
-      securityFilters.status = ["active"];
-    }
-
-    return securityFilters;
-  }
-
-  /**
-   * Enrich migration type data with related information using batch operations
-   * @param {Array} data - Migration type data array
-   * @returns {Promise<Array>} Enriched data
-   * @private
-   */
-  async _enrichMigrationTypeData(data) {
-    if (!Array.isArray(data) || data.length === 0) return data;
-
+  setupPaginationHandlers() {
     try {
       console.log(
-        `[MigrationTypesEntityManager] Enriching ${data.length} migration types with batch operations`,
+        "[MigrationTypesEntityManager] Setting up client-side pagination",
       );
-
-      // First try batch enrichment for performance
-      const enrichedData = await this._withErrorBoundary(
-        "batch_enrichment",
-        () => this._batchEnrichMigrationTypeData(data),
-      );
-
-      if (enrichedData) {
-        console.log(
-          "[MigrationTypesEntityManager] Batch enrichment successful",
-        );
-        return enrichedData;
-      }
-
-      // Fallback to individual enrichment with improved error handling
+      // With client-side pagination, no complex event handling needed
+      // TableComponent handles pagination internally with the full dataset
       console.log(
-        "[MigrationTypesEntityManager] Falling back to individual enrichment",
+        "[MigrationTypesEntityManager] ✓ Client-side pagination ready",
       );
-      return await this._individualEnrichMigrationTypeData(data);
     } catch (error) {
       console.error(
-        "[MigrationTypesEntityManager] Failed to enrich migration type data:",
+        "[MigrationTypesEntityManager] Error setting up pagination:",
         error,
       );
-      this._notifyUser(
-        "error",
-        "Data Enrichment Failed",
-        "Unable to load complete migration type information. Some data may be missing.",
-      );
-      return data; // Return original data if all enrichment fails
     }
   }
 
   /**
-   * Batch enrich migration type data with a single API call
-   * @param {Array} data - Migration type data array
-   * @returns {Promise<Array>} Enriched data
-   * @private
+   * Load teams data from the API and update the modal field configuration
+   * @returns {Promise<void>}
+   * @public
    */
-  async _batchEnrichMigrationTypeData(data) {
-    const cacheKey = this._generateBatchCacheKey(data);
-
-    // Check cache first
-    if (this.batchCache.has(cacheKey)) {
-      const cached = this.batchCache.get(cacheKey);
-      if (Date.now() - cached.timestamp < 300000) {
-        // 5 minute cache
-        console.log(
-          "[MigrationTypesEntityManager] Using cached batch enrichment data",
-        );
-        return this._mergeBatchDataWithOriginal(data, cached.data);
-      }
-    }
-
+  async loadTeams() {
     try {
-      const migrationTypeIds = data.map((item) => item.mgt_id);
-      const userIds = [
-        ...new Set(data.map((item) => item.mgt_created_by).filter(Boolean)),
-      ];
-
-      const batchRequest = {
-        migrationTypeIds,
-        userIds,
-        includeTemplateCounts: true,
-        includeMigrationCounts: true,
-        includeUserNames: true,
-      };
-
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/batch-enrichment`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(batchRequest),
-        },
-      );
-
+      console.log("[MigrationTypesEntityManager] Loading teams from API...");
+      const response = await fetch(this.teamsApiUrl, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        credentials: "same-origin",
+      });
       if (!response.ok) {
         throw new Error(
-          `Batch enrichment failed: ${response.status} ${response.statusText}`,
+          `Failed to load teams: ${response.status} ${response.statusText}`,
         );
       }
-
-      const batchData = await response.json();
-
-      // Cache the result
-      this.batchCache.set(cacheKey, {
-        data: batchData,
-        timestamp: Date.now(),
-      });
-
-      return this._mergeBatchDataWithOriginal(data, batchData);
+      const teams = await response.json();
+      this.teamsData = teams;
+      console.log(
+        `[MigrationTypesEntityManager] ✓ Loaded ${teams.length} teams for dropdown`,
+      );
     } catch (error) {
-      console.warn(
-        "[MigrationTypesEntityManager] Batch enrichment failed:",
+      console.error(
+        "[MigrationTypesEntityManager] Error loading teams:",
         error,
       );
-      throw error; // Let caller handle fallback
+      // Fallback to empty team selection if API fails
+      this.teamsData = [];
+      console.log("[MigrationTypesEntityManager] ✓ Using fallback teams data");
     }
   }
 
   /**
-   * Individual enrichment with improved error handling (fallback method)
-   * @param {Array} data - Migration type data array
-   * @returns {Promise<Array>} Enriched data
-   * @private
-   */
-  async _individualEnrichMigrationTypeData(data) {
-    // Use Promise.allSettled to ensure one failure doesn't kill all enrichment
-    const enrichmentPromises = data.map(async (item) => {
-      const enrichmentResults = await Promise.allSettled([
-        this._getTemplateCountWithFallback(item.mgt_id),
-        this._getMigrationCountWithFallback(item.mgt_id),
-        item.mgt_created_by
-          ? this._getUserNameWithFallback(item.mgt_created_by)
-          : Promise.resolve("System"),
-      ]);
-
-      // Apply successful enrichments, use defaults for failures
-      if (enrichmentResults[0].status === "fulfilled" && !item.template_count) {
-        item.template_count = enrichmentResults[0].value;
-      }
-      if (
-        enrichmentResults[1].status === "fulfilled" &&
-        !item.migration_count
-      ) {
-        item.migration_count = enrichmentResults[1].value;
-      }
-      if (
-        enrichmentResults[2].status === "fulfilled" &&
-        !item.created_by_name
-      ) {
-        item.created_by_name = enrichmentResults[2].value;
-      }
-
-      // Count and report failures
-      const failures = enrichmentResults.filter((r) => r.status === "rejected");
-      if (failures.length > 0) {
-        console.warn(
-          `[MigrationTypesEntityManager] ${failures.length} enrichment operations failed for ${item.mgt_id}`,
-        );
-        this._trackEnrichmentFailures(item.mgt_id, failures.length);
-      }
-
-      return item;
-    });
-
-    return await Promise.all(enrichmentPromises);
-  }
-
-  /**
-   * Get template count for migration type
-   * @param {string} migrationTypeId - Migration type ID
-   * @returns {Promise<number>} Template count
-   * @private
-   */
-  async _getTemplateCount(migrationTypeId) {
-    if (this.templateCache.has(migrationTypeId)) {
-      return this.templateCache.get(migrationTypeId);
-    }
-
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/${migrationTypeId}/templates/count`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        const count = parseInt(result.count) || 0;
-        this.templateCache.set(migrationTypeId, count);
-        return count;
-      }
-    } catch (error) {
-      console.warn(
-        `[MigrationTypesEntityManager] Failed to get template count for ${migrationTypeId}:`,
-        error,
-      );
-    }
-
-    return 0;
-  }
-
-  /**
-   * Get migration count for migration type
-   * @param {string} migrationTypeId - Migration type ID
-   * @returns {Promise<number>} Migration count
-   * @private
-   */
-  async _getMigrationCount(migrationTypeId) {
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `/rest/scriptrunner/latest/custom/migrations?migrationTypeId=${migrationTypeId}&countOnly=true`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        return parseInt(result.count) || 0;
-      }
-    } catch (error) {
-      console.warn(
-        `[MigrationTypesEntityManager] Failed to get migration count for ${migrationTypeId}:`,
-        error,
-      );
-    }
-
-    return 0;
-  }
-
-  /**
-   * Get user name by ID
-   * @param {number} userId - User ID
-   * @returns {Promise<string>} User name
-   * @private
-   */
-  async _getUserName(userId) {
-    const cacheKey = `user_${userId}`;
-    if (this.teamCache.has(cacheKey)) {
-      return this.teamCache.get(cacheKey);
-    }
-
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `/rest/scriptrunner/latest/custom/users/${userId}`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        const name =
-          result.usr_display_name || result.usr_username || "Unknown";
-        this.teamCache.set(cacheKey, name);
-        return name;
-      }
-    } catch (error) {
-      console.warn(
-        `[MigrationTypesEntityManager] Failed to get user name for ${userId}:`,
-        error,
-      );
-    }
-
-    return "Unknown";
-  }
-
-  // Enhanced Error Handling and Batch Support Methods
-
-  /**
-   * Error boundary wrapper for operations
-   * @param {string} operation - Operation name
-   * @param {Function} fn - Function to execute
-   * @returns {Promise<any>} Operation result or null on failure
-   * @private
-   */
-  async _withErrorBoundary(operation, fn) {
-    // Check circuit breaker
-    if (this._isCircuitBreakerOpen(operation)) {
-      console.warn(
-        `[MigrationTypesEntityManager] Circuit breaker open for ${operation}`,
-      );
-      return null;
-    }
-
-    try {
-      const result = await fn();
-      this._recordSuccess(operation);
-      return result;
-    } catch (error) {
-      this._recordFailure(operation, error);
-
-      // For critical errors, rethrow. For non-critical, return null
-      if (this._isCriticalError(error)) {
-        throw error;
-      }
-
-      return null;
-    }
-  }
-
-  /**
-   * Enhanced template count with fallback and retry
-   * @param {string} migrationTypeId - Migration type ID
-   * @returns {Promise<number>} Template count
-   * @private
-   */
-  async _getTemplateCountWithFallback(migrationTypeId) {
-    return await this._withRetry("template_count", () =>
-      this._getTemplateCount(migrationTypeId),
-    );
-  }
-
-  /**
-   * Enhanced migration count with fallback and retry
-   * @param {string} migrationTypeId - Migration type ID
-   * @returns {Promise<number>} Migration count
-   * @private
-   */
-  async _getMigrationCountWithFallback(migrationTypeId) {
-    return await this._withRetry("migration_count", () =>
-      this._getMigrationCount(migrationTypeId),
-    );
-  }
-
-  /**
-   * Enhanced user name with fallback and retry
-   * @param {number} userId - User ID
-   * @returns {Promise<string>} User name
-   * @private
-   */
-  async _getUserNameWithFallback(userId) {
-    return await this._withRetry("user_name", () => this._getUserName(userId));
-  }
-
-  /**
-   * Retry wrapper for operations
-   * @param {string} operation - Operation name
-   * @param {Function} fn - Function to execute
-   * @returns {Promise<any>} Operation result
-   * @private
-   */
-  async _withRetry(operation, fn) {
-    let lastError = null;
-
-    for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
-      try {
-        return await fn();
-      } catch (error) {
-        lastError = error;
-
-        // Don't retry on non-retryable errors
-        if (
-          !this._isRetryableError(error) ||
-          attempt === this.retryConfig.maxRetries
-        ) {
-          break;
-        }
-
-        // Exponential backoff
-        const delay = this.retryConfig.retryDelay * Math.pow(2, attempt - 1);
-        console.warn(
-          `[MigrationTypesEntityManager] ${operation} attempt ${attempt} failed, retrying in ${delay}ms:`,
-          error.message,
-        );
-        await this._sleep(delay);
-      }
-    }
-
-    throw lastError;
-  }
-
-  /**
-   * Generate cache key for batch operations
-   * @param {Array} data - Data array
-   * @returns {string} Cache key
-   * @private
-   */
-  _generateBatchCacheKey(data) {
-    const ids = data
-      .map((item) => item.mgt_id)
-      .sort()
-      .join(",");
-    return `batch_${this._hashString(ids)}`;
-  }
-
-  /**
-   * Merge batch enrichment data with original data
-   * @param {Array} originalData - Original data
-   * @param {Object} batchData - Batch enrichment data
-   * @returns {Array} Merged data
-   * @private
-   */
-  _mergeBatchDataWithOriginal(originalData, batchData) {
-    return originalData.map((item) => {
-      const enriched = { ...item };
-
-      if (
-        batchData.templateCounts &&
-        batchData.templateCounts[item.mgt_id] !== undefined
-      ) {
-        enriched.template_count = batchData.templateCounts[item.mgt_id];
-      }
-
-      if (
-        batchData.migrationCounts &&
-        batchData.migrationCounts[item.mgt_id] !== undefined
-      ) {
-        enriched.migration_count = batchData.migrationCounts[item.mgt_id];
-      }
-
-      if (
-        batchData.userNames &&
-        item.mgt_created_by &&
-        batchData.userNames[item.mgt_created_by]
-      ) {
-        enriched.created_by_name = batchData.userNames[item.mgt_created_by];
-      }
-
-      return enriched;
-    });
-  }
-
-  /**
-   * Track enrichment failures for monitoring
-   * @param {string} entityId - Entity ID
-   * @param {number} failureCount - Number of failures
-   * @private
-   */
-  _trackEnrichmentFailures(entityId, failureCount) {
-    // Track failure metrics for monitoring/alerting
-    if (!this.enrichmentFailures) {
-      this.enrichmentFailures = new Map();
-    }
-
-    const key = `${entityId}_${new Date().toDateString()}`;
-    const current = this.enrichmentFailures.get(key) || 0;
-    this.enrichmentFailures.set(key, current + failureCount);
-
-    // If failures exceed threshold, notify user
-    if (current + failureCount >= 3) {
-      this._notifyUser(
-        "warning",
-        "Data Loading Issues",
-        `Multiple failures loading data for migration type ${entityId}. Some information may be incomplete.`,
-      );
-    }
-  }
-
-  /**
-   * Notify user with appropriate message
-   * @param {string} type - Message type (error, warning, info, success)
-   * @param {string} title - Message title
-   * @param {string} message - Message content
-   * @private
-   */
-  _notifyUser(type, title, message) {
-    try {
-      if (window.AJS && window.AJS.flag) {
-        window.AJS.flag({
-          type: type,
-          title: title,
-          body: message,
-          close: type === "info" ? "auto" : "manual",
-        });
-      } else {
-        console.warn(`[${type.toUpperCase()}] ${title}: ${message}`);
-      }
-    } catch (error) {
-      console.warn(
-        "[MigrationTypesEntityManager] Failed to notify user:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Check if circuit breaker is open for operation
-   * @param {string} operation - Operation name
-   * @returns {boolean} True if circuit breaker is open
-   * @private
-   */
-  _isCircuitBreakerOpen(operation) {
-    const state = this.circuitBreaker.get(operation);
-    if (!state || state.status !== "open") return false;
-
-    // Check if enough time has passed to try again (half-open state)
-    if (Date.now() - state.openedAt > 60000) {
-      // 1 minute
-      this.circuitBreaker.set(operation, { ...state, status: "half-open" });
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Record successful operation
-   * @param {string} operation - Operation name
-   * @private
-   */
-  _recordSuccess(operation) {
-    const errors = this.errorBoundary.get(operation) || [];
-    this.errorBoundary.set(operation, errors.slice(-4)); // Keep last 5 errors
-
-    // Reset circuit breaker if operation succeeds
-    this.circuitBreaker.delete(operation);
-  }
-
-  /**
-   * Record failed operation
-   * @param {string} operation - Operation name
-   * @param {Error} error - Error that occurred
-   * @private
-   */
-  _recordFailure(operation, error) {
-    const errors = this.errorBoundary.get(operation) || [];
-    errors.push({ timestamp: Date.now(), error: error.message });
-    this.errorBoundary.set(operation, errors.slice(-10)); // Keep last 10 errors
-
-    // Open circuit breaker if too many failures
-    if (errors.length >= this.retryConfig.circuitBreakerThreshold) {
-      this.circuitBreaker.set(operation, {
-        status: "open",
-        openedAt: Date.now(),
-        failureCount: errors.length,
-      });
-
-      console.warn(
-        `[MigrationTypesEntityManager] Circuit breaker opened for ${operation} due to ${errors.length} failures`,
-      );
-    }
-  }
-
-  /**
-   * Check if error is critical (should be rethrown)
-   * @param {Error} error - Error to check
-   * @returns {boolean} True if critical
-   * @private
-   */
-  _isCriticalError(error) {
-    const criticalPatterns = [
-      /authentication/i,
-      /authorization/i,
-      /network/i,
-      /fetch.*failed/i,
-    ];
-
-    return criticalPatterns.some((pattern) => pattern.test(error.message));
-  }
-
-  /**
-   * Check if error is retryable
-   * @param {Error} error - Error to check
-   * @returns {boolean} True if retryable
-   * @private
-   */
-  _isRetryableError(error) {
-    const retryablePatterns = [
-      /timeout/i,
-      /503/,
-      /502/,
-      /500/,
-      /network/i,
-      /temporary/i,
-    ];
-
-    return retryablePatterns.some((pattern) => pattern.test(error.message));
-  }
-
-  /**
-   * Sleep utility for retry delays
-   * @param {number} ms - Milliseconds to sleep
+   * Override render to create toolbar after container is stable
    * @returns {Promise<void>}
-   * @private
    */
-  _sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  async render() {
+    try {
+      // Call parent render first
+      await super.render();
+      // Create toolbar after parent rendering is complete
+      console.log(
+        "[MigrationTypesEntityManager] Creating toolbar after render",
+      );
+      this.createToolbar();
+    } catch (error) {
+      console.error("[MigrationTypesEntityManager] Failed to render:", error);
+      throw error;
+    }
   }
 
   /**
-   * Simple hash function for cache keys
-   * @param {string} str - String to hash
-   * @returns {string} Hash
-   * @private
+   * Create toolbar with Add New button following Applications pattern
+   * @public
    */
-  _hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(36);
-  }
+  createToolbar() {
+    try {
+      // Find the container for the toolbar (above the table)
+      let container;
+      if (typeof this.container === "string") {
+        container = document.getElementById(this.container);
+      } else {
+        container = this.container;
+      }
 
-  /**
-   * Validate migration type data with business rules
-   * @param {Object} data - Migration type data
-   * @param {string} operation - Operation type
-   * @param {Object} currentData - Current data for updates
-   * @private
-   */
-  async _validateMigrationTypeData(data, operation, currentData = null) {
-    // Call base validation
-    super._validateEntityData(data, operation);
+      if (!container) {
+        console.warn(
+          "[MigrationTypesEntityManager] Container not found for toolbar creation",
+        );
+        return;
+      }
 
-    // Migration type specific validation
-    if (!data.mgt_name || data.mgt_name.trim().length === 0) {
-      throw new Error("Migration type name is required");
-    }
+      // Look for existing toolbar or create container
+      let toolbarContainer = container.querySelector(
+        ".migration-types-toolbar",
+      );
+      if (!toolbarContainer) {
+        toolbarContainer = document.createElement("div");
+        toolbarContainer.className =
+          "migration-types-toolbar toolbar-container";
+        // Insert before the table container
+        const tableContainer = container.querySelector("#dataTable");
+        if (tableContainer) {
+          container.insertBefore(toolbarContainer, tableContainer);
+        } else {
+          container.appendChild(toolbarContainer);
+        }
+      }
 
-    if (data.mgt_name.length > 255) {
-      throw new Error("Migration type name cannot exceed 255 characters");
-    }
+      // Create toolbar HTML
+      toolbarContainer.innerHTML = `
+        <div class="toolbar-actions">
+          <button id="addMigrationTypeBtn" class="aui-button aui-button-primary">
+            <span class="aui-icon aui-icon-small aui-icon-add"></span>
+            Add New Migration Type
+          </button>
+          <button id="refreshMigrationTypesBtn" class="aui-button aui-button-link">
+            <span class="aui-icon aui-icon-small aui-icon-refresh"></span>
+            Refresh
+          </button>
+        </div>
+      `;
 
-    // Validate status
-    const validStatuses = ["draft", "active", "archived", "deprecated"];
-    if (data.mgt_status && !validStatuses.includes(data.mgt_status)) {
-      throw new Error(
-        `Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`,
+      // Attach event listeners
+      const addButton = toolbarContainer.querySelector("#addMigrationTypeBtn");
+      const refreshButton = toolbarContainer.querySelector(
+        "#refreshMigrationTypesBtn",
+      );
+
+      if (addButton) {
+        addButton.addEventListener("click", () => this.handleAdd());
+      }
+
+      if (refreshButton) {
+        refreshButton.addEventListener("click", () =>
+          this._handleRefreshWithFeedback(refreshButton),
+        );
+      }
+
+      console.log(
+        "[MigrationTypesEntityManager] ✓ Toolbar created successfully",
+      );
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Error creating toolbar:",
+        error,
       );
     }
-
-    // Validate JSON fields
-    if (data.mgt_validation_rules) {
-      try {
-        JSON.parse(data.mgt_validation_rules);
-      } catch (error) {
-        throw new Error("Validation rules must be valid JSON");
-      }
-    }
-
-    if (data.mgt_template) {
-      try {
-        JSON.parse(data.mgt_template);
-      } catch (error) {
-        throw new Error("Template must be valid JSON");
-      }
-    }
-
-    // Check for name uniqueness
-    if (
-      operation === "create" ||
-      (operation === "update" && currentData?.mgt_name !== data.mgt_name)
-    ) {
-      await this._validateNameUniqueness(data.mgt_name, currentData?.mgt_id);
-    }
   }
 
   /**
-   * Validate name uniqueness
-   * @param {string} name - Migration type name
-   * @param {string} excludeId - ID to exclude from check
+   * Handle Add New Migration Type action following Applications pattern
    * @private
    */
-  async _validateNameUniqueness(name, excludeId = null) {
-    const cacheKey = `name_check_${name.toLowerCase()}`;
-
-    if (this.validationCache.has(cacheKey)) {
-      const cached = this.validationCache.get(cacheKey);
-      if (cached.id !== excludeId) {
-        throw new Error(`Migration type with name "${name}" already exists`);
-      }
+  handleAdd() {
+    console.log(
+      "[MigrationTypesEntityManager] Opening Add New Migration Type modal",
+    );
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[MigrationTypesEntityManager] Modal component not available",
+      );
       return;
     }
 
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}?name=${encodeURIComponent(name)}`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data && result.data.length > 0) {
-          const existing = result.data[0];
-          this.validationCache.set(cacheKey, { id: existing.mgt_id });
-
-          if (existing.mgt_id !== excludeId) {
-            throw new Error(
-              `Migration type with name "${name}" already exists`,
-            );
-          }
-        }
-      }
-    } catch (error) {
-      if (error.message.includes("already exists")) {
-        throw error;
-      }
-      console.warn(
-        "[MigrationTypesEntityManager] Failed to validate name uniqueness:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Validate status transitions
-   * @param {Object} currentData - Current migration type data
-   * @param {Object} newData - New data with status change
-   * @private
-   */
-  async _validateStatusTransition(currentData, newData) {
-    if (!newData.mgt_status || currentData.mgt_status === newData.mgt_status) {
-      return; // No status change
-    }
-
-    const current = currentData.mgt_status;
-    const target = newData.mgt_status;
-
-    // Define valid transitions
-    const validTransitions = {
-      draft: ["active", "archived"],
-      active: ["archived", "deprecated"],
-      archived: ["active"], // Can reactivate archived
-      deprecated: [], // Cannot change from deprecated
+    // Prepare default data for new migration type
+    const newMigrationTypeData = {
+      mit_code: "",
+      mit_name: "",
+      mit_description: "",
+      mit_color: "#6B73FF",
+      mit_icon: "layers",
+      mit_display_order: 0,
+      mit_active: true,
     };
 
-    if (!validTransitions[current]?.includes(target)) {
-      throw new Error(
-        `Invalid status transition from "${current}" to "${target}"`,
-      );
-    }
-
-    // Special validation for transitioning to active
-    if (target === "active" && this.approvalWorkflowEnabled) {
-      if (!this._canApprove()) {
-        throw new SecurityUtils.AuthorizationException(
-          "Approval permission required to activate migration types",
-          "approve_migration_type",
-          { currentStatus: current, targetStatus: target },
-        );
-      }
-    }
-
-    // Cannot archive/deprecate if migrations exist
-    if (["archived", "deprecated"].includes(target)) {
-      const migrationCount = await this._getMigrationCount(currentData.mgt_id);
-      if (migrationCount > 0) {
-        throw new Error(
-          `Cannot ${target === "archived" ? "archive" : "deprecate"} migration type with ${migrationCount} existing migrations`,
-        );
-      }
-    }
-  }
-
-  /**
-   * Validate deletion eligibility
-   * @param {Object} migrationTypeData - Migration type data
-   * @private
-   */
-  async _validateDeletion(migrationTypeData) {
-    // Check if migrations exist
-    const migrationCount = await this._getMigrationCount(
-      migrationTypeData.mgt_id,
-    );
-    if (migrationCount > 0) {
-      throw new Error(
-        `Cannot delete migration type with ${migrationCount} existing migrations. Archive it instead.`,
-      );
-    }
-
-    // Check status restrictions
-    if (migrationTypeData.mgt_status === "active") {
-      throw new Error(
-        "Cannot delete active migration type. Archive or deprecate it first.",
-      );
-    }
-  }
-
-  /**
-   * Process migration type configuration (templates and validation rules)
-   * @param {Object} data - Migration type data
-   * @returns {Promise<Object>} Processed data
-   * @private
-   */
-  async _processMigrationTypeConfiguration(data) {
-    const processedData = { ...data };
-
-    // Process validation rules
-    if (processedData.mgt_validation_rules) {
-      try {
-        // Validate and format JSON
-        const rules = JSON.parse(processedData.mgt_validation_rules);
-        processedData.mgt_validation_rules = JSON.stringify(rules, null, 2);
-      } catch (error) {
-        console.warn(
-          "[MigrationTypesEntityManager] Invalid validation rules JSON:",
-          error,
-        );
-      }
-    }
-
-    // Process template
-    if (processedData.mgt_template) {
-      try {
-        // Validate and format JSON
-        const template = JSON.parse(processedData.mgt_template);
-        processedData.mgt_template = JSON.stringify(template, null, 2);
-      } catch (error) {
-        console.warn(
-          "[MigrationTypesEntityManager] Invalid template JSON:",
-          error,
-        );
-      }
-    }
-
-    return processedData;
-  }
-
-  /**
-   * Check if template has changed for version control
-   * @param {Object} currentData - Current data
-   * @param {Object} newData - New data
-   * @returns {boolean} True if template changed
-   * @private
-   */
-  _hasTemplateChanged(currentData, newData) {
-    const currentTemplate = currentData.mgt_template || "";
-    const newTemplate = newData.mgt_template || "";
-    return currentTemplate !== newTemplate;
-  }
-
-  /**
-   * Handle template version control
-   * @param {Object} currentData - Current data
-   * @param {Object} newData - New data
-   * @returns {Promise<Object>} Data with version control
-   * @private
-   */
-  async _versionControlTemplate(currentData, newData) {
-    if (!this.templateVersioning) return newData;
-
-    try {
-      // Create version history entry
-      const versionData = {
-        migration_type_id: currentData.mgt_id,
-        version_number: await this._getNextVersionNumber(currentData.mgt_id),
-        template_data: currentData.mgt_template,
-        created_at: new Date().toISOString(),
-        created_by: this.userPermissions?.id,
-      };
-
-      // Save version to history
-      await this._saveTemplateVersion(versionData);
-
-      console.log(
-        `[MigrationTypesEntityManager] Template version ${versionData.version_number} saved`,
-      );
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Failed to save template version:",
-        error,
-      );
-      // Don't fail the update if version control fails
-    }
-
-    return newData;
-  }
-
-  /**
-   * Get next version number for template
-   * @param {string} migrationTypeId - Migration type ID
-   * @returns {Promise<number>} Next version number
-   * @private
-   */
-  async _getNextVersionNumber(migrationTypeId) {
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/${migrationTypeId}/template-versions/next`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        return result.nextVersion || 1;
-      }
-    } catch (error) {
-      console.warn(
-        "[MigrationTypesEntityManager] Failed to get next version number:",
-        error,
-      );
-    }
-
-    return 1; // Default to version 1
-  }
-
-  /**
-   * Save template version to history
-   * @param {Object} versionData - Version data
-   * @private
-   */
-  async _saveTemplateVersion(versionData) {
-    const response = await SecurityUtils.secureFetch(
-      `${this.apiEndpoint}/template-versions`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(versionData),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to save template version: ${response.status}`);
-    }
-  }
-
-  /**
-   * Setup team permissions for migration type
-   * @param {string} migrationTypeId - Migration type ID
-   * @param {Array} teamIds - Team IDs
-   * @private
-   */
-  async _setupTeamPermissions(migrationTypeId, teamIds) {
-    if (!Array.isArray(teamIds) || teamIds.length === 0) return;
-
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ teamIds }),
-        },
-      );
-
-      if (!response.ok) {
-        console.warn(
-          "[MigrationTypesEntityManager] Failed to setup team permissions",
-        );
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Error setting up team permissions:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Update team permissions for migration type
-   * @param {string} migrationTypeId - Migration type ID
-   * @param {Array} teamIds - Team IDs
-   * @private
-   */
-  async _updateTeamPermissions(migrationTypeId, teamIds) {
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
-        {
-          method: "PUT",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ teamIds: teamIds || [] }),
-        },
-      );
-
-      if (!response.ok) {
-        console.warn(
-          "[MigrationTypesEntityManager] Failed to update team permissions",
-        );
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Error updating team permissions:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Remove all team permissions for migration type
-   * @param {string} migrationTypeId - Migration type ID
-   * @private
-   */
-  async _removeAllTeamPermissions(migrationTypeId) {
-    try {
-      const response = await SecurityUtils.secureFetch(
-        `${this.apiEndpoint}/${migrationTypeId}/team-permissions`,
-        {
-          method: "DELETE",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (!response.ok) {
-        console.warn(
-          "[MigrationTypesEntityManager] Failed to remove team permissions",
-        );
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Error removing team permissions:",
-        error,
-      );
-    }
-  }
-
-  /**
-   * Fetch current migration type data
-   * @param {string} id - Migration type ID
-   * @returns {Promise<Object>} Current data
-   * @private
-   */
-  async _fetchCurrentMigrationTypeData(id) {
-    const response = await SecurityUtils.secureFetch(
-      `${this.apiEndpoint}/${id}`,
-      {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch migration type ${id}: ${response.status}`,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Initialize migration-specific components
-   * @private
-   */
-  async _initializeMigrationTypeComponents() {
-    // Initialize template management component if needed
-    if (this.orchestrator) {
-      // Add custom components for migration type management
-      console.log(
-        "[MigrationTypesEntityManager] Migration-specific components initialized",
-      );
-    }
-  }
-
-  /**
-   * Setup migration-specific event handlers
-   * @private
-   */
-  _setupMigrationTypeEventHandlers() {
-    if (this.orchestrator) {
-      // Handle custom actions
-      this.orchestrator.on("custom:manage_templates", (event) => {
-        this._manageTemplates(event.data);
-      });
-
-      this.orchestrator.on("custom:approve", (event) => {
-        this._approveForActive(event.data);
-      });
-
-      this.orchestrator.on("custom:archive", (event) => {
-        this._archiveMigrationType(event.data);
-      });
-
-      console.log(
-        "[MigrationTypesEntityManager] Migration-specific event handlers setup",
-      );
-    }
-  }
-
-  /**
-   * Load related data for caching
-   * @private
-   */
-  async _loadRelatedDataCache() {
-    try {
-      // Pre-load teams for permission management
-      const teamsResponse = await SecurityUtils.secureFetch(
-        "/rest/scriptrunner/latest/custom/teams",
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (teamsResponse.ok) {
-        const teams = await teamsResponse.json();
-        if (teams.data) {
-          teams.data.forEach((team) => {
-            this.teamCache.set(`team_${team.tms_id}`, team.tms_name);
-          });
+    // Update modal configuration for Add mode
+    this.modalComponent.updateConfig({
+      title: "Add New Migration Type",
+      type: "form",
+      mode: "create", // Set mode to create for new migration types
+      form: this.config.modalConfig.form, // Use original form config
+      buttons: [
+        { text: "Cancel", action: "cancel", variant: "secondary" },
+        { text: "Create", action: "submit", variant: "primary" },
+      ],
+      onButtonClick: null, // Clear custom button handler
+      onSubmit: async (formData) => {
+        try {
+          console.log(
+            "[MigrationTypesEntityManager] Submitting new migration type:",
+            formData,
+          );
+          const result = await this._createEntityData(formData);
+          console.log(
+            "[MigrationTypesEntityManager] Migration type created successfully:",
+            result,
+          );
+          // Refresh the table data
+          await this.loadData();
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Migration Type Created",
+            `Migration type ${formData.mit_name} has been created successfully.`,
+          );
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error(
+            "[MigrationTypesEntityManager] Error creating migration type:",
+            error,
+          );
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Creating Migration Type",
+            error.message ||
+              "An error occurred while creating the migration type.",
+          );
+          // Return false to keep modal open with error
+          return false;
         }
-      }
-
-      console.log("[MigrationTypesEntityManager] Related data cache loaded");
-    } catch (error) {
-      console.warn(
-        "[MigrationTypesEntityManager] Failed to load related data cache:",
-        error,
-      );
+      },
+    });
+    // Reset form data to new migration type defaults
+    if (this.modalComponent.resetForm) {
+      this.modalComponent.resetForm();
     }
+    // Set form data to default values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, newMigrationTypeData);
+    }
+    // Open the modal
+    this.modalComponent.open();
   }
 
   /**
-   * Clear related caches
+   * Handle Edit Migration Type action following Applications pattern
+   * @param {Object} migrationTypeData - Migration type data to edit
    * @private
    */
-  _clearRelatedCaches() {
-    this.templateCache.clear();
-    this.validationCache.clear();
-    this.batchCache.clear();
-    console.log("[MigrationTypesEntityManager] Related caches cleared");
-  }
-
-  /**
-   * Handle template management action
-   * @param {Object} migrationTypeData - Migration type data
-   * @private
-   */
-  async _manageTemplates(migrationTypeData) {
+  handleEdit(migrationTypeData) {
     console.log(
-      "[MigrationTypesEntityManager] Managing templates for:",
-      migrationTypeData.mgt_name,
+      "[MigrationTypesEntityManager] Opening Edit Migration Type modal for:",
+      migrationTypeData,
     );
-
-    // Open template management modal or navigate to template page
-    if (this.modalComponent) {
-      await this.modalComponent.show({
-        mode: "custom",
-        title: `Manage Templates - ${migrationTypeData.mgt_name}`,
-        size: "large",
-        content: this._renderTemplateManagementContent(migrationTypeData),
-      });
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[MigrationTypesEntityManager] Modal component not available",
+      );
+      return;
     }
-  }
-
-  /**
-   * Handle approval for active status
-   * @param {Object} migrationTypeData - Migration type data
-   * @private
-   */
-  async _approveForActive(migrationTypeData) {
-    try {
-      console.log(
-        "[MigrationTypesEntityManager] Approving for active status:",
-        migrationTypeData.mgt_name,
-      );
-
-      if (!this._canApprove()) {
-        throw new Error(
-          "You do not have permission to approve migration types",
-        );
-      }
-
-      // Update status to active
-      await this.updateEntity(migrationTypeData.mgt_id, {
-        ...migrationTypeData,
-        mgt_status: "active",
-      });
-
-      // Show success message
-      if (window.AJS?.flag) {
-        window.AJS.flag({
-          type: "success",
-          title: "Migration Type Approved",
-          body: `${migrationTypeData.mgt_name} has been approved and is now active.`,
-        });
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Failed to approve migration type:",
-        error,
-      );
-
-      if (window.AJS?.flag) {
-        window.AJS.flag({
-          type: "error",
-          title: "Approval Failed",
-          body: error.message,
-        });
-      }
-    }
-  }
-
-  /**
-   * Handle archive migration type
-   * @param {Object} migrationTypeData - Migration type data
-   * @private
-   */
-  async _archiveMigrationType(migrationTypeData) {
-    try {
-      console.log(
-        "[MigrationTypesEntityManager] Archiving migration type:",
-        migrationTypeData.mgt_name,
-      );
-
-      // Update status to archived
-      await this.updateEntity(migrationTypeData.mgt_id, {
-        ...migrationTypeData,
-        mgt_status: "archived",
-      });
-
-      // Show success message
-      if (window.AJS?.flag) {
-        window.AJS.flag({
-          type: "success",
-          title: "Migration Type Archived",
-          body: `${migrationTypeData.mgt_name} has been archived.`,
-        });
-      }
-    } catch (error) {
-      console.error(
-        "[MigrationTypesEntityManager] Failed to archive migration type:",
-        error,
-      );
-
-      if (window.AJS?.flag) {
-        window.AJS.flag({
-          type: "error",
-          title: "Archive Failed",
-          body: error.message,
-        });
-      }
-    }
-  }
-
-  /**
-   * Render template management content
-   * @param {Object} migrationTypeData - Migration type data
-   * @returns {string} HTML content for template management
-   * @private
-   */
-  _renderTemplateManagementContent(migrationTypeData) {
-    return `
-      <div class="template-management">
-        <h4>Template Management for ${SecurityUtils.escapeHtml(migrationTypeData.mgt_name)}</h4>
-        <p>Manage templates and version history for this migration type.</p>
-        
-        <div class="template-actions">
-          <button class="aui-button aui-button-primary" onclick="window.location.href='/admin-gui/migration-types/${migrationTypeData.mgt_id}/templates'">
-            <span class="aui-icon aui-icon-small aui-icon-edit"></span>
-            Edit Templates
-          </button>
-          
-          <button class="aui-button" onclick="window.location.href='/admin-gui/migration-types/${migrationTypeData.mgt_id}/template-versions'">
-            <span class="aui-icon aui-icon-small aui-icon-history"></span>
-            Version History
-          </button>
-        </div>
-        
-        ${
-          migrationTypeData.mgt_template
-            ? `
-          <div class="current-template">
-            <h5>Current Template Preview:</h5>
-            <pre class="template-preview">${SecurityUtils.escapeHtml(JSON.stringify(JSON.parse(migrationTypeData.mgt_template), null, 2))}</pre>
-          </div>
-        `
-            : "<p><em>No template defined yet.</em></p>"
+    // Update modal configuration for Edit mode
+    this.modalComponent.updateConfig({
+      title: `Edit Migration Type: ${migrationTypeData.mit_name}`,
+      type: "form",
+      mode: "edit", // Set mode to edit for existing migration types
+      form: this.config.modalConfig.form, // Use original form config
+      buttons: [
+        { text: "Cancel", action: "cancel", variant: "secondary" },
+        { text: "Save", action: "submit", variant: "primary" },
+      ],
+      onButtonClick: null, // Clear custom button handler
+      onSubmit: async (formData) => {
+        try {
+          console.log(
+            "[MigrationTypesEntityManager] Submitting migration type update:",
+            formData,
+          );
+          const result = await this._updateEntityData(
+            migrationTypeData.mit_id,
+            formData,
+          );
+          console.log(
+            "[MigrationTypesEntityManager] Migration type updated successfully:",
+            result,
+          );
+          // Refresh the table data
+          await this.loadData();
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Migration Type Updated",
+            `Migration type ${formData.mit_name} has been updated successfully.`,
+          );
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error(
+            "[MigrationTypesEntityManager] Error updating migration type:",
+            error,
+          );
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Updating Migration Type",
+            error.message ||
+              "An error occurred while updating the migration type.",
+          );
+          // Return false to keep modal open with error
+          return false;
         }
-      </div>
-    `;
+      },
+    });
+    // Clear viewMode flag for edit mode
+    this.modalComponent.viewMode = false;
+    // Set form data to current migration type values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, migrationTypeData);
+    }
+    // Open the modal
+    this.modalComponent.open();
   }
 
   /**
-   * Public validation method for testing and external use
+   * Override the base _viewEntity method to provide form-based VIEW mode
+   * @param {Object} data - Entity data to view
+   * @private
+   */
+  async _viewEntity(data) {
+    console.log(
+      "[MigrationTypesEntityManager] Opening View Migration Type modal for:",
+      data,
+    );
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[MigrationTypesEntityManager] Modal component not available",
+      );
+      return;
+    }
+    // Create enhanced modal configuration for View mode with audit fields
+    const viewFormConfig = {
+      fields: [
+        ...this.config.modalConfig.form.fields, // Original form fields
+        // Add additional information fields for viewing
+        {
+          name: "mit_created_at",
+          type: "text",
+          label: "Created At",
+          value: this._formatDateTime(data.created_at),
+          readonly: true,
+        },
+        {
+          name: "mit_updated_at",
+          type: "text",
+          label: "Updated At",
+          value: this._formatDateTime(data.updated_at),
+          readonly: true,
+        },
+      ],
+    };
+    // Update modal configuration for View mode
+    this.modalComponent.updateConfig({
+      title: `View Migration Type: ${data.mit_name}`,
+      type: "form",
+      size: "large",
+      closeable: true, // Ensure close button works
+      form: viewFormConfig,
+      buttons: [
+        { text: "Edit", action: "edit", variant: "primary" },
+        { text: "Close", action: "close", variant: "secondary" },
+      ],
+      onButtonClick: (action) => {
+        if (action === "edit") {
+          // Switch to edit mode - restore original form config
+          this.modalComponent.close();
+          // Wait for close animation to complete before opening edit modal
+          setTimeout(() => {
+            this.handleEdit(data);
+          }, 350); // 350ms to ensure close animation (300ms) completes
+          return true; // Close modal handled above
+        }
+        if (action === "close") {
+          this.modalComponent.close();
+          return true; // Close modal
+        }
+        return false;
+      },
+    });
+    // Set viewMode flag to make fields readonly
+    this.modalComponent.viewMode = true;
+    // Set form data to current migration type values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, data);
+    }
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Handle refresh with comprehensive visual feedback following Applications pattern
+   * @param {HTMLElement} refreshButton - The refresh button element
+   * @private
+   */
+  async _handleRefreshWithFeedback(refreshButton) {
+    const startTime = performance.now();
+    try {
+      // Step 1: Show loading state immediately
+      this._setRefreshButtonLoadingState(refreshButton, true);
+      // Step 2: Add visual feedback to table (fade effect)
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.transition = "opacity 0.2s ease-in-out";
+        tableContainer.style.opacity = "0.6";
+      }
+      // Step 3: Perform the actual refresh
+      console.log(
+        "[MigrationTypesEntityManager] Starting data refresh with visual feedback",
+      );
+      await this.loadData(
+        this.currentFilters,
+        this.currentSort,
+        this.currentPage,
+        this.currentPageSize,
+      );
+      // Step 4: Calculate performance and show success feedback
+      const endTime = performance.now();
+      const duration = Math.round(endTime - startTime);
+      const message = `Data refreshed successfully in ${duration}ms`;
+      console.log(`[MigrationTypesEntityManager] ${message}`);
+
+      // Track performance metrics
+      this._trackPerformance("refresh", duration);
+
+      // Step 5: Show success notification
+      this._showRefreshSuccessNotification(message);
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Failed to refresh data:",
+        error,
+      );
+      this._showNotification(
+        "error",
+        "Refresh Failed",
+        "Failed to refresh migration type data. Please try again.",
+      );
+    } finally {
+      // Step 6: Always restore UI state
+      this._setRefreshButtonLoadingState(refreshButton, false);
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.opacity = "1";
+        // Remove transition after animation completes
+        setTimeout(() => {
+          tableContainer.style.transition = "";
+        }, 300);
+      }
+    }
+  }
+
+  /**
+   * Set refresh button loading state
+   * @param {HTMLElement} button - Button element
+   * @param {boolean} loading - Loading state
+   * @private
+   */
+  _setRefreshButtonLoadingState(button, loading) {
+    if (!button) return;
+    if (loading) {
+      button.disabled = true;
+      button.innerHTML =
+        '<span class="aui-icon aui-icon-small aui-icon-wait"></span> Refreshing...';
+    } else {
+      button.disabled = false;
+      button.innerHTML =
+        '<span class="aui-icon aui-icon-small aui-icon-refresh"></span> Refresh';
+    }
+  }
+
+  /**
+   * Show refresh success notification with auto-dismiss
+   * @param {string} message - Success message
+   * @private
+   */
+  _showRefreshSuccessNotification(message) {
+    this._showNotification("success", "Refresh Complete", message);
+  }
+
+  // Configuration Methods - moved inline to constructor following Applications pattern
+
+  // Migration Types Specific Methods (simplified following standardized pattern)
+
+  /**
+   * Validate migration type data with basic business rules
    * @param {Object} data - Migration type data to validate
    * @returns {Object} Validation result with isValid and errors
+   * @public
    */
   validateMigrationType(data) {
     const errors = [];
@@ -2177,42 +1127,33 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
 
       // Required field validation
       if (
-        !data.mgt_name ||
-        typeof data.mgt_name !== "string" ||
-        data.mgt_name.trim().length === 0
+        !data.mit_code ||
+        typeof data.mit_code !== "string" ||
+        data.mit_code.trim().length === 0
+      ) {
+        errors.push("Migration type code is required");
+      }
+
+      if (
+        !data.mit_name ||
+        typeof data.mit_name !== "string" ||
+        data.mit_name.trim().length === 0
       ) {
         errors.push("Migration type name is required");
       }
 
-      if (data.mgt_name && data.mgt_name.length > 255) {
-        errors.push("Migration type name cannot exceed 255 characters");
+      if (data.mit_name && data.mit_name.length > 100) {
+        errors.push("Migration type name cannot exceed 100 characters");
       }
 
-      // Status validation
-      if (data.mgt_status) {
-        const validStatuses = ["draft", "active", "archived", "deprecated"];
-        if (!validStatuses.includes(data.mgt_status)) {
-          errors.push(
-            `Invalid status: ${data.mgt_status}. Must be one of: ${validStatuses.join(", ")}`,
-          );
-        }
-      }
-
-      // JSON validation for complex fields
-      if (data.mgt_validation_rules) {
-        try {
-          JSON.parse(data.mgt_validation_rules);
-        } catch (error) {
-          errors.push("Validation rules must be valid JSON");
-        }
-      }
-
-      if (data.mgt_template) {
-        try {
-          JSON.parse(data.mgt_template);
-        } catch (error) {
-          errors.push("Template must be valid JSON");
-        }
+      // Active status validation
+      if (
+        data.mit_active !== undefined &&
+        typeof data.mit_active !== "boolean"
+      ) {
+        errors.push(
+          "Migration type status must be true (active) or false (inactive)",
+        );
       }
 
       return {
@@ -2228,6 +1169,8 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     }
   }
 
+  // Complex migration-specific methods removed to follow standardized pattern
+
   /**
    * Enhanced entity validation with migration type business rules
    * @param {Object} data - Entity data
@@ -2238,7 +1181,179 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     // Call parent validation
     super._validateEntityData(data, operation);
 
-    // Migration type specific validation already handled in _validateMigrationTypeData
+    // Migration type specific validation handled in validateMigrationType method
+  }
+
+  // Performance Tracking Methods following IterationTypes pattern
+
+  /**
+   * Track performance metrics with entity-specific context
+   * @param {string} operation - Operation type
+   * @param {number} duration - Duration in milliseconds
+   * @private
+   */
+  _trackPerformance(operation, duration) {
+    console.log(
+      `[MigrationTypesEntityManager] Performance - ${operation}: ${duration.toFixed(2)}ms`,
+    );
+
+    // Track for A/B testing and optimization using BaseEntityManager pattern
+    if (this.performanceTracker && this.performanceTracker.trackPerformance) {
+      try {
+        // EntityMigrationTracker expects: trackPerformance(architecture, operation, duration, metadata)
+        // Provide required parameters with entity-specific metadata
+        const architecture = "new"; // All entity managers use new component architecture
+        const metadata = {
+          entityType: this.entityType,
+          timestamp: new Date().toISOString(),
+          componentCount: this.components ? this.components.size : 0,
+          recordCount: this.currentData ? this.currentData.length : 0,
+        };
+
+        this.performanceTracker.trackPerformance(
+          architecture,
+          operation,
+          duration,
+          metadata,
+        );
+      } catch (error) {
+        console.warn(
+          `[MigrationTypesEntityManager] Performance tracking failed for ${this.entityType}:`,
+          error.message,
+        );
+      }
+    }
+  }
+
+  // Standardized Utility Methods following Applications pattern
+
+  /**
+   * Format date and time string for display following Applications pattern
+   * @param {string} dateTimeString - ISO date time string
+   * @returns {string} Formatted date time
+   * @private
+   */
+  _formatDateTime(dateTimeString) {
+    if (!dateTimeString) {
+      return "Not available";
+    }
+    try {
+      const date = new Date(dateTimeString);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      // Format as: "Dec 15, 2023 at 3:45 PM"
+      return (
+        date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }) +
+        " at " +
+        date.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      );
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Error formatting date:",
+        error,
+      );
+      return "Invalid date";
+    }
+  }
+
+  /**
+   * Show notification using ComponentOrchestrator or fallback to AUI
+   * @param {string} type - Notification type (success, error, warning, info)
+   * @param {string} title - Notification title
+   * @param {string} message - Notification message
+   * @private
+   */
+  _showNotification(type, title, message) {
+    try {
+      // Use ComponentOrchestrator for notifications if available
+      if (this.orchestrator && this.orchestrator.showNotification) {
+        this.orchestrator.showNotification(type, title, message);
+        return;
+      }
+      // Fallback to AUI flags
+      if (window.AJS && window.AJS.flag) {
+        window.AJS.flag({
+          type: type,
+          title: title,
+          body: message,
+          close: type === "success" || type === "info" ? "auto" : "manual",
+        });
+      } else {
+        // Final fallback to console
+        console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+      }
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Error showing notification:",
+        error,
+      );
+      console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+    }
+  }
+
+  /**
+   * Format blocking relationships for user-friendly error messages
+   * @param {Object} blockingRelationships - Object with relationship types and items
+   * @returns {string} Formatted relationship details
+   * @private
+   */
+  _formatBlockingRelationships(blockingRelationships) {
+    const details = [];
+    Object.entries(blockingRelationships).forEach(([type, items]) => {
+      if (Array.isArray(items) && items.length > 0) {
+        const count = items.length;
+        const firstFew = items
+          .slice(0, 3)
+          .map((item) => item.name || item.id || "Unknown")
+          .join(", ");
+        const suffix = count > 3 ? ` (and ${count - 3} more)` : "";
+        details.push(`• ${count} ${type}: ${firstFew}${suffix}`);
+      }
+    });
+    return details.length > 0 ? details.join("\n") : "Unknown relationships";
+  }
+
+  /**
+   * Invalidate cache entries following Applications pattern
+   * @param {string} id - Entity ID to invalidate, or 'all' for complete cache clear
+   * @private
+   */
+  _invalidateCache(id) {
+    try {
+      if (!this.cache) {
+        return;
+      }
+      if (id === "all") {
+        this.cache.clear();
+        console.log("[MigrationTypesEntityManager] Cleared all cache");
+      } else {
+        // Clear specific entity cache
+        const keysToDelete = [];
+        this.cache.forEach((value, key) => {
+          if (key.includes(id)) {
+            keysToDelete.push(key);
+          }
+        });
+        keysToDelete.forEach((key) => this.cache.delete(key));
+        console.log(
+          `[MigrationTypesEntityManager] Cleared cache for ${id} (${keysToDelete.length} entries)`,
+        );
+      }
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Error invalidating cache:",
+        error,
+      );
+    }
   }
 
   /**
@@ -2250,24 +1365,13 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     );
 
     // Clear caches
-    this.teamCache.clear();
-    this.templateCache.clear();
-    this.validationCache.clear();
-    this.batchCache.clear();
-
-    // Clear error tracking
-    this.errorBoundary.clear();
-    this.circuitBreaker.clear();
-
-    // Clear enrichment failure tracking
-    if (this.enrichmentFailures) {
-      this.enrichmentFailures.clear();
+    if (this.cache) {
+      this.cache.clear();
     }
 
     // Clear references
     this.userPermissions = null;
     this.apiEndpoint = null;
-    this.retryConfig = null;
 
     // Call parent cleanup
     super.destroy();

@@ -1,6 +1,6 @@
 # User Story Template
 
-**Story ID**: US-061  
+**Story ID**: US-094  
 **Title**: Refactor Large Methods for Better Maintainability  
 **Epic**: Code Refactoring & Maintainability Improvements  
 **Priority**: Medium  
@@ -82,7 +82,7 @@ Refactor methods exceeding 100 lines of code to improve readability, testability
 
 - Can work in parallel with US-057 (Date Utilities)
 - Should coordinate with US-059 (Performance Monitoring) for instrumentation points
-- May inform US-061 (Template Caching) architecture patterns
+- May inform US-064 (Template Caching) architecture patterns
 
 ### Blocked By
 

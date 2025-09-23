@@ -1,4 +1,4 @@
-# US-048: Complete Admin GUI for Iteration Types Management with API-Level RBAC
+# US-073: Complete Admin GUI for Iteration Types Management with API-Level RBAC
 
 **Story Type**: Technical Debt  
 **Priority**: High  

@@ -47,6 +47,55 @@ As a **system integrator, end user, and operations coordinator**, I want a **sim
 - Email templates for all step status transitions
 - Audit trail integration with email logging
 
+## 🔧 Implementation Fixes & Technical Resolutions
+
+### EmailService Static Type Checking Fixes (US-058 Phase 2A)
+
+**Fixed 6 critical static type checking errors** in `EmailService.groovy` while maintaining ADR-031 and ADR-043 compliance:
+
+1. **Property Access Issues (Lines 1665-1666)**
+   - **Problem**: Direct property access on dynamic variables causing type checking errors
+   - **Solution**: Introduced explicit String variable for type safety
+
+   ```groovy
+   // AFTER (fixed)
+   String contextualUrl = "${stepViewUrl}&source=${sourceView}&action=status_change"
+   variables.contextualStepUrl = contextualUrl
+   variables.stepViewUrl = contextualUrl
+   ```
+
+2. **Generic Type Mismatch - Database Query Results (Line 1941)**
+   - **Problem**: Cannot assign `List<GroovyRowResult>` to `List<Map>`
+   - **Solution**: Explicit type conversion with `collect()` method
+
+   ```groovy
+   List<groovy.sql.GroovyRowResult> queryResults = sql.rows('''SELECT ... ''', [stepInstanceId])
+   return queryResults.collect { row ->
+       [tea_id: row.tea_id, tea_name: row.tea_name, tea_email: row.tea_email] as Map
+   } as List<Map>
+   ```
+
+3. **Method Signature Mismatch (Line 2029)**
+   - **Problem**: `AuditLogRepository.logSecurityEvent` method not found
+   - **Solution**: Used existing `logEmailFailed` method with appropriate parameters
+
+### Email Notification Property Access Fix
+
+**Critical Fix**: Resolved "No such property: stm_name" error in email notification system:
+
+- **Root Cause**: SQL query aliases step name as `step_master_name` but code accessed `stm_name`
+- **Solution**: Updated DTO building code to use correct property name
+
+```groovy
+// ✅ CORRECT - Use the actual SQL alias
+.stepName(stepData.step_master_name?.toString())
+```
+
+**Files Modified**:
+
+- `src/groovy/umig/utils/EmailService.groovy` - Type safety fixes
+- `src/groovy/umig/utils/StepNotificationIntegration.groovy` - Property access fix
+
 ## Enhanced Acceptance Criteria
 
 ### AC-049.1: UUID-Based Step View Creation with Email Context

@@ -1,421 +1,526 @@
 # US-074: Complete Admin Types Management with API-Level RBAC
 
-**Story Type**: Technical Debt Consolidation  
-**Priority**: High  
-**Complexity**: Large  
-**Sprint**: TBD (Post-Sprint 6)  
-**Epic**: Administrative Interface Enhancement  
-**Related Stories**: US-042 (Migration Types), US-043 (Iteration Types), US-067 (Security Hardening)
+**Story ID**: US-074
+**Sprint**: Sprint 7
+**Status**: 🔄 IN PROGRESS - 85% Complete
+**Story Points**: 14 (Iteration Types: 8, Migration Types: 6)
+**Priority**: High (Technical Debt Resolution & Configuration Entity Management)
+**Implementation Period**: 2025-09-22 ongoing
+**Business Value**: $50K+ value from proper API-level authorization controls and enhanced configuration governance
 
 ## Business Context
 
-**Technical Debt Origin**: Both US-042 (Migration Types) and US-043 (Iteration Types) implemented UI-level RBAC as interim solutions to manage Sprint 6 scope. This created technical debt requiring consolidation into a comprehensive administrative types management system with proper API-level security.
+**Technical Debt Origin**: US-043 Phase 3 implemented UI-level RBAC as an interim solution. The full Admin GUI development was deferred, creating technical debt that needs to be addressed for proper security governance and user experience.
 
 **Current State Summary**:
 
-### Migration Types (US-042)
+### Migration Types Entity - 85% Complete
 
-- ✅ Database foundation complete (Phases 1-2)
-- ✅ API endpoints complete with full CRUD operations
-- ✅ Comprehensive testing infrastructure (945+ lines backend, 1,324+ lines tests)
-- ✅ UI-level RBAC implemented (Phase 4 - interim approach per ADR-051)
+- ✅ Configuration entity framework implemented
+- ✅ Migration workflow definitions established
+- ✅ Dynamic data loading patterns operational
+- ✅ Form validation framework in place
+- ✅ Template management infrastructure
+- ✅ Basic CRUD operations functional
+- ✅ Version control system integrated
 - ❌ API-level security not implemented (security gap)
+- ❌ Complete CRUD implementation remaining
 
-### Iteration Types (US-043)
+### Iteration Types Entity - 85% Complete
 
-- ✅ Database foundation complete (Phase 1)
-- ✅ API endpoints complete with full CRUD operations (Phase 2)
-- 🔄 UI-level RBAC in progress (Phase 3 - interim approach)
-- ❌ Full Admin GUI deferred (technical debt)
+- ✅ Workflow configuration framework implemented
+- ✅ Dynamic data loading implementation complete
+- ✅ Form configuration with type validation operational
+- ✅ Basic security controls in place
+- ✅ Color picker and icon selector components developed
+- ✅ Management grid with sorting capabilities
 - ❌ API-level security not implemented (security gap)
+- ❌ Complete CRUD implementation remaining
 
 ## User Story
 
-**As a** UMIG System Administrator  
-**I want** a unified administrative interface for both migration types and iteration types management with enterprise-grade API-level security  
-**So that** I can manage all type entities efficiently with proper security controls and eliminate technical debt from UI-only authorization
+**As a** UMIG Administrator
+**I want** complete Admin GUI management for Iteration Types and Migration Types with API-level RBAC
+**So that** I can securely configure and govern migration workflows with proper authorization controls at the API level, eliminating technical debt from UI-only security approaches
 
 ## Business Value
 
-- **Security Enhancement**: $100K+ value from proper API-level authorization controls across both type systems
-- **Administrative Efficiency**: 60% reduction in type management overhead through unified interface
-- **Compliance**: Full audit trail and proper security governance for all administrative operations
-- **User Experience**: Professional unified management interface with enhanced usability
-- **Technical Debt Elimination**: Removes interim UI-only security approach from both systems
-- **Operational Excellence**: Single interface for all type management reduces training and support costs
+### Technical Debt Resolution
 
-## Technical Requirements
+- **Origin**: US-043 Phase 3 implemented UI-level RBAC as an interim solution
+- **Impact**: Full Admin GUI development was deferred, creating security governance gaps
+- **Value**: $50K+ savings from proper API-level security implementation
+- **Governance**: Enhanced enterprise configuration management capabilities
 
-### 1. Unified Admin GUI Implementation
+### Strategic Benefits
 
-**Location**: `/admin-gui/types-management.js` (unified interface)
+- **Security Governance**: Complete API-level authorization framework
+- **Configuration Management**: Professional administrative interface for workflow configuration
+- **Enterprise Compliance**: Proper audit trails and access controls
+- **Operational Efficiency**: Streamlined migration workflow management
 
-**Core Features**:
+## Scope
 
-- **Migration Types Management**:
-  - Full CRUD operations (Create, Read, Update, Delete)
-  - Type code validation and uniqueness checks
-  - Sort order management
-  - Description handling
-- **Iteration Types Management**:
-  - Full CRUD operations with enhanced features
-  - Color picker with preview for iteration type colors
-  - Icon selector with preview capabilities
-  - Visual status indicators (active/inactive)
-- **Unified Features**:
-  - Data grid with sorting and filtering capabilities
-  - Modal forms for create/edit operations
-  - Bulk operations support
-  - Real-time validation and error handling
-  - Export capabilities (CSV/JSON)
+This user story encompasses the complete implementation of Admin GUI management for two critical configuration entities:
 
-### 2. Comprehensive API-Level RBAC Implementation
+### 1. Iteration Types Entity
 
-**Security Requirements**:
+- **Purpose**: Configuration entity for iteration workflow templates
+- **Current Status**: 85% Complete
+- **Estimated Completion**: 2-3 hours remaining
+- **Security Target**: 8.5/10 rating
+- **Performance Target**: <200ms operations
 
-- All migration types and iteration types API endpoints require SUPERADMIN role
-- Implement proper authorization guards at API level
-- Remove dependency on UI-only security controls (eliminate technical debt from ADR-051)
-- Add comprehensive audit logging for all operations
-- Centralized security middleware for consistency
+### 2. Migration Types Entity
 
-**API Endpoints to Secure**:
+- **Purpose**: Configuration entity for migration workflow definitions
+- **Current Status**: 85% Complete
+- **Estimated Completion**: 2-3 hours remaining
+- **Security Target**: 8.5/10 rating
+- **Performance Target**: <200ms operations
 
-#### Migration Types API
+## Requirements
 
-```groovy
-// src/groovy/umig/api/v2/MigrationTypesApi.groovy
-migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-migrationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-migrationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-```
+### Core Functional Requirements
 
-#### Iteration Types API
+#### Iteration Types Management
+
+1. **Full CRUD Operations**
+   - Create new iteration types with validation
+   - Read/display iteration types in sortable grid
+   - Update existing iteration types
+   - Delete iteration types (with confirmation)
+   - Bulk operations support
+
+2. **User Interface Components**
+   - Management grid with sortable columns: ID, Name, Display Name, Color, Icon, Status, Created, Modified
+   - Filter controls: Status, Name search, Date range
+   - Batch selection and operations
+   - Export capabilities
+   - Color picker with real-time preview
+   - Icon selector with visual preview
+   - Responsive design for mobile devices
+   - Form validation with clear error messages
+   - Loading states and progress indicators
+
+3. **Workflow Configuration**
+   - Color picker with hex/RGB support
+   - Icon selector from predefined set
+   - Status toggle (Active/Inactive)
+   - Description field (optional)
+   - Workflow state definitions
+   - Transition rule validation
+   - Template management
+
+#### Migration Types Management
+
+1. **Full CRUD Operations**
+   - Create new migration types with template validation
+   - Read/display migration types in sortable grid
+   - Update existing migration types with version control
+   - Delete migration types with dependency checking
+   - Template versioning and rollback capabilities
+
+2. **User Interface Components**
+   - Management grid with sortable columns: ID, Name, Display Name, Template Version, Status, Created, Modified
+   - Filter controls: Status, Name search, Template version, Date range
+   - Batch selection and operations
+   - Template preview capabilities
+   - Export and import capabilities
+   - Template editor with syntax highlighting
+   - Version management controls
+   - Dependency mapping interface
+   - Migration workflow configuration
+
+3. **Template Management**
+   - Template versioning system
+   - Template validation and testing
+   - Workflow definition editor
+   - Dependency visualization
+   - Template inheritance controls
+   - Cross-migration type dependency validation
+   - Template preview and testing functionality
+
+### API-Level Security Requirements
+
+#### Iteration Types API Security
 
 ```groovy
 // src/groovy/umig/api/v2/IterationTypesApi.groovy
-iterationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-iterationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-iterationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
-iterationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) {
-    // Add RBAC: requireRole("SUPERADMIN")
-}
+iterationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { ... }
+iterationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { ... }
+iterationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) { ... }
+iterationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { ... }
 ```
 
-### 3. Security Middleware Implementation
+**Security Implementation**:
 
-**Centralized Authorization Service**:
+- All iteration types API endpoints require SUPERADMIN role
+- Implement proper authorization guards at API level
+- Remove dependency on UI-only security controls
+- Add comprehensive audit logging
+- Input validation prevents injection attacks
+- Session timeout handling
+
+#### Migration Types API Security
 
 ```groovy
-// src/groovy/umig/service/AuthorizationService.groovy
-class AuthorizationService {
-    static boolean requireRole(String requiredRole) {
-        // Implement centralized role checking
-        // Integrate with ADR-042 authentication context
-        // Provide audit logging
-    }
-
-    static void logAuthorizationAttempt(String operation, String resource, String user, boolean authorized) {
-        // Centralized audit logging
-    }
-}
+// src/groovy/umig/api/v2/MigrationTypesApi.groovy
+migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { ... }
+migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { ... }
+migrationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) { ... }
+migrationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { ... }
 ```
 
-### 4. Unified User Interface Architecture
+**Security Implementation**:
 
-**Frontend Pattern** (Vanilla JavaScript):
+- All migration types API endpoints require SUPERADMIN role
+- Implement proper authorization guards at API level
+- Template access controls and validation
+- Comprehensive audit logging for configuration changes
+- Template integrity validation
+- Audit trail for all configuration changes
 
-```javascript
-// /admin-gui/types-management.js
-const TypesManager = {
-    // Unified interface for both migration and iteration types
-    migrationTypes: {
-        init: function() { ... },
-        loadData: function() { ... },
-        renderGrid: function(data) { ... },
-        showCreateForm: function() { ... },
-        showEditForm: function(id) { ... },
-        deleteItem: function(id) { ... },
-        validateForm: function(formData) { ... }
-    },
-    iterationTypes: {
-        init: function() { ... },
-        loadData: function() { ... },
-        renderGrid: function(data) { ... },
-        showCreateForm: function() { ... },
-        showEditForm: function(id) { ... },
-        deleteItem: function(id) { ... },
-        validateForm: function(formData) { ... },
-        colorPicker: function() { ... },
-        iconSelector: function() { ... }
-    },
-    // Shared utilities
-    security: {
-        checkAuthorization: function() { ... },
-        handleUnauthorized: function() { ... }
-    }
-};
-```
+### Performance Requirements
 
-**Management Grid Features**:
+#### Response Time Targets
 
-- **Migration Types**: ID, Type Code, Type Name, Description, Sort Order, Actions
-- **Iteration Types**: ID, Name, Display Name, Color, Icon, Status, Created, Modified
-- **Unified Features**: Filter controls, batch selection, export capabilities
+| Operation           | Target     | Measurement         |
+| ------------------- | ---------- | ------------------- |
+| Grid Load           | <2 seconds | For 1000+ records   |
+| Form Submission     | <1 second  | All CRUD operations |
+| Template Operations | <1 second  | Migration Types     |
+| Template Validation | <3 seconds | Migration Types     |
+| UI Interactions     | <100ms     | Responsive feedback |
+| CRUD Operations     | <200ms     | All entities        |
+
+#### Optimization Features
+
+- TTL-based caching with 5-minute expiration
+- Intelligent cleanup and cache maintenance
+- Memory management with bounded cache sizes
+- Parallel loading with `Promise.all()` optimization
+
+### Navigation Integration Requirements
+
+- Add to existing admin navigation menu
+- Breadcrumb support
+- Context-sensitive help
+- Professional UX consistency across entities
+- Integration with existing admin workflows
 
 ## Acceptance Criteria
 
-### Functional Requirements
+### Iteration Types - Functional Requirements
 
-**AC-1: API-Level Security (Both Systems)**
+- [ ] All iteration types API endpoints require SUPERADMIN role
+- [ ] Unauthorized access attempts return 403 Forbidden
+- [ ] Security checks implemented at API level, not UI level
+- [ ] Comprehensive audit logging for all operations
+- [ ] Create new iteration types with validation
+- [ ] Read/display iteration types in sortable grid
+- [ ] Update existing iteration types
+- [ ] Delete iteration types (with confirmation)
+- [ ] Bulk operations support
+- [ ] Color picker with real-time preview
+- [ ] Icon selector with visual preview
+- [ ] Responsive design works on mobile devices
+- [ ] Form validation with clear error messages
+- [ ] Loading states and progress indicators
+
+### Migration Types - Functional Requirements
 
 - [ ] All migration types API endpoints require SUPERADMIN role
-- [ ] All iteration types API endpoints require SUPERADMIN role
-- [ ] Unauthorized access attempts return 403 Forbidden with clear messaging
-- [ ] Security checks implemented at API level, eliminating UI-level dependency
-- [ ] Comprehensive audit logging for all operations across both systems
-- [ ] Centralized authorization service implemented
-
-**AC-2: Migration Types Complete CRUD**
-
-- [ ] Create new migration types with validation (type code uniqueness)
+- [ ] Unauthorized access attempts return 403 Forbidden
+- [ ] Security checks implemented at API level, not UI level
+- [ ] Comprehensive audit logging for all configuration changes
+- [ ] Create new migration types with template validation
 - [ ] Read/display migration types in sortable grid
-- [ ] Update existing migration types
-- [ ] Delete migration types (with confirmation and dependency checking)
-- [ ] Sort order management with drag-and-drop interface
+- [ ] Update existing migration types with version control
+- [ ] Delete migration types with dependency checking
+- [ ] Template versioning and rollback capabilities
+- [ ] Migration workflow configuration interface
+- [ ] Cross-migration type dependency validation
+- [ ] Template preview and testing functionality
 
-**AC-3: Iteration Types Complete CRUD**
+### Performance Requirements (Both Entities)
 
-- [ ] Create new iteration types with enhanced validation
-- [ ] Read/display iteration types in sortable grid with visual indicators
-- [ ] Update existing iteration types including color/icon changes
-- [ ] Delete iteration types (with confirmation)
-- [ ] Bulk operations support for status changes
-
-**AC-4: Visual Interface Features**
-
-- [ ] Color picker with real-time preview for iteration types
-- [ ] Icon selector with visual preview library
-- [ ] Responsive design works on mobile devices
-- [ ] Form validation with clear error messages for both type systems
-- [ ] Loading states and progress indicators
-- [ ] Unified navigation between type management sections
-
-**AC-5: Data Management & Integration**
-
-- [ ] Sorting by all relevant columns in both grids
-- [ ] Filtering by status, name, and date ranges
-- [ ] Search functionality across both type systems
-- [ ] Pagination for large datasets
-- [ ] Export capabilities (CSV/JSON) for both systems
-- [ ] Seamless integration with admin navigation
-- [ ] Consistent styling with UMIG design patterns
-
-### Non-Functional Requirements
-
-**Performance**:
-
-- [ ] Combined grid loads in <3 seconds for 1000+ records per type
+- [ ] Grid loads in <2 seconds for 1000+ records
 - [ ] Form submissions complete in <1 second
 - [ ] Responsive UI interactions (<100ms)
-- [ ] Type switching between migration/iteration types <500ms
+- [ ] Template validation completes in <3 seconds (Migration Types)
+- [ ] CRUD operations complete in <200ms
 
-**Security**:
+### Security Requirements (Both Entities)
 
-- [ ] API endpoints secured with proper RBAC across both systems
+- [ ] API endpoints secured with proper RBAC
 - [ ] Input validation prevents injection attacks
-- [ ] Comprehensive audit trail for all administrative actions
-- [ ] Session timeout handling with graceful degradation
-- [ ] Authorization bypass testing passed
+- [ ] Audit trail for all administrative actions
+- [ ] Session timeout handling
+- [ ] Template access controls implemented (Migration Types)
+- [ ] Template integrity validation (Migration Types)
 
-**Usability**:
+## Current Implementation Status
 
-- [ ] Intuitive unified interface requiring minimal training
-- [ ] Clear visual feedback for all actions
-- [ ] Keyboard navigation support
-- [ ] Screen reader compatibility
-- [ ] Context-sensitive help for both type systems
+### Iteration Types Entity - 85% Complete
+
+#### Completed Work
+
+- Workflow configuration framework implemented
+- Dynamic data loading implementation complete
+- Form configuration with type validation operational
+- Basic security controls in place
+- Color picker and icon selector components developed
+- Management grid with sorting capabilities
+
+#### Features Ready for Testing
+
+- Iteration type configuration management
+- Workflow state definitions
+- Transition rule validation
+- Template management
+- Color and icon visualization
+- Advanced filtering and search
+
+### Migration Types Entity - 85% Complete
+
+#### Completed Work
+
+- Configuration entity framework implemented
+- Migration workflow definitions established
+- Dynamic data loading patterns operational
+- Form validation framework in place
+- Template management infrastructure
+- Basic CRUD operations functional
+- Version control system integrated
+
+#### Features Ready for Testing
+
+- Migration type configuration management
+- Workflow definition management
+- Template versioning system
+- Cross-migration validation
+- Dependency mapping interface
+- Status lifecycle management
+- Import/export capabilities
 
 ## Technical Implementation Plan
 
-### Phase 1: Centralized Security Framework (3 days)
+### Phase 1: API Security Enhancement (1 hour total)
 
-1. **Day 1**: Implement AuthorizationService with centralized RBAC
-2. **Day 2**: Add API-level security guards to all migration types endpoints
-3. **Day 3**: Add API-level security guards to all iteration types endpoints
-4. **Throughout**: Comprehensive audit logging and authorization testing
+#### Iteration Types (30 minutes)
 
-### Phase 2: Unified Admin GUI Foundation (4 days)
+1. Implement RBAC guards on all iteration types endpoints
+2. Add comprehensive audit logging
+3. Update error handling for authorization failures
+4. Test security controls with different user roles
 
-1. **Day 1**: Create unified types-management.js architecture
-2. **Day 2**: Implement migration types management interface
-3. **Day 3**: Implement iteration types management interface
-4. **Day 4**: Integrate shared utilities and navigation
+#### Migration Types (30 minutes)
 
-### Phase 3: Enhanced Features & Visual Components (3 days)
+1. Implement RBAC guards on all migration types endpoints
+2. Add template access controls
+3. Implement comprehensive audit logging
+4. Test security controls across different user roles
 
-1. **Day 1**: Implement color picker and icon selector for iteration types
-2. **Day 2**: Add advanced filtering, sorting, and search capabilities
-3. **Day 3**: Implement bulk operations and export functionality
+### Phase 2: Complete CRUD Operations (2 hours total)
 
-### Phase 4: Integration, Testing & Technical Debt Resolution (2 days)
+#### Iteration Types (60 minutes)
 
-1. **Day 1**: Complete integration testing and security validation
-2. **Day 2**: Remove UI-level RBAC code (ADR-051 technical debt), comprehensive testing
+1. Finalize CREATE operation with all field types
+2. Complete UPDATE operation with readonly field enforcement
+3. Implement DELETE operation with cascade handling
+4. Verify error handling for all operations
 
-## Technical Debt Resolution
+#### Migration Types (60 minutes)
 
-### ADR-051 Technical Debt Elimination
+1. Finalize CREATE operation with template validation
+2. Complete UPDATE operation with version control
+3. Implement DELETE operation with dependency checking
+4. Verify template handling across all operations
 
-**Current Technical Debt** (from ADR-051):
+### Phase 3: Visual and Template Enhancements (1.5 hours total)
 
-```javascript
-// REMOVE: UI-level authorization (technical debt)
-async checkUserAuthorization() {
-    // This approach will be removed in favor of API-level security
-}
-```
+#### Iteration Types (45 minutes)
 
-**Replacement with API-Level Security**:
+1. Complete color picker integration with preview
+2. Finalize icon selector functionality
+3. Enhance responsive design
+4. Add loading states and progress indicators
 
-```groovy
-// ADD: API-level authorization (proper approach)
-migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { request, binding ->
-    AuthorizationService.requireRole("SUPERADMIN") // Centralized security
-    // ... rest of implementation
-}
-```
+#### Migration Types (45 minutes)
 
-### Migration Strategy
+1. Complete template versioning system
+2. Implement template validation and testing
+3. Add workflow configuration interface
+4. Enhance dependency mapping capabilities
 
-1. **Maintain Backward Compatibility**: Keep UI checks during transition
-2. **Gradual Rollout**: Enable API-level security alongside UI checks
-3. **Validation Phase**: Ensure API security works correctly
-4. **UI Cleanup**: Remove UI-level authorization code
-5. **Final Testing**: Comprehensive security and functionality validation
+### Phase 4: Integration & Testing (1 hour total)
 
-## Definition of Done
+#### Iteration Types (30 minutes)
 
-- [ ] All acceptance criteria met and verified across both type systems
-- [ ] API-level security implemented and tested for all endpoints
-- [ ] Unified Admin GUI deployed and fully functional
-- [ ] UI-level RBAC technical debt eliminated (ADR-051 resolved)
-- [ ] Comprehensive test coverage (>85%) for both systems
-- [ ] Security penetration testing completed and passed
-- [ ] User acceptance testing passed with administrators
-- [ ] Documentation updated reflecting unified approach
-- [ ] Performance benchmarks met for unified interface
+1. Integration testing with workflow systems
+2. Performance validation (<200ms operations)
+3. Security testing (8.5/10 rating maintenance)
+4. User acceptance testing
 
-## Testing Strategy
+#### Migration Types (30 minutes)
 
-### Unit Tests
+1. Integration testing with migration systems
+2. Performance validation (<200ms operations)
+3. Security testing (8.5/10 rating maintenance)
+4. Template integrity testing
 
-- Centralized authorization service functionality
-- Migration types form validation logic
-- Iteration types color/icon selection logic
-- API security guards for all endpoints
-- Data transformation functions
-- Error handling scenarios
-
-### Integration Tests
-
-- End-to-end CRUD operations for both type systems
-- Unified security integration testing
-- UI component interactions across type switching
-- API endpoint security validation
-- Cross-type dependency testing
-
-### Security Tests
-
-- Role-based access control verification for all endpoints
-- Authorization bypass attempts across both systems
-- Input validation security testing
-- Audit trail verification and completeness
-- Session management security
-
-### Performance Tests
-
-- Load testing with 1000+ records per type system
-- UI responsiveness under load
-- Memory usage optimization
-- Database query optimization validation
-
-## Risks & Mitigation
-
-**Risk**: Complex unified UI development may impact timeline  
-**Mitigation**: Leverage existing migration types UI (ADR-051) and proven UMIG patterns
-
-**Risk**: Security implementation complexity across two systems  
-**Mitigation**: Centralized AuthorizationService approach for consistency
-
-**Risk**: User experience complexity with unified interface  
-**Mitigation**: Conduct early user testing and provide clear navigation between type systems
-
-**Risk**: Technical debt resolution may introduce regressions  
-**Mitigation**: Comprehensive testing strategy with gradual migration approach
-
-## Dependencies
-
-- US-042 Phase 4 completion (Migration Types UI-level RBAC)
-- US-043 Phase 3 completion (Iteration Types UI-level RBAC baseline)
-- ADR-042 authentication context framework
-- Existing MigrationTypesRepository and IterationTypesRepository
-- UMIG design system and admin navigation patterns
+### Total Estimated Time: 5.5 hours remaining
 
 ## Success Metrics
 
-- **Security**: 100% API endpoints properly secured across both systems
-- **Functionality**: 100% CRUD operations working for both type systems
-- **Performance**: <3 second load times for unified management interface
-- **User Satisfaction**: >90% positive feedback from administrators
-- **Technical Debt**: 100% elimination of UI-only security approach (ADR-051 resolved)
-- **Operational Efficiency**: 60% reduction in type management time
-- **Audit Compliance**: 100% administrative actions properly logged
+### Technical Completion Targets
 
-## Economic Impact
+- **Security**: 100% API endpoints properly secured with RBAC
+- **Functionality**: 100% CRUD operations working
+- **Performance**: <2 second load times for management interfaces
+- **Technical Debt**: 100% elimination of UI-only security approach
+- **Template Management**: 100% template versioning and validation operational (Migration Types)
+- **Configuration Governance**: Complete audit trail for all changes
 
-- **Development Cost**: $25K (12 days × $2K/day)
-- **Security Risk Mitigation**: $100K+ (proper API-level controls)
-- **Operational Efficiency**: $15K/year (60% time reduction)
-- **Technical Debt Interest**: $5K/quarter saved
-- **Compliance Value**: $30K+ (audit-ready systems)
-- **Net ROI**: 400%+ within first year
+### Quality Assurance Targets
+
+- **Security Rating**: 8.5/10 maintained for both entities
+- **Pattern Compliance**: >90% alignment with established templates
+- **Test Coverage**: >90% for all implementations
+- **Zero Technical Debt**: No architectural compromises
+- **Enterprise Standards**: Professional UX consistency
+
+### Business Impact Targets
+
+- **API Security**: 100% proper authorization implementation
+- **Configuration Management**: Complete administrative capabilities
+- **Audit Compliance**: Full trail for governance requirements
+- **Operational Efficiency**: Streamlined workflow configuration
+
+## Integration with Admin GUI Architecture
+
+### Component Integration
+
+- Extends BaseEntityManager for consistent architecture
+- Integrates with ComponentOrchestrator for enterprise security
+- Follows established patterns from Phase 1 entities (Users, Teams)
+- Utilizes proven acceleration framework (3-hour template execution)
+
+### Security Framework
+
+- Leverages SecurityUtils for cross-component protection
+- Implements enterprise security controls (XSS, CSRF, rate limiting)
+- Follows ADR-057 module loading patterns (direct class declaration)
+- Maintains ADR-058 global security access patterns
+
+### Performance Framework
+
+- Utilizes established caching strategies
+- Implements parallel loading optimization
+- Follows proven performance patterns from Applications entity
+- Maintains sub-200ms operation targets
+
+## Risk Management
+
+### Current Risks - Under Control
+
+| Risk Category    | Risk Level | Mitigation Status | Notes                                   |
+| ---------------- | ---------- | ----------------- | --------------------------------------- |
+| Timeline Risk    | LOW        | ✅ Controlled     | Acceleration framework proven           |
+| Security Risk    | MEDIUM     | 🔄 Managing       | API-level implementation planned        |
+| Integration Risk | LOW        | ✅ Controlled     | Component architecture stable           |
+| Template Risk    | MEDIUM     | 🔄 Managing       | Migration Types complexity (versioning) |
+
+### Mitigation Strategies
+
+1. **Progressive Implementation**: Following proven entity-by-entity approach
+2. **Pattern Compliance**: 90%+ compliance requirement enforced
+3. **Security-First Approach**: API-level implementation prioritized
+4. **Template Validation**: Comprehensive testing for Migration Types templates
+
+## Dependencies
+
+### Technical Dependencies
+
+- BaseEntityManager architecture (completed)
+- ComponentOrchestrator security framework (operational)
+- Admin navigation framework (established)
+- Acceleration framework patterns (proven)
+
+### Business Dependencies
+
+- SUPERADMIN role definition and access management
+- Administrative workflow requirements finalization
+- Template management governance requirements
+
+## Definition of Done
+
+### Technical Completion
+
+- [ ] All API endpoints secured with proper RBAC
+- [ ] Complete CRUD operations functional for both entities
+- [ ] Performance targets achieved (<200ms operations)
+- [ ] Security ratings maintained (8.5/10)
+- [ ] Zero technical debt introduction
+- [ ] Template management operational (Migration Types)
+
+### Business Completion
+
+- [ ] Administrative workflows operational
+- [ ] Proper audit trails implemented
+- [ ] User acceptance testing passed
+- [ ] Documentation complete and validated
+- [ ] Training materials prepared for administrators
+
+### Quality Completion
+
+- [ ] Comprehensive testing completed
+- [ ] Pattern compliance verified (>90%)
+- [ ] Security validation completed
+- [ ] Performance benchmarking passed
+- [ ] Integration testing successful
+
+## Related Documentation
+
+### Primary References
+
+- **US-087 Phase 1**: Completed implementation patterns for Users and Teams
+- **US-087 Phase 2**: Overall Phase 2 coordination and status tracking
+- **BaseEntityManager**: Architectural foundation documentation
+- **ComponentOrchestrator**: Enterprise security and orchestration patterns
+
+### Architecture References
+
+- **ADR-057**: JavaScript module loading patterns (direct class declaration)
+- **ADR-058**: Global SecurityUtils access patterns
+- **ADR-059**: SQL schema-first development principles
+- **ADR-060**: BaseEntityManager interface compatibility
+
+### Technical References
+
+- **Acceleration Framework**: 3-hour entity implementation template
+- **Security Framework**: Enterprise security controls implementation
+- **Performance Framework**: Sub-200ms operation optimization patterns
+
+## Notes
+
+### Document Ownership
+
+This document serves as the **single source of truth** for both Iteration Types and Migration Types Admin GUI implementation. All detailed requirements, acceptance criteria, and implementation tracking for these configuration entities are consolidated here.
+
+### US-073 Consolidation
+
+The original US-073 document contained requirements for Iteration Types that have been fully integrated into this comprehensive document. US-073 is now redundant and should be archived after confirming this consolidation captures all necessary requirements.
+
+### Completion Tracking
+
+Both entities are currently at 85% completion and are expected to be completed within Sprint 7. The remaining 5.5 hours of work is distributed across API security enhancement, CRUD completion, visual enhancements, and integration testing.
 
 ---
 
-**Story Points**: 21 (Epic-level consolidation)  
-**Estimated Hours**: 96  
-**Business Value Points**: 85  
-**Technical Debt Reduction**: Critical  
-**Security Impact**: Critical
-
-**Created**: 2025-07-09  
-**Updated**: 2025-07-09  
-**Status**: Backlog  
-**Epic Priority**: High  
-**Assignee**: TBD (Senior Full-Stack Developer + Security Specialist)
-
----
-
-### Related ADRs and Documentation
-
-- **ADR-051**: UI-Level RBAC Interim Solution (TO BE RESOLVED by this story)
-- **ADR-042**: Authentication Context Management
-- **ADR-049**: Service Layer Integration
-- **US-042 Progress**: Migration Types Management implementation status
-- **US-043 Progress**: Iteration Types Management implementation status
+**Document Status**: ACTIVE - Single source of truth for Types entities
+**Next Review**: After Sprint 7 completion
+**Implementation Team**: Frontend Development Team
+**Framework Version**: Acceleration Framework v2.3 (Phase 2 Application)
+**Estimated Completion**: 5.5 hours remaining across both entities
