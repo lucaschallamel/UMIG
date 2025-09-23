@@ -118,27 +118,46 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 }
 ```
 
-## Current Repositories
+## Current Repositories (27 Total)
+
+### Core Entity Repositories
 
 - **ApplicationRepository.groovy** - Application management with label associations
+- **EnvironmentRepository.groovy** - Environment management with application/iteration associations
+- **LabelRepository.groovy** - Label management with application and step associations
+- **TeamRepository.groovy** - Team management with hierarchical filtering
+- **TeamMembersRepository.groovy** - Team membership operations with robust checks
+- **UserRepository.groovy** - User management with role and team associations (client-side pagination support)
+
+### Migration Hierarchy Repositories
+
+- **MigrationRepository.groovy** - Migration and iteration management
+- **MigrationTypesRepository.groovy** - Migration type configurations and validation
+- **IterationTypeRepository.groovy** - Iteration type configurations and workflow rules
+- **PlanRepository.groovy** - Plan management with hierarchical filtering
+- **ImplementationPlanRepository.groovy** - Implementation plan management with hierarchical filtering
+- **SequenceRepository.groovy** - Sequence management with advanced ordering logic
+- **PhaseRepository.groovy** - Phase management with sequence associations
+- **StepRepository.groovy** - Step master and instance operations with comments system
+- **InstructionRepository.groovy** - Instruction template and instance operations (19 methods)
+
+### Import System Repositories
+
+- **ImportRepository.groovy** - Main import operations and data transformation
+- **ImportQueueManagementRepository.groovy** - Import queue processing and status management
+- **ImportResourceLockRepository.groovy** - Resource locking for concurrent import prevention
+- **ScheduledImportRepository.groovy** - Scheduled import configuration and execution
+- **StagingImportRepository.groovy** - Staging area for import data validation
+
+### Supporting Repositories
+
 - **AuditLogRepository.groovy** - Audit logging and history tracking
 - **ControlRepository.groovy** - Control point management for steps and instructions
 - **EmailTemplateRepository.groovy** - Email template management and rendering
-- **EnvironmentRepository.groovy** - Environment management with application/iteration associations
-- **ImplementationPlanRepository.groovy** - Implementation plan management with hierarchical filtering
-- **InstructionRepository.groovy** - Instruction template and instance operations (19 methods)
-- **LabelRepository.groovy** - Label management with application and step associations
 - **LookupRepository.groovy** - General lookup table operations for dropdowns
-- **MigrationRepository.groovy** - Migration and iteration management
-- **PhaseRepository.groovy** - Phase management with sequence associations
-- **PlanRepository.groovy** - Plan management with hierarchical filtering
-- **SequenceRepository.groovy** - Sequence management with advanced ordering logic
 - **StatusRepository.groovy** - Centralized status management with color coding
-- **StepRepository.groovy** - Step master and instance operations with comments system
 - **StepTypeRepository.groovy** - Step type lookup operations
-- **TeamMembersRepository.groovy** - Team membership operations with robust checks
-- **TeamRepository.groovy** - Team management with hierarchical filtering
-- **UserRepository.groovy** - User management with role and team associations
+- **SystemConfigurationRepository.groovy** - System-wide configuration and settings management
 
 ## Key Implementation Standards
 

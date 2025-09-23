@@ -5,8 +5,11 @@ import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
 import umig.repository.StepRepository
 import umig.repository.UserRepository
+import umig.repository.AuditLogRepository
 import umig.service.UserService
 import umig.utils.DatabaseUtil
+import umig.utils.EnhancedEmailService
+import groovy.json.JsonSlurper
 
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
@@ -20,9 +23,11 @@ import java.util.UUID
 // is applied, so it cannot resolve CustomEndpointDelegate methods. This warning is harmless
 // and should be ignored - the script functions correctly in production.
 
-// Initialize repositories (following TeamsApi pattern)
+// Initialize repositories and services (following TeamsApi pattern)
 final StepRepository stepRepository = new StepRepository()
 final UserRepository userRepository = new UserRepository()
+final AuditLogRepository auditLogRepository = new AuditLogRepository()
+final EnhancedEmailService emailService = new EnhancedEmailService()
 
 /**
  * Step View API - Returns step instance data for standalone step view
@@ -30,7 +35,316 @@ final UserRepository userRepository = new UserRepository()
  * Endpoints:
  * - GET /stepViewApi/instance?stepCode=XXX-nnn - Returns active step instance data
  * - GET /stepViewApi/userContext?stepCode=XXX-nnn - Returns user context with permissions for RBAC
+ * - POST /stepViewApi/email - Send step-related email notifications (US-049 Phase 1)
  */
+
+/**
+ * US-049 Phase 1: Core API endpoint for step email notifications
+ * POST /stepViewApi/email
+ *
+ * Integrates with US-058 EnhancedEmailService for step status change notifications.
+ * Includes performance monitoring and comprehensive audit logging.
+ */
+stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        // Performance checkpoint: Start timing
+        def startTime = System.currentTimeMillis()
+
+        // Parse request body
+        def requestBody = new JsonSlurper().parseText(body)
+
+        // Validate required parameters (ADR-031: explicit type casting)
+        if (!((requestBody as Map).stepInstanceId as String)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Missing required parameter: stepInstanceId",
+                    expected: "UUID string"
+                ]).toString())
+                .build()
+        }
+
+        if (!((requestBody as Map).notificationType as String)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Missing required parameter: notificationType",
+                    expected: "One of: stepStatusChange, instructionCompletion, stepAssignment"
+                ]).toString())
+                .build()
+        }
+
+        // Parse and validate stepInstanceId
+        UUID stepInstanceId
+        try {
+            stepInstanceId = UUID.fromString((requestBody as Map).stepInstanceId as String)
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid stepInstanceId format",
+                    provided: (requestBody as Map).stepInstanceId,
+                    expected: "Valid UUID string"
+                ]).toString())
+                .build()
+        }
+
+        // Validate notification type (ADR-031: explicit type casting)
+        def validNotificationTypes = ['stepStatusChange', 'instructionCompletion', 'stepAssignment', 'stepEscalation']
+        def notificationType = (requestBody as Map).notificationType as String
+        if (!validNotificationTypes.contains(notificationType)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid notificationType",
+                    provided: notificationType,
+                    expected: validNotificationTypes
+                ]).toString())
+                .build()
+        }
+
+        // Performance checkpoint 1: Step data retrieval (<200ms target)
+        def dataRetrievalStartTime = System.currentTimeMillis()
+
+        // Retrieve step data with email context using existing repository methods
+        def stepData = stepRepository.findStepInstanceDetailsById(stepInstanceId)
+
+        if (!stepData) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([
+                    error: "Step instance not found",
+                    stepInstanceId: stepInstanceId.toString()
+                ]).toString())
+                .build()
+        }
+
+        def dataRetrievalTime = System.currentTimeMillis() - dataRetrievalStartTime
+
+        // Log performance warning if data retrieval exceeds target
+        if (dataRetrievalTime > 200) {
+            log.warn("US-049 Performance Warning: Step data retrieval exceeded 200ms target: ${dataRetrievalTime}ms for step ${stepInstanceId}")
+        }
+
+        // Get current user context for audit logging and email context
+        def currentUser = null
+        def username = null
+
+        try {
+            def userContext = UserService.getCurrentUserContext()
+            username = userContext?.confluenceUsername as String
+        } catch (Exception e) {
+            // Fallback: check query parameter for frontend-provided context
+            username = queryParams.getFirst('username') as String
+        }
+
+        if (!username) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Unable to determine current user for email context",
+                    debug: "Authentication context required for email notifications"
+                ]).toString())
+                .build()
+        }
+
+        // Get user details for email context
+        currentUser = userRepository.findUserByUsername(username as String)
+
+        if (!currentUser) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([
+                    error: "User not found in database",
+                    username: username
+                ]).toString())
+                .build()
+        }
+
+        // Performance checkpoint 2: Email composition and sending (<500ms target)
+        def emailStartTime = System.currentTimeMillis()
+
+        // Prepare email context data (ADR-031: explicit type casting)
+        def emailContext = [
+            stepInstanceId: stepInstanceId,
+            stepData: stepData,
+            notificationType: notificationType,
+            user: currentUser,
+            timestamp: new Date(),
+            additionalData: (((requestBody as Map).additionalData as Map) ?: [:]) as Map
+        ]
+
+        // Send email notification using EnhancedEmailService (US-058 integration)
+        def emailResult = [success: false, message: "Not processed"]
+        try {
+            switch (notificationType) {
+                case 'stepStatusChange':
+                    // Use existing sendStepStatusChangedNotificationWithUrl method (ADR-031: explicit type casting)
+                    def oldStatus = (((requestBody as Map).oldStatus as String) ?: "unknown") as String
+                    def newStatus = (((requestBody as Map).newStatus as String) ?: ((stepData as Map).status as String)) as String
+                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
+                    def migrationCode = ((stepData as Map).migrationName as String)
+                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    emailService.sendStepStatusChangedNotificationWithUrl(
+                        stepData as Map,
+                        teams,
+                        cutoverTeam,
+                        oldStatus,
+                        newStatus,
+                        ((currentUser as Map)?.usr_id as Integer),
+                        migrationCode,
+                        iterationCode
+                    )
+                    emailResult = [success: true, message: "Step status change notification sent", notificationType: "stepStatusChange"]
+                    break
+
+                case 'instructionCompletion':
+                    // Use existing sendInstructionCompletedNotificationWithUrl method (ADR-031: explicit type casting)
+                    def instruction = (((requestBody as Map).instruction as Map) ?: [:]) as Map
+                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+                    def migrationCode = ((stepData as Map).migrationName as String)
+                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    emailService.sendInstructionCompletedNotificationWithUrl(
+                        instruction,
+                        stepData as Map,
+                        teams,
+                        ((currentUser as Map)?.usr_id as Integer),
+                        migrationCode,
+                        iterationCode
+                    )
+                    emailResult = [success: true, message: "Instruction completion notification sent", notificationType: "instructionCompletion"]
+                    break
+
+                case 'stepAssignment':
+                    // Use sendStepOpenedNotificationWithUrl as it handles team assignments (ADR-031: explicit type casting)
+                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+                    def migrationCode = ((stepData as Map).migrationName as String)
+                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    emailService.sendStepOpenedNotificationWithUrl(
+                        stepData as Map,
+                        teams,
+                        ((currentUser as Map)?.usr_id as Integer),
+                        migrationCode,
+                        iterationCode
+                    )
+                    emailResult = [success: true, message: "Step assignment notification sent", notificationType: "stepAssignment"]
+                    break
+
+                case 'stepEscalation':
+                    // For escalation, use status change with escalation context (ADR-031: explicit type casting)
+                    def oldStatus = ((stepData as Map).status as String)
+                    def newStatus = "escalated"
+                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
+                    def migrationCode = ((stepData as Map).migrationName as String)
+                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    emailService.sendStepStatusChangedNotificationWithUrl(
+                        stepData as Map,
+                        teams,
+                        cutoverTeam,
+                        oldStatus,
+                        newStatus,
+                        ((currentUser as Map)?.usr_id as Integer),
+                        migrationCode,
+                        iterationCode
+                    )
+                    emailResult = [success: true, message: "Step escalation notification sent", notificationType: "stepEscalation"]
+                    break
+
+                default:
+                    throw new IllegalArgumentException("Unsupported notification type: ${notificationType}")
+            }
+        } catch (Exception emailException) {
+            log.error("US-049 Email Service Error: Failed to send ${notificationType} notification for step ${stepInstanceId}", emailException)
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([
+                    error: "Email notification failed",
+                    notificationType: notificationType,
+                    stepInstanceId: stepInstanceId.toString(),
+                    details: emailException.message
+                ]).toString())
+                .build()
+        }
+
+        def emailProcessingTime = System.currentTimeMillis() - emailStartTime
+
+        // Log performance warning if email processing exceeds target
+        if (emailProcessingTime > 500) {
+            log.warn("US-049 Performance Warning: Email processing exceeded 500ms target: ${emailProcessingTime}ms for step ${stepInstanceId}")
+        }
+
+        // Audit logging for email notification using existing method
+        try {
+            DatabaseUtil.withSql { sql ->
+                auditLogRepository.logEmailSent(
+                    sql,
+                    ((currentUser as Map)?.usr_id as Integer),
+                    stepInstanceId,
+                    [], // Recipients extracted by EmailService
+                    "Step ${notificationType} notification",
+                    null, // Template ID handled by EmailService
+                    [
+                        notificationType: notificationType,
+                        source: "stepViewApi-email-us049-phase1",
+                        emailResult: emailResult,
+                        performanceMetrics: [
+                            dataRetrievalTime: dataRetrievalTime,
+                            emailProcessingTime: emailProcessingTime
+                        ]
+                    ],
+                    'STEP_INSTANCE'
+                )
+            }
+        } catch (Exception auditException) {
+            log.warn("US-049 Audit Warning: Failed to log email notification audit trail for step ${stepInstanceId}", auditException)
+            // Continue processing - audit failure should not block email success
+        }
+
+        def totalTime = System.currentTimeMillis() - startTime
+
+        // Success response with performance metrics and email result
+        def response = [
+            success: true,
+            stepInstanceId: stepInstanceId.toString(),
+            notificationType: notificationType,
+            emailResult: emailResult,
+            performanceMetrics: [
+                dataRetrievalTime: dataRetrievalTime,
+                emailProcessingTime: emailProcessingTime,
+                totalTime: totalTime,
+                targets: [
+                    dataRetrievalTarget: "200ms",
+                    emailProcessingTarget: "500ms",
+                    totalTarget: "800ms"
+                ],
+                meetsTargets: [
+                    dataRetrieval: dataRetrievalTime <= 200,
+                    emailProcessing: emailProcessingTime <= 500,
+                    total: totalTime <= 800
+                ]
+            ],
+            timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+            source: "stepViewApi-email-us049-phase1"
+        ]
+
+        // Log successful completion
+        log.info("US-049 Success: Email notification sent successfully. Type: ${notificationType}, Step: ${stepInstanceId}, Total Time: ${totalTime}ms")
+
+        return Response.ok(new JsonBuilder(response).toString()).build()
+
+    } catch (Exception e) {
+        log.error("US-049 Critical Error: Unexpected failure in stepViewApi/email endpoint", e)
+
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Internal server error in email notification endpoint",
+                details: e.message,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+                source: "stepViewApi-email-us049-phase1"
+            ]).toString())
+            .build()
+    }
+}
+
 stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
@@ -137,11 +451,10 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                 return sql.rows('''
                     SELECT
                         tm.tms_id,
-                        t.tms_name,
-                        tm.tme_role
-                    FROM team_members_tme tm
+                        t.tms_name
+                    FROM teams_tms_x_users_usr tm
                     JOIN teams_tms t ON tm.tms_id = t.tms_id
-                    WHERE tm.usr_id = :usr_id AND tm.tme_active = true
+                    WHERE tm.usr_id = :usr_id
                 ''', [usr_id: currentUser['usr_id'] as Integer])
             }
 
@@ -200,8 +513,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                 isAdmin: (currentUser['usr_is_admin'] as Boolean) ?: (roleCode == 'ADMIN'),
                 teamMemberships: userTeamMemberships.collect { [
                     teamId: it.tms_id,
-                    teamName: it.tms_name,
-                    role: it.tme_role
+                    teamName: it.tms_name
                 ] },
                 permissions: permissions,
                 source: "stepview_user_context",
@@ -296,7 +608,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                     LEFT JOIN steps_master_stm pred_stm ON stm.stm_id_predecessor = pred_stm.stm_id
                     LEFT JOIN environment_roles_enr enr ON stm.enr_id = enr.enr_id
                     -- Join to get actual environment name for this iteration and role
-                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = stm.enr_id
                     LEFT JOIN environments_env env ON eei.env_id = env.env_id
                     WHERE stm.stt_code = :sttCode 
                     AND stm.stm_number = :stmNumber

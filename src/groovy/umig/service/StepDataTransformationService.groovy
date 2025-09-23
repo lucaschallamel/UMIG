@@ -16,7 +16,8 @@ import java.util.UUID
 
 /**
  * Step Data Transformation Service for US-056-A Service Layer Standardization
- * 
+ * Updated: 2025-09-20 14:30 - Labels JSON parsing and frontend integration
+ *
  * Provides comprehensive data transformation between different formats used across UMIG:
  * - Database result rows → StepInstanceDTO (instances) & StepMasterDTO (masters)
  * - Legacy Step entities → StepInstanceDTO  
@@ -108,6 +109,7 @@ class StepDataTransformationService {
                 // Extended metadata
                 .stepType(safeString(row.stt_code))
                 .stepCategory(safeString(row.stt_name))
+                .stepNumber(safeInteger(row.stm_number))  // Add step number from master table
                 .estimatedDuration(safeInteger(row.stm_duration_minutes))
                 .actualDuration(safeInteger(row.sti_duration_minutes))
                 
@@ -120,7 +122,10 @@ class StepDataTransformationService {
                 // Comment integration
                 .hasActiveComments(safeBoolean(row.has_active_comments, false))
                 .lastCommentDate(safeTimestampToLocalDateTime(row.last_comment_date))
-                
+
+                // Labels (from master step through junction table) - parse PostgreSQL JSON
+                .labels(parseLabelsFromJson(row.labels))
+
                 .build()
                 
         } catch (Exception e) {
@@ -194,7 +199,10 @@ class StepDataTransformationService {
                 // Computed metadata fields
                 .withInstructionCount(safeInteger(row.instruction_count, 0))
                 .withInstanceCount(safeInteger(row.instance_count, 0))
-                
+
+                // Labels (from master through junction table) - parse PostgreSQL JSON
+                .withLabels(parseLabelsFromJson(row.labels))
+
                 .build()
                 
         } catch (Exception e) {
@@ -636,12 +644,81 @@ class StepDataTransformationService {
      */
     private String formatPriorityForDisplay(Integer priority) {
         if (priority == null) return "Medium Priority"
-        
+
         if (priority >= 8) return "High Priority"
-        if (priority >= 6) return "Medium-High Priority"  
+        if (priority >= 6) return "Medium-High Priority"
         if (priority >= 4) return "Medium Priority"
         if (priority >= 2) return "Low-Medium Priority"
         return "Low Priority"
+    }
+
+    /**
+     * Parse labels from PostgreSQL JSON aggregate result
+     * Handles the json_agg result from the database which can be:
+     * - null (no labels)
+     * - String (JSON array as string)
+     * - List (already parsed JSON)
+     */
+    private List<Map<String, Object>> parseLabelsFromJson(Object labelsJson) {
+        // REFACTOR 2025-09-21: Enhanced labels parsing with comprehensive debugging
+        log.info("*** LABELS REFACTOR *** parseLabelsFromJson called with: '${labelsJson}' (type: ${labelsJson?.getClass()?.simpleName})")
+
+        if (labelsJson == null) {
+            log.info("*** LABELS REFACTOR *** labelsJson is null, returning empty list")
+            return []
+        }
+
+        try {
+            // Log the incoming value details for debugging
+            log.info("*** LABELS REFACTOR *** Processing labelsJson - Value: '${labelsJson}', Class: ${labelsJson?.getClass()?.simpleName}")
+
+            // If it's already a List, return it
+            if (labelsJson instanceof List) {
+                log.info("*** LABELS REFACTOR *** Labels already a List with ${labelsJson.size()} items: ${labelsJson}")
+                return labelsJson as List<Map<String, Object>>
+            }
+
+            // If it's a String, parse it as JSON
+            if (labelsJson instanceof String) {
+                String jsonString = labelsJson as String
+                log.info("*** LABELS REFACTOR *** Labels is String: '${jsonString}'")
+
+                if (jsonString.trim().isEmpty() || jsonString == 'null') {
+                    log.info("*** LABELS REFACTOR *** Labels string is empty or 'null', returning empty list")
+                    return []
+                }
+
+                log.info("*** LABELS REFACTOR *** Parsing labels JSON string: '${jsonString}'")
+                // Use Groovy's JsonSlurper to parse the JSON string
+                def slurper = new groovy.json.JsonSlurper()
+                def parsed = slurper.parseText(jsonString)
+
+                if (parsed instanceof List) {
+                    log.info("*** LABELS REFACTOR *** Successfully parsed ${parsed.size()} labels from JSON: ${parsed}")
+                    return parsed as List<Map<String, Object>>
+                } else {
+                    log.warn("*** LABELS REFACTOR *** Parsed JSON is not a List, type: ${parsed?.getClass()?.simpleName}, value: ${parsed}")
+                    return []
+                }
+            }
+
+            // Handle other types (e.g., PostgreSQL JSON objects)
+            if (labelsJson.toString().startsWith('[') && labelsJson.toString().endsWith(']')) {
+                log.info("*** LABELS REFACTOR *** Looks like JSON array, attempting to parse as string: '${labelsJson.toString()}'")
+                def slurper = new groovy.json.JsonSlurper()
+                def parsed = slurper.parseText(labelsJson.toString())
+                if (parsed instanceof List) {
+                    log.info("*** LABELS REFACTOR *** Successfully parsed ${parsed.size()} labels from toString: ${parsed}")
+                    return parsed as List<Map<String, Object>>
+                }
+            }
+
+            log.warn("*** LABELS REFACTOR *** Unexpected labels format: ${labelsJson?.getClass()?.simpleName}, value: '${labelsJson}' - returning empty list")
+            return []
+        } catch (Exception e) {
+            log.error("*** LABELS REFACTOR *** Failed to parse labels JSON: ${e.message} - Input was: '${labelsJson}' (${labelsJson?.getClass()?.simpleName})", e)
+            return []
+        }
     }
     
     /**

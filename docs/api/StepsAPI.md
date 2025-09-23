@@ -2,7 +2,7 @@
 
 ## 1. API Overview
 
-- **API Name:** Steps API v2.2.0
+- **API Name:** Steps API v2.3.1
 - **Purpose:** Comprehensive management of step entities within the UMIG (Unified Migration Implementation Guide) system. Steps are the fundamental execution units within migration phases, representing discrete tasks that teams perform during cutover events. The API supports both master step templates and step instances, hierarchical filtering, status management, and integrated notification systems.
 - **Owner:** UMIG Development Team
 - **Related ADRs:** ADR-017 (V2 REST API Architecture), ADR-026 (SQL Query Mocking), ADR-030 (Hierarchical Filtering), ADR-031 (Type Safety), ADR-037 (Integration Testing Framework), ADR-038 (Quality Assurance Standards), ADR-039 (Notification Service Integration), ADR-040 (System Performance Benchmarking)
@@ -11,7 +11,7 @@
 
 The Steps API follows UMIG's established patterns:
 
-- **Repository Pattern**: All data access through `StepRepository` with comprehensive methods
+- **Repository Pattern**: All data access through `StepRepository` with script-level instantiation (lines 24-27) for enhanced v2 DTO methods
 - **Type Safety**: Explicit casting for all query parameters (ADR-031)
 - **Hierarchical Filtering**: Support for migration, iteration, plan, sequence, and phase-level filtering (ADR-030)
 - **Master/Instance Model**: Template-based approach with execution instances
@@ -36,6 +36,31 @@ All endpoints are relative to the ScriptRunner custom REST base:
 {confluence-base-url}/rest/scriptrunner/latest/custom/steps
 ```
 
+### Repository Pattern Implementation
+
+The Steps API implements a sophisticated repository pattern for optimal performance:
+
+**Script-Level Repository Instantiation (Lines 24-27):**
+
+```groovy
+// Initialize repositories (following TeamsApi pattern)
+final StepRepository stepRepository = new StepRepository()
+final UserRepository userRepository = new UserRepository()
+```
+
+**Enhanced v2 DTO Methods:**
+
+- `findStepsWithFiltersAsDTO_v2()`: Performance-optimized filtering with DTO transformation
+- `deleteMaster(stepId)`: Foreign key constraint validation before deletion
+- `findStepInstanceDetailsById()`: Comprehensive step details with hierarchical context
+
+**Architectural Benefits:**
+
+- **Performance**: Single instantiation across all endpoint calls
+- **Consistency**: Unified data access patterns across all operations
+- **Maintainability**: Centralized repository logic with clear separation of concerns
+- **Type Safety**: Repository methods handle explicit casting per ADR-031
+
 ## 2. Endpoints
 
 | Method | Path                                                            | Description                                    |
@@ -45,6 +70,7 @@ All endpoints are relative to the ScriptRunner custom REST base:
 | GET    | /steps/master/{id}                                              | Get Single Master Step                         |
 | POST   | /steps/master                                                   | Create New Master Step                         |
 | PUT    | /steps/master/{id}                                              | Update Existing Master Step                    |
+| DELETE | /steps/master/{id}                                              | Delete/Archive Master Step                     |
 | GET    | /steps/instance/{stepInstanceId}                                | Get Step Instance Details                      |
 | GET    | /steps/summary                                                  | Get Dashboard Summary Metrics                  |
 | GET    | /steps/progress                                                 | Get Progress Tracking Data                     |
@@ -279,13 +305,98 @@ All endpoints are relative to the ScriptRunner custom REST base:
 }
 ```
 
+#### DELETE /steps/master/{id}
+
+Deletes a master step template. This operation follows the repository-level deletion logic that checks for foreign key constraints before allowing deletion.
+
+**Path Parameters:**
+
+- `id` (UUID, required): Master step UUID to delete
+
+**Request Example:**
+
+```bash
+DELETE /steps/master/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+**Success Response:**
+
+- **Status Code:** 204 No Content
+- **Body:** Empty
+
+**Error Responses:**
+
+**Step Not Found (404):**
+
+```json
+{
+  "error": "Step master not found",
+  "stepId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+**Foreign Key Constraint Violation (409):**
+
+```json
+{
+  "error": "Cannot delete step master: referenced by existing step instances",
+  "context": "DELETE /steps/master/{id}",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
+**Invalid UUID Format (400):**
+
+```json
+{
+  "error": "Invalid UUID format for step ID",
+  "context": "DELETE /steps/master/{id}",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
+**Internal Server Error (500):**
+
+```json
+{
+  "error": "Internal server error: Database connection timeout",
+  "context": "DELETE /steps/master/{id}",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
+**CURL Example:**
+
+```bash
+curl -X DELETE \
+  "http://localhost:8090/rest/scriptrunner/latest/custom/steps/master/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -H "Authorization: Basic $(echo -n 'username:password' | base64)" \
+  -H "Content-Type: application/json"
+```
+
+**Business Logic:**
+
+- Uses `stepRepository.deleteMaster(stepId)` method following US-056C Phase 2 DTO pattern
+- Performs foreign key constraint checking before deletion
+- Returns 404 if master step doesn't exist
+- Returns 409 if deletion would violate referential integrity (step instances exist)
+- Supports soft-delete or hard-delete based on repository implementation
+- No cascade deletion - must manually handle dependent entities
+
+**Authorization Requirements:**
+
+- Requires `confluence-users` or `confluence-administrators` group membership
+- Admin permissions typically required for deletion operations
+- Audit trail logging for security compliance
+
 ### 4.2. Error Responses
 
 | Status Code | Content-Type     | Schema              | Example                                                                                                                                                     | Description                                                   |
 | ----------- | ---------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 204         | -                | No Content          | Empty body                                                                                                                                                  | Successful deletion of master step                            |
 | 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}, {"error": "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"} | Invalid UUID format, missing required fields                  |
 | 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}, {"error": "Step not found with ID: {stepId}"}                                                            | Step instance, master step, instruction, or comment not found |
-| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}, {"error": "A step with the same phase, type, and number already exists"}                                                      | Unique constraint violation (23505)                           |
+| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}, {"error": "Cannot delete step master: referenced by existing step instances"}                                                 | Unique constraint violation (23505) or deletion constraint    |
 | 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"}, {"error": "An unexpected error occurred"}                                                     | Database or server errors                                     |
 
 ## 5. Authentication & Authorization
@@ -519,6 +630,16 @@ curl -X PUT "/rest/scriptrunner/latest/custom/steps/master/f9aa535d-4d8b-447c-9d
 - **Status API**: Dynamic status management with color coding accessed through embedded status endpoints
 
 ## 15. Change Log
+
+### Version 2.3.1 (September 21, 2025 - DELETE Operations)
+
+- **Master Steps Deletion**: Added DELETE `/steps/master/{id}` endpoint for master step template deletion
+- **Constraint Validation**: Foreign key constraint checking before deletion (prevents deletion if step instances exist)
+- **Enhanced Error Handling**: Specific error messages for deletion constraints with context and timestamps
+- **Repository Pattern**: Uses `stepRepository.deleteMaster(stepId)` following US-056C Phase 2 DTO pattern
+- **Business Logic Documentation**: Complete deletion workflow with authorization requirements
+- **CURL Examples**: Practical examples for testing deletion operations
+- **Soft/Hard Delete Support**: Repository-level implementation supports different deletion strategies
 
 ### Version 2.3.0 (August 27, 2025 - Master Steps Management)
 

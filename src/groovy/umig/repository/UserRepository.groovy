@@ -17,9 +17,12 @@ class UserRepository {
     def findUserById(int userId) {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
-                FROM users_usr
-                WHERE usr_id = :userId
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email,
+                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                WHERE u.usr_id = :userId
             """, [userId: userId])
             if (!user) return null
             // Always attach teams array
@@ -42,7 +45,7 @@ class UserRepository {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
                 SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email,
-                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at,
+                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
                        r.rls_code as role_code, r.rls_description as role_description
                 FROM users_usr u
                 LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
@@ -70,9 +73,11 @@ class UserRepository {
     def findAllUsers() {
         DatabaseUtil.withSql { sql ->
             def users = sql.rows("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
-                FROM users_usr
-                ORDER BY usr_id
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                ORDER BY u.usr_id
             """)
             // Attach teams for each user
             users.each { user ->
@@ -147,7 +152,8 @@ class UserRepository {
             
             // Get paginated users with role information for sorting
             def usersQuery = """
-                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at, u.created_by, u.updated_by,
+                       r.rls_code as role_code, r.rls_description as role_description
                 FROM users_usr u
                 LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
                 ${whereClause}
@@ -161,7 +167,7 @@ class UserRepository {
             
             
             def users = sql.rows(usersQuery, params)
-            
+
             // Attach teams for each user
             users.each { user ->
                 user.teams = sql.rows("""
@@ -305,11 +311,8 @@ class UserRepository {
             def plans = sql.rows("SELECT pli_id FROM plans_instance_pli WHERE usr_id_owner = :userId", [userId: userId])
             if (plans) blocking['plan_instances_owned'] = plans
 
-            // Step instances owned/assigned
-            def step_instances_owned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_owner = :userId", [userId: userId])
-            if (step_instances_owned) blocking['step_instances_owned'] = step_instances_owned
-            def step_instances_assigned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_assignee = :userId", [userId: userId])
-            if (step_instances_assigned) blocking['step_instances_assigned'] = step_instances_assigned
+            // Step instances - Note: usr_id_owner and usr_id_assignee columns were removed in migration 015
+            // These queries have been removed as the columns no longer exist in the database
 
             // Instructions completed
             def instructions = sql.rows("SELECT ini_id FROM instructions_instance_ini WHERE usr_id_completed_by = :userId", [userId: userId])

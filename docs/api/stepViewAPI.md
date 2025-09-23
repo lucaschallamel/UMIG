@@ -1,8 +1,8 @@
 # Step View API Specification
 
-**Version:** 2.0.0  
-**API Version:** v2  
-**Last Updated:** August 7, 2025
+**Version:** 2.1.0
+**API Version:** v2
+**Last Updated:** September 21, 2025
 
 ## Overview
 
@@ -53,6 +53,11 @@ The endpoint is relative to the ScriptRunner custom REST base:
 
 ## API Endpoints
 
+| Method | Path                     | Description                            | Security Level |
+| ------ | ------------------------ | -------------------------------------- | -------------- |
+| GET    | /stepViewApi/instance    | Get step instance for macro display    | Standard       |
+| GET    | /stepViewApi/userContext | Get user context with RBAC permissions | **CRITICAL**   |
+
 ### GET /stepViewApi/instance - Get Step Instance for Macro Display
 
 Retrieves a complete step instance using natural business identifiers for embedded display in Confluence pages.
@@ -68,6 +73,62 @@ GET /stepViewApi/instance
 - `migrationName` (string): The exact name of the migration
 - `iterationName` (string): The exact name of the iteration within the migration
 - `stepCode` (string): The step code in format XXX-nnn (e.g., "ENV-001", "DB-005")
+
+### GET /stepViewApi/userContext - Get User Context with RBAC Permissions
+
+**SECURITY-CRITICAL ENDPOINT**: Retrieves comprehensive user context with role-based access control (RBAC) permissions for authorization decisions. This endpoint is fundamental to the security model of step view interfaces.
+
+**Endpoint Path:**
+
+```
+GET /stepViewApi/userContext
+```
+
+**Query Parameters:**
+
+- `stepCode` (string, optional): The step code in format XXX-nnn (e.g., "ENV-001") for step-specific permissions
+- `username` (string, optional): Username for authentication fallback when ThreadLocal context fails
+
+**Authentication Hierarchy (ADR-042):**
+
+1. **Primary**: UserService.getCurrentUserContext() from Confluence ThreadLocal
+2. **Fallback**: Query parameter `username` provided by frontend
+3. **Requirement**: Valid Confluence session with group membership
+
+**RBAC Permission Matrix:**
+
+The endpoint returns 13 different permission types based on user role and team membership:
+
+| Permission              | USER | PILOT | ADMIN | Team Member | Description                                      |
+| ----------------------- | ---- | ----- | ----- | ----------- | ------------------------------------------------ |
+| `view_step_details`     | ✅   | ✅    | ✅    | ✅          | Basic step viewing capability                    |
+| `add_comments`          | ✅   | ✅    | ✅    | ✅          | Add comments to steps                            |
+| `update_step_status`    | ❌   | ✅    | ✅    | ✅\*        | Change step status (In Progress, Complete, etc.) |
+| `complete_instructions` | ❌   | ✅    | ✅    | ✅\*        | Mark individual instructions as complete         |
+| `edit_comments`         | ❌   | ✅    | ✅    | ✅\*        | Edit existing comments                           |
+| `bulk_operations`       | ❌   | ✅    | ✅    | ❌          | Perform bulk operations on multiple steps        |
+| `email_step_details`    | ❌   | ✅    | ✅    | ❌          | Send email notifications about steps             |
+| `advanced_controls`     | ❌   | ✅    | ✅    | ❌          | Access advanced UI controls                      |
+| `extended_shortcuts`    | ❌   | ✅    | ✅    | ❌          | Use keyboard shortcuts and quick actions         |
+| `debug_panel`           | ❌   | ❌    | ✅    | ❌          | Access debug information and logs                |
+| `force_refresh_cache`   | ❌   | ✅    | ✅    | ❌          | Force refresh of cached data                     |
+| `security_logging`      | ❌   | ❌    | ✅    | ❌          | View security audit logs                         |
+
+**Role Hierarchy:**
+
+- **ADMIN** (Role ID: 1): Full access to all permissions
+- **PILOT** (Role ID: 3): Operational permissions excluding security/debug features
+- **USER** (Role ID: 2): Basic read access with commenting
+- **Team Member**: Users assigned to the step's owner team gain execution permissions\*
+
+**Team-Based Permissions Logic:**
+
+When `stepCode` is provided, the endpoint:
+
+1. Queries the step's assigned team from `steps_master_stm.tms_id_owner`
+2. Checks user's team memberships via `teams_tms_x_users_usr`
+3. Grants execution permissions if user belongs to the step's assigned team
+4. Preserves role-based restrictions (e.g., USER role cannot bulk operations even with team membership)
 
 ### Parameter Format Requirements
 
@@ -169,14 +230,145 @@ GET /stepViewApi/instance?migrationName=Q3%202025%20Migration&iterationName=Prod
 }
 ```
 
+### User Context Response Examples
+
+#### GET /stepViewApi/userContext?stepCode=ENV-001 (With Step Context)
+
+**Response (200 OK):**
+
+```json
+{
+  "userId": 1001,
+  "username": "JDO",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "PILOT",
+  "isAdmin": false,
+  "teamMemberships": [
+    {
+      "teamId": 15,
+      "teamName": "Database Team"
+    },
+    {
+      "teamId": 22,
+      "teamName": "Infrastructure Team"
+    }
+  ],
+  "permissions": {
+    "view_step_details": true,
+    "add_comments": true,
+    "update_step_status": true,
+    "complete_instructions": true,
+    "edit_comments": true,
+    "bulk_operations": true,
+    "email_step_details": true,
+    "advanced_controls": true,
+    "extended_shortcuts": true,
+    "debug_panel": false,
+    "force_refresh_cache": true,
+    "security_logging": false
+  },
+  "stepContext": {
+    "stepId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "assignedTeamId": 15,
+    "assignedTeamName": "Database Team"
+  },
+  "source": "stepview_user_context",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
+#### GET /stepViewApi/userContext (General RBAC - No Step Context)
+
+**Response (200 OK):**
+
+```json
+{
+  "userId": 2003,
+  "username": "MSMITH",
+  "firstName": "Mike",
+  "lastName": "Smith",
+  "role": "USER",
+  "isAdmin": false,
+  "teamMemberships": [
+    {
+      "teamId": 8,
+      "teamName": "QA Team"
+    }
+  ],
+  "permissions": {
+    "view_step_details": true,
+    "add_comments": true,
+    "update_step_status": false,
+    "complete_instructions": false,
+    "edit_comments": false,
+    "bulk_operations": false,
+    "email_step_details": false,
+    "advanced_controls": false,
+    "extended_shortcuts": false,
+    "debug_panel": false,
+    "force_refresh_cache": false,
+    "security_logging": false
+  },
+  "source": "stepview_user_context",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
+#### GET /stepViewApi/userContext?stepCode=ENV-001 (Admin User)
+
+**Response (200 OK):**
+
+```json
+{
+  "userId": 1,
+  "username": "ADMIN",
+  "firstName": "System",
+  "lastName": "Administrator",
+  "role": "ADMIN",
+  "isAdmin": true,
+  "teamMemberships": [],
+  "permissions": {
+    "view_step_details": true,
+    "add_comments": true,
+    "update_step_status": true,
+    "complete_instructions": true,
+    "edit_comments": true,
+    "bulk_operations": true,
+    "email_step_details": true,
+    "advanced_controls": true,
+    "extended_shortcuts": true,
+    "debug_panel": true,
+    "force_refresh_cache": true,
+    "security_logging": true
+  },
+  "stepContext": {
+    "stepId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "assignedTeamId": 15,
+    "assignedTeamName": "Database Team"
+  },
+  "source": "stepview_user_context",
+  "timestamp": "2025-09-21T10:30:00.123Z"
+}
+```
+
 ## Error Handling
 
 ### HTTP Status Codes
+
+#### Step Instance Endpoint
 
 - **200 OK**: Step instance found and returned successfully
 - **400 Bad Request**: Missing required parameters or invalid step code format
 - **404 Not Found**: Step instance not found with provided identifiers
 - **500 Internal Server Error**: Unexpected server error during processing
+
+#### User Context Endpoint
+
+- **200 OK**: User context retrieved successfully with permissions
+- **400 Bad Request**: Invalid stepCode format or authentication context missing
+- **404 Not Found**: User not found in database
+- **500 Internal Server Error**: Failed to load user context for RBAC
 
 ### Error Response Format
 
@@ -258,6 +450,150 @@ GET /stepViewApi/instance?migrationName=Nonexistent%20Migration&iterationName=Te
 {
   "error": "Could not load step view: Database connection timeout"
 }
+```
+
+### User Context Endpoint Error Examples
+
+#### 1. Authentication Context Missing (400)
+
+**Request:**
+
+```bash
+GET /stepViewApi/userContext?stepCode=ENV-001
+# No authentication context available
+```
+
+**Response:**
+
+```json
+{
+  "error": "Unable to determine current user for RBAC context",
+  "debug": "Authentication context required"
+}
+```
+
+#### 2. Invalid Step Code Format (400)
+
+**Request:**
+
+```bash
+GET /stepViewApi/userContext?stepCode=ENV001
+# Missing hyphen separator
+```
+
+**Response:**
+
+```json
+{
+  "error": "Invalid 'stepCode' parameter. Expected format: XXX-nnn"
+}
+```
+
+#### 3. User Not Found in Database (404)
+
+**Response:**
+
+```json
+{
+  "error": "User not found in database",
+  "username": "INVALID_USER"
+}
+```
+
+#### 4. Step Not Found for Step Code (404)
+
+**Request:**
+
+```bash
+GET /stepViewApi/userContext?stepCode=INVALID-999
+```
+
+**Response:**
+
+```json
+{
+  "error": "Step not found for code: INVALID-999"
+}
+```
+
+#### 5. RBAC Processing Error (500)
+
+**Response:**
+
+```json
+{
+  "error": "Failed to load user context for RBAC",
+  "details": "Database connection timeout"
+}
+```
+
+## CURL Examples
+
+### User Context Examples
+
+#### Get User Context with Step-Specific Permissions
+
+```bash
+curl -X GET \
+  "http://localhost:8090/rest/scriptrunner/latest/custom/stepViewApi/userContext?stepCode=ENV-001" \
+  -H "Authorization: Basic $(echo -n 'username:password' | base64)" \
+  -H "Content-Type: application/json"
+```
+
+#### Get General User Context (No Step-Specific Permissions)
+
+```bash
+curl -X GET \
+  "http://localhost:8090/rest/scriptrunner/latest/custom/stepViewApi/userContext" \
+  -H "Authorization: Basic $(echo -n 'username:password' | base64)" \
+  -H "Content-Type: application/json"
+```
+
+#### Get User Context with Authentication Fallback
+
+```bash
+curl -X GET \
+  "http://localhost:8090/rest/scriptrunner/latest/custom/stepViewApi/userContext?stepCode=ENV-001&username=JDO" \
+  -H "Authorization: Basic $(echo -n 'username:password' | base64)" \
+  -H "Content-Type: application/json"
+```
+
+### Step Instance Examples
+
+#### Get Step Instance for Macro Display
+
+```bash
+curl -X GET \
+  "http://localhost:8090/rest/scriptrunner/latest/custom/stepViewApi/instance?migrationName=Q3%202025%20Migration&iterationName=Production%20Cutover&stepCode=ENV-001" \
+  -H "Authorization: Basic $(echo -n 'username:password' | base64)" \
+  -H "Content-Type: application/json"
+```
+
+#### Test Authentication with Step View
+
+```bash
+#!/bin/bash
+# Test script for step view authentication
+BASE_URL="http://localhost:8090/rest/scriptrunner/latest/custom/stepViewApi"
+CREDS=$(echo -n 'username:password' | base64)
+
+echo "Testing User Context (No Step)..."
+curl -s -X GET \
+  "${BASE_URL}/userContext" \
+  -H "Authorization: Basic ${CREDS}" \
+  | jq .
+
+echo "Testing User Context (With Step)..."
+curl -s -X GET \
+  "${BASE_URL}/userContext?stepCode=ENV-001" \
+  -H "Authorization: Basic ${CREDS}" \
+  | jq .
+
+echo "Testing Step Instance..."
+curl -s -X GET \
+  "${BASE_URL}/instance?migrationName=Q3%202025%20Migration&iterationName=Production%20Cutover&stepCode=ENV-001" \
+  -H "Authorization: Basic ${CREDS}" \
+  | jq .
 ```
 
 ## Integration with Step View Macro
@@ -1056,6 +1392,16 @@ curl -s -X GET \
 4. **Authentication Check**: Verify user has required Confluence group membership
 
 ## Changelog
+
+### Version 2.1.0 (September 21, 2025)
+
+- **SECURITY-CRITICAL**: Added `userContext` endpoint with comprehensive RBAC permissions system
+- **13 Permission Types**: Implemented granular permission matrix for role-based access control
+- **Role Hierarchy**: ADMIN > PILOT > USER with team-based permission enhancement
+- **Authentication Hierarchy**: ADR-042 compliant with ThreadLocal primary and query parameter fallback
+- **Team-Based Security**: Step-specific permissions based on team membership
+- **Comprehensive Documentation**: Complete RBAC matrix, error scenarios, and CURL examples
+- **Production Ready**: Full error handling with security-appropriate error messages
 
 ### Version 2.0.0 (August 7, 2025)
 

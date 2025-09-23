@@ -193,18 +193,20 @@ if (typeof SecurityUtils === "undefined") {
         return input;
       }
 
-      if (typeof input === 'string') {
+      if (typeof input === "string") {
         return SecurityUtils.sanitizeXSS(input, options);
       }
 
       if (Array.isArray(input)) {
-        return input.map(item => SecurityUtils.sanitizeInput(item, options));
+        return input.map((item) => SecurityUtils.sanitizeInput(item, options));
       }
 
-      if (typeof input === 'object') {
+      if (typeof input === "object") {
         const sanitized = {};
         for (const [key, value] of Object.entries(input)) {
-          const sanitizedKey = SecurityUtils.sanitizeXSS(key, { allowHTML: false });
+          const sanitizedKey = SecurityUtils.sanitizeXSS(key, {
+            allowHTML: false,
+          });
           sanitized[sanitizedKey] = SecurityUtils.sanitizeInput(value, options);
         }
         return sanitized;
@@ -220,14 +222,14 @@ if (typeof SecurityUtils === "undefined") {
      * @returns {string} Sanitized HTML
      */
     static sanitizeHtml(input, options = {}) {
-      if (!input || typeof input !== 'string') {
-        return '';
+      if (!input || typeof input !== "string") {
+        return "";
       }
 
       const config = {
         allowBasicHTML: false,
         allowedTags: [],
-        ...options
+        ...options,
       };
 
       if (config.allowBasicHTML) {
@@ -236,7 +238,7 @@ if (typeof SecurityUtils === "undefined") {
           allowHTML: true,
           allowAttributes: false,
           allowScripts: false,
-          encodeEntities: true
+          encodeEntities: true,
         });
       } else {
         // Full HTML entity encoding for safe display
@@ -1276,6 +1278,99 @@ if (typeof SecurityUtils === "undefined") {
       };
     }
 
+    // ===== Local Storage Validation =====
+
+    /**
+     * Validate localStorage data structure
+     * @param {string} key - localStorage key
+     * @param {Object} schema - Expected schema
+     * @returns {boolean} - Validation result
+     */
+    static validateLocalStorageData(key, schema) {
+      try {
+        if (typeof localStorage === "undefined") {
+          console.warn("[SecurityUtils] localStorage not available");
+          return false;
+        }
+
+        const stored = localStorage.getItem(key);
+        if (!stored) {
+          return true; // No data is valid
+        }
+
+        const data = JSON.parse(stored);
+        return SecurityUtils.validateDataSchema(data, schema);
+      } catch (e) {
+        console.warn(
+          `[SecurityUtils] localStorage validation failed for ${key}:`,
+          e,
+        );
+        // Remove corrupted data
+        try {
+          localStorage.removeItem(key);
+        } catch (removeError) {
+          console.warn(
+            "[SecurityUtils] Failed to remove corrupted localStorage data:",
+            removeError,
+          );
+        }
+        return false;
+      }
+    }
+
+    /**
+     * Validate data against schema
+     * @param {any} data - Data to validate
+     * @param {Object} schema - Schema definition
+     * @returns {boolean} - Validation result
+     */
+    static validateDataSchema(data, schema) {
+      if (!schema || typeof schema !== "object") {
+        return false;
+      }
+
+      // Handle simple type validation
+      if (schema.type) {
+        if (typeof data !== schema.type) {
+          return false;
+        }
+      }
+
+      // Handle object validation with properties
+      if (schema.type === "object" && schema.properties) {
+        if (typeof data !== "object" || data === null || Array.isArray(data)) {
+          return false;
+        }
+
+        for (const [key, propSchema] of Object.entries(schema.properties)) {
+          if (propSchema.required && !(key in data)) {
+            return false;
+          }
+          if (
+            key in data &&
+            !SecurityUtils.validateDataSchema(data[key], propSchema)
+          ) {
+            return false;
+          }
+        }
+      }
+
+      // Handle array validation
+      if (schema.type === "array" && schema.items) {
+        if (!Array.isArray(data)) {
+          return false;
+        }
+
+        for (const item of data) {
+          if (!SecurityUtils.validateDataSchema(item, schema.items)) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
     // ===== Legacy Support =====
 
     /**
@@ -1359,28 +1454,63 @@ if (typeof SecurityUtils === "undefined") {
   // Attach to window for browser compatibility
   if (typeof window !== "undefined") {
     window.SecurityUtils = SecurityUtils;
+    // Get the singleton instance for instance methods
+    const securityInstance = SecurityUtils.getInstance();
+
     // Ensure all static methods are directly callable - force assignment
     window.SecurityUtils.logSecurityEvent = SecurityUtils.logSecurityEvent;
     window.SecurityUtils.generateNonce = SecurityUtils.generateNonce;
-    window.SecurityUtils.generateSecureToken = SecurityUtils.generateSecureToken;
+    window.SecurityUtils.generateSecureToken =
+      SecurityUtils.generateSecureToken;
     window.SecurityUtils.safeSetInnerHTML = SecurityUtils.safeSetInnerHTML;
     window.SecurityUtils.setTextContent = SecurityUtils.setTextContent;
     window.SecurityUtils.addCSRFProtection = SecurityUtils.addCSRFProtection;
     window.SecurityUtils.sanitizeInput = SecurityUtils.sanitizeInput;
     window.SecurityUtils.sanitizeHtml = SecurityUtils.sanitizeHtml;
     window.SecurityUtils.validateInput = SecurityUtils.validateInput;
+    window.SecurityUtils.validateLocalStorageData =
+      SecurityUtils.validateLocalStorageData;
+    window.SecurityUtils.validateDataSchema = SecurityUtils.validateDataSchema;
+
+    // Expose instance methods that are commonly used
+    window.SecurityUtils.checkRateLimit =
+      securityInstance.checkRateLimit.bind(securityInstance);
+    window.SecurityUtils.clearRateLimit =
+      securityInstance.clearRateLimit.bind(securityInstance);
+    window.SecurityUtils.getCSRFToken =
+      securityInstance.getCSRFToken.bind(securityInstance);
+
+    // Expose exception classes for error handling
+    window.SecurityUtils.SecurityException = SecurityUtils.SecurityException;
+    window.SecurityUtils.ValidationException =
+      SecurityUtils.ValidationException;
 
     // Log successful exposure
     console.log("[SecurityUtils] All methods exposed to window:", {
-      logSecurityEvent: typeof window.SecurityUtils.logSecurityEvent === 'function',
-      generateNonce: typeof window.SecurityUtils.generateNonce === 'function',
-      generateSecureToken: typeof window.SecurityUtils.generateSecureToken === 'function',
-      safeSetInnerHTML: typeof window.SecurityUtils.safeSetInnerHTML === 'function',
-      setTextContent: typeof window.SecurityUtils.setTextContent === 'function',
-      addCSRFProtection: typeof window.SecurityUtils.addCSRFProtection === 'function',
-      sanitizeInput: typeof window.SecurityUtils.sanitizeInput === 'function',
-      sanitizeHtml: typeof window.SecurityUtils.sanitizeHtml === 'function',
-      validateInput: typeof window.SecurityUtils.validateInput === 'function'
+      logSecurityEvent:
+        typeof window.SecurityUtils.logSecurityEvent === "function",
+      generateNonce: typeof window.SecurityUtils.generateNonce === "function",
+      generateSecureToken:
+        typeof window.SecurityUtils.generateSecureToken === "function",
+      safeSetInnerHTML:
+        typeof window.SecurityUtils.safeSetInnerHTML === "function",
+      setTextContent: typeof window.SecurityUtils.setTextContent === "function",
+      addCSRFProtection:
+        typeof window.SecurityUtils.addCSRFProtection === "function",
+      sanitizeInput: typeof window.SecurityUtils.sanitizeInput === "function",
+      sanitizeHtml: typeof window.SecurityUtils.sanitizeHtml === "function",
+      validateInput: typeof window.SecurityUtils.validateInput === "function",
+      validateLocalStorageData:
+        typeof window.SecurityUtils.validateLocalStorageData === "function",
+      validateDataSchema:
+        typeof window.SecurityUtils.validateDataSchema === "function",
+      checkRateLimit: typeof window.SecurityUtils.checkRateLimit === "function",
+      clearRateLimit: typeof window.SecurityUtils.clearRateLimit === "function",
+      getCSRFToken: typeof window.SecurityUtils.getCSRFToken === "function",
+      SecurityException:
+        typeof window.SecurityUtils.SecurityException === "function",
+      ValidationException:
+        typeof window.SecurityUtils.ValidationException === "function",
     });
   }
 } // End of SecurityUtils undefined check

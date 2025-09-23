@@ -1,27 +1,27 @@
 /* UMIG Admin GUI Styles */
 
 /* Readonly Fields */
-.form-group.readonly-field {
+.umig-form-group.umig-readonly-field {
   opacity: 0.8;
 }
 
-.form-group.readonly-field label {
+.umig-form-group.umig-readonly-field label {
   color: var(--text-secondary);
   font-style: italic;
 }
 
-.form-group.readonly-field input[disabled],
-.form-group.readonly-field textarea[disabled],
-.form-group.readonly-field select[disabled] {
+.umig-form-group.umig-readonly-field input[disabled],
+.umig-form-group.umig-readonly-field textarea[disabled],
+.umig-form-group.umig-readonly-field select[disabled] {
   background-color: var(--bg-secondary);
   color: var(--text-secondary);
   cursor: not-allowed;
   border-color: var(--border-color);
 }
 
-.form-group.readonly-field input[disabled]:focus,
-.form-group.readonly-field textarea[disabled]:focus,
-.form-group.readonly-field select[disabled]:focus {
+.umig-form-group.umig-readonly-field input[disabled]:focus,
+.umig-form-group.umig-readonly-field textarea[disabled]:focus,
+.umig-form-group.umig-readonly-field select[disabled]:focus {
   outline: none;
   box-shadow: none;
 }
@@ -45,7 +45,7 @@
 }
 
 /* Role Badges */
-.role-badge {
+.umig-role-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 12px;
@@ -56,33 +56,33 @@
   line-height: 1;
 }
 
-.role-superadmin {
+.umig-role-superadmin {
   background-color: #ffebe6;
   color: #bf2600;
 }
 
-.role-admin {
+.umig-role-admin {
   background-color: #fff0b3;
   color: #974f00;
 }
 
-.role-user {
+.umig-role-user {
   background-color: #deebff;
   color: #0052cc;
 }
 
-.role-pilot {
+.umig-role-pilot {
   background-color: #e3fcef;
   color: #006644;
 }
 
-.role-none {
+.umig-role-none {
   background-color: #f4f5f7;
   color: #6b778c;
 }
 
 /* Status Badges */
-.status-badge {
+.umig-status-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 12px;
@@ -93,30 +93,30 @@
   line-height: 1;
 }
 
-.status-active {
+.umig-status-active {
   background-color: #e3fcef;
   color: #006644;
 }
 
-.status-inactive {
+.umig-status-inactive {
   background-color: #f4f5f7;
   color: #6b778c;
 }
 
 /* Table Styles */
-.data-table {
+.umig-data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-table th,
-.data-table td {
+.umig-data-table th,
+.umig-data-table td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
-.data-table th {
+.umig-data-table th {
   background-color: var(--bg-secondary);
   font-weight: 600;
   color: var(--text-primary);
@@ -124,25 +124,176 @@
   top: 0;
 }
 
-.data-table tbody tr:hover {
+.umig-data-table tbody tr:hover {
   background-color: var(--bg-secondary);
 }
 
+/* Table Sorting Styles - UMIG Prefixed to Avoid Confluence Conflicts */
+.umig-data-table th.umig-sortable {
+  cursor: pointer !important;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s ease;
+  /* Ensure our click events take precedence over Confluence */
+  z-index: 10;
+}
+
+.umig-data-table th.umig-sortable:hover {
+  background-color: #e8f4fd !important;
+  color: var(--primary-color) !important;
+}
+
+.umig-data-table th.umig-sortable .umig-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  /* CRITICAL: Prevent child elements from capturing clicks */
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.umig-data-table th.umig-sortable .umig-sort-indicator {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+  /* CRITICAL: Prevent this element from capturing click events */
+  pointer-events: none;
+}
+
+.umig-data-table th.umig-sortable:hover .umig-sort-indicator {
+  opacity: 0.8;
+}
+
+.umig-data-table th.umig-sorted {
+  background-color: #deebff !important;
+  color: var(--primary-color) !important;
+}
+
+.umig-data-table th.umig-sorted .umig-sort-indicator {
+  opacity: 1;
+}
+
+/* Sort Direction Indicators - UMIG Prefixed */
+.umig-data-table th.umig-sorted-asc .umig-sort-indicator::after {
+  content: "▲";
+  font-size: 12px;
+  color: var(--primary-color);
+  pointer-events: none;
+}
+
+.umig-data-table th.umig-sorted-desc .umig-sort-indicator::after {
+  content: "▼";
+  font-size: 12px;
+  color: var(--primary-color);
+  pointer-events: none;
+}
+
+.umig-data-table
+  th.umig-sortable:not(.umig-sorted)
+  .umig-sort-indicator::after {
+  content: "⇅";
+  font-size: 12px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* Confluence Interference Prevention */
+.umig-data-table th.umig-sortable * {
+  /* CRITICAL: Prevent ALL child elements from interfering with clicks */
+  pointer-events: none !important;
+}
+
+/* Visual feedback for clickable headers */
+.umig-data-table th.umig-sortable {
+  /* Add subtle visual cue that header is clickable */
+  border-bottom: 2px solid transparent;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.umig-data-table th.umig-sortable:hover {
+  border-bottom-color: var(--primary-color);
+}
+
+.umig-data-table th.umig-sorted {
+  border-bottom-color: var(--primary-color);
+}
+
+/* AUI Icon Fallbacks - in case AUI icons aren't available */
+.umig-data-table th .aui-icon {
+  font-size: 12px;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+/* Legacy class support for backwards compatibility */
+.umig-data-table th.sortable {
+  /* Redirect to new UMIG classes - manual replication since CSS doesn't support @extend */
+  cursor: pointer !important;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s ease;
+  z-index: 10;
+  border-bottom: 2px solid transparent;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.umig-data-table th.sortable:hover {
+  background-color: #e8f4fd !important;
+  color: var(--primary-color) !important;
+  border-bottom-color: var(--primary-color);
+}
+
+.umig-data-table th.sorted {
+  background-color: #deebff !important;
+  color: var(--primary-color) !important;
+  border-bottom-color: var(--primary-color);
+}
+
+.umig-data-table th.sorted .sort-indicator {
+  opacity: 1;
+}
+
+.umig-data-table th.sorted-asc .sort-indicator::after {
+  content: "▲";
+  font-size: 12px;
+  color: var(--primary-color);
+  pointer-events: none;
+}
+
+.umig-data-table th.sorted-desc .sort-indicator::after {
+  content: "▼";
+  font-size: 12px;
+  color: var(--primary-color);
+  pointer-events: none;
+}
+
+/* Ensure legacy classes also prevent pointer event interference */
+.umig-data-table th.sortable * {
+  pointer-events: none !important;
+}
+
 /* Form Styles */
-.form-group {
+.umig-form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.umig-form-group label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.umig-form-group input,
+.umig-form-group select,
+.umig-form-group textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border-color);
@@ -151,9 +302,9 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.umig-form-group input:focus,
+.umig-form-group select:focus,
+.umig-form-group textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
@@ -172,7 +323,7 @@
 }
 
 /* Button Styles */
-.btn-primary {
+.umig-btn-primary {
   background-color: var(--primary-color);
   color: white;
   border: none;
@@ -182,11 +333,11 @@
   cursor: pointer;
 }
 
-.btn-primary:hover {
+.umig-btn-primary:hover {
   background-color: #0747a6;
 }
 
-.btn-secondary {
+.umig-btn-secondary {
   background-color: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
@@ -196,12 +347,26 @@
   cursor: pointer;
 }
 
-.btn-secondary:hover {
+.umig-btn-secondary:hover {
   background-color: var(--bg-secondary);
 }
 
+/* Button shared styles and icons */
+.umig-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.umig-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+}
+
 /* Action Buttons */
-.btn-table-action {
+.umig-btn-table-action {
   background: transparent;
   border: none;
   padding: 4px 8px;
@@ -210,12 +375,12 @@
   border-radius: var(--radius-sm);
 }
 
-.btn-table-action:hover {
+.umig-btn-table-action:hover {
   background-color: var(--bg-secondary);
 }
 
 /* Modal Styles */
-.modal-overlay {
+.umig-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -228,7 +393,7 @@
   z-index: 1000;
 }
 
-.modal {
+.umig-modal {
   background-color: white;
   border-radius: var(--radius-md);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
@@ -239,12 +404,12 @@
   flex-direction: column;
 }
 
-.modal-large {
+.umig-modal-large {
   max-width: 800px;
   width: 95%;
 }
 
-.modal-header {
+.umig-modal-header {
   padding: 20px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
@@ -252,14 +417,14 @@
   align-items: center;
 }
 
-.modal-title {
+.umig-modal-title {
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
-.modal-close {
+.umig-modal-close {
   background: transparent;
   border: none;
   font-size: 24px;
@@ -267,24 +432,24 @@
   color: var(--text-secondary);
 }
 
-.modal-body {
+.umig-modal-body {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
 }
 
 /* Modal Form Styles - Ensure symmetric spacing */
-.modal-body .form-group {
+.umig-modal-body .umig-form-group {
   margin-bottom: 20px;
 }
 
-.modal-body .form-group:last-child {
+.umig-modal-body .umig-form-group:last-child {
   margin-bottom: 0;
 }
 
-.modal-body .form-group input,
-.modal-body .form-group select,
-.modal-body .form-group textarea {
+.umig-modal-body .umig-form-group input,
+.umig-modal-body .umig-form-group select,
+.umig-modal-body .umig-form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
@@ -294,14 +459,14 @@
   margin: 0;
 }
 
-.modal-body .form-group label {
+.umig-modal-body .umig-form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.modal-footer {
+.umig-modal-footer {
   padding: 20px;
   border-top: 1px solid var(--border-color);
   display: flex;
@@ -992,16 +1157,16 @@
 }
 
 /* Form field alignment improvements */
-.form-field label {
+.umig-form-fieldlabel {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.form-field input[type="text"],
-.form-field textarea,
-.form-field select {
+.umig-form-fieldinput[type="text"],
+.umig-form-fieldtextarea,
+.umig-form-fieldselect {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
@@ -1012,7 +1177,7 @@
 }
 
 /* Special styling for color inputs - maintain native appearance */
-.form-field input[type="color"] {
+.umig-form-fieldinput[type="color"] {
   width: auto;
   min-width: 60px;
   height: 40px;
@@ -1024,20 +1189,20 @@
   box-sizing: border-box;
 }
 
-.form-field input[type="color"]:hover {
+.umig-form-fieldinput[type="color"]:hover {
   border-color: var(--primary-color);
 }
 
-.form-field input[type="color"]:focus {
+.umig-form-fieldinput[type="color"]:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
 }
 
 /* Modal-specific form field spacing fixes */
-.modal-body .form-field input[type="text"],
-.modal-body .form-field textarea,
-.modal-body .form-field select {
+.umig-modal-body .umig-form-fieldinput[type="text"],
+.umig-modal-body .umig-form-fieldtextarea,
+.umig-modal-body .umig-form-fieldselect {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
@@ -1048,7 +1213,7 @@
 }
 
 /* Modal-specific color input styling */
-.modal-body .form-field input[type="color"] {
+.umig-modal-body .umig-form-fieldinput[type="color"] {
   width: auto;
   min-width: 60px;
   height: 40px;
@@ -1130,8 +1295,8 @@
 /* Comprehensive modal input field fix - catches all input types except color */
 .modal-body
   input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
-.modal-body textarea,
-.modal-body select {
+.umig-modal-bodytextarea,
+.umig-modal-bodyselect {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
@@ -1142,8 +1307,8 @@
 }
 
 /* Ensure checkbox inputs don't get full width treatment */
-.modal-body input[type="checkbox"],
-.modal-body input[type="radio"] {
+.umig-modal-bodyinput[type="checkbox"],
+.umig-modal-bodyinput[type="radio"] {
   width: auto;
   margin-right: 8px;
 }
@@ -1267,7 +1432,7 @@
   word-break: break-word;
 }
 
-.detail-value .status-badge {
+.detail-value .umig-status-badge {
   margin: 0;
 }
 
@@ -1278,6 +1443,199 @@
 
 .detail-value a:hover {
   text-decoration: underline;
+}
+
+/* Email Link Styles - UMIG Prefixed for Confluence Isolation */
+.umig-email-link,
+.umig-table-email-link,
+.umig-modal-email-link {
+  color: #0969da !important;
+  text-decoration: none !important;
+  border-bottom: 1px dotted #0969da !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.umig-email-link:hover,
+.umig-table-email-link:hover,
+.umig-modal-email-link:hover {
+  color: #0860ca !important;
+  text-decoration: underline !important;
+  border-bottom-style: solid !important;
+}
+
+.umig-email-link:focus,
+.umig-table-email-link:focus,
+.umig-modal-email-link:focus {
+  outline: 2px solid #0969da !important;
+  outline-offset: 2px !important;
+  border-radius: 2px !important;
+}
+
+/* Ensure email links in tables maintain proper alignment */
+.umig-data-table td .umig-table-email-link {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Email links in modal forms */
+.umig-modal-body .umig-modal-email-link {
+  display: inline-block;
+  word-break: break-all; /* Allow long emails to break */
+}
+
+/* Generic Boolean Cell Background Styles - Data Attribute Based */
+[data-boolean-value="yes"] {
+  background-color: #e3fcef !important; /* Light green background */
+  color: #006644 !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+[data-boolean-value="no"] {
+  background-color: #f4f5f7 !important; /* Light grey background */
+  color: #6b778c !important;
+  font-weight: normal !important;
+  text-align: center !important;
+}
+
+/* Generic Boolean Cell Background Styles - Class Based (fallback) */
+.umig-boolean-cell-yes {
+  background-color: #e3fcef !important; /* Light green background */
+  color: #006644 !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  padding: 8px 12px !important;
+}
+
+.umig-boolean-cell-no {
+  background-color: #f4f5f7 !important; /* Light grey background */
+  color: #6b778c !important;
+  font-weight: normal !important;
+  text-align: center !important;
+  padding: 8px 12px !important;
+}
+
+/* Alternative: Text-only boolean styles (for non-cell contexts) */
+.umig-boolean-yes {
+  color: #006644 !important;
+  font-weight: 600 !important;
+}
+
+.umig-boolean-no {
+  color: #6b778c !important;
+  font-weight: normal !important;
+}
+
+/* Boolean Badge Styles - Enhanced visibility with background */
+.umig-boolean-badge-yes {
+  background-color: #e3fcef;
+  color: #006644;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-block;
+  min-width: 32px;
+  text-align: center;
+}
+
+.umig-boolean-badge-no {
+  background-color: #f4f5f7;
+  color: #6b778c;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: normal;
+  font-size: 12px;
+  display: inline-block;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Table Cell Color Coding - Data Attribute Based Styling */
+/* User Status Color Coding */
+[data-user-status="active"] {
+  background-color: #e3fcef; /* Light green - reusing existing .status-active color */
+  border-left: 3px solid #006644; /* Stronger green accent */
+}
+
+[data-user-status="inactive"] {
+  background-color: #ffebe6; /* Light red */
+  border-left: 3px solid #de350b; /* Red accent */
+  opacity: 0.85; /* Slight de-emphasis for inactive users */
+}
+
+/* User Role Color Coding */
+[data-user-role="admin"] {
+  background-color: #f3e5f5; /* Light purple */
+  border-left: 3px solid #9c27b0; /* Purple accent */
+}
+
+[data-user-role="pilot"] {
+  background-color: #e3fcef; /* Light green - reusing existing .role-pilot color */
+  border-left: 3px solid #006644; /* Green accent */
+}
+
+[data-user-role="user"] {
+  background-color: #e3f2fd; /* Light blue - reusing existing .role-user color */
+  border-left: 3px solid #0052cc; /* Blue accent */
+}
+
+/* Enhanced accessibility and visual clarity */
+[data-user-status],
+[data-user-role] {
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+  position: relative;
+}
+
+/* Hover effects for better interactivity */
+.data-row:hover [data-user-status],
+.data-row:hover [data-user-role] {
+  filter: brightness(0.95);
+}
+
+/* Print-friendly styles */
+@media print {
+  [data-user-status],
+  [data-user-role] {
+    background-color: transparent !important;
+    border-left: 1px solid #ccc !important;
+  }
+
+  [data-user-status="active"]::after {
+    content: " (Active)";
+    font-size: 0.8em;
+    color: #006644;
+  }
+
+  [data-user-status="inactive"]::after {
+    content: " (Inactive)";
+    font-size: 0.8em;
+    color: #de350b;
+  }
+
+  [data-user-role="admin"]::after {
+    content: " (Admin)";
+    font-size: 0.8em;
+    color: #9c27b0;
+  }
+
+  [data-user-role="pilot"]::after {
+    content: " (Pilot)";
+    font-size: 0.8em;
+    color: #006644;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  [data-user-status],
+  [data-user-role] {
+    border-left-width: 4px;
+    font-weight: bold;
+  }
 }
 
 /* Responsive adjustments */
@@ -1306,5 +1664,11 @@
 
   .detail-value {
     flex: none;
+  }
+
+  /* Reduce border emphasis on mobile for better readability */
+  [data-user-status],
+  [data-user-role] {
+    border-left-width: 2px;
   }
 }

@@ -5,6 +5,7 @@ import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
 import umig.utils.DatabaseUtil
+import umig.utils.StepNotificationIntegration
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
 import groovy.json.JsonBuilder
@@ -17,11 +18,14 @@ import java.util.UUID
 import java.sql.SQLException
 
 /**
- * Steps API - repositories instantiated within methods to avoid class loading issues
+ * Steps API - repositories instantiated at script level
  */
 @BaseScript CustomEndpointDelegate delegate
 
-// Import repositories at compile time but instantiate lazily
+// Instantiate repositories at script level (following TeamsApi pattern)
+final StepRepository stepRepository = new StepRepository()
+final StatusRepository statusRepository = new StatusRepository()
+final UserRepository userRepository = new UserRepository()
 
 /**
  * Handles GET requests for Steps with hierarchical filtering for the runsheet.
@@ -42,18 +46,7 @@ import java.sql.SQLException
 steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    def getStatusRepository = { ->
-        return new StatusRepository()
-    }
-    def getUserRepository = { ->
-        return new UserRepository()
-    }
-    
+
     // Parse and validate query parameters for filtering with type safety (ADR-031) - inline
     def parseAndValidateFilters = { MultivaluedMap qParams ->
         def filters = [:]
@@ -222,7 +215,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         try {
             // Try to parse as UUID first
             UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def stepDetails = stepRepository.findStepInstanceDetailsById(stepInstanceUuid)
             
             if (!stepDetails) {
@@ -236,7 +229,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         } catch (IllegalArgumentException e) {
             // If not a valid UUID, try to parse as step code for backward compatibility
             try {
-                StepRepository stepRepository = getStepRepository()
+                // Use script-level repository instance
                 def stepDetails = stepRepository.findStepInstanceDetailsByCode(stepInstanceId)
                 
                 if (!stepDetails) {
@@ -264,7 +257,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         try {
             def stepInstanceId = pathParts[0]
             UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceUuid)
             
             return Response.ok(new JsonBuilder(comments).toString()).build()
@@ -283,7 +276,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     if (pathParts.size() == 2 && pathParts[0] == 'master') {
         try {
             def stepId = UUID.fromString(pathParts[1])
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def masterStepDTO = stepRepository.findMasterByIdAsDTO(stepId)
             
             if (!masterStepDTO) {
@@ -344,7 +337,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
 
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def result = stepRepository.findMasterStepsWithFiltersAsDTO(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
             return Response.ok(new JsonBuilder(result).toString()).build()
         } catch (SQLException e) {
@@ -372,7 +365,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             
             def migrationUuid = UUID.fromString(migrationId as String)
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def summary = stepRepository.getStepsSummary(migrationUuid)
             
             return Response.ok(new JsonBuilder(summary).toString()).build()
@@ -395,7 +388,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             
             def migrationUuid = UUID.fromString(migrationId as String)
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def progress = stepRepository.getStepsProgress(migrationUuid)
             
             return Response.ok(new JsonBuilder(progress).toString()).build()
@@ -420,8 +413,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             
             // Use enhanced repository method for export with DTO transformation
-            StepRepository stepRepository = getStepRepository()
-            Map<String, Object> exportResult = stepRepository.findStepsWithFiltersAsDTO(filters, 1, 10000, 'created_date', 'desc') as Map<String, Object>
+            // Use script-level repository instance
+            Map<String, Object> exportResult = stepRepository.findStepsWithFiltersAsDTO_v2(filters, 1, 10000, 'created_date', 'desc') as Map<String, Object>
             Map<String, Object> exportData = [data: exportResult.data]
             
             if (format.toLowerCase() == "csv") {
@@ -496,13 +489,13 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                                    queryParams.getFirst("limit") || 
                                    queryParams.getFirst("offset")
             
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             
             if (useEnhancedMethod) {
                 // Use enhanced repository method with pagination and DTO transformation
-                def result = stepRepository.findStepsWithFiltersAsDTO(
-                    filters, 
-                    1, // pageNumber 
+                def result = stepRepository.findStepsWithFiltersAsDTO_v2(
+                    filters,
+                    1, // pageNumber
                     pagination.limit as Integer,
                     'created_date',
                     'desc'
@@ -649,17 +642,6 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    def getStatusRepository = { ->
-        return new StatusRepository()
-    }
-    def getUserRepository = { ->
-        return new UserRepository()
-    }
-    
     // Enhanced error handling with SQL state mapping and context - inline
     def handleError = { Exception e, String context ->
         if (e instanceof IllegalArgumentException) {
@@ -727,7 +709,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Validate statusId using database
-            StatusRepository statusRepository = getStatusRepository()
+            // Use script-level statusRepository instance
             if (!statusId) {
                 def validStatuses = statusRepository.findStatusesByType('Step')
                 def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
@@ -766,7 +748,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Perform bulk update using enhanced repository method
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.bulkUpdateStepStatus(stepUuids, statusId, userId)
             def result = repositoryResult as Map
             if ((result.success as Boolean)) {
@@ -829,7 +811,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Perform bulk assignment using enhanced repository method
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.bulkAssignSteps(stepUuids, teamId, userId)
             def result = repositoryResult as Map
             if ((result.success as Boolean)) {
@@ -890,7 +872,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Perform bulk reordering using enhanced repository method
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.bulkReorderSteps(reorderData)
             def result = repositoryResult as Map
             
@@ -924,7 +906,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             def stepData = json.parseText(body) as Map
             
             // Use repository DTO method for update
-            def stepRepository = getStepRepository()
+            // Use script-level repository instance
             def updatedStepDTO = stepRepository.updateMasterFromDTO(stepId, stepData)
             
             return Response.ok(updatedStepDTO.toJson()).build()
@@ -969,7 +951,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             def instanceData = json.parseText(body) as Map
             
             // Use repository DTO method for update
-            def stepRepository = getStepRepository()
+            // Use script-level repository instance
             def updatedInstanceDTO = stepRepository.updateInstanceFromDTO(stepInstanceId, instanceData)
             
             return Response.ok(updatedInstanceDTO.toJson()).build()
@@ -1022,7 +1004,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
-            StatusRepository statusRepository = getStatusRepository()
+            // Use script-level statusRepository instance
             if (!statusId && requestData.status) {
                 // Convert status name to ID using database lookup for backward compatibility
                 def statusName = (requestData.status as String).toUpperCase()
@@ -1066,18 +1048,22 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
-            // Update step status and send notifications
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId)
-            def result = repositoryResult as Map
+            // Update step status and send enhanced notifications with URLs
+            // Use StepNotificationIntegration for enhanced email functionality
+            def integrationResult = StepNotificationIntegration.updateStepStatusWithEnhancedNotifications(stepInstanceUuid, statusId, userId)
+            def result = integrationResult as Map
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
-                    message: "Step status updated successfully",
+                    message: result.message ?: "Step status updated successfully",
                     stepInstanceId: stepInstanceId,
                     statusId: statusId,
-                    emailsSent: result.emailsSent ?: 0
+                    emailsSent: result.emailsSent ?: 0,
+                    enhancedNotification: result.enhancedNotification ?: false,
+                    migrationCode: result.migrationCode ?: null,
+                    iterationCode: result.iterationCode ?: null,
+                    contextMissing: result.contextMissing ?: false
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -1111,17 +1097,6 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
 steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    def getStatusRepository = { ->
-        return new StatusRepository()
-    }
-    def getUserRepository = { ->
-        return new UserRepository()
-    }
     
     // Enhanced error handling with SQL state mapping and context - inline
     def handleError = { Exception e, String context ->
@@ -1175,7 +1150,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             def stepData = json.parseText(body) as Map
             
             // Use repository DTO method for creation
-            def stepRepository = getStepRepository()
+            // Use script-level repository instance
             def createdStepDTO = stepRepository.createMasterFromDTO(stepData)
             
             return Response.status(Response.Status.CREATED)
@@ -1219,7 +1194,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             def instanceData = json.parseText(body) as Map
             
             // Use repository DTO method for creation
-            def stepRepository = getStepRepository()
+            // Use script-level repository instance
             def createdInstanceDTO = stepRepository.createInstanceFromDTO(instanceData)
             
             return Response.status(Response.Status.CREATED)
@@ -1269,7 +1244,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             Integer userId = (requestData && requestData.userId) ? (requestData.userId as Integer) : null
             
             // Mark step as opened and send notifications
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId)
             def result = repositoryResult as Map
             
@@ -1311,7 +1286,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // Complete instruction and send notifications
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
             def result = repositoryResult as Map
             
@@ -1358,7 +1333,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             Integer userId = requestData.userId ? (requestData.userId as Integer) : null
             
             // Mark instruction as incomplete and send notifications
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def repositoryResult = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
             def result = repositoryResult as Map
             
@@ -1403,14 +1378,11 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStatusRepository = { ->
-        return new StatusRepository()
-    }
     
     // GET /statuses/step - return all step statuses
     if (pathParts.size() == 1 && pathParts[0] == 'step') {
         try {
-            StatusRepository statusRepository = getStatusRepository()
+            // Use script-level statusRepository instance
             def statuses = statusRepository.findStatusesByType('Step')
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
@@ -1429,7 +1401,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         entityType = entityType.substring(0, 1).toUpperCase() + entityType.substring(1).toLowerCase()
         
         try {
-            StatusRepository statusRepository = getStatusRepository()
+            // Use script-level statusRepository instance
             def statuses = statusRepository.findStatusesByType(entityType)
             
             if (!statuses || (statuses as List).size() == 0) {
@@ -1450,7 +1422,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     // GET /statuses - return all statuses
     if (pathParts.isEmpty()) {
         try {
-            StatusRepository statusRepository = getStatusRepository()
+            // Use script-level statusRepository instance
             def statuses = statusRepository.findAllStatuses()
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
@@ -1476,15 +1448,12 @@ comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
     
     // GET /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
             def stepInstanceId = UUID.fromString(pathParts[0])
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceId)
             
             return Response.ok(new JsonBuilder(comments).toString()).build()
@@ -1523,9 +1492,6 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
     
     // POST /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
@@ -1545,7 +1511,7 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                     .build()
             }
             
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def result = stepRepository.createComment(stepInstanceId, commentBody, userId)
             
             return Response.ok(new JsonBuilder([
@@ -1591,9 +1557,6 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
     
     // PUT /comments/{commentId}
     if (pathParts.size() == 1) {
@@ -1613,7 +1576,7 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
                     .build()
             }
             
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def success = stepRepository.updateComment(commentId, commentBody, userId)
             
             if (success) {
@@ -1655,11 +1618,6 @@ steps(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    
     // Enhanced error handling with SQL state mapping and context
     def handleError = { Exception e, String context ->
         if (e instanceof IllegalArgumentException) {
@@ -1699,7 +1657,7 @@ steps(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
             def stepId = UUID.fromString(pathParts[1])
             
             // Use repository DTO method for deletion
-            def stepRepository = getStepRepository()
+            // Use script-level repository instance
             def deleted = stepRepository.deleteMaster(stepId)
             
             if (deleted) {
@@ -1736,9 +1694,6 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
     
     // DELETE /comments/{commentId}
     if (pathParts.size() == 1) {
@@ -1746,7 +1701,7 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
             def commentId = Integer.parseInt(pathParts[0])
             Integer userId = 1 // Default to user 1 for now
             
-            StepRepository stepRepository = getStepRepository()
+            // Use script-level repository instance
             def success = stepRepository.deleteComment(commentId, userId)
             
             if (success) {
@@ -1790,20 +1745,7 @@ private def getCurrentUser() {
     }
 }
 
-// Helper method to get UserRepository instance
-private def getUserRepository() {
-    return new UserRepository()
-}
-
-// Helper method to get StatusRepository instance
-private def getStatusRepository() {
-    return new StatusRepository()
-}
-
-// Helper method to get StepRepository instance
-private def getStepRepository() {
-    return new StepRepository()
-}
+// Repository instances are defined at script level - no helper methods needed
 
 // Master step POST and PUT functionality moved to the main handlers above to avoid conflicts
 

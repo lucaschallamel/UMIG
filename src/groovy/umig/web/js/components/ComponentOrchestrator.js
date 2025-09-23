@@ -31,8 +31,14 @@ class ComponentOrchestrator {
       stateHistory: 10,
       performanceMonitoring: true,
       errorIsolation: true,
+      container: null, // Explicitly initialize container
       ...config,
     };
+
+    // Validate and set container if provided
+    if (config.container) {
+      this.setContainer(config.container);
+    }
 
     // Component registry
     this.components = new Map();
@@ -67,7 +73,7 @@ class ComponentOrchestrator {
       maxStateUpdatesPerMinute: 100, // Per path
       maxTotalEventsPerMinute: 5000, // Global limit
       suspendedComponents: new Set(),
-      suspensionTimestamps: new WeakMap(), // Memory-efficient: GC collectable references
+      suspensionTimestamps: new Map(), // Iterable for cleanup operations
     };
 
     // Memory-efficient component metadata cache using WeakMap
@@ -269,6 +275,36 @@ class ComponentOrchestrator {
         throw new Error("Component type is required and must be a string");
       }
 
+      // CRITICAL: Validate container availability before component creation
+      if (!this.config.container) {
+        const errorMsg = `Cannot create ${componentType} component: No parent container set. Call setContainer() first.`;
+        console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+          componentType: componentType,
+          config: config,
+          hasContainer: !!this.config.container,
+          configKeys: Object.keys(this.config),
+        });
+        throw new Error(errorMsg);
+      }
+
+      if (!(this.config.container instanceof HTMLElement)) {
+        const errorMsg = `Cannot create ${componentType} component: Parent container is not a valid HTMLElement.`;
+        console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+          componentType: componentType,
+          containerType: typeof this.config.container,
+          container: this.config.container,
+        });
+        throw new Error(errorMsg);
+      }
+
+      console.log(
+        `[ComponentOrchestrator] Creating ${componentType} component with container:`,
+        {
+          containerId: this.config.container.id,
+          containerTag: this.config.container.tagName,
+        },
+      );
+
       // Generate unique component ID
       const componentId = this.generateComponentId(componentType, config);
 
@@ -292,6 +328,13 @@ class ComponentOrchestrator {
             throw new Error("TableComponent is not available");
           }
           componentInstance = new window.TableComponent(containerId, config);
+          // CRITICAL FIX: Pass orchestrator reference to enable global event emission
+          if (componentInstance && typeof componentInstance === "object") {
+            componentInstance.orchestrator = this;
+            console.log(
+              "[ComponentOrchestrator] DEBUG: Orchestrator reference added to TableComponent",
+            );
+          }
           break;
 
         case "modal":
@@ -373,24 +416,58 @@ class ComponentOrchestrator {
       return container;
     }
 
-    // Container doesn't exist, create it
+    // Validate parent container before creating new container
     if (!this.config.container) {
-      throw new Error(`No parent container available to create ${containerId}`);
+      const errorMsg = `No parent container available to create ${containerId}. Ensure ComponentOrchestrator.setContainer() is called before creating components.`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        configContainer: this.config.container,
+        configKeys: Object.keys(this.config),
+      });
+      throw new Error(errorMsg);
     }
 
-    container = document.createElement("div");
-    container.id = containerId;
-    container.className = `component-container ${componentType}-container`;
+    if (!(this.config.container instanceof HTMLElement)) {
+      const errorMsg = `Parent container is not a valid HTMLElement. Got: ${typeof this.config.container}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        container: this.config.container,
+      });
+      throw new Error(errorMsg);
+    }
 
-    // Set up basic structure and accessibility
-    container.setAttribute("role", "region");
-    container.setAttribute("aria-label", `${componentType} component`);
+    // Container doesn't exist, create it
+    try {
+      container = document.createElement("div");
+      container.id = containerId;
+      container.className = `component-container ${componentType}-container`;
 
-    // Add to parent container
-    this.config.container.appendChild(container);
+      // Set up basic structure and accessibility
+      container.setAttribute("role", "region");
+      container.setAttribute("aria-label", `${componentType} component`);
 
-    this.logDebug(`Created DOM container: ${containerId}`);
-    return container;
+      // Add to parent container
+      this.config.container.appendChild(container);
+
+      this.logDebug(
+        `Created DOM container: ${containerId} in parent: ${this.config.container.id || this.config.container.tagName}`,
+      );
+      return container;
+    } catch (error) {
+      const errorMsg = `Failed to create container ${containerId}: ${error.message}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        componentType: componentType,
+        containerId: containerId,
+        parentContainer: this.config.container,
+        originalError: error,
+      });
+      throw new Error(errorMsg);
+    }
   }
 
   /**
@@ -490,14 +567,28 @@ class ComponentOrchestrator {
     try {
       this.checkRateLimit(source, "event");
     } catch (error) {
-      // Rate limit exceeded - log and reject (sanitized)
-      this.logWarning(
-        this.sanitizeLogMessage(
-          `Rate limit exceeded for source: ${error.message}`,
-          { source },
-        ),
-      );
-      throw new Error(this.sanitizeErrorMessage(error.message, "rate_limit"));
+      // Rate limit exceeded - handle based on event type
+      const isBenignEvent =
+        eventName === "breakpointChange" ||
+        eventName.includes("resize") ||
+        eventName.includes("scroll");
+
+      if (isBenignEvent) {
+        // For benign UI events, just suppress silently to prevent console spam
+        this.logDebug(
+          `Benign event suppressed due to rate limiting: ${source}:${eventName}`,
+        );
+        return false;
+      } else {
+        // For other events, maintain security by throwing
+        this.logWarning(
+          this.sanitizeLogMessage(
+            `Rate limit exceeded for source: ${error.message}`,
+            { source },
+          ),
+        );
+        throw new Error(this.sanitizeErrorMessage(error.message, "rate_limit"));
+      }
     }
 
     // Track component activity efficiently using WeakMap
@@ -1366,21 +1457,32 @@ class ComponentOrchestrator {
     this.rateLimiting.lastResetTime = now;
 
     // Clean up expired suspensions
-    if (this.rateLimiting.suspensionTimestamps) {
-      const suspensionDuration = 5 * 60 * 1000; // 5 minutes
-      const expiredSuspensions = [];
+    if (
+      this.rateLimiting.suspensionTimestamps &&
+      typeof this.rateLimiting.suspensionTimestamps.entries === "function"
+    ) {
+      try {
+        const suspensionDuration = 5 * 60 * 1000; // 5 minutes
+        const expiredSuspensions = [];
 
-      for (const [source, timestamp] of this.rateLimiting
-        .suspensionTimestamps) {
-        if (now - timestamp > suspensionDuration) {
-          expiredSuspensions.push(source);
+        for (const [source, timestamp] of this.rateLimiting
+          .suspensionTimestamps) {
+          if (now - timestamp > suspensionDuration) {
+            expiredSuspensions.push(source);
+          }
         }
-      }
 
-      for (const source of expiredSuspensions) {
-        this.rateLimiting.suspendedComponents.delete(source);
-        this.rateLimiting.suspensionTimestamps.delete(source);
-        this.logDebug(`Suspension expired for component "${source}"`);
+        for (const source of expiredSuspensions) {
+          this.rateLimiting.suspendedComponents.delete(source);
+          this.rateLimiting.suspensionTimestamps.delete(source);
+          this.logDebug(`Suspension expired for component "${source}"`);
+        }
+      } catch (error) {
+        this.logWarning(
+          `Error cleaning up expired suspensions: ${error.message}`,
+        );
+        // Reinitialize if corrupted
+        this.rateLimiting.suspensionTimestamps = new Map();
       }
     }
   }
@@ -1468,9 +1570,23 @@ class ComponentOrchestrator {
     // Override emit method to use orchestrator
     const originalEmit = component.emit;
     component.emit = (eventName, data) => {
-      return this.emit(`${componentId}:${eventName}`, data, {
+      // Emit component-specific event
+      const componentEvent = this.emit(`${componentId}:${eventName}`, data, {
         source: componentId,
       });
+
+      // For pagination components, also emit a general pagination:change event
+      if (
+        componentId.startsWith("pagination-") &&
+        eventName === "pagination:change"
+      ) {
+        this.emit("pagination:change", data, {
+          source: componentId,
+          componentEvent: true,
+        });
+      }
+
+      return componentEvent;
     };
 
     // Store original for unwiring
@@ -1877,8 +1993,21 @@ class ComponentOrchestrator {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            if (entry.duration > 50) {
-              this.logWarning(`Long task detected: ${entry.duration}ms`);
+            // Only warn on tasks that are significantly long (500ms+)
+            // to reduce noise while still catching real performance issues
+            if (entry.duration > 500) {
+              this.logWarning(`Long task detected: ${entry.duration}ms`, {
+                startTime: entry.startTime,
+                name: entry.name,
+                duration: entry.duration,
+              });
+            } else if (entry.duration > 150) {
+              // Log moderate tasks at debug level for investigation
+              this.logDebug(`Moderate task detected: ${entry.duration}ms`, {
+                startTime: entry.startTime,
+                name: entry.name,
+                duration: entry.duration,
+              });
             }
           }
         });
@@ -2903,9 +3032,9 @@ class ComponentOrchestrator {
     // Redirect after short delay
     setTimeout(() => {
       if (typeof window !== "undefined") {
-        // Try different redirect strategies
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login?reason=timeout";
+        // Redirect to base URL for simple logout behavior
+        if (window.location.pathname !== "/") {
+          window.location.href = "/";
         } else {
           // Already on login page, just reload
           window.location.reload();
@@ -3095,20 +3224,38 @@ class ComponentOrchestrator {
    */
   setContainer(container) {
     if (!container) {
-      this.logError("setContainer called with null/undefined container");
-      return;
+      const errorMsg = "setContainer called with null/undefined container";
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`);
+      return false;
     }
 
     if (!(container instanceof HTMLElement)) {
-      this.logError(
-        "setContainer called with non-HTMLElement:",
-        typeof container,
-      );
-      return;
+      const errorMsg = `setContainer called with non-HTMLElement: ${typeof container}`;
+      this.logError(errorMsg);
+      console.error(`[ComponentOrchestrator] ${errorMsg}`, {
+        container: container,
+        containerType: typeof container,
+        isElement: container instanceof Element,
+        isHTMLElement: container instanceof HTMLElement,
+      });
+      return false;
     }
 
     this.config.container = container;
-    this.logDebug(`Container updated: ${container.id || container.tagName}`);
+    this.logDebug(`Container updated: ${container.id || container.tagName}`, {
+      containerId: container.id,
+      containerClass: container.className,
+      containerTag: container.tagName,
+    });
+
+    console.log(`[ComponentOrchestrator] Container successfully set:`, {
+      id: container.id,
+      tagName: container.tagName,
+      className: container.className,
+    });
+
+    return true;
   }
 
   /**

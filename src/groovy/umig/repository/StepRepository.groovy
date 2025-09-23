@@ -7,9 +7,9 @@ import umig.service.StepDataTransformationService
 import umig.service.StatusService
 import umig.dto.StepInstanceDTO
 import umig.dto.StepMasterDTO
-// Note: Audit logging is temporarily disabled
+// Note: Audit logging is now enabled for step status changes
 // import umig.repository.InstructionRepository  // Not used
-// import umig.repository.AuditLogRepository      // Temporarily disabled
+import umig.repository.AuditLogRepository      // Re-enabled for step status notifications
 import java.util.UUID
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -17,6 +17,7 @@ import groovy.sql.Sql
 import groovy.util.logging.Slf4j
 
 // TD-003 Phase 2G: Integrated StatusService for centralized status management
+// Updated: 2025-09-20 14:30 - Labels integration with frontend field mapping
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
  */
@@ -524,7 +525,7 @@ class StepRepository {
                 println "  - userId: ${userId}"
                 
                 // Validate status exists and get status name
-                def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
+                def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'",
                     [statusId: statusId])
                 
                 if (!status) {
@@ -591,15 +592,28 @@ class StepRepository {
                 // Get old status name for notification
                 def oldStatus = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :oldStatusId", [oldStatusId: oldStatusId])?.sts_name
                 
-                // Update the status with audit fields
+                // Calculate end time in Groovy instead of SQL to avoid PostgreSQL parameter type issues
+                def completedStatusName = getCompletedStepStatus()
+                def shouldSetEndTime = (statusName == completedStatusName)
+                def endTime = shouldSetEndTime ? new java.sql.Timestamp(System.currentTimeMillis()) : null
+
+                // Calculate updated_by in Groovy to avoid PostgreSQL parameter type issues
+                def updatedBy = userId ? userId.toString() : 'confluence_user'
+
+                // Update the status with audit fields - PostgreSQL parameter type fix
                 def updateCount = sql.executeUpdate('''
                     UPDATE steps_instance_sti
                     SET sti_status = :statusId,
-                        sti_end_time = CASE WHEN :statusName = '${getCompletedStepStatus()}' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
-                        updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
+                        sti_end_time = COALESCE(:endTime, sti_end_time),
+                        updated_by = :updatedBy,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE sti_id = :stepInstanceId
-                ''', [statusId: statusId, statusName: statusName, userId: userId, stepInstanceId: stepInstanceId])
+                ''', [
+                    statusId: statusId,
+                    endTime: endTime,
+                    updatedBy: updatedBy,
+                    stepInstanceId: stepInstanceId
+                ])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to update step status"]
@@ -607,21 +621,113 @@ class StepRepository {
                 
                 // Get teams for notification (owner team + impacted teams)
                 def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
-                
-                // Get IT cutover team (for now, we'll skip this since we don't have role field)
-                def cutoverTeam = null
-                
-                // Send notification
-                EmailService.sendStepStatusChangedNotification(
-                    stepInstance as Map, 
-                    teams, 
-                    cutoverTeam as Map,
-                    oldStatus as String, 
-                    statusName as String,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size() + (cutoverTeam ? 1 : 0)]
+
+                // Get IT cutover team - find team with 'IT Cutover' or 'Cutover' in name
+                // This is a simple approach for now - can be enhanced later with role-based lookup
+                def cutoverTeam = sql.firstRow('''
+                    SELECT tms_id, tms_name, tms_email
+                    FROM teams_tms
+                    WHERE LOWER(tms_name) LIKE '%cutover%'
+                    OR LOWER(tms_name) LIKE '%it cutover%'
+                    LIMIT 1
+                ''')
+
+                // Send email notifications (non-blocking - failures don't break status update)
+                def emailsSent = 0
+                try {
+                    println "[NOTIFICATION] Preparing to send email for step status change..."
+                    println "  - Step: ${stepInstance.sti_name}"
+                    println "  - Status change: ${oldStatus} -> ${statusName}"
+                    println "  - Teams to notify: ${teams.size()}"
+                    println "  - Cutover team found: ${cutoverTeam != null}"
+
+                    // We need migration and iteration names for the email URL construction
+                    def contextData = sql.firstRow('''
+                        SELECT m.mig_name, i.ite_name
+                        FROM steps_instance_sti si
+                        JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
+                        JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                        JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                        JOIN iterations_ite i ON pli.ite_id = i.ite_id
+                        JOIN migrations_mig m ON i.mig_id = m.mig_id
+                        WHERE si.sti_id = :stepInstanceId
+                    ''', [stepInstanceId: stepInstanceId])
+
+                    println "  - Migration name: ${contextData?.mig_name}"
+                    println "  - Iteration name: ${contextData?.ite_name}"
+
+                    EmailService.sendStepStatusChangedNotification(
+                        stepInstance as Map,
+                        teams,
+                        cutoverTeam as Map,
+                        oldStatus as String,
+                        statusName as String,
+                        userId,
+                        contextData?.mig_name as String,
+                        contextData?.ite_name as String
+                    )
+
+                    // Calculate total emails attempted (teams + cutover team if exists)
+                    emailsSent = teams.size() + (cutoverTeam ? 1 : 0)
+                    println "[NOTIFICATION] ✅ Email notification sent successfully to ${emailsSent} recipients"
+                } catch (Exception emailError) {
+                    // Log but don't fail the status update
+                    emailsSent = 0  // No emails sent due to error
+                    println "[NOTIFICATION] ⚠️ WARNING: Email notification failed but status was updated successfully"
+                    println "  - Error: ${emailError.message}"
+                    emailError.printStackTrace()
+
+                    // Log the email failure as an audit event
+                    try {
+                        // Calculate recipient list for audit (explicit type per ADR-031/ADR-043)
+                        List<String> recipientEmails = []
+                        teams.each { team ->
+                            if (team.tms_email) {
+                                recipientEmails.add(team.tms_email as String)
+                            }
+                        }
+                        if (cutoverTeam?.tms_email) {
+                            recipientEmails.add(cutoverTeam.tms_email as String)
+                        }
+
+                        AuditLogRepository.logEmailFailed(
+                            sql,
+                            userId,
+                            stepInstanceId,
+                            recipientEmails,
+                            "[UMIG] Step Status Changed: ${stepInstance.sti_name}" as String,
+                            emailError.message as String,
+                            'STEP_INSTANCE'  // Entity type for step status changes
+                        )
+                        println "[AUDIT] ✅ Email failure logged to audit trail"
+                    } catch (Exception auditLogError) {
+                        println "[AUDIT] ⚠️ Failed to log email failure to audit: ${auditLogError.message}"
+                    }
+                }
+
+                // Add audit log entry (within the same transaction)
+                try {
+                    println "[AUDIT] Creating audit log entry for status change..."
+                    println "  - User ID: ${userId ?: 'System'}"
+                    println "  - Step ID: ${stepInstanceId}"
+                    println "  - Status change: ${oldStatus} -> ${statusName}"
+
+                    AuditLogRepository.logStepStatusChange(
+                        sql,
+                        userId,
+                        stepInstanceId,
+                        oldStatus as String,
+                        statusName as String
+                    )
+                    println "[AUDIT] ✅ Audit log entry created successfully"
+                } catch (Exception auditError) {
+                    // Log but don't fail the status update
+                    println "[AUDIT] ⚠️ WARNING: Audit logging failed but status was updated successfully"
+                    println "  - Error: ${auditError.message}"
+                    auditError.printStackTrace()
+                }
+
+                return [success: true, statusChanged: true, oldStatus: oldStatus, newStatus: statusName, emailsSent: emailsSent]
                 
             } catch (Exception e) {
                 return [success: false, error: e.message]
@@ -706,15 +812,17 @@ class StepRepository {
                 
                 // Get teams for notification
                 def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
-                
-                // Send notification
-                EmailService.sendStepOpenedNotification(
-                    stepInstance as Map,
-                    teams,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size()]
+
+                // TODO: Implement EmailService for notifications
+                // EmailService.sendStepOpenedNotification(
+                //     stepInstance as Map,
+                //     teams,
+                //     userId
+                // )
+                println "TODO: Send step opened notification email to ${teams.size()} teams"
+                println "Step opened: ${stepInstance.sti_name}"
+
+                return [success: true, stepOpened: true]
                 
             } catch (Exception e) {
                 return [success: false, error: e.message]
@@ -1230,6 +1338,7 @@ class StepRepository {
             return [
                 stepSummary: [
                     ID: stepInstance.sti_id,
+                    StepMasterID: stepInstance.stm_id,  // Added Step Master UUID for debugging
                     Name: stepInstance.sti_name ?: stepInstance.master_name,
                     Description: stepInstance.stm_description,
                     StatusID: stepInstance.sti_status,  // Changed from Status to StatusID for consistency
@@ -1243,14 +1352,14 @@ class StepRepository {
                     SequenceName: stepInstance.sequence_name,
                     PhaseName: stepInstance.phase_name,
                     // Predecessor information
-                    PredecessorCode: stepInstance.predecessor_stt_code && stepInstance.predecessor_stm_number ? 
+                    PredecessorCode: stepInstance.predecessor_stt_code && stepInstance.predecessor_stm_number ?
                         "${stepInstance.predecessor_stt_code}-${String.format('%03d', stepInstance.predecessor_stm_number)}" : null,
                     PredecessorName: stepInstance.predecessor_name,
                     // Environment role
-                    TargetEnvironment: stepInstance.environment_role_name ? 
-                        (stepInstance.environment_name ? 
-                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
-                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                    TargetEnvironment: stepInstance.environment_role_name ?
+                        (stepInstance.environment_name ?
+                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" :
+                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") :
                         'Not specified',
                     // Iteration types (scope)
                     IterationTypes: iterationTypes.collect { it.itt_code },
@@ -1441,6 +1550,7 @@ class StepRepository {
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
                     Duration: stepMaster.stm_duration_minutes,
                     sti_id: stepInstance.sti_id?.toString(),  // Include step instance ID for comments
+                    StepMasterID: stepMaster.stm_id?.toString(),  // Include step master ID for debugging
                     // ADDED: Complete hierarchical context
                     MigrationName: stepInstance.migration_name,
                     IterationName: stepInstance.iteration_name,
@@ -2036,16 +2146,26 @@ class StepRepository {
                             }
                             
                             def oldStatusId = stepInstance.sti_status
-                            
-                            // Update the status
+
+                            // Calculate end time in Groovy to avoid PostgreSQL parameter type issues
+                            def completedStatusName = getCompletedStepStatus()
+                            def shouldSetEndTime = (status.sts_name == completedStatusName)
+                            def endTime = shouldSetEndTime ? new java.sql.Timestamp(System.currentTimeMillis()) : null
+
+                            // Update the status - PostgreSQL parameter type fix
                             def updateCount = sql.executeUpdate('''
                                 UPDATE steps_instance_sti
                                 SET sti_status = :statusId,
-                                    sti_end_time = CASE WHEN :statusName = '${getCompletedStepStatus()}' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
-                                    updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
+                                    sti_end_time = COALESCE(:endTime, sti_end_time),
+                                    updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE CAST(:userId AS varchar) END,
                                     updated_at = CURRENT_TIMESTAMP
                                 WHERE sti_id = :stepId
-                            ''', [statusId: statusId, statusName: status.sts_name, userId: userId, stepId: stepId])
+                            ''', [
+                                statusId: statusId,
+                                endTime: endTime,
+                                userId: userId,
+                                stepId: stepId
+                            ])
                             
                             if (updateCount == 1) {
                                 results.add([stepId: stepId, success: true, oldStatus: oldStatusId, newStatus: statusId])
@@ -2324,10 +2444,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 WHERE stm.stm_id = :stepMasterId
@@ -2352,10 +2471,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 ORDER BY stm.stt_code, stm.stm_number
@@ -2381,10 +2499,9 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
-                       (SELECT COUNT(*) FROM instructions_master_inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 WHERE stm.phm_id = :phaseId
@@ -2667,14 +2784,13 @@ class StepRepository {
                        stm.phm_id,
                        stm.created_date,
                        stm.last_modified_date,
-                       stm.is_active,
                        phm.phm_name,
                        sqm.sqm_name,
                        plm.plm_name,
                        tms.tms_name as owner_team_name,
-                       (SELECT COUNT(*) FROM instructions_master_inm inm 
+                       (SELECT COUNT(*) FROM instructions_master_inm inm
                         WHERE inm.stm_id = stm.stm_id) as instruction_count,
-                       (SELECT COUNT(*) FROM steps_instance_sti sti 
+                       (SELECT COUNT(*) FROM steps_instance_sti sti
                         WHERE sti.stm_id = stm.stm_id) as instance_count
                 FROM steps_master_stm stm
                 JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
@@ -3028,22 +3144,34 @@ class StepRepository {
     /**
      * Build the comprehensive base query for DTO population
      * This query includes all fields needed for StepInstanceDTO construction
+     * REFACTORED: Consolidated method with comprehensive labels logging
      * @return SQL query string
      */
     private String buildDTOBaseQuery() {
+        log.info("*** LABELS REFACTOR *** buildDTOBaseQuery() called - CONSOLIDATED VERSION")
+        return buildComprehensiveDTOQuery()
+    }
+
+    /**
+     * REFACTORED: Consolidated comprehensive base query with enhanced labels debugging
+     * This is the single source of truth for all DTO queries with labels
+     * @return SQL query string with comprehensive labels integration
+     */
+    private String buildComprehensiveDTOQuery() {
+        log.info("*** LABELS REFACTOR *** buildComprehensiveDTOQuery() executing - comprehensive labels integration")
         return '''
-            SELECT 
+            SELECT
                 -- Core step identification
                 stm.stm_id,
                 sti.sti_id,
                 COALESCE(sti.sti_name, stm.stm_name) as stm_name,
                 COALESCE(sti.sti_description, stm.stm_description) as stm_description,
                 sts.sts_name as step_status,
-                
+
                 -- Team assignment
                 tms.tms_id,
                 tms.tms_name as team_name,
-                
+
                 -- Hierarchical context
                 mig.mig_id as migration_id,
                 mig.mig_name as migration_name,
@@ -3051,54 +3179,65 @@ class StepRepository {
                 itt.itt_code as iteration_type,
                 sqm.sqm_id as sequence_id,
                 sqm.sqm_name as sequence_name,
+                sqm.sqm_order,  -- Added for hierarchical sorting
                 phm.phm_id as phase_id,
                 phm.phm_name as phase_name,
-                
+                phm.phm_order,  -- Added for hierarchical sorting
+                stm.stm_number, -- Added for hierarchical sorting
+
+                -- Instance hierarchy order fields (required by transformation service)
+                COALESCE(sqi.sqi_order, sqm.sqm_order) as sqi_order,
+                COALESCE(phi.phi_order, phm.phm_order) as phi_order,
+
                 -- Temporal fields
                 sti.created_at as created_date,
                 sti.updated_at as last_modified_date,
                 true as is_active,  -- Default to true since column doesn't exist
                 -- priority column doesn't exist in database
-                
+
                 -- Extended metadata
                 stt.stt_code,
                 stt.stt_name,
                 stm.stm_duration_minutes,
                 sti.sti_duration_minutes,
-                
+
                 -- Progress tracking with computed values
                 COALESCE(dep_counts.dependency_count, 0) as dependency_count,
                 COALESCE(dep_counts.completed_dependencies, 0) as completed_dependencies,
                 COALESCE(inst_counts.instruction_count, 0) as instruction_count,
                 COALESCE(inst_counts.completed_instructions, 0) as completed_instructions,
-                
+
                 -- Comment integration
                 COALESCE(comment_counts.comment_count, 0) as comment_count,
                 CASE WHEN comment_counts.comment_count > 0 THEN true ELSE false END as has_active_comments,
-                comment_counts.last_comment_date
-                
+                comment_counts.last_comment_date,
+
+                -- REFACTORED LABELS: Enhanced debugging and error handling
+                COALESCE(step_labels.labels, '[]'::json) as labels,
+                step_labels.label_count_debug
+
             FROM steps_instance_sti sti
             JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
             JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
             JOIN status_sts sts ON sti.sti_status = sts.sts_id AND sts.sts_type = 'Step'
-            
+
             -- Hierarchical joins
             JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
             JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-            
+
             -- Instance hierarchy for proper filtering
-            LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
-            LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-            LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-            
+            JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+            JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+            JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+
             -- Migration and iteration context
-            LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+            JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
             LEFT JOIN iteration_types_itt itt ON ite.itt_code = itt.itt_code
             LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
-            
+
             -- Team assignment (using step master's owner team)
             LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
-            
+
             -- Dependency counts subquery (based on predecessor relationships in steps_master_stm)
             LEFT JOIN (
                 SELECT
@@ -3131,12 +3270,107 @@ class StepRepository {
                 FROM step_instance_comments_sic
                 GROUP BY sti_id
             ) comment_counts ON sti.sti_id = comment_counts.sti_id
+
+            -- REFACTORED LABELS: Enhanced subquery with debugging and comprehensive error handling
+            -- REFACTOR DATE: 2025-09-21 - Comprehensive labels integration refactor
+            LEFT JOIN (
+                SELECT
+                    lxs.stm_id,
+                    json_agg(
+                        json_build_object(
+                            'id', lbl.lbl_id,
+                            'name', lbl.lbl_name,
+                            'color', lbl.lbl_color,
+                            'description', lbl.lbl_description
+                        ) ORDER BY lbl.lbl_name
+                    ) FILTER (WHERE lbl.lbl_id IS NOT NULL) as labels,
+                    COUNT(lbl.lbl_id) as label_count_debug
+                FROM labels_lbl_x_steps_master_stm lxs
+                INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                WHERE lbl.lbl_id IS NOT NULL
+                GROUP BY lxs.stm_id
+            ) step_labels ON stm.stm_id = step_labels.stm_id
         '''
+    }
+
+    /**
+     * DEPRECATED: Use buildComprehensiveDTOQuery() instead
+     * Maintained for backward compatibility during refactor period
+     */
+    private String buildDTOBaseQuery_v2() {
+        log.warn("*** LABELS REFACTOR WARNING *** buildDTOBaseQuery_v2() is deprecated - redirecting to consolidated method")
+        return buildComprehensiveDTOQuery()
+    }
+
+    /**
+     * REFACTOR TEST METHOD: Test labels SQL independently to verify data exists
+     * This method directly tests the labels JOIN to verify data integrity
+     * @return Map with debug information about labels
+     */
+    def testLabelsDataIntegrity() {
+        DatabaseUtil.withSql { sql ->
+            log.info("*** LABELS REFACTOR TEST *** Testing labels data integrity")
+
+            // Test 1: Check if any step-label relationships exist
+            def labelRelationshipCount = sql.firstRow("""
+                SELECT COUNT(*) as count
+                FROM labels_lbl_x_steps_master_stm lxs
+                INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                INNER JOIN steps_master_stm stm ON lxs.stm_id = stm.stm_id
+            """)[0] as Integer
+
+            log.info("*** LABELS REFACTOR TEST *** Found ${labelRelationshipCount} step-label relationships")
+
+            // Test 2: Get sample step with labels using the exact SQL from our query
+            def testRows = sql.rows("""
+                SELECT
+                    stm.stm_id,
+                    stm.stm_name,
+                    COALESCE(step_labels.labels, '[]'::json) as labels,
+                    step_labels.label_count_debug
+                FROM steps_master_stm stm
+                LEFT JOIN (
+                    SELECT
+                        lxs.stm_id,
+                        json_agg(
+                            json_build_object(
+                                'id', lbl.lbl_id,
+                                'name', lbl.lbl_name,
+                                'color', lbl.lbl_color,
+                                'description', lbl.lbl_description
+                            ) ORDER BY lbl.lbl_name
+                        ) FILTER (WHERE lbl.lbl_id IS NOT NULL) as labels,
+                        COUNT(lbl.lbl_id) as label_count_debug
+                    FROM labels_lbl_x_steps_master_stm lxs
+                    INNER JOIN labels_lbl lbl ON lxs.lbl_id = lbl.lbl_id
+                    WHERE lbl.lbl_id IS NOT NULL
+                    GROUP BY lxs.stm_id
+                ) step_labels ON stm.stm_id = step_labels.stm_id
+                LIMIT 10
+            """)
+
+            log.info("*** LABELS REFACTOR TEST *** Sample query returned ${testRows.size()} rows")
+
+            def rowsWithLabels = testRows.findAll { it.labels && it.labels.toString() != '[]' && it.labels.toString() != 'null' }
+            log.info("*** LABELS REFACTOR TEST *** ${rowsWithLabels.size()} rows have labels")
+
+            testRows.eachWithIndex { row, index ->
+                log.info("*** LABELS REFACTOR TEST *** Row ${index}: ${row.stm_name} - Labels: '${row.labels}' (type: ${row.labels?.getClass()?.simpleName}), Debug count: ${row.label_count_debug}")
+            }
+
+            return [
+                totalRelationships: labelRelationshipCount,
+                testRowsCount: testRows.size(),
+                rowsWithLabels: rowsWithLabels.size(),
+                sampleRows: testRows.collect { [name: it.stm_name, labels: it.labels, debugCount: it.label_count_debug] }
+            ]
+        }
     }
     
     /**
      * Find steps with filters and return as StepInstanceDTO list with pagination
      * Enhanced version of existing findMasterStepsWithFilters that returns DTOs
+     * Updated: Fixed labels field names for frontend compatibility (name, color, description)
      * @param filters Map of filter parameters  
      * @param pageNumber Page number (1-based)
      * @param pageSize Number of items per page
@@ -3144,71 +3378,148 @@ class StepRepository {
      * @param sortDirection Sort direction (asc/desc)
      * @return Map with DTO data, pagination info, and filters
      */
-    def findStepsWithFiltersAsDTO(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'created_date', String sortDirection = 'desc') {
+    def findStepsWithFiltersAsDTO_v2(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'created_date', String sortDirection = 'desc') {
         DatabaseUtil.withSql { sql ->
             pageNumber = Math.max(1, pageNumber)
             pageSize = Math.min(100, Math.max(1, pageSize))
-            
+
+            // FORCE RELOAD: 2025-09-20 14:35 - Labels integration fix for iteration view
+            log.info("*** LABELS DEBUG *** StepRepository.findStepsWithFiltersAsDTO called - Labels should be included via step_labels.labels field")
+            // Log incoming filters for debugging
+            log.info("StepRepository.findStepsWithFiltersAsDTO called with filters: ${filters}")
+            log.info("Pagination: pageNumber=${pageNumber}, pageSize=${pageSize}, sortField=${sortField}, sortDirection=${sortDirection}")
+
             def whereConditions = []
             def params = [:]
-            
+
             // Build dynamic WHERE clause
             if (filters.migrationId) {
                 whereConditions << "mig.mig_id = :migrationId"
                 params.migrationId = UUID.fromString(filters.migrationId as String)
+                log.info("Added migration filter: mig.mig_id = ${params.migrationId}")
             }
-            
+
             if (filters.iterationId) {
                 whereConditions << "ite.ite_id = :iterationId"
                 params.iterationId = UUID.fromString(filters.iterationId as String)
+                log.info("Added iteration filter: ite.ite_id = ${params.iterationId}")
             }
-            
-            if (filters.assignedTeamId) {
-                whereConditions << "tms.tms_id = :assignedTeamId"
-                params.assignedTeamId = UUID.fromString(filters.assignedTeamId as String)
+
+            if (filters.planId) {
+                whereConditions << "pli.pli_id = :planId"
+                params.planId = UUID.fromString(filters.planId as String)
+                log.info("Added plan filter: pli.pli_id = ${params.planId}")
             }
-            
+
+            if (filters.sequenceId) {
+                whereConditions << "sqi.sqi_id = :sequenceId"
+                params.sequenceId = UUID.fromString(filters.sequenceId as String)
+                log.info("Added sequence filter: sqi.sqi_id = ${params.sequenceId}")
+            }
+
+            if (filters.phaseId) {
+                whereConditions << "phi.phi_id = :phaseId"
+                params.phaseId = UUID.fromString(filters.phaseId as String)
+                log.info("Added phase filter: phi.phi_id = ${params.phaseId}")
+            }
+
+            if (filters.teamId) {
+                whereConditions << "stm.tms_id_owner = :teamId"
+                params.teamId = Integer.parseInt(filters.teamId as String)
+                log.info("Added team filter: stm.tms_id_owner = ${params.teamId}")
+            }
+
+            // Add status filter
+            if (filters.statusId) {
+                whereConditions << "sti.sti_status = :statusId"
+                params.statusId = Integer.parseInt(filters.statusId as String)
+                log.info("Added status filter: sti.sti_status = ${params.statusId}")
+            }
+
+            // Add label filter (through step-label join table)
+            if (filters.labelId) {
+                whereConditions << '''EXISTS (
+                    SELECT 1 FROM labels_lbl_x_steps_master_stm lxs
+                    WHERE lxs.stm_id = stm.stm_id AND lxs.lbl_id = :labelId
+                )'''
+                params.labelId = Integer.parseInt(filters.labelId as String)
+                log.info("Added label filter: lxs.lbl_id = ${params.labelId}")
+            }
+
             if (filters.status) {
                 whereConditions << "sti.sti_status = :status"
                 params.status = filters.status as String
+                log.info("Added status filter: sti.sti_status = ${params.status}")
             }
-            
+
             if (filters.stepType) {
                 whereConditions << "stt.stt_code = :stepType"
                 params.stepType = filters.stepType as String
+                log.info("Added step type filter: stt.stt_code = ${params.stepType}")
             }
-            
+
             // Priority filtering disabled - column doesn't exist in database
             // if (filters.priority) {
             //     whereConditions << "sti.sti_priority = :priority"
             //     params.priority = Integer.parseInt(filters.priority as String)
             // }
-            
+
             if (filters.hasActiveComments) {
                 if (filters.hasActiveComments as Boolean) {
                     whereConditions << "comment_counts.comment_count > 0"
+                    log.info("Added active comments filter: comment_count > 0")
                 } else {
                     whereConditions << "(comment_counts.comment_count IS NULL OR comment_counts.comment_count = 0)"
+                    log.info("Added no comments filter: comment_count IS NULL OR = 0")
                 }
             }
-            
+
             // No is_active filter - column doesn't exist in schema
-            
+
             def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
+            log.info("Generated WHERE clause: ${whereClause}")
+            log.info("Query parameters: ${params}")
             
             // Build ORDER BY clause with safe field mapping
             def sortFieldMap = [
                 'created_date': 'sti.created_at',
-                'modified_date': 'sti.updated_at', 
+                'modified_date': 'sti.updated_at',
                 'name': 'stm_name',
-                'status': 'sti.sti_status',
+                'status': 'sts.sts_name',  // Fixed: Use status name from JOIN, not raw ID
                 // 'priority': 'sti.sti_priority', // Column doesn't exist
-                'team': 'tms.tms_name'
+                'team': 'tms.tms_name',
+                // Frontend-to-backend field mappings (matching StepsApi field mapping)
+                'sequence_number': 'sqi_order',    // Use instance order (COALESCE with master)
+                'phase_number': 'phi_order',       // Use instance order (COALESCE with master)
+                'step_number': 'stm.stm_number',
+                // Hierarchical sorting fields (aliased from buildDTOBaseQuery)
+                'sqi_order': 'sqi_order',
+                'phi_order': 'phi_order',
+                'stm.stm_number': 'stm.stm_number',
+                'sti.created_at': 'sti.created_at',
+                'sti.updated_at': 'sti.updated_at',
+                'stm_name': 'stm_name',
+                'step_status': 'sts.sts_name',
+                'team_name': 'tms.tms_name'
             ]
-            
-            def actualSortField = sortFieldMap[sortField] ?: 'sti.created_at'
+
+            // Handle composite sort field (comma-separated)
             def actualSortDirection = (sortDirection?.toLowerCase() == 'asc') ? 'ASC' : 'DESC'
-            def orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
+            def orderByClause
+
+            if (sortField.contains(',')) {
+                // Composite sort field - split and map each field
+                def sortFields = sortField.split(',').collect { field ->
+                    def mappedField = sortFieldMap[field.trim()] ?: field.trim()
+                    return "${mappedField} ${actualSortDirection}"
+                }
+                def actualSortField = sortFields.join(', ')
+                orderByClause = "ORDER BY ${actualSortField}"
+            } else {
+                // Single sort field
+                def actualSortField = sortFieldMap[sortField] ?: 'sti.created_at'
+                orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
+            }
             
             // Execute count query for pagination
             def countQuery = """
@@ -3216,39 +3527,73 @@ class StepRepository {
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+                JOIN status_sts sts ON sti.sti_status = sts.sts_id AND sts.sts_type = 'Step'
                 JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-                LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
-                LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-                LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-                LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                 LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
                 LEFT JOIN (
                     SELECT sti_id, COUNT(*) as comment_count
                     FROM step_instance_comments_sic
-                    WHERE is_active = true
                     GROUP BY sti_id
                 ) comment_counts ON sti.sti_id = comment_counts.sti_id
                 ${whereClause}
             """
-            
+
+            log.info("Executing COUNT query: ${countQuery}")
+            log.info("COUNT query parameters: ${params}")
+
             def totalCount = sql.firstRow(countQuery, params)[0] as Integer
+            log.info("COUNT query returned: ${totalCount} rows")
             def totalPages = Math.ceil(totalCount / (double) pageSize) as Integer
             
-            // Execute main query with pagination  
+            // Execute main query with pagination
             def offset = (pageNumber - 1) * pageSize
             params.limit = pageSize
             params.offset = offset
-            
-            def dataQuery = buildDTOBaseQuery() + """
+
+            def dataQuery = buildComprehensiveDTOQuery() + """
                 ${whereClause}
                 ${orderByClause}
                 LIMIT :limit OFFSET :offset
             """
-            
+
+            log.info("Executing MAIN query: ${dataQuery}")
+            log.info("MAIN query parameters: ${params}")
+
             def rows = sql.rows(dataQuery, params)
+            log.info("*** LABELS REFACTOR *** MAIN query returned: ${rows.size()} rows")
+
+            // LABELS REFACTOR: Detailed inspection of raw database rows
+            if (rows.size() > 0) {
+                def firstRow = rows[0]
+                log.info("*** LABELS REFACTOR *** First row labels field: '${firstRow.labels}' (type: ${firstRow.labels?.getClass()?.simpleName})")
+                log.info("*** LABELS REFACTOR *** First row label_count_debug: ${firstRow.label_count_debug}")
+
+                // Count how many rows have non-null labels
+                def rowsWithLabels = rows.findAll { it.labels != null }
+                def rowsWithNonEmptyLabels = rows.findAll { it.labels && it.labels.toString() != '[]' }
+                log.info("*** LABELS REFACTOR *** ${rowsWithLabels.size()} rows have non-null labels, ${rowsWithNonEmptyLabels.size()} have non-empty labels")
+            }
+
             def dtos = transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+            log.info("*** LABELS REFACTOR *** Transformed to ${dtos.size()} DTOs")
+
+            // LABELS REFACTOR: Detailed inspection of transformed DTOs
+            def stepsWithLabels = dtos.findAll { it.labels && !it.labels.isEmpty() }
+            log.info("*** LABELS REFACTOR *** ${stepsWithLabels.size()} out of ${dtos.size()} DTOs have labels after transformation")
+
+            if (stepsWithLabels.size() > 0) {
+                def firstStepWithLabels = stepsWithLabels[0]
+                log.info("*** LABELS REFACTOR *** First DTO with labels: '${firstStepWithLabels.stepName}' has ${firstStepWithLabels.labels.size()} labels: ${firstStepWithLabels.labels}")
+            } else if (dtos.size() > 0) {
+                def firstDto = dtos[0]
+                log.info("*** LABELS REFACTOR *** First DTO labels (empty): '${firstDto.stepName}' has labels: ${firstDto.labels}")
+            }
             
             return [
                 data: dtos,

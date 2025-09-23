@@ -45,7 +45,7 @@ emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
             def template = DatabaseUtil.withSql { sql ->
                 sql.firstRow("""
                     SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
-                           emt_is_active, emt_created_date, emt_updated_date, emt_created_by, emt_updated_by
+                           emt_is_active, created_at, updated_at, created_by, updated_by
                     FROM email_templates_emt 
                     WHERE emt_id = ?
                 """, [UUID.fromString(templateId)])

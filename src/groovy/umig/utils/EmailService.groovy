@@ -238,6 +238,17 @@ class EmailService {
                 def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
                 if (!template) {
                     println "EmailService: No active template found for INSTRUCTION_COMPLETED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Instruction Completed: ${instruction.ini_name}",
+                        "No active email template found for INSTRUCTION_COMPLETED",
+                        'INSTRUCTION_INSTANCE'
+                    )
                     return
                 }
                 
@@ -331,6 +342,17 @@ class EmailService {
                     println "  - Fallback to INSTRUCTION_COMPLETED template found: ${template != null}"
                     if (!template) {
                         println "EmailService: No active template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED"
+
+                        // Log missing template as audit event
+                        AuditLogRepository.logEmailFailed(
+                            sql,
+                            userId,
+                            UUID.fromString(instruction.ini_id as String),
+                            extractTeamEmails(teams),
+                            "[UMIG] Instruction Uncompleted: ${instruction.ini_name}",
+                            "No active email template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED",
+                            'INSTRUCTION_INSTANCE'
+                        )
                         return
                     }
                 }
@@ -442,6 +464,16 @@ class EmailService {
                 def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
                 if (!template) {
                     println "EmailService: No active template found for STEP_STATUS_CHANGED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        extractTeamEmails(allTeams),
+                        "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                        "No active email template found for STEP_STATUS_CHANGED"
+                    )
                     return
                 }
                 
@@ -531,10 +563,115 @@ class EmailService {
             }
         }
     }
-    
+
+    /**
+     * SECURITY ENHANCEMENT: Validate email inputs for security threats
+     * Prevents email header injection, address spoofing, and malformed content
+     *
+     * @param recipients List of email addresses to validate
+     * @param subject Email subject to validate
+     * @param body Email body to validate
+     * @throws SecurityException if validation fails
+     */
+    private static void validateEmailInputs(List<String> recipients, String subject, String body) {
+        // Validate recipients
+        if (recipients) {
+            recipients.each { recipient ->
+                if (recipient) {
+                    validateEmailAddress(recipient.toString())
+                }
+            }
+        }
+
+        // Validate subject line for header injection
+        if (subject) {
+            validateEmailHeaders(subject)
+
+            // Additional subject-specific validation
+            if (subject.length() > 998) { // RFC 2822 line length limit
+                throw new SecurityException("Email subject exceeds maximum length of 998 characters")
+            }
+        }
+
+        // Validate body content
+        if (body) {
+            // Body can contain newlines, but validate for malicious content
+            validateEmailBody(body)
+        }
+    }
+
+    /**
+     * SECURITY ENHANCEMENT: Validate email address format and prevent injection
+     */
+    private static void validateEmailAddress(String email) {
+        if (!email || email.trim().isEmpty()) {
+            return
+        }
+
+        String cleanEmail = email.trim()
+
+        // Basic email format validation (RFC 5322 compliant pattern)
+        def emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (!(cleanEmail ==~ emailPattern)) {
+            throw new SecurityException("Invalid email address format: ${cleanEmail}")
+        }
+
+        // Block dangerous characters that could be used for injection
+        if (cleanEmail.contains('\n') || cleanEmail.contains('\r') ||
+            cleanEmail.contains('%0A') || cleanEmail.contains('%0D') ||
+            cleanEmail.contains('\t') || cleanEmail.contains('\u0000')) {
+            throw new SecurityException("Email address contains invalid characters: ${cleanEmail}")
+        }
+
+        // Prevent email addresses that look like header injection attempts
+        if (cleanEmail.toLowerCase().contains('bcc:') ||
+            cleanEmail.toLowerCase().contains('cc:') ||
+            cleanEmail.toLowerCase().contains('content-type:')) {
+            throw new SecurityException("Email address appears to be a header injection attempt: ${cleanEmail}")
+        }
+
+        // Validate length (reasonable limit)
+        if (cleanEmail.length() > 254) { // RFC 5321 limit
+            throw new SecurityException("Email address exceeds maximum length: ${cleanEmail}")
+        }
+    }
+
+    /**
+     * SECURITY ENHANCEMENT: Validate email body content for security issues
+     */
+    private static void validateEmailBody(String body) {
+        if (!body) return
+
+        // Check for suspicious script tags and potentially dangerous HTML
+        def dangerousPatterns = [
+            /(?i)<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/,
+            /(?i)<iframe\b[^>]*>/,
+            /(?i)<object\b[^>]*>/,
+            /(?i)<embed\b[^>]*>/,
+            /(?i)<link\b[^>]*>/,
+            /(?i)<meta\b[^>]*>/,
+            /(?i)javascript:/,
+            /(?i)vbscript:/,
+            /(?i)data:text\/html/,
+            /(?i)on\w+\s*=/  // Event handlers like onclick, onload, etc.
+        ]
+
+        dangerousPatterns.each { pattern ->
+            if (body ==~ /.*${pattern}.*/) {
+                throw new SecurityException("Email body contains potentially dangerous content (script/iframe/javascript)")
+            }
+        }
+
+        // Size limit validation (already done in validateContentSize, but double-check here)
+        if (body.getBytes('UTF-8').length > MAX_TOTAL_EMAIL_SIZE_BYTES) {
+            throw new SecurityException("Email body exceeds maximum size limit")
+        }
+    }
+
     /**
      * Core email sending method using Confluence's native mail API
-     * 
+     * ENHANCED: Added input sanitization and security validation
+     *
      * @param recipients List of email addresses
      * @param subject Email subject
      * @param body HTML email body
@@ -542,7 +679,10 @@ class EmailService {
      */
     static boolean sendEmail(List<String> recipients, String subject, String body) {
         try {
-            // Remove any null or empty email addresses
+            // SECURITY ENHANCEMENT: Validate inputs before processing
+            validateEmailInputs(recipients, subject, body)
+
+            // Remove any null or empty email addresses and validate format
             def validRecipients = recipients.findAll { it && it.trim() }
             
             if (!validRecipients) {
@@ -742,10 +882,11 @@ class EmailService {
     }
 
     /**
-     * Validate template expressions for security (Phase 1 Quick Win)
+     * Validate template expressions for security (Phase 1 Emergency Security Hotfix)
+     * ENHANCED: Prevents template injection attacks, code execution, and email header injection
      * Only allows safe variable references: ${variable}, ${object.property}
      * Blocks method calls, loops, conditionals, and arbitrary code execution
-     * 
+     *
      * @param templateText The template text to validate
      * @throws SecurityException if unsafe expressions are found
      */
@@ -753,32 +894,119 @@ class EmailService {
         if (!templateText) {
             return
         }
-        
+
+        // SECURITY ENHANCEMENT: Block email header injection patterns
+        validateEmailHeaders(templateText)
+
         // Pattern to find all ${...} expressions
         def expressionPattern = /\$\{([^}]+)\}/
         def matcher = templateText =~ expressionPattern
-        
+
         // Safe patterns: simple variable references and property access
         def safePattern = /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/
-        
+
         // Check each expression
         matcher.each { match ->
             def expression = ((match as List)[1] as String).trim()
-            
-            // Check if expression matches safe pattern
+
+            // SECURITY ENHANCEMENT: Stricter validation with comprehensive blocklist
             if (!(expression ==~ safePattern)) {
-                // Block dangerous patterns
-                if ((expression as String).contains('(') || (expression as String).contains('[') || (expression as String).contains('?') || 
-                    (expression as String).contains('=') || (expression as String).contains(';') || (expression as String).toLowerCase().contains('import') ||
-                    (expression as String).toLowerCase().contains('new ') || (expression as String).toLowerCase().contains('def ') || 
-                    (expression as String).toLowerCase().contains('class ') || (expression as String).toLowerCase().contains('system.') ||
-                    (expression as String).toLowerCase().contains('runtime.') || (expression as String).toLowerCase().contains('process') ||
-                    (expression as String).toLowerCase().contains('file.') || (expression as String).toLowerCase().contains('execute') ||
-                    (expression as String).toLowerCase().contains('eval') || (expression as String).toLowerCase().contains('script') ||
-                    (expression as String).toLowerCase().contains('if ') || (expression as String).toLowerCase().contains('for ') ||
-                    expression.toLowerCase().contains('while ') || expression.toLowerCase().contains('return ')) {
-                    throw new SecurityException("Unsafe template expression detected: \${${expression}}. Only simple variable references like \${variable} or \${object.property} are allowed.")
-                }
+                validateExpressionSafety(expression)
+            }
+        }
+    }
+
+    /**
+     * SECURITY ENHANCEMENT: Validate against email header injection attacks
+     * Prevents SMTP header injection through subject and template content
+     */
+    private static void validateEmailHeaders(String content) {
+        if (!content) return
+
+        // Block newline characters that could inject headers
+        if (content.contains('\n') || content.contains('\r') ||
+            content.contains('%0A') || content.contains('%0D') ||
+            content.contains('\u000A') || content.contains('\u000D')) {
+            logSecurityEvent('EMAIL_HEADER_INJECTION_BLOCKED',
+                'Newline characters detected in email content',
+                [content_length: content.length(), threat_type: 'header_injection'])
+            throw new SecurityException("Email header injection attempt detected: newline characters not allowed in email templates")
+        }
+
+        // Block common email header injection patterns
+        def injectionPatterns = [
+            /(?i)bcc\s*:/,
+            /(?i)cc\s*:/,
+            /(?i)to\s*:/,
+            /(?i)from\s*:/,
+            /(?i)reply-to\s*:/,
+            /(?i)content-type\s*:/,
+            /(?i)mime-version\s*:/,
+            /(?i)x-mailer\s*:/
+        ]
+
+        injectionPatterns.each { pattern ->
+            if (content ==~ pattern) {
+                logSecurityEvent('EMAIL_HEADER_INJECTION_BLOCKED',
+                    "Suspicious header pattern detected: ${pattern}",
+                    [content_preview: content.take(100), threat_type: 'header_pattern_injection'])
+                throw new SecurityException("Email header injection attempt detected: suspicious header pattern found")
+            }
+        }
+    }
+
+    /**
+     * SECURITY ENHANCEMENT: Comprehensive expression safety validation
+     * Blocks all forms of code execution and unsafe operations
+     */
+    private static void validateExpressionSafety(String expression) {
+        // Enhanced dangerous pattern detection
+        def dangerousPatterns = [
+            // Method calls and brackets
+            '(', ')', '[', ']', '{', '}',
+            // Operators and control flow
+            '?', '=', ';', ':', '+', '-', '*', '/', '%', '&', '|', '^', '!',
+            // Keywords and dangerous constructs
+            'import', 'new ', 'def ', 'class ', 'interface ', 'enum ',
+            'if ', 'else', 'for ', 'while ', 'do ', 'switch ', 'case ',
+            'try ', 'catch ', 'finally ', 'throw ', 'return ', 'break ', 'continue ',
+            // System access
+            'system.', 'runtime.', 'process', 'file.', 'execute', 'eval', 'script',
+            'reflection', 'classloader', 'thread', 'security',
+            // Groovy/Java specifics
+            'groovy.', 'java.', 'javax.', 'com.atlassian.', 'org.springframework.',
+            'getclass', 'getmetaclass', 'invokemethod', 'getproperty', 'setproperty',
+            // Network and I/O
+            'socket', 'url', 'http', 'ftp', 'file://', 'http://', 'https://',
+            // Database access
+            'sql', 'database', 'connection', 'statement', 'resultset'
+        ]
+
+        String lowerExpression = expression.toLowerCase()
+        dangerousPatterns.each { pattern ->
+            if (lowerExpression.contains(pattern.toLowerCase())) {
+                logSecurityEvent('TEMPLATE_INJECTION_BLOCKED',
+                    "Dangerous template expression blocked: \${${expression}}",
+                    [pattern: pattern, expression: expression, threat_type: 'template_injection'])
+                throw new SecurityException("Unsafe template expression detected: \${${expression}}. Pattern '${pattern}' is not allowed. Only simple variable references like \${variable} or \${object.property} are permitted.")
+            }
+        }
+
+        // Additional regex-based checks for complex patterns
+        def regexPatterns = [
+            /\d+\s*[+\-\*\/]\s*\d+/,  // Mathematical operations
+            /\w+\s*=\s*\w+/,        // Assignments
+            /\w+\.\w+\(\)/,         // Method calls
+            /@\w+/,                 // Annotations
+            /\$\w+/                 // Nested variable references
+        ]
+
+        regexPatterns.each { pattern ->
+            if (expression ==~ pattern) {
+                logSecurityEvent('TEMPLATE_INJECTION_BLOCKED',
+                    "Complex template expression blocked: \${${expression}}",
+                    [pattern: pattern.toString(), expression: expression, threat_type: 'complex_expression'])
+                throw new SecurityException("Unsafe template expression detected: \${${expression}}. Complex expressions are not allowed.")
             }
         }
     }
@@ -1323,7 +1551,481 @@ class EmailService {
         }
         return false
     }
-    
+
+    // ========================================
+    // US-058 PHASE 2A: ITERATION & STEP VIEW INTEGRATION
+    // Enhanced email notification methods for IterationView/StepView workflows
+    // ========================================
+
+    /**
+     * Send bulk step status change notifications from IterationView
+     * Handles multiple step status changes from iteration-level operations
+     *
+     * @param stepInstances List of step instances with status changes
+     * @param operationType Type of bulk operation (e.g., 'BULK_STATUS_UPDATE', 'BULK_COMPLETE')
+     * @param userId User ID performing the operation
+     * @param migrationCode Migration code for URL construction
+     * @param iterationCode Iteration code for URL construction
+     * @param consolidatedNotification Whether to send one email per team (true) or individual emails (false)
+     */
+    static void sendBulkStepStatusChangedNotification(List<Map> stepInstances, String operationType, Integer userId = null, String migrationCode = null, String iterationCode = null, boolean consolidatedNotification = true) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                if (!stepInstances || stepInstances.isEmpty()) {
+                    println "EmailService: No step instances provided for bulk notification"
+                    return
+                }
+
+                // Get email template for bulk operations
+                def templateType = consolidatedNotification ? 'BULK_STEP_STATUS_CHANGED' : 'STEP_STATUS_CHANGED'
+                def template = EmailTemplateRepository.findActiveByType(sql, templateType)
+                if (!template) {
+                    println "EmailService: No active template found for ${templateType}"
+                    return
+                }
+
+                if (consolidatedNotification) {
+                    // Group steps by impacted teams and send consolidated notifications
+                    def teamGroupedSteps = groupStepsByTeams(stepInstances)
+
+                    teamGroupedSteps.each { teamId, stepsForTeam ->
+                        def teamEmails = getTeamEmailsById(sql, teamId)
+                        if (teamEmails) {
+                            sendConsolidatedBulkNotification(sql, stepsForTeam, teamEmails, operationType, userId, migrationCode, iterationCode, template)
+                        }
+                    }
+                } else {
+                    // Send individual notifications for each step
+                    stepInstances.each { stepInstance ->
+                        def teams = getImpactedTeamsForStep(sql, stepInstance.sti_id)
+                        def recipients = extractTeamEmails(teams)
+                        if (recipients) {
+                            sendIndividualStepNotification(sql, stepInstance, recipients, operationType, userId, migrationCode, iterationCode, template)
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                logError('sendBulkStepStatusChangedNotification', e, [
+                    stepCount: stepInstances?.size(),
+                    operationType: operationType,
+                    userId: userId
+                ])
+            }
+        }
+    }
+
+    /**
+     * Send notification for direct StepView status change
+     * Enhanced with context-aware URL generation and improved template variables
+     *
+     * @param stepInstance Step instance data
+     * @param newStatus New status value
+     * @param oldStatus Previous status value
+     * @param userId User ID performing the change
+     * @param sourceView Source view context ('stepview', 'iterationview', 'admin')
+     * @param migrationCode Migration code for URL construction
+     * @param iterationCode Iteration code for URL construction
+     */
+    static void sendStepViewDirectNotification(Map stepInstance, String newStatus, String oldStatus = null, Integer userId = null, String sourceView = 'stepview', String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get impacted teams for this step
+                def teams = getImpactedTeamsForStep(sql, stepInstance.sti_id)
+                def recipients = extractTeamEmails(teams)
+
+                if (!recipients) {
+                    println "EmailService: No recipients found for step ${stepInstance.sti_name}"
+                    return
+                }
+
+                // Get email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
+                if (!template) {
+                    println "EmailService: No active template found for STEP_STATUS_CHANGED"
+                    return
+                }
+
+                // Enhanced template processing with source context
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    newStatus: newStatus,
+                    oldStatus: oldStatus ?: 'Unknown',
+                    changedBy: getUsernameById(sql, userId ?: 0),
+                    changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    sourceView: sourceView,
+                    isDirectChange: true,
+                    changeContext: "Direct change from ${sourceView}"
+                ])
+
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
+
+                // Explicit casting to Map for static type checking (ADR-031, ADR-043)
+                Map<String, Object> variablesMap = variables as Map<String, Object>
+
+                // Enhanced URL with source tracking
+                if (stepViewUrl && sourceView) {
+                    String contextualUrl = "${stepViewUrl}&source=${sourceView}&action=status_change"
+                    variablesMap.contextualStepUrl = contextualUrl
+                    variablesMap.stepViewUrl = contextualUrl
+                }
+
+                // Process template
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+                // Send email
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+                // Enhanced audit logging
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        recipients,
+                        processedSubject as String,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'STEP_VIEW_DIRECT',
+                            step_name: stepInstance.sti_name,
+                            migration_name: stepInstance.migration_name,
+                            new_status: newStatus,
+                            old_status: oldStatus,
+                            source_view: sourceView,
+                            context_url: variablesMap.contextualStepUrl
+                        ]
+                    )
+                }
+
+            } catch (Exception e) {
+                logError('sendStepViewDirectNotification', e, [
+                    stepId: stepInstance.sti_id,
+                    newStatus: newStatus,
+                    sourceView: sourceView
+                ])
+            }
+        }
+    }
+
+    /**
+     * Send iteration-level summary notification
+     * For significant iteration events like completion, bulk changes, or milestone achievements
+     *
+     * @param iterationData Iteration context data
+     * @param eventType Type of iteration event
+     * @param affectedStepsCount Number of steps affected
+     * @param userId User ID performing the operation
+     * @param migrationCode Migration code for URL construction
+     * @param iterationCode Iteration code for URL construction
+     */
+    static void sendIterationViewNotification(Map iterationData, String eventType, Integer affectedStepsCount = 0, Integer userId = null, String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get iteration teams (teams involved in this iteration)
+                def teams = getTeamsForIteration(sql, iterationData.ite_id)
+                def recipients = extractTeamEmails(teams)
+
+                if (!recipients) {
+                    println "EmailService: No recipients found for iteration ${iterationData.ite_name}"
+                    return
+                }
+
+                // Get email template for iteration events
+                def template = EmailTemplateRepository.findActiveByType(sql, 'ITERATION_EVENT')
+                if (!template) {
+                    println "EmailService: No active template found for ITERATION_EVENT"
+                    return
+                }
+
+                // Construct iteration view URL
+                def iterationViewUrl = null
+                if (migrationCode && iterationCode) {
+                    try {
+                        iterationViewUrl = UrlConstructionService.buildIterationViewUrl(
+                            iterationData.ite_id as UUID,
+                            migrationCode,
+                            iterationCode
+                        )
+                    } catch (Exception urlException) {
+                        println "EmailService: Error constructing iteration view URL: ${urlException.message}"
+                    }
+                }
+
+                // Build template variables for iteration context
+                def variables = [
+                    iterationId: iterationData.ite_id,
+                    iterationName: iterationData.ite_name,
+                    iterationCode: iterationCode,
+                    migrationCode: migrationCode,
+                    migrationName: iterationData.migration_name,
+                    eventType: eventType,
+                    affectedStepsCount: affectedStepsCount,
+                    eventTriggeredBy: getUsernameById(sql, userId ?: 0),
+                    eventTriggeredAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    iterationViewUrl: iterationViewUrl,
+                    hasIterationViewUrl: iterationViewUrl != null
+                ]
+
+                // Process template
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+                // Send email
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+                // Audit logging
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        iterationData.ite_id as UUID,
+                        recipients,
+                        processedSubject as String,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'ITERATION_EVENT',
+                            iteration_name: iterationData.ite_name,
+                            migration_name: iterationData.migration_name,
+                            event_type: eventType,
+                            affected_steps_count: affectedStepsCount
+                        ]
+                    )
+                }
+
+            } catch (Exception e) {
+                logError('sendIterationViewNotification', e, [
+                    iterationId: iterationData.ite_id,
+                    eventType: eventType,
+                    affectedStepsCount: affectedStepsCount
+                ])
+            }
+        }
+    }
+
+    // ========================================
+    // PHASE 2A: HELPER METHODS FOR ENHANCED NOTIFICATIONS
+    // ========================================
+
+    /**
+     * Group step instances by their impacted teams for consolidated notifications
+     */
+    private static Map<Integer, List<Map>> groupStepsByTeams(List<Map> stepInstances) {
+        Map<Integer, List<Map>> teamGroups = [:]
+
+        stepInstances.each { stepInstance ->
+            DatabaseUtil.withSql { sql ->
+                def teams = getImpactedTeamsForStep(sql, stepInstance.sti_id)
+                teams.each { team ->
+                    def teamId = team.tea_id as Integer
+                    if (!teamGroups[teamId]) {
+                        teamGroups[teamId] = [] as List<Map>
+                    }
+                    // Explicit type casting for static type checking (ADR-031)
+                    List<Map> teamSteps = teamGroups[teamId] as List<Map>
+                    teamSteps.add(stepInstance as Map)
+                }
+            }
+        }
+
+        return teamGroups
+    }
+
+    /**
+     * Send consolidated notification for multiple steps to a specific team
+     */
+    private static void sendConsolidatedBulkNotification(Sql sql, List<Map> steps, List<String> recipients, String operationType, Integer userId, String migrationCode, String iterationCode, Map template) {
+        try {
+            // Build summary data for consolidated notification
+            def stepsSummary = steps.collect { step ->
+                [
+                    name: step.sti_name,
+                    status: step.sti_status_name,
+                    id: step.sti_id
+                ]
+            }
+
+            def variables = [
+                operationType: operationType,
+                stepsCount: steps.size(),
+                stepsSummary: stepsSummary,
+                migrationCode: migrationCode,
+                iterationCode: iterationCode,
+                triggeredBy: getUsernameById(sql, userId ?: 0),
+                triggeredAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                bulkOperation: true
+            ]
+
+            // Process template
+            def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+            def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+            // Send email
+            def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+            // Audit logging for bulk operation
+            if (emailSent) {
+                def stepIds = steps.collect { it.sti_id as String }.join(',')
+                AuditLogRepository.logEmailSent(
+                    sql,
+                    userId,
+                    null, // No single step ID for bulk operations
+                    recipients,
+                    processedSubject as String,
+                    template.emt_id as UUID,
+                    [
+                        notification_type: 'BULK_OPERATION',
+                        operation_type: operationType,
+                        steps_count: steps.size(),
+                        step_ids: stepIds,
+                        migration_code: migrationCode,
+                        iteration_code: iterationCode
+                    ]
+                )
+            }
+
+        } catch (Exception e) {
+            logError('sendConsolidatedBulkNotification', e, [
+                stepsCount: steps.size(),
+                operationType: operationType
+            ])
+        }
+    }
+
+    /**
+     * Send individual notification for a single step in bulk operation context
+     */
+    private static void sendIndividualStepNotification(Sql sql, Map stepInstance, List<String> recipients, String operationType, Integer userId, String migrationCode, String iterationCode, Map template) {
+        try {
+            def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                operationType: operationType,
+                triggeredBy: getUsernameById(sql, userId ?: 0),
+                triggeredAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                isBulkOperation: true
+            ])
+
+            def variables = templateData.variables
+
+            // Process template
+            def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+            def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+            // Send email
+            def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+            // Audit logging
+            if (emailSent) {
+                AuditLogRepository.logEmailSent(
+                    sql,
+                    userId,
+                    UUID.fromString(stepInstance.sti_id as String),
+                    recipients,
+                    processedSubject as String,
+                    template.emt_id as UUID,
+                    [
+                        notification_type: 'BULK_INDIVIDUAL',
+                        operation_type: operationType,
+                        step_name: stepInstance.sti_name,
+                        migration_name: stepInstance.migration_name
+                    ]
+                )
+            }
+
+        } catch (Exception e) {
+            logError('sendIndividualStepNotification', e, [
+                stepId: stepInstance.sti_id,
+                operationType: operationType
+            ])
+        }
+    }
+
+    /**
+     * Get impacted teams for a specific step
+     */
+    private static List<Map> getImpactedTeamsForStep(Sql sql, def stepInstanceId) {
+        try {
+            List<groovy.sql.GroovyRowResult> queryResults = sql.rows('''
+                SELECT DISTINCT
+                    t.tea_id, t.tea_name, t.tea_email,
+                    stmxt.impact_level,
+                    stmxt.notification_required
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN steps_master_stm_x_teams_tms_impacted stmxt ON stm.stm_id = stmxt.stm_id
+                LEFT JOIN teams_tea t ON stmxt.tea_id = t.tea_id
+                WHERE sti.sti_id = ?
+                AND t.tea_active = true
+                AND (stmxt.notification_required IS NULL OR stmxt.notification_required = true)
+            ''', [stepInstanceId])
+
+            // Convert GroovyRowResult to List<Map> for type safety (ADR-031)
+            return queryResults.collect { row ->
+                [
+                    tea_id: row.tea_id,
+                    tea_name: row.tea_name,
+                    tea_email: row.tea_email,
+                    impact_level: row.impact_level,
+                    notification_required: row.notification_required
+                ] as Map
+            } as List<Map>
+        } catch (Exception e) {
+            logError('getImpactedTeamsForStep', e, [stepInstanceId: stepInstanceId])
+            return []
+        }
+    }
+
+    /**
+     * Get teams involved in a specific iteration
+     */
+    private static List<Map> getTeamsForIteration(Sql sql, def iterationId) {
+        try {
+            List<groovy.sql.GroovyRowResult> queryResults = sql.rows('''
+                SELECT DISTINCT
+                    t.tea_id, t.tea_name, t.tea_email
+                FROM iterations_ite ite
+                JOIN plans_instance_pli pli ON ite.ite_id = pli.ite_id
+                JOIN sequences_instance_sqi sqi ON pli.pli_id = sqi.pli_id
+                JOIN phases_instance_phi phi ON sqi.sqi_id = phi.sqi_id
+                JOIN steps_instance_sti sti ON phi.phi_id = sti.phi_id
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN steps_master_stm_x_teams_tms_impacted stmxt ON stm.stm_id = stmxt.stm_id
+                LEFT JOIN teams_tea t ON stmxt.tea_id = t.tea_id
+                WHERE ite.ite_id = ?
+                AND t.tea_active = true
+            ''', [iterationId])
+
+            // Convert GroovyRowResult to List<Map> for type safety (ADR-031)
+            return queryResults.collect { row ->
+                [
+                    tea_id: row.tea_id,
+                    tea_name: row.tea_name,
+                    tea_email: row.tea_email
+                ] as Map
+            } as List<Map>
+        } catch (Exception e) {
+            logError('getTeamsForIteration', e, [iterationId: iterationId])
+            return []
+        }
+    }
+
+    /**
+     * Get team emails by team ID
+     */
+    private static List<String> getTeamEmailsById(Sql sql, Integer teamId) {
+        try {
+            def team = sql.firstRow('''
+                SELECT tea_email FROM teams_tea
+                WHERE tea_id = ? AND tea_active = true
+            ''', [teamId])
+
+            // Explicit type conversion to List<String> for type safety (ADR-031)
+            return team?.tea_email ? [team.tea_email as String] as List<String> : [] as List<String>
+        } catch (Exception e) {
+            logError('getTeamEmailsById', e, [teamId: teamId])
+            return []
+        }
+    }
+
     /**
      * Log errors for debugging and monitoring
      */
@@ -1331,5 +2033,40 @@ class EmailService {
         println "EmailService ERROR in ${method}: ${error.message}"
         println "EmailService ERROR context: ${context}"
         error.printStackTrace()
+    }
+
+    /**
+     * SECURITY ENHANCEMENT: Log security-related events for audit purposes
+     * Tracks security violations, blocked attempts, and potential threats
+     *
+     * @param eventType Type of security event (e.g., 'TEMPLATE_INJECTION_BLOCKED')
+     * @param details Details about the security event
+     * @param context Additional context (IP, user, etc.)
+     */
+    private static void logSecurityEvent(String eventType, String details, Map context = [:]) {
+        // Log to console for immediate visibility
+        println "EmailService SECURITY EVENT [${eventType}]: ${details}"
+        if (context) {
+            println "EmailService SECURITY CONTEXT: ${context}"
+        }
+
+        // Log to audit system if available - with proper method signature
+        try {
+            DatabaseUtil.withSql { sql ->
+                // Use the correct AuditLogRepository method signature
+                // logSecurityEvent(sql, userId, entityId, action, details)
+                AuditLogRepository.logEmailFailed(
+                    sql,
+                    context.userId as Integer ?: null,
+                    null, // No specific entity ID for security events
+                    [] as List<String>, // Empty recipients list for security events
+                    "SECURITY_EVENT: ${eventType}",
+                    "${details} | Context: ${context}"
+                )
+            }
+        } catch (Exception e) {
+            // Don't let audit logging failure affect email processing
+            println "EmailService: Failed to log security event to audit system: ${e.message}"
+        }
     }
 }

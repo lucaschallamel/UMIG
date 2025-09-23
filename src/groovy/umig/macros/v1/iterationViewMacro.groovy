@@ -45,7 +45,10 @@ return """
     console.log('IterationView: Configuration loaded', window.UMIG_ITERATION_CONFIG);
 </script>
 
-<!-- StatusProvider for TD-003 status management - Load BEFORE main script -->
+<!-- SecurityUtils for enterprise security - Load BEFORE StatusProvider (ADR-058) -->
+<script src=\"${webRoot}/js/components/SecurityUtils.js\"></script>
+
+<!-- StatusProvider for TD-003 status management - Load AFTER SecurityUtils -->
 <script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
 
 <!-- Main JavaScript file - Load AFTER configuration and dependencies -->
@@ -56,6 +59,13 @@ return """
     <header class=\"selector-bar\">
         <div class=\"selector-container\">
             <div class=\"selector-controls\">
+                <!-- US-084: Plan Template selector first in hierarchy -->
+                <div class=\"selector-group\">
+                    <label for=\"plan-template-select\">📋 PLAN TEMPLATE:</label>
+                    <select id=\"plan-template-select\" class=\"selector\">
+                        <option value="">SELECT A PLAN TEMPLATE</option>
+                    </select>
+                </div>
                 <div class=\"selector-group\">
                     <label for=\"migration-select\">🔄 MIGRATION:</label>
                     <select id=\"migration-select\" class=\"selector\">
@@ -76,12 +86,7 @@ return """
     <section class=\"filter-bar\">
         <div class=\"filter-container\">
             <div class=\"filter-controls\">
-                 <div class=\"filter-group\">
-                    <label for=\"plan-filter\">PLAN:</label>
-                    <select id=\"plan-filter\" class=\"filter-select\">
-                        <option value=\"\">All Plans</option>
-                    </select>
-                </div>
+                <!-- US-084: Plan filter removed - now in top selector bar as Plan Template -->
                 <div class=\"filter-group\">
                     <label for=\"sequence-filter\">SEQUENCE:</label>
                     <select id=\"sequence-filter\" class=\"filter-select\">

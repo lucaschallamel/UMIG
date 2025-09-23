@@ -230,10 +230,7 @@
       this.startAutoRefresh();
       this.loadQueueStatus();
 
-      // Setup cleanup on page unload
-      $(window).on("beforeunload", () => {
-        this.cleanup();
-      });
+      // Simple cleanup - page unload handles cleanup automatically
     },
 
     /**

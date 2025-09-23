@@ -63,17 +63,30 @@
 | **ADR-047** | Single Enrichment Point           | Critical | 🟨     | Phase 1    | Data Layer    | ADR-044          | Critical | Backend      | No double enrichment            |
 | **ADR-048** | URL Construction Service          | High     | ✅     | Phase 2    | API Services  | ADR-017          | Medium   | Backend      | Deep-linking functional         |
 | **ADR-049** | Service Layer DTOs                | High     | 🟨     | Phase 2    | API Services  | ADR-019, ADR-047 | High     | Backend      | Unified DTOs implemented        |
+| **ADR-050** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-051** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-052** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-053** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-054** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-055** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-056** | TBD - Reserved                    | -        | -      | -          | -             | -                | -        | -            | -                               |
+| **ADR-057** | JavaScript Module Loading         | Critical | ✅     | Phase 3    | UI Components | ADR-004          | Critical | Frontend     | 25/25 components loading        |
+| **ADR-058** | Global SecurityUtils Access       | Critical | ✅     | Phase 3    | UI Components | ADR-057          | High     | Frontend     | XSS/CSRF protection active      |
+| **ADR-059** | SQL Schema-First Development      | Critical | ✅     | Phase 1    | Data Layer    | ADR-008, ADR-043 | Critical | Backend      | Schema-code alignment           |
+| **ADR-060** | BaseEntityManager Interface       | Critical | ✅     | Phase 3    | UI Components | ADR-057, ADR-058 | High     | Frontend     | Interface compatibility         |
+| **ADR-061** | UMIG Namespace Prefixing          | Critical | ✅     | Phase 3    | UI Components | ADR-004, ADR-060 | Critical | Frontend     | Zero Confluence conflicts       |
 
 ### A.3 Implementation Progress Summary
 
-| Category                    | Total ADRs | Not Started  | In Progress    | Completed      | Blocked      | Validated  |
-| --------------------------- | ---------- | ------------ | -------------- | -------------- | ------------ | ---------- |
-| **Foundation (001-010)**    | 10         | 0            | 3              | 6              | 1            | 0          |
-| **API & Data (011-020)**    | 10         | 0            | 9              | 1              | 0            | 0          |
-| **Collaboration (021-030)** | 10         | 2            | 7              | 1              | 0            | 0          |
-| **Quality (031-040)**       | 10         | 0            | 8              | 2              | 0            | 0          |
-| **Patterns (041-049)**      | 7\*        | 0            | 6              | 1              | 0            | 0          |
-| **TOTAL**                   | **47**     | **2 (4.3%)** | **33 (70.2%)** | **11 (23.4%)** | **1 (2.1%)** | **0 (0%)** |
+| Category                    | Total ADRs | Not Started   | In Progress    | Completed      | Blocked      | Validated  |
+| --------------------------- | ---------- | ------------- | -------------- | -------------- | ------------ | ---------- |
+| **Foundation (001-010)**    | 10         | 0             | 3              | 6              | 1            | 0          |
+| **API & Data (011-020)**    | 10         | 0             | 9              | 1              | 0            | 0          |
+| **Collaboration (021-030)** | 10         | 2             | 7              | 1              | 0            | 0          |
+| **Quality (031-040)**       | 10         | 0             | 8              | 2              | 0            | 0          |
+| **Patterns (041-049)**      | 9          | 0             | 7              | 2              | 0            | 0          |
+| **Architecture (050-061)**  | 12         | 6             | 0              | 6              | 0            | 0          |
+| **TOTAL**                   | **61**     | **8 (13.1%)** | **34 (55.7%)** | **18 (29.5%)** | **1 (1.6%)** | **0 (0%)** |
 
 ### A.4 Critical Path ADRs
 

@@ -97,16 +97,8 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             // Return current user with role information
             def userMap = currentUser as Map
 
-            // Get the role code from the role ID
-            def roleCode = 'USER' // Default
-            if (userMap.rls_id) {
-                switch(userMap.rls_id) {
-                    case 1: roleCode = 'ADMIN'; break
-                    case 2: roleCode = 'USER'; break
-                    case 3: roleCode = 'PILOT'; break
-                    default: roleCode = 'USER'
-                }
-            }
+            // Use the role code directly from the database
+            def roleCode = userMap.role_code ?: 'USER' // Default to USER if no role
 
             return Response.ok(new JsonBuilder([
                 userId: userMap.usr_id,
@@ -145,7 +137,29 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             if (!user) {
                 return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
             }
-            return Response.ok(new JsonBuilder(user).toString()).build()
+
+            // Include audit fields and role information in the response
+            def userMap = user as Map
+            def userResponse = [
+                usr_id: userMap.usr_id,
+                usr_code: userMap.usr_code,
+                usr_first_name: userMap.usr_first_name,
+                usr_last_name: userMap.usr_last_name,
+                usr_email: userMap.usr_email,
+                usr_is_admin: userMap.usr_is_admin,
+                usr_active: userMap.usr_active,
+                rls_id: userMap.rls_id,
+                role_code: userMap.role_code,
+                role_description: userMap.role_description,
+                teams: userMap.teams,
+                // Audit fields
+                created_at: userMap.created_at,
+                updated_at: userMap.updated_at,
+                created_by: userMap.created_by,
+                updated_by: userMap.updated_by
+            ]
+
+            return Response.ok(new JsonBuilder(userResponse).toString()).build()
         } else {
             // Check for userCode authentication parameter
             def userCode = queryParams.getFirst('userCode')
@@ -246,7 +260,36 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             
             // Get paginated users
             def result = userRepository.findAllUsers(pageNumber, pageSize, searchTerm, sortField, sortDirection, teamFilter, activeFilter)
-            return Response.ok(new JsonBuilder(result).toString()).build()
+
+            // Cast result to Map for static type checking compliance (ADR-031, ADR-043)
+            def resultMap = result as Map
+
+            // Ensure all users include audit fields
+            if (resultMap.content) {
+                resultMap.content = (resultMap.content as List).collect { user ->
+                    def userMap = user as Map
+                    return [
+                        usr_id: userMap.usr_id,
+                        usr_code: userMap.usr_code,
+                        usr_first_name: userMap.usr_first_name,
+                        usr_last_name: userMap.usr_last_name,
+                        usr_email: userMap.usr_email,
+                        usr_is_admin: userMap.usr_is_admin,
+                        usr_active: userMap.usr_active,
+                        rls_id: userMap.rls_id,
+                        role_code: userMap.role_code,
+                        role_description: userMap.role_description,
+                        teams: userMap.teams,
+                        // Audit fields
+                        created_at: userMap.created_at,
+                        updated_at: userMap.updated_at,
+                        created_by: userMap.created_by,
+                        updated_by: userMap.updated_by
+                    ]
+                }
+            }
+
+            return Response.ok(new JsonBuilder(resultMap).toString()).build()
         }
     } catch (SQLException e) {
         log.error("Database error in GET /users", e)
@@ -275,7 +318,27 @@ users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         }
 
         def newUser = userRepository.createUser(userData)
-        return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newUser).toString()).build()
+
+        // Ensure audit fields are included in the response
+        def userMap = newUser as Map
+        def userResponse = [
+            usr_id: userMap.usr_id,
+            usr_code: userMap.usr_code,
+            usr_first_name: userMap.usr_first_name,
+            usr_last_name: userMap.usr_last_name,
+            usr_email: userMap.usr_email,
+            usr_is_admin: userMap.usr_is_admin,
+            usr_active: userMap.usr_active,
+            rls_id: userMap.rls_id,
+            teams: userMap.teams,
+            // Audit fields
+            created_at: userMap.created_at,
+            updated_at: userMap.updated_at,
+            created_by: userMap.created_by,
+            updated_by: userMap.updated_by
+        ]
+
+        return Response.status(Response.Status.CREATED).entity(new JsonBuilder(userResponse).toString()).build()
     } catch (SQLException e) {
         log.error("Database error in POST /users: ${e.message}", e)
         
@@ -348,12 +411,81 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Team membership must be managed via the Teams API. The 'teams' field is not accepted here."]).toString()).build()
         }
 
+        // Add validation for required fields and data types (matching POST endpoint validation)
+        def validationErrors = []
+
+        // Validate first name if provided
+        if (userData.containsKey('usr_first_name')) {
+            if (!userData.usr_first_name || !(userData.usr_first_name instanceof String) || (userData.usr_first_name as String).trim().isEmpty()) {
+                validationErrors << 'usr_first_name must be a non-empty string'
+            }
+        }
+
+        // Validate last name if provided
+        if (userData.containsKey('usr_last_name')) {
+            if (!userData.usr_last_name || !(userData.usr_last_name instanceof String) || (userData.usr_last_name as String).trim().isEmpty()) {
+                validationErrors << 'usr_last_name must be a non-empty string'
+            }
+        }
+
+        // Validate usr_is_admin if provided (this is the key fix for the reported issue)
+        if (userData.containsKey('usr_is_admin')) {
+            if (userData.usr_is_admin == null || !(userData.usr_is_admin instanceof Boolean)) {
+                validationErrors << 'usr_is_admin must be a boolean value (true or false)'
+            }
+        }
+
+        // Validate usr_active if provided
+        if (userData.containsKey('usr_active')) {
+            if (userData.usr_active == null || !(userData.usr_active instanceof Boolean)) {
+                validationErrors << 'usr_active must be a boolean value (true or false)'
+            }
+        }
+
+        // Validate usr_code if provided
+        if (userData.containsKey('usr_code')) {
+            if (!userData.usr_code || !(userData.usr_code instanceof String) || (userData.usr_code as String).trim().isEmpty()) {
+                validationErrors << 'usr_code must be a non-empty string'
+            }
+        }
+
+        // Validate usr_email if provided
+        if (userData.containsKey('usr_email')) {
+            if (!userData.usr_email || !(userData.usr_email instanceof String) || (userData.usr_email as String).trim().isEmpty()) {
+                validationErrors << 'usr_email must be a non-empty string'
+            }
+        }
+
+        if (validationErrors) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Validation failed: ${validationErrors.join(', ')}"]).toString()).build()
+        }
+
         if (userRepository.findUserById(userId) == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
         }
 
         def updatedUser = userRepository.updateUser(userId, userData)
-        return Response.ok(new JsonBuilder(updatedUser).toString()).build()
+
+        // Ensure audit fields are included in the response
+        def userMap = updatedUser as Map
+        def userResponse = [
+            usr_id: userMap.usr_id,
+            usr_code: userMap.usr_code,
+            usr_first_name: userMap.usr_first_name,
+            usr_last_name: userMap.usr_last_name,
+            usr_email: userMap.usr_email,
+            usr_is_admin: userMap.usr_is_admin,
+            usr_active: userMap.usr_active,
+            rls_id: userMap.rls_id,
+            teams: userMap.teams,
+            // Audit fields
+            created_at: userMap.created_at,
+            updated_at: userMap.updated_at,
+            created_by: userMap.created_by,
+            updated_by: userMap.updated_by
+        ]
+
+        return Response.ok(new JsonBuilder(userResponse).toString()).build()
     } catch (SQLException e) {
         log.error("Database error in PUT /users/${userId}: ${e.message}", e)
         
@@ -456,19 +588,9 @@ user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPara
             // Return user context with role information
             def userMap = user as Map
             
-            // Get the role code from the role ID
-            def roleCode = 'NORMAL' // Default
-            if (userMap.rls_id) {
-                // Need to add DatabaseUtil import and fetch role
-                // For now, let's map role IDs directly
-                switch(userMap.rls_id) {
-                    case 1: roleCode = 'ADMIN'; break
-                    case 2: roleCode = 'NORMAL'; break
-                    case 3: roleCode = 'PILOT'; break
-                    default: roleCode = 'NORMAL'
-                }
-            }
-            
+            // Use the role code directly from the database
+            def roleCode = userMap.role_code ?: 'NORMAL' // Default to NORMAL if no role
+
             return Response.ok(new JsonBuilder([
                 userId: userMap.usr_id,
                 username: userMap.usr_code,

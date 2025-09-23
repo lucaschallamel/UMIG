@@ -55,7 +55,13 @@ npm run test:integration    # Integration tests
 npm run mailhog:test        # Test SMTP connectivity
 npm run mailhog:check       # Check message count
 npm run mailhog:clear       # Clear test inbox
+npm run email:test          # Comprehensive email testing
+npm run email:demo          # Demo enhanced email functionality
 ```
+
+### Authentication for API Testing
+
+For session-based authentication setup with CURL, POSTMAN, and other API testing tools, see `local-dev-setup/SESSION_AUTH_UTILITIES.md` for complete cross-platform session capture utilities.
 
 ### Running Single Tests
 
@@ -213,7 +219,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### Primary Architecture Document
 
-`docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` - Hub for 49 ADRs
+`docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` - Hub for 60+ ADRs
 
 ### Technical Debt Documentation (Revolutionary Achievements)
 
@@ -435,3 +441,9 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+- to connect to the database use .env credentials, and umig_app_db and umig_app_usr
+- to call UMIG apis with CURL you need to use basic auth with credentials in .env, so that you are a authenticated user.
+- You don't need to start or restart the stack, if you think you do, just ask me. But most of the time, the stack is already up, and I can refresh the scriptrunner cache manually
+- Never git add or commit on your own initiative. You always need to ask to user.
+- to restart the stack use "npm restart". if you need to reset data, use "npm run restart:erase:umig" and then "npm run generate-data"

@@ -51,14 +51,9 @@
         "Control",
       ];
 
-      // Security utilities reference
-      this.securityUtils =
-        typeof window !== "undefined" && window.SecurityUtils ? window.SecurityUtils : null;
-      if (!this.securityUtils) {
-        console.warn(
-          "[StatusProvider] SecurityUtils not available - using fallback security measures",
-        );
-      }
+      // Security utilities reference - lazy initialization to ensure SecurityUtils has loaded
+      this.securityUtils = null;
+      this.securityUtilsChecked = false;
 
       // Fallback status values (for reliability if API fails)
       // These will be replaced by dynamic values from the database
@@ -185,6 +180,27 @@
           },
         ],
       };
+    }
+
+    /**
+     * Lazily get SecurityUtils instance
+     * @returns {Object|null} The SecurityUtils instance or null if not available
+     */
+    getSecurityUtils() {
+      // Only check once per session to avoid repeated console warnings
+      if (!this.securityUtilsChecked) {
+        this.securityUtilsChecked = true;
+        if (typeof window !== "undefined" && window.SecurityUtils) {
+          this.securityUtils = window.SecurityUtils;
+          console.log("StatusProvider: SecurityUtils loaded successfully");
+        } else {
+          // Don't log warning on every call, just once
+          console.warn(
+            "StatusProvider: SecurityUtils not yet available - will operate without enhanced security features",
+          );
+        }
+      }
+      return this.securityUtils;
     }
 
     /**
@@ -355,8 +371,9 @@
       };
 
       // Add CSRF protection if SecurityUtils is available
-      if (this.securityUtils && this.securityUtils.addCSRFProtection) {
-        headers = this.securityUtils.addCSRFProtection(headers);
+      const securityUtils = this.getSecurityUtils();
+      if (securityUtils && securityUtils.addCSRFProtection) {
+        headers = securityUtils.addCSRFProtection(headers);
       }
 
       // Add ETag for cache validation (sanitized)
@@ -645,8 +662,9 @@
           optionElement.value = this.sanitizeString(option.value) || "";
 
           // Set text content safely (XSS prevention)
-          if (this.securityUtils && this.securityUtils.setTextContent) {
-            this.securityUtils.setTextContent(optionElement, option.text);
+          const securityUtils = this.getSecurityUtils();
+          if (securityUtils && securityUtils.setTextContent) {
+            securityUtils.setTextContent(optionElement, option.text);
           } else {
             optionElement.textContent = this.sanitizeString(option.text) || "";
           }
@@ -692,8 +710,9 @@
           const optionElement = document.createElement("option");
           optionElement.value = this.sanitizeString(option.value) || "";
 
-          if (this.securityUtils && this.securityUtils.setTextContent) {
-            this.securityUtils.setTextContent(optionElement, option.text);
+          const securityUtils = this.getSecurityUtils();
+          if (securityUtils && securityUtils.setTextContent) {
+            securityUtils.setTextContent(optionElement, option.text);
           } else {
             optionElement.textContent = this.sanitizeString(option.text) || "";
           }
@@ -767,8 +786,9 @@
       }
 
       // Use SecurityUtils if available, otherwise fallback
-      if (this.securityUtils && this.securityUtils.sanitizeXSS) {
-        return this.securityUtils.sanitizeXSS(input);
+      const securityUtils = this.getSecurityUtils();
+      if (securityUtils && securityUtils.sanitizeXSS) {
+        return securityUtils.sanitizeXSS(input);
       }
 
       // Fallback sanitization
@@ -793,8 +813,9 @@
       }
 
       // Use SecurityUtils if available
-      if (this.securityUtils && this.securityUtils.sanitizeForCSS) {
-        return this.securityUtils.sanitizeForCSS(cssValue);
+      const securityUtils = this.getSecurityUtils();
+      if (securityUtils && securityUtils.sanitizeForCSS) {
+        return securityUtils.sanitizeForCSS(cssValue);
       }
 
       // Fallback CSS sanitization
@@ -909,8 +930,9 @@
      */
     logSecurityEvent(event, details = {}) {
       // Use SecurityUtils logging if available
-      if (this.securityUtils && this.securityUtils.logSecurityEvent) {
-        this.securityUtils.logSecurityEvent(`StatusProvider:${event}`, details);
+      const securityUtils = this.getSecurityUtils();
+      if (securityUtils && securityUtils.logSecurityEvent) {
+        securityUtils.logSecurityEvent(`StatusProvider:${event}`, details);
         return;
       }
 

@@ -430,3 +430,4 @@ teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
     // Fallback for invalid DELETE paths
     return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path for DELETE request."]).toString()).build()
 }
+

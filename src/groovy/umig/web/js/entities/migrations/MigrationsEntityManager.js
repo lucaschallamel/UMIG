@@ -124,7 +124,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
           edit: true,
           delete: true,
           iterations: true, // Migration-specific action for hierarchical navigation
-          dashboard: true,  // Migration-specific dashboard view
+          dashboard: true, // Migration-specific dashboard view
         },
         bulkActions: {
           delete: true,
@@ -177,7 +177,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
                     headers: window.SecurityUtils.addCSRFProtection({
                       "Content-Type": "application/json",
                     }),
-                  }
+                  },
                 );
                 if (response.ok) {
                   const types = await response.json();
@@ -187,7 +187,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
                   }));
                 }
               } catch (error) {
-                console.error("[MigrationsEntityManager] Failed to load migration types:", error);
+                console.error(
+                  "[MigrationsEntityManager] Failed to load migration types:",
+                  error,
+                );
               }
               return [
                 { value: "datacenter", label: "Data Center" },
@@ -247,7 +250,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
                     headers: window.SecurityUtils.addCSRFProtection({
                       "Content-Type": "application/json",
                     }),
-                  }
+                  },
                 );
                 if (response.ok) {
                   const users = await response.json();
@@ -257,7 +260,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
                   }));
                 }
               } catch (error) {
-                console.error("[MigrationsEntityManager] Failed to load users:", error);
+                console.error(
+                  "[MigrationsEntityManager] Failed to load users:",
+                  error,
+                );
               }
               return [];
             },
@@ -326,15 +332,16 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
     // Migrations-specific properties
     this.apiBaseUrl = "/rest/scriptrunner/latest/custom/migrations";
     this.iterationsApiUrl = "/rest/scriptrunner/latest/custom/iterations";
-    this.dashboardApiUrl = "/rest/scriptrunner/latest/custom/migrations/dashboard";
+    this.dashboardApiUrl =
+      "/rest/scriptrunner/latest/custom/migrations/dashboard";
 
     // Performance tracking
     this.performanceTargets = {
-      load: 3000,     // Target: <3s for migration list
-      create: 500,    // Target: <500ms for creation
-      update: 500,    // Target: <500ms for updates
-      delete: 300,    // Target: <300ms for deletion
-      filter: 1000,   // Target: <1s for filter response
+      load: 3000, // Target: <3s for migration list
+      create: 500, // Target: <500ms for creation
+      update: 500, // Target: <500ms for updates
+      delete: 300, // Target: <300ms for deletion
+      filter: 1000, // Target: <1s for filter response
       dashboard: 2000, // Target: <2s for dashboard load
     };
 
@@ -345,7 +352,9 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       metrics: ["summary", "progress", "trends"],
     };
 
-    console.log("[MigrationsEntityManager] Initialized with component architecture");
+    console.log(
+      "[MigrationsEntityManager] Initialized with component architecture",
+    );
   }
 
   /**
@@ -361,7 +370,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       // Validate container
       if (!container) {
         throw new Error(
-          "Container is required for MigrationsEntityManager initialization"
+          "Container is required for MigrationsEntityManager initialization",
         );
       }
 
@@ -388,7 +397,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       } catch (cleanupError) {
         console.error(
           "[MigrationsEntityManager] Error during cleanup:",
-          cleanupError
+          cleanupError,
         );
       }
 
@@ -405,7 +414,9 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
     const startTime = performance.now();
 
     try {
-      console.log(`[MigrationsEntityManager] Loading iterations for migration ${migrationId}`);
+      console.log(
+        `[MigrationsEntityManager] Loading iterations for migration ${migrationId}`,
+      );
 
       // Security validation
       window.SecurityUtils.validateInput({ migrationId });
@@ -418,7 +429,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -432,12 +443,15 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       this._trackPerformance("loadIterations", operationTime);
 
       console.log(
-        `[MigrationsEntityManager] Loaded ${iterations.length} iterations in ${operationTime.toFixed(2)}ms`
+        `[MigrationsEntityManager] Loaded ${iterations.length} iterations in ${operationTime.toFixed(2)}ms`,
       );
 
       return iterations;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to load iterations:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to load iterations:",
+        error,
+      );
       this._trackError("loadIterations", error);
       throw error;
     }
@@ -451,7 +465,9 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async navigateToIterations(migrationId, migrationData) {
     try {
-      console.log(`[MigrationsEntityManager] Navigating to iterations for migration ${migrationId}`);
+      console.log(
+        `[MigrationsEntityManager] Navigating to iterations for migration ${migrationId}`,
+      );
 
       // Store navigation context for breadcrumb
       this.navigationContext = {
@@ -477,13 +493,18 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
         window.history.pushState(
           { migrationId, entity: "iterations" },
           `Iterations - ${migrationData.mig_name}`,
-          url.toString()
+          url.toString(),
         );
       }
 
-      console.log("[MigrationsEntityManager] Navigation to iterations initiated");
+      console.log(
+        "[MigrationsEntityManager] Navigation to iterations initiated",
+      );
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to navigate to iterations:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to navigate to iterations:",
+        error,
+      );
       this._trackError("navigateToIterations", error);
       throw error;
     }
@@ -499,15 +520,12 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
     try {
       console.log("[MigrationsEntityManager] Loading dashboard summary");
 
-      const response = await fetch(
-        `${this.dashboardApiUrl}/summary`,
-        {
-          method: "GET",
-          headers: window.SecurityUtils.addCSRFProtection({
-            "Content-Type": "application/json",
-          }),
-        }
-      );
+      const response = await fetch(`${this.dashboardApiUrl}/summary`, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to load dashboard summary: ${response.status}`);
@@ -521,12 +539,15 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       this._trackPerformance("loadDashboardSummary", operationTime);
 
       console.log(
-        `[MigrationsEntityManager] Dashboard summary loaded in ${operationTime.toFixed(2)}ms`
+        `[MigrationsEntityManager] Dashboard summary loaded in ${operationTime.toFixed(2)}ms`,
       );
 
       return summary;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to load dashboard summary:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to load dashboard summary:",
+        error,
+      );
       this._trackError("loadDashboardSummary", error);
       throw error;
     }
@@ -544,7 +565,8 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       console.log("[MigrationsEntityManager] Loading progress data", filters);
 
       const params = new URLSearchParams();
-      if (filters.migrationId) params.append("migrationId", filters.migrationId);
+      if (filters.migrationId)
+        params.append("migrationId", filters.migrationId);
       if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
       if (filters.dateTo) params.append("dateTo", filters.dateTo);
 
@@ -555,7 +577,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -570,12 +592,15 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       this._trackPerformance("loadProgressData", operationTime);
 
       console.log(
-        `[MigrationsEntityManager] Progress data loaded in ${operationTime.toFixed(2)}ms`
+        `[MigrationsEntityManager] Progress data loaded in ${operationTime.toFixed(2)}ms`,
       );
 
       return progress;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to load progress data:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to load progress data:",
+        error,
+      );
       this._trackError("loadProgressData", error);
       throw error;
     }
@@ -592,7 +617,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
 
     try {
       console.log(
-        `[MigrationsEntityManager] Bulk updating ${migrationIds.length} migrations to status: ${status}`
+        `[MigrationsEntityManager] Bulk updating ${migrationIds.length} migrations to status: ${status}`,
       );
 
       // Security validation
@@ -604,16 +629,13 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
         updatedBy: window.adminGui?.state?.currentUser?.userId,
       });
 
-      const response = await fetch(
-        `${this.apiBaseUrl}/bulk/status`,
-        {
-          method: "PUT",
-          headers: window.SecurityUtils.addCSRFProtection({
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await fetch(`${this.apiBaseUrl}/bulk/status`, {
+        method: "PUT",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(requestBody),
+      });
 
       if (!response.ok) {
         throw new Error(`Bulk status update failed: ${response.status}`);
@@ -625,7 +647,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       await this.loadData(
         this.currentFilters,
         this.currentSort,
-        this.currentPage
+        this.currentPage,
       );
 
       // Track performance
@@ -633,12 +655,15 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       this._trackPerformance("bulkUpdateStatus", operationTime);
 
       console.log(
-        `[MigrationsEntityManager] Bulk status update completed in ${operationTime.toFixed(2)}ms`
+        `[MigrationsEntityManager] Bulk status update completed in ${operationTime.toFixed(2)}ms`,
       );
 
       return result;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Bulk status update failed:", error);
+      console.error(
+        "[MigrationsEntityManager] Bulk status update failed:",
+        error,
+      );
       this._trackError("bulkUpdateStatus", error);
       throw error;
     }
@@ -688,19 +713,16 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       // Make API call with CSRF protection
-      const response = await fetch(
-        `${this.apiBaseUrl}?${params.toString()}`,
-        {
-          method: "GET",
-          headers: window.SecurityUtils.addCSRFProtection({
-            "Content-Type": "application/json",
-          }),
-        }
-      );
+      const response = await fetch(`${this.apiBaseUrl}?${params.toString()}`, {
+        method: "GET",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch migrations: ${response.status} ${response.statusText}`
+          `Failed to fetch migrations: ${response.status} ${response.statusText}`,
         );
       }
 
@@ -720,7 +742,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
         pageSize: data.pageSize || pageSize,
       };
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to fetch migrations data:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to fetch migrations data:",
+        error,
+      );
       throw error;
     }
   }
@@ -748,15 +773,23 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to create migration: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to create migration: ${response.status} - ${error}`,
+        );
       }
 
       const createdMigration = await response.json();
-      console.log("[MigrationsEntityManager] Migration created:", createdMigration);
+      console.log(
+        "[MigrationsEntityManager] Migration created:",
+        createdMigration,
+      );
 
       return createdMigration;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to create migration:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to create migration:",
+        error,
+      );
       throw error;
     }
   }
@@ -783,20 +816,28 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(data),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to update migration: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to update migration: ${response.status} - ${error}`,
+        );
       }
 
       const updatedMigration = await response.json();
-      console.log("[MigrationsEntityManager] Migration updated:", updatedMigration);
+      console.log(
+        "[MigrationsEntityManager] Migration updated:",
+        updatedMigration,
+      );
 
       return updatedMigration;
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to update migration:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to update migration:",
+        error,
+      );
       throw error;
     }
   }
@@ -821,17 +862,22 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to delete migration: ${response.status} - ${error}`);
+        throw new Error(
+          `Failed to delete migration: ${response.status} - ${error}`,
+        );
       }
 
       console.log("[MigrationsEntityManager] Migration deleted successfully");
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to delete migration:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to delete migration:",
+        error,
+      );
       throw error;
     }
   }
@@ -853,7 +899,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
         data.mig_name.trim().length < 3
       ) {
         throw new Error(
-          "Migration name is required and must be at least 3 characters"
+          "Migration name is required and must be at least 3 characters",
         );
       }
 
@@ -890,7 +936,9 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
    */
   async _setupMigrationsSpecificFeatures() {
     try {
-      console.log("[MigrationsEntityManager] Setting up Migrations-specific features");
+      console.log(
+        "[MigrationsEntityManager] Setting up Migrations-specific features",
+      );
 
       // Setup event handlers
       this._setupMigrationsEventHandlers();
@@ -901,12 +949,12 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       }
 
       console.log(
-        "[MigrationsEntityManager] Migrations-specific features setup completed"
+        "[MigrationsEntityManager] Migrations-specific features setup completed",
       );
     } catch (error) {
       console.error(
         "[MigrationsEntityManager] Error in _setupMigrationsSpecificFeatures:",
-        error
+        error,
       );
       throw error;
     }
@@ -930,10 +978,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
 
       // Handle bulk status updates
       this.orchestrator.on("table:bulkStatus", async (event) => {
-        await this.bulkUpdateStatus(
-          event.selectedIds,
-          event.status
-        );
+        await this.bulkUpdateStatus(event.selectedIds, event.status);
       });
     }
   }
@@ -967,7 +1012,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
 
       console.log("[MigrationsEntityManager] Dashboard initialized");
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to initialize dashboard:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to initialize dashboard:",
+        error,
+      );
       // Non-critical error, continue without dashboard
     }
   }
@@ -984,7 +1032,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       // Load dashboard data
       const summary = await this.loadDashboardSummary();
       const progress = await this.loadProgressData(
-        migrationData ? { migrationId: migrationData.id } : {}
+        migrationData ? { migrationId: migrationData.id } : {},
       );
 
       // Render dashboard
@@ -998,7 +1046,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
 
       console.log("[MigrationsEntityManager] Dashboard displayed");
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to show dashboard:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to show dashboard:",
+        error,
+      );
       alert("Failed to load dashboard: " + error.message);
     }
   }
@@ -1105,7 +1156,10 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       const progress = await this.loadProgressData();
       this._renderDashboard(summary, progress);
     } catch (error) {
-      console.error("[MigrationsEntityManager] Failed to refresh dashboard:", error);
+      console.error(
+        "[MigrationsEntityManager] Failed to refresh dashboard:",
+        error,
+      );
     }
   }
 
@@ -1139,11 +1193,14 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
       const threshold = this.performanceTargets[operation] || 1000;
       if (duration > threshold) {
         console.warn(
-          `[MigrationsEntityManager] Performance warning: ${operation} took ${duration.toFixed(2)}ms (threshold: ${threshold}ms)`
+          `[MigrationsEntityManager] Performance warning: ${operation} took ${duration.toFixed(2)}ms (threshold: ${threshold}ms)`,
         );
       }
     } catch (error) {
-      console.error(`[MigrationsEntityManager] Failed to track performance:`, error);
+      console.error(
+        `[MigrationsEntityManager] Failed to track performance:`,
+        error,
+      );
     }
   }
 
@@ -1175,7 +1232,7 @@ class MigrationsEntityManager extends (window.BaseEntityManager || class {}) {
     } catch (trackingError) {
       console.error(
         `[MigrationsEntityManager] Failed to track error:`,
-        trackingError
+        trackingError,
       );
     }
   }

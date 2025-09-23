@@ -84,7 +84,7 @@ Extract and centralize date formatting utilities that are currently duplicated a
 
 - Can work in parallel with US-058 (Method Refactoring)
 - Coordination needed with US-056B template integration completion
-- May inform US-061 (Template Caching) date handling requirements
+- May inform US-064 (Template Caching) date handling requirements
 
 ### Blocked By
 

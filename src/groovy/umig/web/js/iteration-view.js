@@ -14,9 +14,11 @@
  * StepsAPI v2 Client - High-performance API integration with caching
  */
 class StepsAPIv2Client {
-  constructor() {
-    this.baseUrl = "/rest/scriptrunner/latest/custom";
+  constructor(userContext) {
+    this.baseUrl =
+      (AJS.contextPath() || "") + "/rest/scriptrunner/latest/custom";
     this.endpoint = "/steps";
+    this.userContext = userContext; // Store user context for API calls
     this.cache = new Map();
     this.maxCacheSize = 100; // Maximum cache entries for memory management
     this.cacheTimeout = 30000; // 30 seconds
@@ -81,7 +83,20 @@ class StepsAPIv2Client {
     if (options.size) queryParams.append("size", options.size);
     if (options.sort) queryParams.append("sort", options.sort);
 
+    // Force enhanced method to get nested structure (sequences[].phases[].steps[])
+    queryParams.append("enhanced", "true");
+
     const url = `${this.baseUrl}${this.endpoint}?${queryParams.toString()}`;
+
+    // ENHANCED DEBUG: Log complete API call details
+    console.log("=== API CLIENT DEBUG ===");
+    console.log("StepsAPIv2: Base URL:", this.baseUrl);
+    console.log("StepsAPIv2: Endpoint:", this.endpoint);
+    console.log(
+      "StepsAPIv2: Query Params Object:",
+      Object.fromEntries(queryParams),
+    );
+    console.log("StepsAPIv2: Complete URL:", url);
     console.log("StepsAPIv2: Fetching", url);
 
     const data = await this._retryRequest(url);
@@ -117,6 +132,7 @@ class StepsAPIv2Client {
     try {
       const requestBody = {
         statusId: parseInt(statusId), // REFACTORED: Send statusId as integer, not status name
+        userId: this.userContext?.userId || null, // Include userId for proper audit logging
       };
 
       console.log(
@@ -283,6 +299,7 @@ class StepsAPIv2Client {
       "iterationId",
       "teamId",
       "status",
+      "statusId",
       "phaseId",
       "sequenceId",
       "planId",
@@ -707,6 +724,9 @@ const populateFilter = (selector, url, defaultOptionText) => {
   console.log(`populateFilter: Loading ${url} for ${selector}`);
   select.innerHTML = `<option value="">Loading...</option>`;
 
+  // Save current selection to preserve user choice
+  const currentValue = select.value;
+
   fetch(url)
     .then((response) => {
       console.log(
@@ -727,12 +747,31 @@ const populateFilter = (selector, url, defaultOptionText) => {
       select.innerHTML = `<option value="">${defaultOptionText}</option>`;
 
       if (Array.isArray(items)) {
+        let preservedSelectionFound = false;
         items.forEach((item) => {
           const option = document.createElement("option");
           option.value = item.id;
           option.textContent = item.name || "(Unnamed)";
           select.appendChild(option);
+
+          // Check if this item matches the previously selected value
+          if (currentValue && item.id.toString() === currentValue.toString()) {
+            preservedSelectionFound = true;
+          }
         });
+
+        // Restore previous selection if it still exists in the new list
+        if (preservedSelectionFound && currentValue) {
+          select.value = currentValue;
+          console.log(
+            `populateFilter: Preserved selection "${currentValue}" for ${selector}`,
+          );
+        } else if (currentValue) {
+          console.log(
+            `populateFilter: Previous selection "${currentValue}" no longer available for ${selector}`,
+          );
+        }
+
         console.log(
           `populateFilter: Successfully populated ${items.length} options for ${selector}`,
         );
@@ -823,14 +862,15 @@ class IterationView {
     this.selectedStep = null;
     this.selectedStepCode = null;
     this.filters = {
-      migration: "",
-      iteration: "",
-      plan: "",
+      planTemplate: "", // US-084: Plan template selector (first in flow)
+      migration: "", // Migration selector (second in flow)
+      iteration: "", // Iteration selector (third, filtered by template+migration)
       sequence: "",
       phase: "",
       team: "",
       label: "",
       myTeamsOnly: false,
+      statusFilter: "", // Status filtering for runsheet header buttons
     };
 
     this.userRole = null;
@@ -838,11 +878,13 @@ class IterationView {
     this.userContext = null;
     this.activeTimeouts = new Set(); // Track active timeouts for cleanup
     this.config = window.UMIG_ITERATION_CONFIG || {
-      api: { baseUrl: "/rest/scriptrunner/latest/custom" },
+      api: {
+        baseUrl: (AJS.contextPath() || "") + "/rest/scriptrunner/latest/custom",
+      },
     };
 
     // Initialize enhanced API client and real-time sync
-    this.apiClient = new StepsAPIv2Client();
+    this.apiClient = new StepsAPIv2Client(this.userContext);
     this.realTimeSync = new RealTimeSync(this.apiClient, this);
 
     // Performance tracking
@@ -894,17 +936,25 @@ class IterationView {
               "X-Atlassian-Token": "no-check",
             },
             credentials: "same-origin",
-          }
+          },
         );
-        
+
         if (response.ok) {
           const context = await response.json();
           console.log("User context loaded from backend:", context);
-          
+
           this.userRole = context.role || "NORMAL";
           this.isAdmin = context.isAdmin || false;
           this.userContext = context;
-          
+
+          // Recreate the API client now that we have the user context
+          this.apiClient = new StepsAPIv2Client(this.userContext);
+          this.realTimeSync = new RealTimeSync(this.apiClient, this);
+          console.log(
+            "API client recreated with user context:",
+            this.userContext,
+          );
+
           // Apply role-based UI controls once DOM is ready
           if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () =>
@@ -915,9 +965,15 @@ class IterationView {
           }
         } else {
           // Fallback to username-based detection for backwards compatibility
-          console.warn("Failed to load user context from API, falling back to username detection");
-          
-          if (username === "admin" || username === "guq" || username === "adm") {
+          console.warn(
+            "Failed to load user context from API, falling back to username detection",
+          );
+
+          if (
+            username === "admin" ||
+            username === "guq" ||
+            username === "adm"
+          ) {
             console.log("Admin user detected (username-based fallback)");
             this.userRole = "ADMIN";
             this.isAdmin = true;
@@ -926,12 +982,28 @@ class IterationView {
             this.isAdmin = false;
             console.log("Standard user detected:", username);
           }
-          
+
+          // Create minimal userContext for fallback
+          this.userContext = {
+            userId: null, // Will be populated from current user if available
+            username: username,
+            role: this.userRole,
+            isAdmin: this.isAdmin,
+          };
+
+          // Recreate API client with fallback context
+          this.apiClient = new StepsAPIv2Client(this.userContext);
+          this.realTimeSync = new RealTimeSync(this.apiClient, this);
+          console.log(
+            "API client recreated with fallback context:",
+            this.userContext,
+          );
+
           this.applyRoleBasedControls();
         }
       } catch (error) {
         console.error("Error loading user context:", error);
-        
+
         // Fallback to username-based detection
         if (username === "admin" || username === "guq" || username === "adm") {
           console.log("Admin user detected (error fallback)");
@@ -941,7 +1013,23 @@ class IterationView {
           this.userRole = "NORMAL";
           this.isAdmin = false;
         }
-        
+
+        // Create minimal userContext for error fallback
+        this.userContext = {
+          userId: null,
+          username: username || "unknown",
+          role: this.userRole,
+          isAdmin: this.isAdmin,
+        };
+
+        // Recreate API client with error fallback context
+        this.apiClient = new StepsAPIv2Client(this.userContext);
+        this.realTimeSync = new RealTimeSync(this.apiClient, this);
+        console.log(
+          "API client recreated with error fallback context:",
+          this.userContext,
+        );
+
         this.applyRoleBasedControls();
       }
 
@@ -1073,6 +1161,14 @@ class IterationView {
 
   async init() {
     await this.initializeSelectors();
+
+    // Load status data first - this creates the dynamic mappings needed for filtering
+    await this.loadStepStatusesForFiltering();
+
+    // Render dynamic status buttons in the runsheet header
+    await this.renderStatusButtons();
+
+    // Bind events after status mappings are loaded
     this.bindEvents();
 
     // Load status colors asynchronously with retry logic to handle authentication timing
@@ -1083,16 +1179,76 @@ class IterationView {
   }
 
   async initializeSelectors() {
-    // Initialize migration selector
-    await this.loadMigrations();
+    // US-084: Initialize selectors in correct order: Plan Template → Migration → Iteration
+    await this.loadPlanTemplates(); // First: Load plan templates
+    await this.loadMigrations(); // Second: Load migrations (initially all)
 
-    // Initialize all other selectors with default states
+    // US-084: Backward compatibility - parse URL parameters for old plan-based URLs
+    await this.initializeFromUrlParameters();
+
+    // Initialize dependent selectors with default states
     this.resetSelector("#iteration-select", "SELECT AN ITERATION");
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
     this.resetSelector("#label-filter", "All Labels");
+  }
+
+  // US-084: Backward compatibility method
+  async initializeFromUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Handle legacy plan parameter - convert to planTemplate
+    const legacyPlanId = urlParams.get("plan") || urlParams.get("planId");
+    const migrationId =
+      urlParams.get("migration") || urlParams.get("migrationId");
+    const iterationId =
+      urlParams.get("iteration") || urlParams.get("iterationId");
+
+    if (legacyPlanId && migrationId) {
+      console.log(
+        "US-084: Converting legacy plan URL parameter to plan template",
+      );
+      try {
+        // Find the plan template for this plan instance
+        const response = await fetch(
+          `/rest/scriptrunner/latest/custom/plans/${legacyPlanId}`,
+        );
+        if (response.ok) {
+          const planData = await response.json();
+          if (planData.templateId) {
+            this.filters.planTemplate = planData.templateId;
+            const planTemplateSelect = document.getElementById(
+              "plan-template-select",
+            );
+            if (planTemplateSelect)
+              planTemplateSelect.value = planData.templateId;
+          }
+        }
+      } catch (e) {
+        console.warn("US-084: Could not convert legacy plan parameter:", e);
+      }
+    }
+
+    // Set migration and iteration if provided
+    if (migrationId) {
+      this.filters.migration = migrationId;
+      const migrationSelect = document.getElementById("migration-select");
+      if (migrationSelect) migrationSelect.value = migrationId;
+
+      if (this.filters.planTemplate) {
+        await this.loadFilteredIterations(
+          migrationId,
+          this.filters.planTemplate,
+        );
+      }
+    }
+
+    if (iterationId) {
+      this.filters.iteration = iterationId;
+      const iterationSelect = document.getElementById("iteration-select");
+      if (iterationSelect) iterationSelect.value = iterationId;
+    }
   }
 
   resetSelector(selector, defaultText) {
@@ -1103,9 +1259,17 @@ class IterationView {
   }
 
   bindEvents() {
-    // Migration and Iteration selectors
+    // US-084: Corrected selector flow - Plan Template → Migration → Iteration
+    const planTemplateSelect = document.getElementById("plan-template-select");
     const migrationSelect = document.getElementById("migration-select");
     const iterationSelect = document.getElementById("iteration-select");
+
+    if (planTemplateSelect) {
+      planTemplateSelect.addEventListener("change", (e) => {
+        this.filters.planTemplate = e.target.value;
+        this.onPlanTemplateChange();
+      });
+    }
 
     if (migrationSelect) {
       migrationSelect.addEventListener("change", (e) => {
@@ -1116,63 +1280,122 @@ class IterationView {
 
     if (iterationSelect) {
       iterationSelect.addEventListener("change", (e) => {
+        // ENHANCED DEBUG: Track event listener execution
+        console.log("=== ITERATION EVENT LISTENER DEBUG ===");
+        console.log(
+          "Iteration dropdown changed - Event target value:",
+          e.target.value,
+        );
+        console.log(
+          "Iteration dropdown changed - Before filter update:",
+          this.filters.iteration,
+        );
+
         this.filters.iteration = e.target.value;
+
+        console.log(
+          "Iteration dropdown changed - After filter update:",
+          this.filters.iteration,
+        );
+        console.log(
+          "Iteration dropdown changed - Full filters:",
+          JSON.stringify(this.filters, null, 2),
+        );
+
         this.onIterationChange();
       });
     }
 
-    // Filter controls
-    const planFilter = document.getElementById("plan-filter");
+    // Filter controls (no more plan filter - replaced by template selector)
     const sequenceFilter = document.getElementById("sequence-filter");
     const phaseFilter = document.getElementById("phase-filter");
     const teamFilter = document.getElementById("team-filter");
     const labelFilter = document.getElementById("label-filter");
     const myTeamsOnly = document.getElementById("my-teams-only");
 
-    if (planFilter) {
-      planFilter.addEventListener("change", (e) => {
-        this.filters.plan = e.target.value;
-        this.onPlanChange();
-      });
-    }
-
     if (sequenceFilter) {
       sequenceFilter.addEventListener("change", (e) => {
+        console.log("=== SEQUENCE FILTER DEBUG ===");
+        console.log("Sequence filter changed to:", e.target.value);
+        console.log(
+          "Before update - this.filters.sequence:",
+          this.filters.sequence,
+        );
         this.filters.sequence = e.target.value;
+        console.log(
+          "After update - this.filters.sequence:",
+          this.filters.sequence,
+        );
+        console.log("About to call onSequenceChange()");
         this.onSequenceChange();
       });
     }
 
     if (phaseFilter) {
       phaseFilter.addEventListener("change", (e) => {
+        console.log("=== PHASE FILTER DEBUG ===");
+        console.log("Phase filter changed to:", e.target.value);
+        console.log("Before update - this.filters.phase:", this.filters.phase);
         this.filters.phase = e.target.value;
+        console.log("After update - this.filters.phase:", this.filters.phase);
+        console.log("About to call onPhaseChange()");
         this.onPhaseChange();
       });
     }
 
     if (teamFilter) {
-      teamFilter.addEventListener("change", (e) => {
-        this.filters.team = e.target.value;
-        this.applyFilters();
+      teamFilter.addEventListener("change", async (e) => {
+        const selectedTeamId = e.target.value;
+        const selectedTeamName = e.target.options[e.target.selectedIndex].text;
+
+        console.log("=== TEAM FILTER CHANGE ===");
+        console.log("Selected team ID:", selectedTeamId);
+        console.log("Selected team name:", selectedTeamName);
+        console.log("Previous team filter:", this.filters.team);
+
+        this.filters.team = selectedTeamId;
+        this.apiClient.clearCache();
+
+        console.log("Updated this.filters.team to:", this.filters.team);
+        console.log("About to apply filters...");
+
+        await this.applyFilters();
+
+        console.log("=== TEAM FILTER CHANGE COMPLETE ===");
       });
     }
 
     if (labelFilter) {
-      labelFilter.addEventListener("change", (e) => {
+      labelFilter.addEventListener("change", async (e) => {
         this.filters.label = e.target.value;
-        this.applyFilters();
+        this.apiClient.clearCache();
+        console.log("Label filter changed: Cache cleared");
+        await this.applyFilters();
       });
     }
 
     if (myTeamsOnly) {
-      myTeamsOnly.addEventListener("change", (e) => {
+      myTeamsOnly.addEventListener("change", async (e) => {
         this.filters.myTeamsOnly = e.target.checked;
-        this.applyFilters();
+        this.apiClient.clearCache();
+        console.log("MyTeamsOnly filter changed: Cache cleared");
+        await this.applyFilters();
       });
     }
 
     // Step action buttons
     this.bindStepActions();
+
+    // Status filter buttons
+    this.bindStatusFilterEvents();
+
+    // If status filter events weren't bound due to missing mappings, retry after a delay
+    if (!this.statusFilterMappings) {
+      setTimeout(() => {
+        console.log("Retrying status filter event binding...");
+        this.bindStatusFilterEvents();
+      }, 1000);
+    }
   }
 
   bindStepActions() {
@@ -1197,6 +1420,200 @@ class IterationView {
       commentBtn.addEventListener("click", () => this.addComment());
     }
   }
+
+  /**
+   * Bind click event listeners to status count elements for filtering
+   * Uses dynamic status mappings loaded from the Status API
+   */
+  bindStatusFilterEvents() {
+    // Use dynamic status filter mappings if available, otherwise wait for them
+    if (!this.statusFilterMappings) {
+      console.log(
+        "Status filter mappings not yet loaded, deferring event binding",
+      );
+      return;
+    }
+
+    console.log(
+      "Binding status filter events for",
+      this.statusFilterMappings.length,
+      "status types",
+    );
+
+    this.statusFilterMappings.forEach(
+      ({ elementId, statusValue, displayName, color }) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          // Add pointer cursor to indicate clickability
+          element.style.cursor = "pointer";
+          element.style.userSelect = "none";
+          element.title = `Click to filter by ${displayName}`;
+
+          element.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log(
+              `Status filter clicked: ${displayName} (${statusValue})`,
+            );
+
+            // Update filter
+            this.filters.statusFilter = statusValue;
+
+            // Clear cache and apply filters
+            this.apiClient.clearCache();
+            console.log("Status filter changed: Cache cleared");
+
+            // Update visual feedback
+            this.updateStatusFilterVisualFeedback(elementId);
+
+            // Apply filters to reload steps
+            await this.applyFilters();
+
+            // Show notification
+            const filterText = statusValue ? `${displayName}` : "All Steps";
+            this.showNotification(`Filtering by: ${filterText}`, "info");
+          });
+        }
+      },
+    );
+  }
+
+  /**
+   * Update visual feedback for active status filter button
+   * Uses dynamic status mappings when available
+   * @param {string} activeElementId - ID of the currently active status filter element
+   */
+  updateStatusFilterVisualFeedback(activeElementId) {
+    // Get all status element IDs from dynamic mappings or use fallback
+    let statusElementIds = ["total-steps"];
+
+    if (this.statusFilterMappings) {
+      statusElementIds = this.statusFilterMappings.map(
+        (mapping) => mapping.elementId,
+      );
+    } else {
+      // Fallback to hardcoded IDs for backward compatibility
+      statusElementIds = [
+        "total-steps",
+        "pending-steps",
+        "todo-steps",
+        "progress-steps",
+        "completed-steps",
+        "failed-steps",
+        "blocked-steps",
+        "cancelled-steps",
+      ];
+    }
+
+    statusElementIds.forEach((elementId) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        if (elementId === activeElementId) {
+          // Add active state styling
+          element.style.outline = "2px solid #0052cc";
+          element.style.outlineOffset = "1px";
+          element.style.fontWeight = "bold";
+          element.style.transform = "scale(1.05)";
+          element.style.transition = "all 0.2s ease";
+          element.style.zIndex = "10";
+          element.style.position = "relative";
+
+          // Add active class for CSS targeting
+          element.classList.add("status-filter-active");
+        } else {
+          // Remove active state styling
+          element.style.outline = "";
+          element.style.outlineOffset = "";
+          element.style.fontWeight = "";
+          element.style.transform = "";
+          element.style.zIndex = "";
+          element.style.position = "";
+
+          // Remove active class
+          element.classList.remove("status-filter-active");
+        }
+      }
+    });
+  }
+
+  /**
+   * Restore visual feedback for active status filter after steps are loaded
+   * Uses dynamic status mappings when available
+   */
+  restoreStatusFilterVisualFeedback() {
+    if (this.filters.statusFilter) {
+      let activeElementId = null;
+
+      // Find element ID from dynamic mappings
+      if (this.statusFilterMappings) {
+        const mapping = this.statusFilterMappings.find(
+          (m) => m.statusValue === this.filters.statusFilter,
+        );
+        if (mapping) {
+          activeElementId = mapping.elementId;
+        }
+      } else {
+        // Fallback to hardcoded mapping for backward compatibility
+        const statusToElementMap = {
+          PENDING: "pending-steps",
+          TODO: "todo-steps",
+          IN_PROGRESS: "progress-steps",
+          COMPLETED: "completed-steps",
+          FAILED: "failed-steps",
+          BLOCKED: "blocked-steps",
+          CANCELLED: "cancelled-steps",
+        };
+        activeElementId = statusToElementMap[this.filters.statusFilter];
+      }
+
+      if (activeElementId) {
+        this.updateStatusFilterVisualFeedback(activeElementId);
+      }
+    } else {
+      // If no status filter is active, highlight "total-steps" (All Steps)
+      this.updateStatusFilterVisualFeedback("total-steps");
+    }
+  }
+
+  // US-084: Load plan templates using new template-focused API
+  async loadPlanTemplates() {
+    const select = document.getElementById("plan-template-select");
+    if (!select) {
+      console.warn("Plan template selector not found - UI may need updating");
+      return;
+    }
+
+    select.innerHTML = "<option>Loading plan templates...</option>";
+    try {
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/plans/templates",
+      );
+      if (!response.ok) throw new Error("Failed to fetch plan templates");
+      const responseData = await response.json();
+
+      const templates = responseData.data || responseData;
+
+      if (!Array.isArray(templates) || templates.length === 0) {
+        select.innerHTML = "<option>No plan templates found</option>";
+      } else {
+        select.innerHTML =
+          '<option value="">SELECT A PLAN TEMPLATE</option>' +
+          templates
+            .map(
+              (t) =>
+                `<option value="${t.planId}" data-template-name="${t.name}" title="${t.description || ""}">
+                  ${t.name} (${t.totalIterationsCount} iterations)
+                </option>`,
+            )
+            .join("");
+      }
+    } catch (e) {
+      console.error("Error loading plan templates:", e);
+      select.innerHTML = "<option>Error loading plan templates</option>";
+    }
+  }
+
   async loadMigrations() {
     const select = document.getElementById("migration-select");
     select.innerHTML = "<option>Loading migrations...</option>";
@@ -1228,13 +1645,116 @@ class IterationView {
     }
   }
 
+  // US-084: Load iterations filtered by plan template and migration
+  async loadFilteredIterations(migrationId, planTemplateId) {
+    const select = document.getElementById("iteration-select");
+    select.innerHTML = "<option>Loading filtered iterations...</option>";
+
+    try {
+      // Use the new plan usage endpoint to get iterations using this template
+      const response = await fetch(
+        `/rest/scriptrunner/latest/custom/plans/usage/${planTemplateId}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch template usage");
+      const responseData = await response.json();
+
+      // Filter iterations to only show those in the selected migration
+      const allIterations = responseData.usage?.iterations || [];
+
+      // ENHANCED DEBUG: Log iteration filtering process
+      console.log("=== LOAD FILTERED ITERATIONS DEBUG ===");
+      console.log("loadFilteredIterations: Migration ID:", migrationId);
+      console.log("loadFilteredIterations: Plan Template ID:", planTemplateId);
+      console.log(
+        "loadFilteredIterations: All iterations received:",
+        allIterations,
+      );
+
+      const filteredIterations = allIterations.filter(
+        (iteration) => iteration.migrationId === migrationId,
+      );
+
+      console.log(
+        "loadFilteredIterations: Filtered iterations:",
+        filteredIterations,
+      );
+      console.log(
+        "loadFilteredIterations: Iteration IDs being used:",
+        filteredIterations.map((i) => i.iterationId),
+      );
+
+      if (filteredIterations.length === 0) {
+        select.innerHTML =
+          "<option>No iterations found using this template in the selected migration</option>";
+      } else {
+        select.innerHTML =
+          '<option value="">SELECT AN ITERATION</option>' +
+          filteredIterations
+            .map(
+              (i) =>
+                `<option value="${i.iterationId}"
+                  data-ite-name="${i.iterationName}"
+                  data-ite-code="${i.iterationCode || ""}"
+                  title="Uses plan template: ${responseData.template?.name}">
+                  ${i.iterationName} ${i.hasCustomizations ? "(customized)" : ""}
+                </option>`,
+            )
+            .join("");
+      }
+    } catch (e) {
+      console.error("Error loading filtered iterations:", e);
+      select.innerHTML =
+        "<option>Error loading iterations for this template</option>";
+    }
+  }
+
+  // US-084: New event handler for plan template selection
+  onPlanTemplateChange() {
+    const planTemplateId = this.filters.planTemplate;
+    console.log(
+      "onPlanTemplateChange: Selected plan template ID:",
+      planTemplateId,
+    );
+
+    // Reset ALL dependent filters when template changes
+    this.filters.migration = "";
+    this.filters.iteration = "";
+    this.filters.sequence = "";
+    this.filters.phase = "";
+    this.filters.team = "";
+    this.filters.label = "";
+
+    // Reset dependent selectors
+    this.resetSelector("#migration-select", "SELECT A MIGRATION");
+    this.resetSelector("#iteration-select", "SELECT AN ITERATION");
+    this.resetSelector("#sequence-filter", "All Sequences");
+    this.resetSelector("#phase-filter", "All Phases");
+    this.resetSelector("#team-filter", "All Teams");
+    this.resetSelector("#label-filter", "All Labels");
+
+    // Show blank state since no iteration is selected
+    this.showBlankRunsheetState();
+
+    if (planTemplateId) {
+      // Load migrations (could be filtered by template if we implement that)
+      this.loadMigrations();
+      this.showNotification(
+        `Plan template selected. Now choose a migration to see iterations using this template.`,
+        "info",
+      );
+    }
+  }
+
   onMigrationChange() {
     const migId = this.filters.migration;
     console.log("onMigrationChange: Selected migration ID:", migId);
 
-    // Reset ALL dependent filters (everything below migration in hierarchy)
+    // CRITICAL FIX: Clear API cache when migration changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onMigrationChange: Cache cleared for fresh migration data");
+
+    // Reset dependent filters (everything below migration in hierarchy)
     this.filters.iteration = "";
-    this.filters.plan = "";
     this.filters.sequence = "";
     this.filters.phase = "";
     this.filters.team = "";
@@ -1242,7 +1762,6 @@ class IterationView {
 
     // Reset all dependent selectors to default state
     this.resetSelector("#iteration-select", "SELECT AN ITERATION");
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
@@ -1253,8 +1772,21 @@ class IterationView {
         "onMigrationChange: Loading iterations for migration:",
         migId,
       );
-      const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
-      populateIterations("#iteration-select", url, "SELECT AN ITERATION");
+
+      // US-084: Filter iterations by plan template if one is selected
+      const planTemplateId = this.filters.planTemplate;
+      if (planTemplateId) {
+        // Load iterations that use the selected plan template in this migration
+        this.loadFilteredIterations(migId, planTemplateId);
+        this.showNotification(
+          `Loading iterations that use the selected plan template in this migration...`,
+          "info",
+        );
+      } else {
+        // No plan template selected - show all iterations for migration
+        const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
+        populateIterations("#iteration-select", url, "SELECT AN ITERATION");
+      }
     }
 
     // Show blank runsheet state since no iteration is selected
@@ -1264,17 +1796,42 @@ class IterationView {
   onIterationChange() {
     const migId = this.filters.migration;
     const iteId = this.filters.iteration;
-    console.log("onIterationChange: Selected iteration ID:", iteId);
 
-    // Reset dependent filters (everything below iteration in hierarchy)
-    this.filters.plan = "";
+    // ENHANCED DEBUG: Complete iteration change flow tracking
+    console.log("=== ITERATION CHANGE DEBUG START ===");
+    console.log("onIterationChange: Selected iteration ID:", iteId);
+    console.log(
+      "onIterationChange: Full filters object:",
+      JSON.stringify(this.filters, null, 2),
+    );
+
+    // Verify dropdown value matches filter
+    const iterationSelect = document.getElementById("iteration-select");
+    const dropdownValue = iterationSelect ? iterationSelect.value : "NOT_FOUND";
+    console.log("onIterationChange: Dropdown value:", dropdownValue);
+    console.log("onIterationChange: Values match:", dropdownValue === iteId);
+
+    // Check if dropdown has options and log them
+    if (iterationSelect) {
+      const options = Array.from(iterationSelect.options).map((opt) => ({
+        value: opt.value,
+        text: opt.text,
+        selected: opt.selected,
+      }));
+      console.log("onIterationChange: All dropdown options:", options);
+    }
+
+    // CRITICAL FIX: Clear API cache when iteration changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onIterationChange: Cache cleared for fresh iteration data");
+
+    // US-084: Reset dependent filters (no more plan filter in hierarchy)
     this.filters.sequence = "";
     this.filters.phase = "";
     this.filters.team = "";
     this.filters.label = "";
 
     // Reset dependent selectors to default state
-    this.resetSelector("#plan-filter", "All Plans");
     this.resetSelector("#sequence-filter", "All Sequences");
     this.resetSelector("#phase-filter", "All Phases");
     this.resetSelector("#team-filter", "All Teams");
@@ -1285,14 +1842,12 @@ class IterationView {
       return;
     }
 
-    // Populate filters for this iteration
-    const planUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances`;
+    // US-084: Populate filters for this iteration (no more plan filter)
     const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
     const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
     const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
     const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
 
-    populateFilter("#plan-filter", planUrl, "All Plans");
     populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
     populateFilter("#phase-filter", phaseUrl, "All Phases");
     populateFilter("#team-filter", teamsUrl, "All Teams");
@@ -1300,64 +1855,29 @@ class IterationView {
 
     this.showNotification("Loading data for selected iteration...", "info");
     // Load steps and auto-select first step
+    console.log("onIterationChange: About to call loadStepsAndSelectFirst()");
+    console.log(
+      "onIterationChange: Final filters state:",
+      JSON.stringify(this.filters, null, 2),
+    );
+    console.log("=== ITERATION CHANGE DEBUG END ===");
+
     this.loadStepsAndSelectFirst();
   }
 
-  onPlanChange() {
-    const { migration: migId, iteration: iteId, plan: planId } = this.filters;
-    console.log("onPlanChange: Selected plan ID:", planId);
+  // US-084: onPlanChange() method removed - plans are no longer part of iteration hierarchy
 
-    // Reset dependent filters (everything below plan in hierarchy)
-    this.filters.sequence = "";
-    this.filters.phase = "";
-    this.filters.team = "";
-    this.filters.label = "";
-
-    // Reset dependent selectors to default state
-    this.resetSelector("#sequence-filter", "All Sequences");
-    this.resetSelector("#phase-filter", "All Phases");
-    this.resetSelector("#team-filter", "All Teams");
-    this.resetSelector("#label-filter", "All Labels");
-
-    if (!migId || !iteId) {
-      this.showBlankRunsheetState();
-      return;
-    }
-
-    if (!planId) {
-      // 'All Plans' selected - show all sequences and phases for iteration
-      const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
-      const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
-      populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
-      populateFilter("#phase-filter", phaseUrl, "All Phases");
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
-    } else {
-      // Specific plan selected - use nested URL pattern (migrationApi supports this)
-      const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/sequences`;
-      const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
-      populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
-      populateFilter("#phase-filter", phaseUrl, "All Phases");
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
-    }
-
-    // Apply filters to reload steps
-    this.applyFilters();
-  }
-
-  onSequenceChange() {
+  async onSequenceChange() {
     const {
       migration: migId,
       iteration: iteId,
-      plan: planId,
       sequence: seqId,
     } = this.filters;
     console.log("onSequenceChange: Selected sequence ID:", seqId);
+
+    // CRITICAL FIX: Clear API cache when sequence changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onSequenceChange: Cache cleared for fresh sequence data");
 
     // Reset dependent filters (everything below sequence in hierarchy)
     this.filters.phase = "";
@@ -1374,16 +1894,22 @@ class IterationView {
       return;
     }
 
+    // US-084: Data model reality - sequences are still under Plan Instances (PLI)
+    // But UI shows plan template selection first, then filtered iterations
+    const planTemplateId = this.filters.planTemplate;
+
     if (!seqId) {
-      // 'All Sequences' selected - show all phases for current plan or iteration
-      if (planId) {
-        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+      // 'All Sequences' selected - show all phases for iteration+plan template combination
+      if (planTemplateId) {
+        // Filter by plan template - use plan instance filtering
+        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases?planTemplateId=${planTemplateId}`;
+        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
+        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
         populateFilter("#phase-filter", phaseUrl, "All Phases");
         populateFilter("#team-filter", teamsUrl, "All Teams");
         populateFilter("#label-filter", labelsUrl, "All Labels");
       } else {
+        // No plan template selected - show all phases for iteration
         const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
         const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
         const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
@@ -1401,19 +1927,25 @@ class IterationView {
       populateFilter("#label-filter", labelsUrl, "All Labels");
     }
 
-    // Apply filters to reload steps
-    this.applyFilters();
+    // Clear cache and apply filters to reload steps
+    this.apiClient.clearCache();
+    console.log("onSequenceChange: Cache cleared for fresh sequence data");
+    await this.applyFilters();
   }
 
-  onPhaseChange() {
+  async onPhaseChange() {
     const {
       migration: migId,
       iteration: iteId,
-      plan: planId,
+      planTemplate: planTemplateId,
       sequence: seqId,
       phase: phaseId,
     } = this.filters;
     console.log("onPhaseChange: Selected phase ID:", phaseId);
+
+    // CRITICAL FIX: Clear API cache when phase changes to prevent stale data
+    this.apiClient.clearCache();
+    console.log("onPhaseChange: Cache cleared for fresh phase data");
 
     // Reset dependent filters (teams and labels - no hierarchy below phase)
     this.filters.team = "";
@@ -1454,8 +1986,10 @@ class IterationView {
       populateFilter("#label-filter", labelsUrl, "All Labels");
     }
 
-    // Apply filters to reload steps
-    this.applyFilters();
+    // Clear cache and apply filters to reload steps
+    this.apiClient.clearCache();
+    console.log("onPhaseChange: Cache cleared for fresh phase data");
+    await this.applyFilters();
   }
 
   selectStep(stepId, stepCode) {
@@ -1609,6 +2143,272 @@ class IterationView {
         }
       }
     }
+  }
+
+  /**
+   * Load and cache step statuses for filtering system
+   * This method creates the dynamic filter mappings and counter mappings
+   */
+  async loadStepStatusesForFiltering() {
+    try {
+      console.log("Loading step statuses for filtering system...");
+
+      // Fetch statuses from API
+      const statuses = await this.fetchStepStatusesWithRetry();
+
+      if (!statuses || statuses.length === 0) {
+        console.warn("No statuses available for filtering, using fallback");
+        this.initializeFallbackStatusMappings();
+        return;
+      }
+
+      // Store statuses for reference
+      this.stepStatuses = statuses;
+
+      // Create dynamic status filter mappings
+      this.statusFilterMappings = [
+        { elementId: "total-steps", statusValue: "", displayName: "All Steps" },
+      ];
+
+      // Add mappings for each status from the database
+      statuses.forEach((status) => {
+        const statusName = status.name || status.sts_name; // Handle both API response formats
+        const statusId = status.id || status.sts_id; // Handle both API response formats
+        const elementId = this.generateElementIdFromStatus(statusName);
+        const displayName = this.formatDisplayName(statusName);
+
+        this.statusFilterMappings.push({
+          elementId: elementId,
+          statusValue: statusName, // Keep for display purposes
+          statusId: statusId, // Add for API calls
+          displayName: displayName,
+          color: status.color || status.sts_color, // Handle both API response formats
+        });
+      });
+
+      // Create dynamic counter mappings for status counts
+      this.statusCounterMappings = statuses.map((status) => {
+        const statusName = status.name || status.sts_name;
+        return {
+          elementId: this.generateElementIdFromStatus(statusName),
+          statusKey: statusName,
+          color: status.color || status.sts_color,
+        };
+      });
+
+      console.log(
+        `Loaded ${statuses.length} statuses for filtering:`,
+        this.statusFilterMappings.map((m) => m.statusValue).filter((v) => v),
+      );
+    } catch (error) {
+      console.error("Error loading step statuses for filtering:", error);
+      this.initializeFallbackStatusMappings();
+    }
+  }
+
+  /**
+   * Generate consistent element ID from status name
+   */
+  generateElementIdFromStatus(statusName) {
+    // Handle special cases to match existing HTML element IDs
+    const specialCases = {
+      IN_PROGRESS: "progress-steps",
+      "IN PROGRESS": "progress-steps",
+    };
+
+    if (specialCases[statusName]) {
+      return specialCases[statusName];
+    }
+
+    return `${statusName.toLowerCase().replace(/_/g, "-").replace(/\s+/g, "-")}-steps`;
+  }
+
+  /**
+   * Format status name for display
+   */
+  formatDisplayName(statusName) {
+    return statusName
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  /**
+   * Render dynamic status buttons using data from Status API
+   */
+  async renderStatusButtons() {
+    console.log("Rendering dynamic status buttons");
+
+    // Find the summary stats container
+    const summaryStats = document.querySelector(".summary-stats");
+    if (!summaryStats) {
+      console.warn("Summary stats container not found");
+      return;
+    }
+
+    // Update existing status span elements to be clickable with dynamic colors
+    this.statusFilterMappings.forEach((mapping) => {
+      const element = document.getElementById(mapping.elementId);
+      if (!element) {
+        console.warn(`Status element not found: ${mapping.elementId}`);
+        return;
+      }
+
+      // Make the parent span clickable
+      const parentSpan = element.closest(".stat");
+      if (parentSpan) {
+        // Add CSS classes for styling
+        parentSpan.classList.add("status-filter-btn", "clickable-status");
+        parentSpan.setAttribute("data-status-value", mapping.statusValue);
+
+        // Apply database color if available
+        if (mapping.color) {
+          parentSpan.style.backgroundColor = mapping.color;
+          parentSpan.style.borderColor = mapping.color;
+          parentSpan.style.border = `2px solid ${mapping.color}`;
+          parentSpan.style.borderRadius = "4px";
+          parentSpan.style.padding = "4px 8px";
+          parentSpan.style.cursor = "pointer";
+
+          // Determine text color based on background brightness
+          const brightness = this.getColorBrightness(mapping.color);
+          parentSpan.style.color = brightness > 128 ? "#000000" : "#ffffff";
+        } else {
+          // Default styling for elements without database colors
+          parentSpan.style.cursor = "pointer";
+          parentSpan.style.padding = "4px 8px";
+          parentSpan.style.borderRadius = "4px";
+          parentSpan.style.border = "2px solid #ccc";
+        }
+
+        // Add click event for filtering
+        parentSpan.addEventListener("click", () => {
+          this.filterStepsByStatus(
+            mapping.statusId || mapping.statusValue,
+            parentSpan,
+          );
+        });
+      }
+    });
+
+    console.log(
+      `Updated ${this.statusFilterMappings.length} dynamic status elements`,
+    );
+  }
+
+  /**
+   * Calculate color brightness to determine text color
+   */
+  getColorBrightness(hexColor) {
+    // Remove # if present
+    const color = hexColor.replace("#", "");
+
+    // Convert to RGB
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+
+    // Calculate brightness using standard formula
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  }
+
+  /**
+   * Filter steps by status and update UI
+   */
+  filterStepsByStatus(statusValue, buttonElement) {
+    console.log(`Filtering steps by status: ${statusValue}`);
+
+    // Update active button state - remove active class from all status elements
+    document.querySelectorAll(".status-filter-btn").forEach((btn) => {
+      btn.classList.remove("active");
+      // Reset border style for inactive buttons
+      if (btn !== buttonElement) {
+        const originalColor = btn.style.borderColor;
+        if (originalColor) {
+          btn.style.border = `2px solid ${originalColor}`;
+        } else {
+          btn.style.border = "2px solid #ccc";
+        }
+      }
+    });
+
+    // Add active class and enhanced styling to clicked element
+    buttonElement.classList.add("active");
+    buttonElement.style.border = `3px solid #000`;
+    buttonElement.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+
+    // Apply filter to steps - use statusId for API calls
+    if (
+      statusValue === "" ||
+      statusValue === null ||
+      statusValue === undefined
+    ) {
+      // Clear status filter for "All Steps"
+      this.filters.statusId = null;
+      this.filters.statusFilter = null;
+    } else if (typeof statusValue === "number") {
+      // Use statusId for API calls (integer)
+      this.filters.statusId = statusValue;
+      this.filters.statusFilter = null; // Clear old string-based filter
+    } else {
+      // Fallback for backward compatibility with string status names
+      this.filters.statusFilter = statusValue;
+      this.filters.statusId = null;
+    }
+
+    this.loadSteps();
+  }
+
+  /**
+   * Initialize fallback status mappings when API is not available
+   */
+  initializeFallbackStatusMappings() {
+    console.log("Initializing fallback status mappings");
+
+    // Fallback to hardcoded status mappings for backward compatibility
+    this.statusFilterMappings = [
+      { elementId: "total-steps", statusValue: "", displayName: "All Steps" },
+      {
+        elementId: "pending-steps",
+        statusValue: "PENDING",
+        displayName: "Pending",
+      },
+      { elementId: "todo-steps", statusValue: "TODO", displayName: "Todo" },
+      {
+        elementId: "progress-steps",
+        statusValue: "IN_PROGRESS",
+        displayName: "In Progress",
+      },
+      {
+        elementId: "completed-steps",
+        statusValue: "COMPLETED",
+        displayName: "Completed",
+      },
+      {
+        elementId: "failed-steps",
+        statusValue: "FAILED",
+        displayName: "Failed",
+      },
+      {
+        elementId: "blocked-steps",
+        statusValue: "BLOCKED",
+        displayName: "Blocked",
+      },
+      {
+        elementId: "cancelled-steps",
+        statusValue: "CANCELLED",
+        displayName: "Cancelled",
+      },
+    ];
+
+    this.statusCounterMappings = [
+      { elementId: "pending-steps", statusKey: "PENDING" },
+      { elementId: "todo-steps", statusKey: "TODO" },
+      { elementId: "progress-steps", statusKey: "IN_PROGRESS" },
+      { elementId: "completed-steps", statusKey: "COMPLETED" },
+      { elementId: "failed-steps", statusKey: "FAILED" },
+      { elementId: "blocked-steps", statusKey: "BLOCKED" },
+      { elementId: "cancelled-steps", statusKey: "CANCELLED" },
+    ];
   }
 
   /**
@@ -2328,8 +3128,20 @@ class IterationView {
     const impactedTeams = stepData.impactedTeams || [];
 
     // Debug log to check if labels are being returned
+    console.log("Step Data Full Object:", stepData);
     console.log("Step Summary:", summary);
     console.log("Labels:", summary.Labels);
+
+    // Log specific UUID fields for debugging
+    console.log("Step Instance UUID (summary.ID):", summary.ID);
+    console.log("Step Master UUID (various attempts):", {
+      "summary.StepMasterID": summary.StepMasterID,
+      "summary.stepMasterID": summary.stepMasterID,
+      "summary.MasterID": summary.MasterID,
+      "stepData.stepMasterID": stepData.stepMasterID,
+      "stepData.StepMasterID": stepData.StepMasterID,
+      "stepData.stm_id": stepData.stm_id,
+    });
 
     // Helper function to get status display - use the main getStatusDisplay method
     const getStatusDisplay = (status) => {
@@ -2347,9 +3159,10 @@ class IterationView {
                 </div>
                 
                 <div class="step-breadcrumb">
+                    <!-- US-084: Updated hierarchy - Plan Template shown as independent template -->
+                    <span class="breadcrumb-item template-indicator">📋 ${summary.PlanName || "Plan Template"}</span>
+                    <span class="breadcrumb-separator">•</span>
                     <span class="breadcrumb-item">${summary.MigrationName || "Migration"}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${summary.PlanName || "Plan"}</span>
                     <span class="breadcrumb-separator">›</span>
                     <span class="breadcrumb-item">${summary.IterationName || "Iteration"}</span>
                     <span class="breadcrumb-separator">›</span>
@@ -2357,7 +3170,19 @@ class IterationView {
                     <span class="breadcrumb-separator">›</span>
                     <span class="breadcrumb-item">${summary.PhaseName || "Phase"}</span>
                 </div>
-                
+
+                <!-- Debug UUIDs for troubleshooting -->
+                <div class="step-uuids" style="background: #f5f5f5; padding: 8px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 11px; color: #666;">
+                    <div style="margin-bottom: 4px;">
+                        <span style="font-weight: bold;">Step Instance UUID:</span>
+                        <span style="color: #0052cc; user-select: all; cursor: text;">${summary.ID || summary.sti_id || "N/A"}</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: bold;">Step Master UUID:</span>
+                        <span style="color: #0052cc; user-select: all; cursor: text;">${summary.StepMasterID || summary.stm_id || stepData.StepMasterID || stepData.stm_id || "N/A"}</span>
+                    </div>
+                </div>
+
                 <div class="step-key-info">
                     <div class="metadata-item">
                         <span class="label">📊 Status:</span>
@@ -2538,9 +3363,14 @@ class IterationView {
     this.attachStepViewButtonListener();
   }
 
-  applyFilters() {
-    this.loadSteps();
-    this.showNotification("Filters applied", "info");
+  async applyFilters() {
+    try {
+      await this.loadSteps();
+      this.showNotification("Filters applied", "info");
+    } catch (error) {
+      console.error("IterationView: Error applying filters:", error);
+      this.showNotification("Error applying filters", "error");
+    }
   }
 
   /**
@@ -2575,17 +3405,38 @@ class IterationView {
 
       if (this.filters.migration) filters.migrationId = this.filters.migration;
       if (this.filters.iteration) filters.iterationId = this.filters.iteration;
-      if (this.filters.plan) filters.planId = this.filters.plan;
+      // US-084: For now, we don't pass planTemplate to the API since it expects planId for plan instances
+      // The sequence/phase/team/label filters should work independently
       if (this.filters.sequence) filters.sequenceId = this.filters.sequence;
       if (this.filters.phase) filters.phaseId = this.filters.phase;
-      if (this.filters.team) filters.teamId = this.filters.team;
+      if (this.filters.team) {
+        filters.teamId = this.filters.team;
+        console.log("Team filter applied - teamId:", filters.teamId);
+
+        // Validate that teamId is a valid number
+        if (isNaN(parseInt(filters.teamId))) {
+          console.error("Invalid team ID format:", filters.teamId);
+          this.showNotification("Invalid team selection", "error");
+          return;
+        }
+      }
       if (this.filters.label) filters.labelId = this.filters.label;
 
-      // Apply quick filters
-      if (this.quickFilters.myTeamSteps) filters.myTeamOnly = true;
+      // Apply status filter for runsheet header buttons
+      if (this.filters.statusId) {
+        filters.statusId = this.filters.statusId;
+        console.log("Status ID filter applied:", filters.statusId);
+      } else if (this.filters.statusFilter) {
+        filters.status = this.filters.statusFilter;
+        console.log("Status filter applied:", filters.status);
+      }
+
+      // Apply quick filters and myTeamsOnly from main filters
+      if (this.filters.myTeamsOnly) filters.myTeamOnly = true;
       if (this.quickFilters.myAssignedSteps) filters.assignedToMe = true;
       if (this.quickFilters.criticalSteps) filters.priority = "HIGH";
-      if (this.quickFilters.blockedSteps)
+      // Note: blockedSteps quick filter is overridden by status filter if both are set
+      if (this.quickFilters.blockedSteps && !this.filters.statusFilter)
         filters.status = await this.getStatusName("BLOCKED");
 
       // Options for performance optimization
@@ -2595,13 +3446,25 @@ class IterationView {
         includeComments: false, // Load comments on demand
       };
 
+      // ENHANCED DEBUG: Log complete filter flow to API
+      console.log("=== LOAD STEPS DEBUG ===");
+      console.log(
+        "loadSteps: Current this.filters object:",
+        JSON.stringify(this.filters, null, 2),
+      );
+      console.log(
+        "loadSteps: Constructed filters for API:",
+        JSON.stringify(filters, null, 2),
+      );
+      console.log("loadSteps: API options:", JSON.stringify(options, null, 2));
+
       console.log("IterationView: Loading steps with enhanced API v2", {
         filters,
         options,
       });
 
       // Use enhanced API client with caching
-      const sequences = await this.apiClient.fetchSteps(filters, options);
+      const apiResponse = await this.apiClient.fetchSteps(filters, options);
 
       // Track performance
       this.performanceMetrics.loadEndTime = performance.now();
@@ -2609,6 +3472,67 @@ class IterationView {
         this.performanceMetrics.loadEndTime -
         this.performanceMetrics.loadStartTime;
       console.log(`IterationView: Steps loaded in ${loadTime.toFixed(2)}ms`);
+
+      // Handle the API response structure
+      // Enhanced API returns flat array of steps, need to transform to nested structure
+      const rawData =
+        apiResponse && apiResponse.data && Array.isArray(apiResponse.data)
+          ? apiResponse.data
+          : [];
+
+      console.log(
+        `IterationView: Received ${rawData.length} items from enhanced API response`,
+      );
+
+      // Debug: Log first step to see all available fields
+      if (rawData.length > 0) {
+        console.log(
+          "IterationView: DEBUG - First step raw data structure:",
+          rawData[0],
+        );
+        console.log(
+          "IterationView: DEBUG - Available fields:",
+          Object.keys(rawData[0]),
+        );
+
+        // Check specifically for label-related fields
+        const labelFields = Object.keys(rawData[0]).filter((key) =>
+          key.toLowerCase().includes("label"),
+        );
+        if (labelFields.length > 0) {
+          console.log(
+            "IterationView: DEBUG - Label-related fields found:",
+            labelFields,
+          );
+          labelFields.forEach((field) => {
+            console.log(`  - ${field}:`, rawData[0][field]);
+          });
+        } else {
+          console.warn(
+            "IterationView: DEBUG - No label fields found in API response!",
+          );
+        }
+      }
+
+      // Check if we received a flat array of steps (enhanced API) or nested structure (non-enhanced API)
+      const isFlat =
+        rawData.length > 0 && rawData[0].stepId && !rawData[0].phases;
+
+      let sequences;
+      if (isFlat) {
+        console.log(
+          `IterationView: Transforming ${rawData.length} flat steps into nested structure`,
+        );
+        sequences = this.transformFlatStepsToNested(rawData);
+        console.log(
+          `IterationView: Transformed into ${sequences.length} sequences`,
+        );
+      } else {
+        sequences = rawData;
+        console.log(
+          `IterationView: Using pre-structured ${sequences.length} sequences`,
+        );
+      }
 
       if (!Array.isArray(sequences) || sequences.length === 0) {
         runsheetContent.innerHTML = `
@@ -2621,11 +3545,16 @@ class IterationView {
       }
 
       // Update team filter based on actual steps data
-      this.updateTeamFilterFromSteps(sequences);
+      // DISABLED: Creates inconsistent UX - teams dropdown should behave like labels dropdown
+      // User preference: Keep dropdowns static, filter only affects runsheet content
+      // this.updateTeamFilterFromSteps(sequences);
 
       // Render with performance optimizations
       await this.renderRunsheetOptimized(sequences);
       this.calculateAndUpdateStepCounts(sequences);
+
+      // Restore visual feedback for active status filter
+      this.restoreStatusFilterVisualFeedback();
 
       // Start real-time updates if not already running
       if (!this.realTimeSync.isPolling) {
@@ -2693,6 +3622,99 @@ class IterationView {
 
     // Bind events efficiently after DOM update
     this._bindEventListenersOptimized();
+  }
+
+  /**
+   * Transform flat array of steps from enhanced API into nested sequences[].phases[].steps[] structure
+   * @param {Array} flatSteps - Array of step objects from enhanced API
+   * @returns {Array} Nested structure matching expected frontend format
+   */
+  transformFlatStepsToNested(flatSteps) {
+    const sequencesMap = new Map();
+
+    flatSteps.forEach((step) => {
+      // Extract sequence info
+      const sequenceKey = `${step.sequenceNumber || 1}-${step.sequenceId || "unknown"}`;
+      const phaseKey = `${step.phaseNumber || 1}-${step.phaseId || "unknown"}`;
+
+      // Initialize sequence if not exists
+      if (!sequencesMap.has(sequenceKey)) {
+        sequencesMap.set(sequenceKey, {
+          id: step.sequenceId || step.sequenceInstanceId,
+          name: step.sequenceName || `Sequence ${step.sequenceNumber || 1}`,
+          number: step.sequenceNumber || 1,
+          phases: new Map(),
+        });
+      }
+
+      const sequence = sequencesMap.get(sequenceKey);
+
+      // Initialize phase if not exists
+      if (!sequence.phases.has(phaseKey)) {
+        sequence.phases.set(phaseKey, {
+          id: step.phaseId || step.phaseInstanceId,
+          name: step.phaseName || `Phase ${step.phaseNumber || 1}`,
+          number: step.phaseNumber || 1,
+          steps: [],
+        });
+      }
+
+      const phase = sequence.phases.get(phaseKey);
+
+      // Transform step to expected format
+      // Handle both 'labels' (lowercase) and 'Labels' (uppercase) from different API endpoints
+      const stepLabels = step.labels || step.Labels || step.stepLabels || [];
+
+      // Debug logging to identify label field naming inconsistency
+      if (!step.labels && step.Labels) {
+        console.debug(
+          "IterationView: Step has 'Labels' (uppercase) instead of 'labels':",
+          step.stepName,
+        );
+      }
+
+      const transformedStep = {
+        id: step.stepInstanceId || step.stepId,
+        code:
+          step.stepCode ||
+          (step.stepType && step.stepNumber
+            ? `${step.stepType}-${step.stepNumber}` // No padding, use actual number
+            : `STEP-${step.stepNumber || 1}`), // Fallback without padding
+        name: step.stepName || "Unnamed Step",
+        status: step.stepStatus || "NOT_STARTED",
+        durationMinutes: step.estimatedDuration || step.actualDuration || 0,
+        ownerTeamId: step.ownerTeamId || step.assignedTeamId,
+        ownerTeamName:
+          step.ownerTeamName || step.assignedTeamName || "Unassigned",
+        labels: stepLabels, // Use the normalized labels
+      };
+
+      phase.steps.push(transformedStep);
+    });
+
+    // Convert Maps to Arrays and sort
+    const sequences = Array.from(sequencesMap.values())
+      .map((sequence) => {
+        const phases = Array.from(sequence.phases.values())
+          .map((phase) => ({
+            ...phase,
+            // Keep steps in their natural database order (by step number, not alphabetically by code)
+            steps: phase.steps, // No sorting - maintain database order
+          }))
+          .sort((a, b) => (a.number || 0) - (b.number || 0));
+
+        return {
+          ...sequence,
+          phases,
+        };
+      })
+      .sort((a, b) => (a.number || 0) - (b.number || 0));
+
+    console.log(
+      `IterationView: Transformed ${flatSteps.length} steps into ${sequences.length} sequences with ${sequences.reduce((total, seq) => total + seq.phases.length, 0)} phases`,
+    );
+
+    return sequences;
   }
 
   /**
@@ -2808,8 +3830,21 @@ class IterationView {
     const runsheetContent = document.getElementById("runsheet-content");
     if (!runsheetContent) return;
 
-    // Use event delegation for better performance
-    runsheetContent.addEventListener("click", (event) => {
+    // Remove any existing event listeners to prevent duplicates
+    const existingHandlers = runsheetContent._iterationViewHandlers;
+    if (existingHandlers) {
+      runsheetContent.removeEventListener(
+        "click",
+        existingHandlers.stepHandler,
+      );
+      runsheetContent.removeEventListener(
+        "click",
+        existingHandlers.foldingHandler,
+      );
+    }
+
+    // Create new handlers
+    const stepHandler = (event) => {
       const target = event.target.closest(".step-row");
       if (target) {
         const stepId = target.getAttribute("data-step");
@@ -2818,16 +3853,82 @@ class IterationView {
           this.selectStep(stepId, stepCode);
         }
       }
+    };
+
+    const foldingHandler = (event) => {
+      // Enhanced folding handler with better event targeting
+      const sequenceHeader = event.target.closest(".sequence-header");
+      const phaseHeader = event.target.closest(".phase-header");
+
+      if (sequenceHeader && !phaseHeader) {
+        // Only handle sequence header clicks, not nested phase headers
+        event.preventDefault();
+        event.stopPropagation();
+        this.toggleSequence(sequenceHeader);
+      } else if (phaseHeader && !sequenceHeader) {
+        // Handle phase header clicks when no sequence header is present (filtered mode)
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      } else if (
+        phaseHeader &&
+        sequenceHeader &&
+        !sequenceHeader.contains(phaseHeader)
+      ) {
+        // Handle phase header clicks that aren't nested in sequence headers
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      } else if (phaseHeader) {
+        // Handle phase header clicks within sequence sections
+        event.preventDefault();
+        event.stopPropagation();
+        this.togglePhase(phaseHeader);
+      }
+    };
+
+    // Attach new handlers
+    runsheetContent.addEventListener("click", stepHandler);
+    runsheetContent.addEventListener("click", foldingHandler);
+
+    // Store references for cleanup
+    runsheetContent._iterationViewHandlers = {
+      stepHandler: stepHandler,
+      foldingHandler: foldingHandler,
+    };
+
+    // Reset all expand/collapse states to ensure consistency after filtering
+    this.resetExpandCollapseStates();
+  }
+
+  /**
+   * Reset all expand/collapse states to ensure consistency after filtering
+   */
+  resetExpandCollapseStates() {
+    // Reset all sequence and phase headers to expanded state
+    document
+      .querySelectorAll(".sequence-header .expand-icon")
+      .forEach((icon) => {
+        icon.classList.remove("collapsed");
+      });
+
+    document.querySelectorAll(".phase-header .expand-icon").forEach((icon) => {
+      icon.classList.remove("collapsed");
     });
 
-    // Bind folding events
-    runsheetContent.addEventListener("click", (event) => {
-      if (event.target.closest(".sequence-header")) {
-        this.toggleSequence(event.target.closest(".sequence-header"));
-      } else if (event.target.closest(".phase-header")) {
-        this.togglePhase(event.target.closest(".phase-header"));
-      }
+    // Ensure all phase sections are visible
+    document.querySelectorAll(".phase-section").forEach((phase) => {
+      phase.style.display = "block";
     });
+
+    // Ensure all step tables are visible
+    document.querySelectorAll(".runsheet-table").forEach((table) => {
+      table.style.display = "table";
+    });
+
+    console.log(
+      "IterationView: Reset all expand/collapse states to expanded after filtering",
+    );
   }
 
   /**
@@ -2991,16 +4092,38 @@ class IterationView {
    * Toggle sequence visibility (fold/unfold)
    */
   toggleSequence(sequenceHeader) {
+    if (!sequenceHeader) {
+      console.warn("IterationView: toggleSequence called with invalid header");
+      return;
+    }
+
     const icon = sequenceHeader.querySelector(".expand-icon");
     const sequenceSection = sequenceHeader.closest(".sequence-section");
-    const phaseSections = sequenceSection.querySelectorAll(".phase-section");
 
-    if (icon.classList.contains("collapsed")) {
+    if (!icon || !sequenceSection) {
+      console.warn(
+        "IterationView: toggleSequence - missing icon or sequence section",
+      );
+      return;
+    }
+
+    const phaseSections = sequenceSection.querySelectorAll(".phase-section");
+    const isCurrentlyCollapsed = icon.classList.contains("collapsed");
+
+    if (isCurrentlyCollapsed) {
+      // Expand: remove collapsed class and show phases
       icon.classList.remove("collapsed");
-      phaseSections.forEach((phase) => (phase.style.display = "block"));
+      phaseSections.forEach((phase) => {
+        phase.style.display = "block";
+      });
+      console.log("IterationView: Expanded sequence");
     } else {
+      // Collapse: add collapsed class and hide phases
       icon.classList.add("collapsed");
-      phaseSections.forEach((phase) => (phase.style.display = "none"));
+      phaseSections.forEach((phase) => {
+        phase.style.display = "none";
+      });
+      console.log("IterationView: Collapsed sequence");
     }
   }
 
@@ -3008,20 +4131,38 @@ class IterationView {
    * Toggle phase visibility (fold/unfold)
    */
   togglePhase(phaseHeader) {
+    if (!phaseHeader) {
+      console.warn("IterationView: togglePhase called with invalid header");
+      return;
+    }
+
     const icon = phaseHeader.querySelector(".expand-icon");
     const phaseSection = phaseHeader.closest(".phase-section");
-    const stepsTable = phaseSection.querySelector("table.runsheet-table");
 
-    if (icon.classList.contains("collapsed")) {
+    if (!icon || !phaseSection) {
+      console.warn(
+        "IterationView: togglePhase - missing icon or phase section",
+      );
+      return;
+    }
+
+    const stepsTable = phaseSection.querySelector("table.runsheet-table");
+    const isCurrentlyCollapsed = icon.classList.contains("collapsed");
+
+    if (isCurrentlyCollapsed) {
+      // Expand: remove collapsed class and show table
       icon.classList.remove("collapsed");
       if (stepsTable) {
         stepsTable.style.display = "table";
       }
+      console.log("IterationView: Expanded phase");
     } else {
+      // Collapse: add collapsed class and hide table
       icon.classList.add("collapsed");
       if (stepsTable) {
         stepsTable.style.display = "none";
       }
+      console.log("IterationView: Collapsed phase");
     }
   }
 
@@ -3135,94 +4276,113 @@ class IterationView {
 
   /**
    * Calculate and update step counts from sequences data
+   * Uses dynamic status definitions from the Status API
    */
   calculateAndUpdateStepCounts(sequences) {
     let total = 0;
-    let pending = 0;
-    let todo = 0;
-    let progress = 0;
-    let completed = 0;
-    let failed = 0;
-    let blocked = 0;
-    let cancelled = 0;
+    const statusCounts = new Map();
 
+    // Initialize status counters using dynamic status mappings
+    if (this.statusCounterMappings) {
+      this.statusCounterMappings.forEach(({ statusKey }) => {
+        statusCounts.set(statusKey, 0);
+      });
+    }
+
+    // Add fallback counters for backward compatibility
+    const fallbackStatuses = [
+      "PENDING",
+      "TODO",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "FAILED",
+      "BLOCKED",
+      "CANCELLED",
+    ];
+    fallbackStatuses.forEach((status) => {
+      if (!statusCounts.has(status)) {
+        statusCounts.set(status, 0);
+      }
+    });
+
+    // Count steps by status
     sequences.forEach((sequence) => {
       sequence.phases.forEach((phase) => {
         phase.steps.forEach((step) => {
           total++;
 
-          // Use exact status matching from status_sts table
-          if (!step.status) {
-            pending++;
-            return;
-          }
+          const stepStatus = step.status
+            ? step.status.toUpperCase()
+            : "PENDING";
 
-          switch (step.status.toUpperCase()) {
-            case "COMPLETED":
-              completed++;
-              break;
-            case "IN_PROGRESS":
-              progress++;
-              break;
-            case "FAILED":
-              failed++;
-              break;
-            case "BLOCKED":
-              blocked++;
-              break;
-            case "CANCELLED":
-              cancelled++;
-              break;
-            case "TODO":
-              todo++;
-              break;
-            case "PENDING":
-              pending++;
-              break;
-            default:
-              // Fallback to old logic for backward compatibility
-              const statusClass = this.getStatusClass(step.status);
-              switch (statusClass) {
-                case "status-completed":
-                  completed++;
-                  break;
-                case "status-progress":
-                  progress++;
-                  break;
-                case "status-failed":
-                  failed++;
-                  break;
-                case "status-blocked":
-                  blocked++;
-                  break;
-                case "status-cancelled":
-                  cancelled++;
-                  break;
-                case "status-todo":
-                  todo++;
-                  break;
-                default:
-                  pending++;
-              }
+          // Increment counter for this status
+          if (statusCounts.has(stepStatus)) {
+            statusCounts.set(stepStatus, statusCounts.get(stepStatus) + 1);
+          } else {
+            // Handle unknown status - add to PENDING or a fallback
+            console.warn(
+              `Unknown status encountered: ${stepStatus}, counting as PENDING`,
+            );
+            statusCounts.set("PENDING", statusCounts.get("PENDING") + 1);
           }
         });
       });
     });
 
-    this.updateStepCounts(
-      total,
-      pending,
-      todo,
-      progress,
-      completed,
-      failed,
-      blocked,
-      cancelled,
-    );
+    // Update the UI with dynamic counts
+    this.updateStepCountsFromMap(total, statusCounts);
   }
 
   /**
-   * Update step count display
+   * Update step count display using dynamic status counts
+   */
+  updateStepCountsFromMap(total, statusCounts) {
+    // Update total steps count
+    this.updateElementText("total-steps", total);
+
+    // Update each status count using dynamic mappings
+    if (this.statusCounterMappings) {
+      this.statusCounterMappings.forEach(({ elementId, statusKey }) => {
+        const count = statusCounts.get(statusKey) || 0;
+        this.updateElementText(elementId, count);
+      });
+    } else {
+      // Fallback to hardcoded element IDs for backward compatibility
+      this.updateElementText("pending-steps", statusCounts.get("PENDING") || 0);
+      this.updateElementText("todo-steps", statusCounts.get("TODO") || 0);
+      this.updateElementText(
+        "progress-steps",
+        statusCounts.get("IN_PROGRESS") || 0,
+      );
+      this.updateElementText(
+        "completed-steps",
+        statusCounts.get("COMPLETED") || 0,
+      );
+      this.updateElementText("failed-steps", statusCounts.get("FAILED") || 0);
+      this.updateElementText("blocked-steps", statusCounts.get("BLOCKED") || 0);
+      this.updateElementText(
+        "cancelled-steps",
+        statusCounts.get("CANCELLED") || 0,
+      );
+    }
+
+    console.log("Updated step counts:", Array.from(statusCounts.entries()));
+  }
+
+  /**
+   * Helper method to update element text content safely
+   */
+  updateElementText(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = value;
+    } else {
+      console.warn(`Element not found: ${elementId}`);
+    }
+  }
+
+  /**
+   * Update step count display (legacy method for backward compatibility)
    */
   updateStepCounts(
     total,
@@ -3273,10 +4433,36 @@ class IterationView {
     // Extract unique teams from steps
     const teamsMap = new Map();
 
+    // Add defensive checks for nested structure
+    if (!sequences || !Array.isArray(sequences)) {
+      console.warn(
+        "IterationView: sequences is not a valid array in updateTeamFilterFromSteps",
+      );
+      return;
+    }
+
     sequences.forEach((sequence) => {
+      // Check if sequence and sequence.phases exist
+      if (!sequence || !sequence.phases || !Array.isArray(sequence.phases)) {
+        console.warn(
+          "IterationView: sequence.phases is not a valid array for sequence:",
+          sequence,
+        );
+        return;
+      }
+
       sequence.phases.forEach((phase) => {
+        // Check if phase and phase.steps exist
+        if (!phase || !phase.steps || !Array.isArray(phase.steps)) {
+          console.warn(
+            "IterationView: phase.steps is not a valid array for phase:",
+            phase,
+          );
+          return;
+        }
+
         phase.steps.forEach((step) => {
-          if (step.ownerTeamId && step.ownerTeamName) {
+          if (step && step.ownerTeamId && step.ownerTeamName) {
             teamsMap.set(step.ownerTeamId, step.ownerTeamName);
           }
         });
@@ -3317,12 +4503,13 @@ class IterationView {
 
   /**
    * Apply dynamic colors to step count elements
+   * Uses dynamic counter mappings loaded from the Status API
    */
   applyCounterColors() {
-    if (!this.statusColors) return;
+    if (!this.statusColors && !this.statusCounterMappings) return;
 
-    // TD-003 Phase 2H: Fixed UI element to status mappings (intentionally hardcoded)
-    const counterMappings = [
+    // Use dynamic counter mappings if available, otherwise use fallback
+    const counterMappings = this.statusCounterMappings || [
       { elementId: "pending-steps", statusKey: "PENDING" },
       { elementId: "todo-steps", statusKey: "TODO" },
       { elementId: "progress-steps", statusKey: "IN_PROGRESS" },
@@ -3332,10 +4519,12 @@ class IterationView {
       { elementId: "cancelled-steps", statusKey: "CANCELLED" },
     ];
 
-    counterMappings.forEach(({ elementId, statusKey }) => {
+    counterMappings.forEach(({ elementId, statusKey, color: mappingColor }) => {
       const element = document.getElementById(elementId);
       if (element) {
-        const color = this.statusColors.get(statusKey) || "#DDDDDD";
+        // Prefer color from statusColors map, fallback to mapping color or default
+        const color =
+          this.statusColors?.get(statusKey) || mappingColor || "#DDDDDD";
         const textColor = this.getTextColorForBackground(color);
 
         element.style.backgroundColor = color;
@@ -3488,6 +4677,18 @@ class IterationView {
     const selectedIteOption = iterationSelect
       ? iterationSelect.selectedOptions[0]
       : null;
+
+    // Debug: Log the selected option details
+    if (selectedIteOption) {
+      console.log("buildStepViewURL: Selected iteration option details", {
+        value: selectedIteOption.value,
+        text: selectedIteOption.textContent,
+        dataset: selectedIteOption.dataset,
+        hasDataIteName: "iteName" in selectedIteOption.dataset,
+        dataIteName: selectedIteOption.dataset.iteName,
+      });
+    }
+
     const iterationName = selectedIteOption
       ? selectedIteOption.dataset.iteName
       : "";
@@ -3498,6 +4699,8 @@ class IterationView {
         migration: migrationName,
         iteration: iterationName,
         stepCode: stepCode,
+        selectedIteOption: selectedIteOption,
+        selectedMigOption: selectedMigOption,
       });
       return null;
     }
@@ -3924,9 +5127,9 @@ class IterationView {
     this.activeTimeouts.add(timeoutId);
   }
 
-  updateFilters() {
+  async updateFilters() {
     // Initialize filter state
-    this.applyFilters();
+    await this.applyFilters();
   }
 
   /**

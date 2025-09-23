@@ -542,8 +542,8 @@
         if (stored) {
           const parsedState = JSON.parse(stored);
           // Only restore certain properties
-          this.state.currentSection = parsedState.currentSection || "users";
-          this.state.currentEntity = parsedState.currentEntity || "users";
+          this.state.currentSection = parsedState.currentSection || "welcome";
+          this.state.currentEntity = parsedState.currentEntity || "welcome";
           this.state.pageSize = parsedState.pageSize || 50;
           this.state.sortField = parsedState.sortField || null;
           this.state.sortDirection = parsedState.sortDirection || "asc";

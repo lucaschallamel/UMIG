@@ -123,7 +123,93 @@ class UrlConstructionService {
             return null
         }
     }
-    
+
+    /**
+     * Constructs a secure iteration view URL for email notifications
+     *
+     * @param iterationId UUID of the iteration
+     * @param migrationCode Migration code (e.g., "TORONTO")
+     * @param iterationCode Iteration code (e.g., "run1")
+     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
+     * @return Fully constructed and validated URL, or null if construction fails
+     */
+    static String buildIterationViewUrl(UUID iterationId, String migrationCode, String iterationCode, String environmentCode = null) {
+        try {
+            // Auto-detect environment if not provided
+            if (!environmentCode) {
+                environmentCode = detectEnvironment()
+            }
+
+            // Get system configuration for the environment
+            def config = getSystemConfiguration(environmentCode)
+            if (!config) {
+                println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
+                return null
+            }
+
+            // Get iteration details for URL construction
+            def iterationDetails = getIterationDetails(iterationId)
+            if (!iterationDetails) {
+                println "UrlConstructionService: No iteration details found for iterationId: ${iterationId}"
+                return null
+            }
+
+            // Validate and sanitize parameters
+            def sanitizedParams = sanitizeUrlParameters([
+                mig: migrationCode,
+                ite: iterationCode,
+                view: 'iteration'  // Add view parameter to distinguish from step view
+            ])
+
+            if (!sanitizedParams) {
+                println "UrlConstructionService: Parameter validation failed for iteration URL"
+                return null
+            }
+
+            // Construct the URL
+            def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
+            def spaceKey = sanitizeParameter(config.scf_space_key as String)
+            def pageId = sanitizeParameter(config.scf_page_id as String)
+            def pageTitle = sanitizePageTitle(config.scf_page_title as String)
+
+            if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
+                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
+                return null
+            }
+
+            // Build the URL for iteration view
+            def urlBuilder = new StringBuilder()
+            urlBuilder.append(baseUrl)
+            if (!baseUrl.endsWith('/')) {
+                urlBuilder.append('/')
+            }
+            urlBuilder.append("pages/viewpage.action")
+
+            // Add query parameters including pageId and iteration-specific parameters
+            def allParams = [pageId: pageId] + sanitizedParams
+            def queryParams = allParams.collect { key, value ->
+                "${key}=${URLEncoder.encode(value as String, StandardCharsets.UTF_8.toString())}"
+            }.join('&')
+
+            urlBuilder.append("?${queryParams}")
+
+            def constructedUrl = urlBuilder.toString()
+
+            // Final validation
+            if (!isValidUrl(constructedUrl)) {
+                println "UrlConstructionService: Final URL validation failed: ${constructedUrl}"
+                return null
+            }
+
+            return constructedUrl
+
+        } catch (Exception e) {
+            println "UrlConstructionService: Error constructing iteration URL for ${iterationId}: ${e.message}"
+            e.printStackTrace()
+            return null
+        }
+    }
+
     /**
      * Auto-detect current environment based on system properties or defaults
      */
@@ -245,7 +331,27 @@ class UrlConstructionService {
             return null
         }
     }
-    
+
+    /**
+     * Retrieves iteration details for URL construction
+     */
+    private static Map getIterationDetails(UUID iterationId) {
+        try {
+            DatabaseUtil.withSql { sql ->
+                return sql.firstRow('''
+                    SELECT ite.ite_id, ite.ite_name,
+                           mig.mig_name
+                    FROM iterations_ite ite
+                    INNER JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE ite.ite_id = :iterationId
+                ''', [iterationId: iterationId])
+            }
+        } catch (Exception e) {
+            println "UrlConstructionService: Error retrieving iteration details for ${iterationId}: ${e.message}"
+            return null
+        }
+    }
+
     /**
      * Validates and sanitizes URL parameters for security
      */

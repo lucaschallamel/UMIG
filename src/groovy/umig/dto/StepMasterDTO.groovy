@@ -82,14 +82,22 @@ class StepMasterDTO {
     // ========================================
     // COMPUTED METADATA FIELDS
     // ========================================
-    
+
     /** Count of associated instruction templates */
     @JsonProperty("instructionCount")
     Integer instructionCount
-    
+
     /** Count of instances created from this master */
     @JsonProperty("instanceCount")
     Integer instanceCount
+
+    // ========================================
+    // ASSOCIATED ENTITIES
+    // ========================================
+
+    /** List of label objects associated with this step master */
+    @JsonProperty("labels")
+    List<Map<String, Object>> labels
     
     // ========================================
     // SERIALIZATION AND VALIDATION
@@ -183,7 +191,12 @@ class StepMasterDTO {
             dto.instanceCount = instanceCount
             return this
         }
-        
+
+        Builder withLabels(List<Map<String, Object>> labels) {
+            dto.labels = labels
+            return this
+        }
+
         StepMasterDTO build() {
             if (!dto.isValid()) {
                 log.warn("Building StepMasterDTO with missing required fields")
@@ -217,6 +230,7 @@ class StepMasterDTO {
             .withIsActive(this.isActive)
             .withInstructionCount(this.instructionCount)
             .withInstanceCount(this.instanceCount)
+            .withLabels(this.labels)
             .build()
     }
 }

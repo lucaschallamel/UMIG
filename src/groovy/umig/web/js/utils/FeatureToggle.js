@@ -19,8 +19,8 @@
         "environments-component": false,
         "applications-component": false,
         "labels-component": false,
-        "migration-types-component": false,
-        "iteration-types-component": false,
+        "migration-types-component": true,
+        "iteration-types-component": true,
 
         // Infrastructure features
         "performance-monitoring": true,
