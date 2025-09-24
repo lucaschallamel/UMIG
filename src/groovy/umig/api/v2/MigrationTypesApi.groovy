@@ -117,7 +117,7 @@ migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { Multi
                 
                 if (sort) {
                     // Validate sort field against allowed columns
-                    def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+                    def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at', 'migration_count']
                     if (allowedSortFields.contains(sort)) {
                         sortField = sort
                         log.debug("Using valid sort field: ${sortField}")

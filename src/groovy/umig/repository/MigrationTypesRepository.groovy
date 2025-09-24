@@ -20,40 +20,52 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             if (includeInactive) {
                 return sql.rows("""
-                    SELECT 
-                        mit_id,
-                        mit_code,
-                        mit_name,
-                        mit_description,
-                        mit_color,
-                        mit_icon,
-                        mit_display_order,
-                        mit_active,
-                        created_by,
-                        created_at,
-                        updated_by,
-                        updated_at
-                    FROM migration_types_mit
-                    ORDER BY mit_display_order, mit_code
+                    SELECT
+                        mt.mit_id,
+                        mt.mit_code,
+                        mt.mit_name,
+                        mt.mit_description,
+                        mt.mit_color,
+                        mt.mit_icon,
+                        mt.mit_display_order,
+                        mt.mit_active,
+                        mt.created_by,
+                        mt.created_at,
+                        mt.updated_by,
+                        mt.updated_at,
+                        COALESCE(m.migration_count, 0) as migration_count
+                    FROM migration_types_mit mt
+                    LEFT JOIN (
+                        SELECT mig_type, COUNT(*) as migration_count
+                        FROM migrations_mig
+                        GROUP BY mig_type
+                    ) m ON mt.mit_code = m.mig_type
+                    ORDER BY mt.mit_display_order, mt.mit_code
                 """)
             } else {
                 return sql.rows("""
-                    SELECT 
-                        mit_id,
-                        mit_code,
-                        mit_name,
-                        mit_description,
-                        mit_color,
-                        mit_icon,
-                        mit_display_order,
-                        mit_active,
-                        created_by,
-                        created_at,
-                        updated_by,
-                        updated_at
-                    FROM migration_types_mit
-                    WHERE mit_active = TRUE
-                    ORDER BY mit_display_order, mit_code
+                    SELECT
+                        mt.mit_id,
+                        mt.mit_code,
+                        mt.mit_name,
+                        mt.mit_description,
+                        mt.mit_color,
+                        mt.mit_icon,
+                        mt.mit_display_order,
+                        mt.mit_active,
+                        mt.created_by,
+                        mt.created_at,
+                        mt.updated_by,
+                        mt.updated_at,
+                        COALESCE(m.migration_count, 0) as migration_count
+                    FROM migration_types_mit mt
+                    LEFT JOIN (
+                        SELECT mig_type, COUNT(*) as migration_count
+                        FROM migrations_mig
+                        GROUP BY mig_type
+                    ) m ON mt.mit_code = m.mig_type
+                    WHERE mt.mit_active = TRUE
+                    ORDER BY mt.mit_display_order, mt.mit_code
                 """)
             }
         }
@@ -69,54 +81,67 @@ class MigrationTypesRepository {
     def findAllMigrationTypesWithSorting(boolean includeInactive = false, String sortField = null, String sortDirection = 'asc') {
         DatabaseUtil.withSql { sql ->
             // Validate sort field to prevent SQL injection (follows ADR-043 type safety)
-            def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
-            
+            // Added migration_count to allowed sort fields
+            def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at', 'migration_count']
+
             // Build ORDER BY clause components safely using standard SQL approach
-            String primarySort = "mit_display_order ASC"
-            String secondarySort = "mit_name ASC"
-            
+            String primarySort = "mt.mit_display_order ASC"
+            String secondarySort = "mt.mit_name ASC"
+
             if (sortField && allowedSortFields.contains(sortField)) {
                 // Validate sort direction
                 String direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
-                primarySort = "${sortField} ${direction}"
-                
+
+                // Handle migration_count sorting specially (it's a computed field)
+                if (sortField == 'migration_count') {
+                    primarySort = "migration_count ${direction}"
+                } else {
+                    primarySort = "mt.${sortField} ${direction}"
+                }
+
                 // Add secondary sort for consistent ordering (following UMIG pattern)
                 if (sortField != 'mit_display_order') {
-                    secondarySort = "mit_display_order ASC, mit_name ASC"
+                    secondarySort = "mt.mit_display_order ASC, mt.mit_name ASC"
                 } else if (sortField != 'mit_name') {
-                    secondarySort = "mit_name ASC"
+                    secondarySort = "mt.mit_name ASC"
                 } else {
-                    secondarySort = "mit_display_order ASC"
+                    secondarySort = "mt.mit_display_order ASC"
                 }
             }
-            
+
             // Build the complete ORDER BY clause as a string literal
             String orderByClause = "${primarySort}, ${secondarySort}"
-            
-            // Base SELECT clause
+
+            // Base SELECT clause with migration count LEFT JOIN
             String baseSelectClause = """
-                SELECT 
-                    mit_id,
-                    mit_code,
-                    mit_name,
-                    mit_description,
-                    mit_color,
-                    mit_icon,
-                    mit_display_order,
-                    mit_active,
-                    created_by,
-                    created_at,
-                    updated_by,
-                    updated_at
-                FROM migration_types_mit
+                SELECT
+                    mt.mit_id,
+                    mt.mit_code,
+                    mt.mit_name,
+                    mt.mit_description,
+                    mt.mit_color,
+                    mt.mit_icon,
+                    mt.mit_display_order,
+                    mt.mit_active,
+                    mt.created_by,
+                    mt.created_at,
+                    mt.updated_by,
+                    mt.updated_at,
+                    COALESCE(m.migration_count, 0) as migration_count
+                FROM migration_types_mit mt
+                LEFT JOIN (
+                    SELECT mig_type, COUNT(*) as migration_count
+                    FROM migrations_mig
+                    GROUP BY mig_type
+                ) m ON mt.mit_code = m.mig_type
             """
-            
+
             if (includeInactive) {
                 // Use string concatenation to avoid interpolation issues
                 String fullQuery = baseSelectClause + " ORDER BY " + orderByClause
                 return sql.rows(fullQuery)
             } else {
-                String fullQuery = baseSelectClause + " WHERE mit_active = TRUE ORDER BY " + orderByClause
+                String fullQuery = baseSelectClause + " WHERE mt.mit_active = TRUE ORDER BY " + orderByClause
                 return sql.rows(fullQuery)
             }
         }
@@ -130,21 +155,27 @@ class MigrationTypesRepository {
     def findMigrationTypeById(Integer mtmId) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT 
-                    mit_id,
-                    mit_code,
-                    mit_name,
-                    mit_description,
-                    mit_color,
-                    mit_icon,
-                    mit_display_order,
-                    mit_active,
-                    created_by,
-                    created_at,
-                    updated_by,
-                    updated_at
-                FROM migration_types_mit
-                WHERE mit_id = :mtmId
+                SELECT
+                    mt.mit_id,
+                    mt.mit_code,
+                    mt.mit_name,
+                    mt.mit_description,
+                    mt.mit_color,
+                    mt.mit_icon,
+                    mt.mit_display_order,
+                    mt.mit_active,
+                    mt.created_by,
+                    mt.created_at,
+                    mt.updated_by,
+                    mt.updated_at,
+                    COALESCE(m.migration_count, 0) as migration_count
+                FROM migration_types_mit mt
+                LEFT JOIN (
+                    SELECT mig_type, COUNT(*) as migration_count
+                    FROM migrations_mig
+                    GROUP BY mig_type
+                ) m ON mt.mit_code = m.mig_type
+                WHERE mt.mit_id = :mtmId
             """, [mtmId: mtmId])
         }
     }

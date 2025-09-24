@@ -124,6 +124,21 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
               `<span class="umig-order-badge">${value}</span>`,
           },
           {
+            key: "iteration_count",
+            label: "Iterations",
+            sortable: true,
+            renderer: (value, row) => {
+              const count = value || 0;
+              const countDisplay = count.toString();
+              // Add visual indicator if there are dependencies (following MigrationTypes pattern)
+              if (count > 0) {
+                return `<span class="umig-iteration-count-indicator" style="color: #d73527; font-weight: bold;" title="This iteration type is used by ${count} iteration(s)">${countDisplay}</span>`;
+              } else {
+                return `<span class="umig-iteration-count-none" style="color: #666;" title="No iterations use this type">${countDisplay}</span>`;
+              }
+            },
+          },
+          {
             key: "itt_active",
             label: "Status",
             sortable: true,
@@ -917,6 +932,134 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
 
     // Open the modal
     this.modalComponent.open();
+
+    // Cleanup any existing ColorPickerComponents
+    this._cleanupColorPickers();
+
+    // Enhance color fields after modal is rendered
+    setTimeout(() => {
+      const modalContainer = document.querySelector(
+        '.aui-dialog2-content, .modal-content, [data-component="modal"]',
+      );
+      if (modalContainer) {
+        this._enhanceColorFieldsInModal(modalContainer, newIterationTypeData);
+      } else {
+        console.warn(
+          "[IterationTypesEntityManager] Modal container not found for ColorPickerComponent enhancement",
+        );
+      }
+    }, 250); // Small delay to ensure modal DOM is ready
+  }
+
+  /**
+   * Enhance color fields in EDIT modal with ColorPickerComponent
+   * @param {HTMLElement} modalContainer - The modal container element
+   * @param {Object} formData - Current form data
+   * @private
+   */
+  _enhanceColorFieldsInModal(modalContainer, formData = {}) {
+    try {
+      console.log(
+        "[IterationTypesEntityManager] Enhancing color fields with ColorPickerComponent...",
+      );
+
+      // Find the color input field
+      const colorInput = modalContainer.querySelector(
+        'input[name="itt_color"], input[type="color"]',
+      );
+
+      if (!colorInput) {
+        console.log(
+          "[IterationTypesEntityManager] No color input field found in modal",
+        );
+        return;
+      }
+
+      // Check if ColorPickerComponent is available
+      if (!this.ColorPickerComponent) {
+        console.warn(
+          "[IterationTypesEntityManager] ColorPickerComponent not available for enhancement",
+        );
+        return;
+      }
+
+      // Get the current color value
+      const currentColor = formData.itt_color || colorInput.value || "#6B73FF";
+
+      // Create container for ColorPickerComponent
+      const colorFieldContainer = colorInput.parentElement;
+      const colorPickerContainer = document.createElement("div");
+      colorPickerContainer.className = "umig-color-picker-container";
+      colorPickerContainer.id = `color-picker-${Date.now()}`;
+
+      // Insert the ColorPickerComponent container before the original input
+      colorFieldContainer.insertBefore(colorPickerContainer, colorInput);
+
+      // Hide the original input but keep it for form submission
+      colorInput.style.display = "none";
+      colorInput.dataset.originalInput = "true";
+
+      // Initialize ColorPickerComponent
+      const colorPicker = new this.ColorPickerComponent({
+        container: colorPickerContainer,
+        defaultColor: currentColor,
+        allowCustomColors: true,
+        showHexInput: true,
+        required: false,
+        onChange: (color) => {
+          console.log(
+            "[IterationTypesEntityManager] Color changed via ColorPickerComponent:",
+            color,
+          );
+          // Update the hidden input field
+          colorInput.value = color;
+          // Trigger change event on the hidden input for any listeners
+          colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+      });
+
+      // Mount the ColorPickerComponent
+      colorPicker.initialize().then(() => {
+        colorPicker.mount().then(() => {
+          console.log(
+            "[IterationTypesEntityManager] ColorPickerComponent mounted successfully",
+          );
+        });
+      });
+
+      // Store reference for cleanup
+      if (!this._activeColorPickers) {
+        this._activeColorPickers = [];
+      }
+      this._activeColorPickers.push(colorPicker);
+
+      console.log(
+        "[IterationTypesEntityManager] Color field enhanced with ColorPickerComponent",
+      );
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error enhancing color fields:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Cleanup active ColorPickerComponents
+   * @private
+   */
+  _cleanupColorPickers() {
+    if (this._activeColorPickers && this._activeColorPickers.length > 0) {
+      this._activeColorPickers.forEach((picker) => {
+        if (picker && typeof picker.destroy === "function") {
+          picker.destroy();
+        }
+      });
+      this._activeColorPickers = [];
+      console.log(
+        "[IterationTypesEntityManager] Active ColorPickerComponents cleaned up",
+      );
+    }
   }
 
   /**
@@ -993,13 +1136,41 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     // Clear viewMode flag for edit mode
     this.modalComponent.viewMode = false;
 
-    // Set form data to current iteration type values
+    // CRITICAL FIX: Convert boolean status value to string for form dropdown compatibility
+    // The form dropdown expects string values ("true"/"false") but database stores boolean (true/false)
+    const formData = { ...iterationTypeData };
+    if (formData.itt_active !== undefined) {
+      // Convert boolean to string to match dropdown options
+      formData.itt_active = String(formData.itt_active);
+      console.log(
+        `[IterationTypesEntityManager] Status field conversion: ${iterationTypeData.itt_active} (${typeof iterationTypeData.itt_active}) → ${formData.itt_active} (${typeof formData.itt_active})`,
+      );
+    }
+
+    // Set form data to current iteration type values with converted status
     if (this.modalComponent.formData) {
-      Object.assign(this.modalComponent.formData, iterationTypeData);
+      Object.assign(this.modalComponent.formData, formData);
     }
 
     // Open the modal
     this.modalComponent.open();
+
+    // Cleanup any existing ColorPickerComponents
+    this._cleanupColorPickers();
+
+    // Enhance color fields after modal is rendered
+    setTimeout(() => {
+      const modalContainer = document.querySelector(
+        '.aui-dialog2-content, .modal-content, [data-component="modal"]',
+      );
+      if (modalContainer) {
+        this._enhanceColorFieldsInModal(modalContainer, iterationTypeData);
+      } else {
+        console.warn(
+          "[IterationTypesEntityManager] Modal container not found for ColorPickerComponent enhancement",
+        );
+      }
+    }, 250); // Small delay to ensure modal DOM is ready
   }
 
   /**
@@ -1276,7 +1447,10 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
 
           <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
             <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Usage Count</strong></label>
-            <div style="flex: 1; color: #555;">${data.usage_count || 0} iteration(s) using this type</div>
+            <div style="flex: 1; color: #555;">${(() => {
+              const count = data.iteration_count || 0;
+              return `${count} ${count === 1 ? "iteration" : "iterations"} using this type`;
+            })()}</div>
           </div>
 
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
@@ -1375,6 +1549,22 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
           sortable: true,
           width: "8%",
           render: (value) => `<span class="umig-order-badge">${value}</span>`,
+        },
+        {
+          key: "iteration_count",
+          title: "Iterations",
+          sortable: true,
+          width: "8%",
+          render: (value, row) => {
+            const count = value || 0;
+            const countDisplay = count.toString();
+            // Add visual indicator if there are dependencies (following MigrationTypes pattern)
+            if (count > 0) {
+              return `<span class="umig-iteration-count-indicator" style="color: #d73527; font-weight: bold;" title="This iteration type is used by ${count} iteration(s)">${countDisplay}</span>`;
+            } else {
+              return `<span class="umig-iteration-count-none" style="color: #666;" title="No iterations use this type">${countDisplay}</span>`;
+            }
+          },
         },
         {
           key: "itt_active",
@@ -2022,9 +2212,16 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       }
     }
 
-    // Convert boolean fields
+    // Convert boolean fields - ensure proper boolean type for database
     if (validatedData.itt_active !== undefined) {
-      validatedData.itt_active = String(validatedData.itt_active);
+      // Convert string boolean values to actual booleans
+      if (typeof validatedData.itt_active === "string") {
+        validatedData.itt_active = validatedData.itt_active === "true";
+      } else if (typeof validatedData.itt_active === "number") {
+        validatedData.itt_active = validatedData.itt_active === 1;
+      }
+      // Ensure final result is boolean
+      validatedData.itt_active = Boolean(validatedData.itt_active);
     }
 
     // Ensure display order is a number
@@ -2666,21 +2863,33 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Initialize color picker and icon selector components
+   * Initialize ColorPickerComponent for enhanced color selection
    * @returns {Promise<void>}
    * @private
    */
   async _initializeColorIconComponents() {
     try {
-      // Skip component registration for now - focus on core functionality
-      // ComponentOrchestrator doesn't support custom component interfaces yet
-      // This prevents the "Invalid component interface: color-picker" error
       console.log(
-        "[IterationTypesEntityManager] Color and icon components initialization skipped (not required for core functionality)",
+        "[IterationTypesEntityManager] Initializing ColorPickerComponent...",
+      );
+
+      // Check if ColorPickerComponent is available globally
+      if (typeof window.ColorPickerComponent === "undefined") {
+        console.warn(
+          "[IterationTypesEntityManager] ColorPickerComponent not available globally",
+        );
+        return;
+      }
+
+      // Store reference to ColorPickerComponent for use in modals
+      this.ColorPickerComponent = window.ColorPickerComponent;
+
+      console.log(
+        "[IterationTypesEntityManager] ColorPickerComponent initialized successfully",
       );
     } catch (error) {
       console.warn(
-        "[IterationTypesEntityManager] Color/icon component initialization failed:",
+        "[IterationTypesEntityManager] ColorPickerComponent initialization failed:",
         error,
       );
     }
