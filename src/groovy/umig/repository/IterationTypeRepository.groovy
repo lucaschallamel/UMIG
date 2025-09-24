@@ -20,38 +20,50 @@ class IterationTypeRepository {
         DatabaseUtil.withSql { sql ->
             if (includeInactive) {
                 return sql.rows("""
-                    SELECT 
-                        itt_code,
-                        itt_name,
-                        itt_description,
-                        itt_color,
-                        itt_icon,
-                        itt_display_order,
-                        itt_active,
-                        created_by,
-                        created_at,
-                        updated_by,
-                        updated_at
-                    FROM iteration_types_itt
-                    ORDER BY itt_display_order, itt_code
+                    SELECT
+                        it.itt_code,
+                        it.itt_name,
+                        it.itt_description,
+                        it.itt_color,
+                        it.itt_icon,
+                        it.itt_display_order,
+                        it.itt_active,
+                        it.created_by,
+                        it.created_at,
+                        it.updated_by,
+                        it.updated_at,
+                        COALESCE(i.iteration_count, 0) as iteration_count
+                    FROM iteration_types_itt it
+                    LEFT JOIN (
+                        SELECT itt_code, COUNT(*) as iteration_count
+                        FROM iterations_ite
+                        GROUP BY itt_code
+                    ) i ON it.itt_code = i.itt_code
+                    ORDER BY it.itt_display_order, it.itt_code
                 """)
             } else {
                 return sql.rows("""
-                    SELECT 
-                        itt_code,
-                        itt_name,
-                        itt_description,
-                        itt_color,
-                        itt_icon,
-                        itt_display_order,
-                        itt_active,
-                        created_by,
-                        created_at,
-                        updated_by,
-                        updated_at
-                    FROM iteration_types_itt
-                    WHERE itt_active = TRUE
-                    ORDER BY itt_display_order, itt_code
+                    SELECT
+                        it.itt_code,
+                        it.itt_name,
+                        it.itt_description,
+                        it.itt_color,
+                        it.itt_icon,
+                        it.itt_display_order,
+                        it.itt_active,
+                        it.created_by,
+                        it.created_at,
+                        it.updated_by,
+                        it.updated_at,
+                        COALESCE(i.iteration_count, 0) as iteration_count
+                    FROM iteration_types_itt it
+                    LEFT JOIN (
+                        SELECT itt_code, COUNT(*) as iteration_count
+                        FROM iterations_ite
+                        GROUP BY itt_code
+                    ) i ON it.itt_code = i.itt_code
+                    WHERE it.itt_active = TRUE
+                    ORDER BY it.itt_display_order, it.itt_code
                 """)
             }
         }
@@ -68,49 +80,58 @@ class IterationTypeRepository {
      */
     def findAllIterationTypesWithPagination(int pageNumber = 1, int pageSize = 50, boolean includeInactive = false, String sortField = null, String sortDirection = 'asc') {
         DatabaseUtil.withSql { sql ->
-            // Validate and set default sort parameters
-            def allowedSortFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+            // Validate and set default sort parameters (added iteration_count to allowed sort fields)
+            def allowedSortFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active', 'created_by', 'created_at', 'updated_by', 'updated_at', 'iteration_count']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'itt_display_order'
             }
-            
+
             def direction = (sortDirection && ['asc', 'desc'].contains(sortDirection.toLowerCase())) ? sortDirection.toUpperCase() : 'ASC'
-            
+
             // Calculate offset
             int offset = (pageNumber - 1) * pageSize
-            
-            // Use template-based SQL construction to avoid concatenation issues
-            def countQuery = includeInactive ? 
+
+            // Count query needs to match the JOIN structure for accurate counts
+            def countQuery = includeInactive ?
                 """SELECT COUNT(*) as total FROM iteration_types_itt""" :
                 """SELECT COUNT(*) as total FROM iteration_types_itt WHERE itt_active = TRUE"""
-            
+
             def totalCount = sql.firstRow(countQuery).total as Integer
-            
-            // Build main query with conditional WHERE clause using string concatenation (fixes SQL parameter issue)
-            String baseSelect = """SELECT 
-                    itt_code,
-                    itt_name,
-                    itt_description,
-                    itt_color,
-                    itt_icon,
-                    itt_display_order,
-                    itt_active,
-                    created_by,
-                    created_at,
-                    updated_by,
-                    updated_at
-                FROM iteration_types_itt"""
-            
-            String whereClause = includeInactive ? "" : " WHERE itt_active = TRUE"
-            String orderByClause = " ORDER BY " + sortField + " " + direction
+
+            // Build main query with LEFT JOIN for iteration_count and conditional WHERE clause
+            String baseSelect = """SELECT
+                    it.itt_code,
+                    it.itt_name,
+                    it.itt_description,
+                    it.itt_color,
+                    it.itt_icon,
+                    it.itt_display_order,
+                    it.itt_active,
+                    it.created_by,
+                    it.created_at,
+                    it.updated_by,
+                    it.updated_at,
+                    COALESCE(i.iteration_count, 0) as iteration_count
+                FROM iteration_types_itt it
+                LEFT JOIN (
+                    SELECT itt_code, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY itt_code
+                ) i ON it.itt_code = i.itt_code"""
+
+            String whereClause = includeInactive ? "" : " WHERE it.itt_active = TRUE"
+
+            // Handle sorting - iteration_count is a computed field, others need it. prefix
+            String sortColumn = (sortField == 'iteration_count') ? 'iteration_count' : 'it.' + sortField
+            String orderByClause = " ORDER BY " + sortColumn + " " + direction
             String limitClause = " LIMIT " + pageSize + " OFFSET " + offset
-            
+
             def dataQuery = baseSelect + whereClause + orderByClause + limitClause
             def iterationTypes = sql.rows(dataQuery)
-            
+
             // Calculate pagination metadata
             int totalPages = Math.ceil((totalCount as double) / (pageSize as double)) as Integer
-            
+
             return [
                 data: iterationTypes,
                 pagination: [
@@ -137,20 +158,26 @@ class IterationTypeRepository {
     def findIterationTypeByCode(String ittCode) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT 
-                    itt_code,
-                    itt_name,
-                    itt_description,
-                    itt_color,
-                    itt_icon,
-                    itt_display_order,
-                    itt_active,
-                    created_by,
-                    created_at,
-                    updated_by,
-                    updated_at
-                FROM iteration_types_itt
-                WHERE itt_code = :ittCode
+                SELECT
+                    it.itt_code,
+                    it.itt_name,
+                    it.itt_description,
+                    it.itt_color,
+                    it.itt_icon,
+                    it.itt_display_order,
+                    it.itt_active,
+                    it.created_by,
+                    it.created_at,
+                    it.updated_by,
+                    it.updated_at,
+                    COALESCE(i.iteration_count, 0) as iteration_count
+                FROM iteration_types_itt it
+                LEFT JOIN (
+                    SELECT itt_code, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY itt_code
+                ) i ON it.itt_code = i.itt_code
+                WHERE it.itt_code = :ittCode
             """, [ittCode: ittCode])
         }
     }
@@ -367,7 +394,7 @@ class IterationTypeRepository {
     def getIterationTypeUsageStats() {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT 
+                SELECT
                     it.itt_code,
                     it.itt_name,
                     it.itt_active,

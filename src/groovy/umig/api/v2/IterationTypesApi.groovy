@@ -142,8 +142,8 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { Multi
             
             if (sortParam) {
                 sortField = sortParam as String
-                // Validate sort field (must match repository validation)
-                def allowedSortFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+                // Validate sort field (must match repository validation) - added iteration_count to allowed sort fields
+                def allowedSortFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active', 'created_by', 'created_at', 'updated_by', 'updated_at', 'iteration_count']
                 if (!allowedSortFields.contains(sortField)) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}"]).toString())

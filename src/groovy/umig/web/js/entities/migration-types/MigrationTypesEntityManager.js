@@ -84,19 +84,6 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
             },
           },
           {
-            key: "mit_active",
-            label: "Status",
-            sortable: true,
-            renderer: (value) => {
-              const isActive =
-                value === true || value === 1 || value === "true";
-              const config = isActive
-                ? { label: "Active", variant: "success" }
-                : { label: "Inactive", variant: "secondary" };
-              return `<span class="badge badge-${config.variant}">${config.label}</span>`;
-            },
-          },
-          {
             key: "mit_color",
             label: "Color",
             sortable: true,
@@ -106,12 +93,88 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
             },
           },
           {
+            key: "mit_icon",
+            label: "Icon",
+            sortable: true,
+            renderer: (value) => {
+              const iconName = value || "layers";
+              // Use UTF-8 standard icons with fallbacks for cross-platform compatibility
+              const iconMap = {
+                layers: {
+                  unicode: "≡",
+                  title: "Layers",
+                },
+                database: {
+                  unicode: "⊗",
+                  title: "Database",
+                },
+                server: {
+                  unicode: "■",
+                  title: "Server",
+                },
+                cloud: {
+                  unicode: "☁",
+                  title: "Cloud",
+                },
+                network: {
+                  unicode: "⌘",
+                  title: "Network",
+                },
+                application: {
+                  unicode: "⚙",
+                  title: "Application",
+                },
+                infrastructure: {
+                  unicode: "⚡",
+                  title: "Infrastructure",
+                },
+                security: {
+                  unicode: "🛡",
+                  title: "Security",
+                },
+              };
+              const iconConfig = iconMap[iconName] || iconMap["layers"];
+
+              // Use Unicode characters directly for reliable cross-platform display
+              return `<span class="umig-icon-container" title="${iconConfig.title} (${iconName})" style="font-size: 16px; font-weight: bold;">
+                ${iconConfig.unicode}
+              </span>`;
+            },
+          },
+          {
             key: "mit_display_order",
             label: "Order",
             sortable: true,
             renderer: (value) => {
               const order = parseInt(value) || 0;
               return `<span class="umig-badge">${order}</span>`;
+            },
+          },
+          {
+            key: "migration_count",
+            label: "Migrations",
+            sortable: true,
+            renderer: (value, row) => {
+              const count = value || 0;
+              const countDisplay = count.toString();
+              // Add visual indicator if there are dependencies (following Labels pattern)
+              if (count > 0) {
+                return `<span class="umig-migration-count-indicator" style="color: #d73527; font-weight: bold;" title="This migration type is used by ${count} migration(s)">${countDisplay}</span>`;
+              } else {
+                return `<span class="umig-migration-count-none" style="color: #666;" title="No migrations use this type">${countDisplay}</span>`;
+              }
+            },
+          },
+          {
+            key: "mit_active",
+            label: "Status",
+            sortable: true,
+            renderer: (value) => {
+              const badgeClass = value
+                ? "umig-badge-success"
+                : "umig-badge-secondary";
+              const badgeText = value ? "Active" : "Inactive";
+              return `<span class="umig-badge ${badgeClass}">${badgeText}</span>`;
             },
           },
         ],
@@ -176,10 +239,10 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
             },
             {
               name: "mit_color",
-              type: "text",
+              type: "color",
               required: false,
               label: "Color",
-              placeholder: "#6B73FF",
+              placeholder: "Select migration type color",
               defaultValue: "#6B73FF",
               validation: {
                 pattern: /^#[0-9A-Fa-f]{6}$/,
@@ -217,10 +280,10 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
               required: true,
               label: "Status",
               placeholder: "Select status",
-              defaultValue: true,
+              defaultValue: "true",
               options: [
-                { value: true, label: "Active - Available for Use" },
-                { value: false, label: "Inactive - Not Available" },
+                { value: "true", label: "Active - Available for Use" },
+                { value: "false", label: "Inactive - Not Available" },
               ],
             },
           ],
@@ -228,6 +291,19 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       },
       filterConfig: {
         fields: ["mit_code", "mit_name", "mit_description"],
+        customFilters: [
+          {
+            name: "status",
+            type: "select",
+            label: "Status Filter",
+            options: [
+              { value: "", text: "All Records" },
+              { value: "true", text: "Active Only" },
+              { value: "false", text: "Inactive Only" },
+            ],
+            defaultValue: "",
+          },
+        ],
       },
       paginationConfig: {
         containerId: "paginationContainer",
@@ -297,6 +373,87 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   // Protected Methods (Implementation of BaseEntityManager abstract methods)
 
   /**
+   * Override loadData to add performance tracking and error handling
+   * @param {Object} filters - Filter parameters
+   * @param {Object} sort - Sort parameters
+   * @param {number} page - Page number
+   * @param {number} pageSize - Page size
+   * @returns {Promise<Object>} Data response with metadata
+   * @public
+   */
+  async loadData(filters = {}, sort = null, page = 1, pageSize = 20) {
+    const startTime = performance.now();
+    try {
+      // DIAGNOSTIC: Log current state before load
+      console.log(
+        `[MigrationTypesEntityManager] loadData called with initialization state: ${this.isInitialized}, table component: ${!!this.tableComponent}`,
+      );
+
+      // Call the parent loadData method with performance tracking
+      const result = await super.loadData(filters, sort, page, pageSize);
+
+      // Track performance
+      const duration = performance.now() - startTime;
+      this._trackPerformance("load", duration);
+      console.log(
+        `[MigrationTypesEntityManager] Data loaded successfully - ${result.data?.length || 0} records in ${duration.toFixed(2)}ms`,
+      );
+
+      // DIAGNOSTIC: Verify table component update after load
+      if (this.tableComponent) {
+        console.log(
+          `[MigrationTypesEntityManager] Table component available after loadData, currentData length: ${this.currentData?.length || 0}`,
+        );
+
+        // If initialization state is preventing updates, force the update
+        if (
+          !this.isInitialized &&
+          this.currentData &&
+          Array.isArray(this.currentData)
+        ) {
+          console.warn(
+            "[MigrationTypesEntityManager] Forcing table update due to initialization state issue",
+          );
+          if (typeof this.tableComponent.updateData === "function") {
+            await this.tableComponent.updateData(this.currentData);
+          } else if (typeof this.tableComponent.setData === "function") {
+            await this.tableComponent.setData(this.currentData);
+          }
+        }
+      } else {
+        console.warn(
+          "[MigrationTypesEntityManager] No table component available after loadData - table won't refresh",
+        );
+      }
+
+      return result;
+    } catch (error) {
+      // Track error and handle gracefully
+      this._trackError("loadData", error);
+      console.error(`[MigrationTypesEntityManager] Error loading data:`, error);
+
+      // Enhanced error diagnostics
+      console.error("[MigrationTypesEntityManager] Load error diagnostic:", {
+        isInitialized: this.isInitialized,
+        hasTableComponent: !!this.tableComponent,
+        hasOrchestrator: !!this.orchestrator,
+        apiEndpoint: this.migrationTypesApiUrl,
+        filters: filters,
+        error: error.message,
+      });
+
+      // Return empty result structure for graceful degradation
+      return {
+        data: [],
+        total: 0,
+        page: page,
+        pageSize: pageSize,
+        totalPages: 0,
+      };
+    }
+  }
+
+  /**
    * Fetch migration type data from API following Applications pattern
    * @param {Object} filters - Filter parameters
    * @param {Object} sort - Sort parameters
@@ -323,17 +480,28 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
         "/rest/scriptrunner/latest/custom/migrationTypes";
 
       // Apply client-side filtering for this entity
-      let url = baseUrl;
+      const params = new URLSearchParams();
+
+      // CRITICAL FIX: Always include inactive records from API for complete data
+      params.append("includeInactive", "true");
+      console.log(
+        "[MigrationTypesEntityManager] Added includeInactive=true to fetch ALL records from API",
+      );
+
       if (filters && Object.keys(filters).length > 0) {
-        const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null && value !== "") {
-            params.append(key, value);
+            // Don't pass status filter to API - handle client-side for better UX
+            if (key !== "status") {
+              params.append(key, value);
+            }
           }
         });
-        if (params.toString()) {
-          url += `?${params.toString()}`;
-        }
+      }
+
+      let url = baseUrl;
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
 
       // Security validation
@@ -368,8 +536,30 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       const fetchTime = performance.now() - startTime;
       this._trackPerformance("load", fetchTime);
 
-      // Return data in expected format for client-side pagination
-      return Array.isArray(data) ? data : data.data || [];
+      // Return data in the structured format that BaseEntityManager expects
+      let responseData = Array.isArray(data) ? data : data.data || [];
+
+      // Apply client-side status filtering if specified
+      if (filters && filters.status !== undefined && filters.status !== "") {
+        const targetStatus = filters.status === "true";
+        responseData = responseData.filter((record) => {
+          const isActive =
+            record.mit_active === true ||
+            record.mit_active === 1 ||
+            record.mit_active === "true";
+          return isActive === targetStatus;
+        });
+        console.log(
+          `[MigrationTypesEntityManager] Applied status filter '${filters.status}', showing ${responseData.length} records`,
+        );
+      }
+
+      return {
+        data: responseData,
+        total: responseData.length,
+        page: 1, // Client-side pagination always uses page 1
+        pageSize: responseData.length, // All data loaded at once for client-side pagination
+      };
     } catch (error) {
       console.error(
         "[MigrationTypesEntityManager] Failed to fetch migration types:",
@@ -455,9 +645,16 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       }
     }
 
-    // Convert boolean fields
+    // Convert boolean fields - ensure proper boolean type for database
     if (validatedData.mit_active !== undefined) {
-      validatedData.mit_active = String(validatedData.mit_active);
+      // Convert string boolean values to actual booleans
+      if (typeof validatedData.mit_active === "string") {
+        validatedData.mit_active = validatedData.mit_active === "true";
+      } else if (typeof validatedData.mit_active === "number") {
+        validatedData.mit_active = validatedData.mit_active === 1;
+      }
+      // Ensure final result is boolean
+      validatedData.mit_active = Boolean(validatedData.mit_active);
     }
 
     // Ensure display order is a number
@@ -715,6 +912,10 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     await super.initialize(containerOrOptions, options);
     // Load teams data for dropdown
     await this.loadTeams();
+
+    // Initialize ColorPickerComponent for enhanced color selection
+    await this._initializeColorPickerComponent();
+
     // Setup pagination event handlers
     this.setupPaginationHandlers();
     // Toolbar will be created after container is stable in render()
@@ -835,35 +1036,33 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
         }
       }
 
-      // Create toolbar HTML
-      toolbarContainer.innerHTML = `
-        <div class="toolbar-actions">
-          <button id="addMigrationTypeBtn" class="aui-button aui-button-primary">
-            <span class="aui-icon aui-icon-small aui-icon-add"></span>
-            Add New Migration Type
-          </button>
-          <button id="refreshMigrationTypesBtn" class="aui-button aui-button-link">
-            <span class="aui-icon aui-icon-small aui-icon-refresh"></span>
-            Refresh
-          </button>
-        </div>
-      `;
+      console.log("[MigrationTypesEntityManager] Created new toolbar");
 
-      // Attach event listeners
-      const addButton = toolbarContainer.querySelector("#addMigrationTypeBtn");
-      const refreshButton = toolbarContainer.querySelector(
-        "#refreshMigrationTypesBtn",
-      );
+      // Create Add New Migration Type button with UMIG-prefixed classes to avoid Confluence conflicts
+      const addButton = document.createElement("button");
+      addButton.className = "umig-btn-primary umig-button";
+      addButton.id = "umig-add-new-migration-type-btn"; // Use UMIG-prefixed ID to avoid legacy conflicts
+      addButton.innerHTML =
+        '<span class="umig-btn-icon">➕</span> Add New Migration Type';
+      addButton.setAttribute("data-action", "add");
+      addButton.onclick = () => this.handleAdd();
 
-      if (addButton) {
-        addButton.addEventListener("click", () => this.handleAdd());
-      }
+      // Create Refresh button with UMIG-prefixed classes and enhanced icon support
+      const refreshButton = document.createElement("button");
+      refreshButton.className = "umig-btn-secondary umig-button";
+      refreshButton.id = "umig-refresh-migration-types-btn";
+      // Refresh button with icon only (consistent with other entity managers)
+      refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
+      // Use addEventListener instead of onclick for better reliability (ADR-057 compliance)
+      refreshButton.addEventListener("click", async () => {
+        console.log("[MigrationTypesEntityManager] Refresh button clicked");
+        await this._handleRefreshWithFeedback(refreshButton);
+      });
 
-      if (refreshButton) {
-        refreshButton.addEventListener("click", () =>
-          this._handleRefreshWithFeedback(refreshButton),
-        );
-      }
+      // Clear and add buttons to toolbar
+      toolbarContainer.innerHTML = "";
+      toolbarContainer.appendChild(addButton);
+      toolbarContainer.appendChild(refreshButton);
 
       console.log(
         "[MigrationTypesEntityManager] ✓ Toolbar created successfully",
@@ -872,6 +1071,117 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       console.error(
         "[MigrationTypesEntityManager] Error creating toolbar:",
         error,
+      );
+    }
+  }
+
+  /**
+   * Enhance color fields in EDIT modal with ColorPickerComponent
+   * @param {HTMLElement} modalContainer - The modal container element
+   * @param {Object} formData - Current form data
+   * @private
+   */
+  _enhanceColorFieldsInModal(modalContainer, formData = {}) {
+    try {
+      console.log(
+        "[MigrationTypesEntityManager] Enhancing color fields with ColorPickerComponent...",
+      );
+
+      // Find the color input field
+      const colorInput = modalContainer.querySelector(
+        'input[name="mit_color"], input[type="color"]',
+      );
+
+      if (!colorInput) {
+        console.log(
+          "[MigrationTypesEntityManager] No color input field found in modal",
+        );
+        return;
+      }
+
+      // Check if ColorPickerComponent is available
+      if (!this.ColorPickerComponent) {
+        console.warn(
+          "[MigrationTypesEntityManager] ColorPickerComponent not available for enhancement",
+        );
+        return;
+      }
+
+      // Get the current color value
+      const currentColor = formData.mit_color || colorInput.value || "#6B73FF";
+
+      // Create container for ColorPickerComponent
+      const colorFieldContainer = colorInput.parentElement;
+      const colorPickerContainer = document.createElement("div");
+      colorPickerContainer.className = "umig-color-picker-container";
+      colorPickerContainer.id = `color-picker-${Date.now()}`;
+
+      // Insert the ColorPickerComponent container before the original input
+      colorFieldContainer.insertBefore(colorPickerContainer, colorInput);
+
+      // Hide the original input but keep it for form submission
+      colorInput.style.display = "none";
+      colorInput.dataset.originalInput = "true";
+
+      // Initialize ColorPickerComponent
+      const colorPicker = new this.ColorPickerComponent({
+        container: colorPickerContainer,
+        defaultColor: currentColor,
+        allowCustomColors: true,
+        showHexInput: true,
+        required: false,
+        onChange: (color) => {
+          console.log(
+            "[MigrationTypesEntityManager] Color changed via ColorPickerComponent:",
+            color,
+          );
+          // Update the hidden input field
+          colorInput.value = color;
+          // Trigger change event on the hidden input for any listeners
+          colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+      });
+
+      // Mount the ColorPickerComponent
+      colorPicker.initialize().then(() => {
+        colorPicker.mount().then(() => {
+          console.log(
+            "[MigrationTypesEntityManager] ColorPickerComponent mounted successfully",
+          );
+        });
+      });
+
+      // Store reference for cleanup
+      if (!this._activeColorPickers) {
+        this._activeColorPickers = [];
+      }
+      this._activeColorPickers.push(colorPicker);
+
+      console.log(
+        "[MigrationTypesEntityManager] Color field enhanced with ColorPickerComponent",
+      );
+    } catch (error) {
+      console.error(
+        "[MigrationTypesEntityManager] Error enhancing color fields:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Cleanup active ColorPickerComponents
+   * @private
+   */
+  _cleanupColorPickers() {
+    if (this._activeColorPickers && this._activeColorPickers.length > 0) {
+      this._activeColorPickers.forEach((picker) => {
+        if (picker && typeof picker.destroy === "function") {
+          picker.destroy();
+        }
+      });
+      this._activeColorPickers = [];
+      console.log(
+        "[MigrationTypesEntityManager] Active ColorPickerComponents cleaned up",
       );
     }
   }
@@ -900,7 +1210,7 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       mit_color: "#6B73FF",
       mit_icon: "layers",
       mit_display_order: 0,
-      mit_active: true,
+      mit_active: "true", // String value to match dropdown options
     };
 
     // Update modal configuration for Add mode
@@ -925,8 +1235,41 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
             "[MigrationTypesEntityManager] Migration type created successfully:",
             result,
           );
-          // Refresh the table data
-          await this.loadData();
+
+          // ENHANCED REFRESH LOGIC: Ensure proper table update
+          console.log(
+            "[MigrationTypesEntityManager] Refreshing table data after successful create",
+          );
+
+          // Use the same parameters as refresh button for consistency
+          await this.loadData(
+            this.currentFilters || {},
+            this.currentSort,
+            this.currentPage || 1,
+            this.currentPageSize ||
+              this.config.paginationConfig?.pageSize ||
+              20,
+          );
+
+          // Force table component update if initialization check failed
+          if (this.tableComponent && !this.isInitialized) {
+            console.warn(
+              "[MigrationTypesEntityManager] Force updating table component despite initialization state",
+            );
+            if (typeof this.tableComponent.updateData === "function") {
+              await this.tableComponent.updateData(this.currentData);
+            } else if (typeof this.tableComponent.setData === "function") {
+              await this.tableComponent.setData(this.currentData);
+            }
+          }
+
+          // Additional delay to ensure modal close doesn't interfere with table update
+          setTimeout(() => {
+            console.log(
+              `[MigrationTypesEntityManager] Post-create table refresh completed, ${this.currentData?.length || 0} records displayed`,
+            );
+          }, 100);
+
           // Show success message with auto-dismiss
           this._showNotification(
             "success",
@@ -962,6 +1305,23 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     }
     // Open the modal
     this.modalComponent.open();
+
+    // Cleanup any existing ColorPickerComponents
+    this._cleanupColorPickers();
+
+    // Enhance color fields after modal is rendered
+    setTimeout(() => {
+      const modalContainer = document.querySelector(
+        '.aui-dialog2-content, .modal-content, [data-component="modal"]',
+      );
+      if (modalContainer) {
+        this._enhanceColorFieldsInModal(modalContainer, newMigrationTypeData);
+      } else {
+        console.warn(
+          "[MigrationTypesEntityManager] Modal container not found for ColorPickerComponent enhancement",
+        );
+      }
+    }, 250); // Small delay to ensure modal DOM is ready
   }
 
   /**
@@ -1006,8 +1366,34 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
             "[MigrationTypesEntityManager] Migration type updated successfully:",
             result,
           );
-          // Refresh the table data
-          await this.loadData();
+
+          // ENHANCED REFRESH LOGIC: Ensure proper table update
+          console.log(
+            "[MigrationTypesEntityManager] Refreshing table data after successful update",
+          );
+
+          // Use the same parameters as refresh button for consistency
+          await this.loadData(
+            this.currentFilters || {},
+            this.currentSort,
+            this.currentPage || 1,
+            this.currentPageSize ||
+              this.config.paginationConfig?.pageSize ||
+              20,
+          );
+
+          // Force table component update if initialization check failed
+          if (this.tableComponent && !this.isInitialized) {
+            console.warn(
+              "[MigrationTypesEntityManager] Force updating table component despite initialization state",
+            );
+            if (typeof this.tableComponent.updateData === "function") {
+              await this.tableComponent.updateData(this.currentData);
+            } else if (typeof this.tableComponent.setData === "function") {
+              await this.tableComponent.setData(this.currentData);
+            }
+          }
+
           // Show success message with auto-dismiss
           this._showNotification(
             "success",
@@ -1035,16 +1421,45 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
     });
     // Clear viewMode flag for edit mode
     this.modalComponent.viewMode = false;
-    // Set form data to current migration type values
+
+    // CRITICAL FIX: Convert boolean status value to string for form dropdown compatibility
+    // The form dropdown expects string values ("true"/"false") but database stores boolean (true/false)
+    const formData = { ...migrationTypeData };
+    if (formData.mit_active !== undefined) {
+      // Convert boolean to string to match dropdown options
+      formData.mit_active = String(formData.mit_active);
+      console.log(
+        `[MigrationTypesEntityManager] Status field conversion: ${migrationTypeData.mit_active} (${typeof migrationTypeData.mit_active}) → ${formData.mit_active} (${typeof formData.mit_active})`,
+      );
+    }
+
+    // Set form data to current migration type values with converted status
     if (this.modalComponent.formData) {
-      Object.assign(this.modalComponent.formData, migrationTypeData);
+      Object.assign(this.modalComponent.formData, formData);
     }
     // Open the modal
     this.modalComponent.open();
+
+    // Cleanup any existing ColorPickerComponents
+    this._cleanupColorPickers();
+
+    // Enhance color fields after modal is rendered
+    setTimeout(() => {
+      const modalContainer = document.querySelector(
+        '.aui-dialog2-content, .modal-content, [data-component="modal"]',
+      );
+      if (modalContainer) {
+        this._enhanceColorFieldsInModal(modalContainer, migrationTypeData);
+      } else {
+        console.warn(
+          "[MigrationTypesEntityManager] Modal container not found for ColorPickerComponent enhancement",
+        );
+      }
+    }, 250); // Small delay to ensure modal DOM is ready
   }
 
   /**
-   * Override _generateViewContent to properly display color/icon in VIEW modal
+   * Override _generateViewContent to display enhanced color swatch in VIEW modal following IterationTypes pattern
    * @param {Object} data - Entity data
    * @returns {string} HTML content for view modal
    * @protected
@@ -1055,80 +1470,186 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       data,
     );
 
-    const color = data.mit_color || "#6B73FF";
-    const icon = data.mit_icon || "layers";
+    // Get SecurityUtils for sanitization
+    const securityUtils = window.SecurityUtils || {};
+    const sanitize = securityUtils.sanitizeInput || ((val) => val);
+
+    // Helper function to render enhanced color swatch (following IterationTypes pattern)
+    const renderColorSwatch = (color) => {
+      const hexColor = color || "#6B73FF";
+      // Use CSS class and data attributes instead of IDs - SecurityUtils strips IDs but allows class and data attributes
+      return `<span style="display: inline-flex; align-items: center;">
+        <div class="umig-color-swatch-view"
+             data-color="${hexColor}"
+             style="width: 20px; height: 20px; display: inline-block; margin-right: 8px;
+                    border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;
+                    background-color: ${hexColor};"
+             title="${hexColor}"></div>
+        <span>${hexColor}</span>
+      </span>`;
+    };
+
+    // Helper function to render icon
+    const renderIcon = (icon) => {
+      const iconName = icon || "layers";
+      return `<span style="display: inline-flex; align-items: center;">
+        <span class="aui-icon aui-icon-small aui-icon-${iconName}" style="margin-right: 8px;"></span>
+        <span>${iconName}</span>
+      </span>`;
+    };
 
     return `
-      <div class="entity-view-content">
-        <div class="field-group">
-          <label>Code:</label>
-          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_code || "") : data.mit_code || ""}</span>
-        </div>
-        <div class="field-group">
-          <label>Name:</label>
-          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_name || "") : data.mit_name || ""}</span>
-        </div>
-        <div class="field-group">
-          <label>Description:</label>
-          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_description || "") : data.mit_description || ""}</span>
-        </div>
-        <div class="field-group">
-          <label>Color:</label>
-          <span>
-            <span class="color-indicator" style="background-color: ${color}; width: 20px; height: 20px; display: inline-block; border-radius: 3px; margin-right: 8px; vertical-align: middle;"></span>
-            ${color}
-          </span>
-        </div>
-        <div class="field-group">
-          <label>Icon:</label>
-          <span>
-            <span class="aui-icon aui-icon-small aui-icon-${icon}" style="margin-right: 8px;"></span>
-            ${icon}
-          </span>
-        </div>
-        <div class="field-group">
-          <label>Display Order:</label>
-          <span>${data.mit_display_order || 0}</span>
-        </div>
-        <div class="field-group">
-          <label>Status:</label>
-          <span class="badge badge-${data.mit_active === true || data.mit_active === 1 || data.mit_active === "true" ? "success" : "secondary"}">
-            ${data.mit_active === true || data.mit_active === 1 || data.mit_active === "true" ? "Active" : "Inactive"}
-          </span>
-        </div>
-        <div class="field-group">
-          <label>Created At:</label>
-          <span>${this._formatDateTime(data.created_at)}</span>
-        </div>
-        <div class="field-group">
-          <label>Updated At:</label>
-          <span>${this._formatDateTime(data.updated_at)}</span>
+      <div style="padding: 20px;">
+        <div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Code</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.mit_code || "")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Name</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.mit_name || "")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Description</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.mit_description || "")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Color</strong></label>
+            <div style="flex: 1; color: #555;">${renderColorSwatch(data.mit_color)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Icon</strong></label>
+            <div style="flex: 1; color: #555;">${renderIcon(data.mit_icon)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Display Order</strong></label>
+            <div style="flex: 1; color: #555;">${data.mit_display_order || 0}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Status</strong></label>
+            <div style="flex: 1; color: #555;">
+              ${
+                data.mit_active
+                  ? '<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">Active</span>'
+                  : '<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6;">Inactive</span>'
+              }
+              ${
+                !data.mit_active
+                  ? '<div style="font-size: 0.9em; color: #666; margin-top: 4px;">Inactive migration types cannot be used in new migrations</div>'
+                  : ""
+              }
+            </div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Usage Count</strong></label>
+            <div style="flex: 1; color: #555;">${(() => {
+              const count = data.migration_count || 0;
+              return `${count} ${count === 1 ? "migration" : "migrations"} using this type`;
+            })()}</div>
+          </div>
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+          <h4 style="margin-bottom: 15px;">Audit Information</h4>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created At</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.created_at)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.created_by || "system")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.updated_at)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.updated_by || "system")}</div>
+          </div>
         </div>
       </div>
-      <style>
-        .entity-view-content .field-group {
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-        }
-        .entity-view-content .field-group label {
-          font-weight: bold;
-          min-width: 120px;
-          margin-right: 10px;
-        }
-        .entity-view-content .field-group span {
-          flex: 1;
-        }
-        .entity-view-content .color-indicator {
-          border: 1px solid #ddd;
-        }
-      </style>
     `;
   }
 
   /**
-   * Override the base _viewEntity method to use BaseEntityManager's info modal pattern
-   * This ensures _generateViewContent is called and visual elements display properly
+   * Initialize ColorPickerComponent for enhanced color selection
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _initializeColorPickerComponent() {
+    try {
+      console.log(
+        "[MigrationTypesEntityManager] Initializing ColorPickerComponent...",
+      );
+
+      // Check if ColorPickerComponent is available globally
+      if (typeof window.ColorPickerComponent === "undefined") {
+        console.warn(
+          "[MigrationTypesEntityManager] ColorPickerComponent not available globally",
+        );
+        return;
+      }
+
+      // Store reference to ColorPickerComponent for use in modals
+      this.ColorPickerComponent = window.ColorPickerComponent;
+
+      console.log(
+        "[MigrationTypesEntityManager] ColorPickerComponent initialized successfully",
+      );
+    } catch (error) {
+      console.warn(
+        "[MigrationTypesEntityManager] ColorPickerComponent initialization failed:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Apply color styles to swatches after modal rendering
+   * This bypasses SecurityUtils by using CSS classes and data attributes instead of IDs
+   * Following IterationTypes pattern for consistency
+   * @private
+   */
+  _applyColorSwatchStyles() {
+    console.log(
+      "[MigrationTypesEntityManager] Applying color styles to swatches",
+    );
+
+    // Find all color swatch elements using class selector (not ID) - IDs are stripped by SecurityUtils
+    const swatchElements = document.querySelectorAll(".umig-color-swatch-view");
+    if (swatchElements.length === 0) {
+      console.log(
+        "[MigrationTypesEntityManager] No color swatch elements found",
+      );
+      return;
+    }
+
+    console.log(
+      `[MigrationTypesEntityManager] Found ${swatchElements.length} swatch elements`,
+    );
+
+    // Apply styles to each swatch element
+    swatchElements.forEach((element, index) => {
+      const color = element.getAttribute("data-color") || "#6B73FF";
+      console.log(
+        `[MigrationTypesEntityManager] Applying color ${color} to swatch ${index + 1}`,
+      );
+
+      // Apply the background color directly to the element
+      element.style.backgroundColor = color;
+      // Ensure the element is properly styled
+      element.style.width = "20px";
+      element.style.height = "20px";
+      element.style.display = "inline-block";
+      element.style.marginRight = "8px";
+      element.style.border = "1px solid #ccc";
+      element.style.borderRadius = "3px";
+      element.style.verticalAlign = "middle";
+    });
+  }
+
+  /**
+   * Override the base _viewEntity method to provide custom HTML VIEW mode with color and icon rendering
+   * Following IterationTypes pattern for consistent VIEW modal behavior
    * @param {Object} data - Entity data to view
    * @private
    */
@@ -1137,49 +1658,115 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       "[MigrationTypesEntityManager] Opening View Migration Type modal for:",
       data,
     );
+    console.log("[MigrationTypesEntityManager] DEBUG: Audit field values:", {
+      created_at: data.created_at,
+      created_by: data.created_by,
+      updated_at: data.updated_at,
+      updated_by: data.updated_by,
+    });
 
-    // Use BaseEntityManager's approach with info modal type to leverage _generateViewContent
-    if (this.modalComponent) {
-      console.log(
-        `[MigrationTypesEntityManager] Opening modal with data for ${this.entityType}`,
-      );
-
-      // Configure the modal (matching BaseEntityManager pattern with Edit button)
-      this.modalComponent.updateConfig({
-        title: `View Migration Type: ${data.mit_name}`,
-        type: "info",
-        content: this._generateViewContent(data),
-        size: "large",
-        buttons: [
-          { text: "Edit", action: "edit", variant: "primary" },
-          { text: "Close", action: "close", variant: "secondary" },
-        ],
-        onButtonClick: (action) => {
-          if (action === "edit") {
-            // Switch to edit mode
-            this.modalComponent.close();
-            // Wait for close animation to complete before opening edit modal
-            setTimeout(() => {
-              this.handleEdit(data);
-            }, 350); // 350ms to ensure close animation (300ms) completes
-            return true; // Close modal handled above
-          }
-          if (action === "close") {
-            this.modalComponent.close();
-            return true; // Close modal
-          }
-          return false;
-        },
-      });
-
-      // Then open the modal (no parameters)
-      await this.modalComponent.open();
-      console.log(`[MigrationTypesEntityManager] Modal opened successfully`);
-    } else {
+    if (!this.modalComponent) {
       console.error(
-        `[MigrationTypesEntityManager] No modal component available`,
+        "[MigrationTypesEntityManager] Modal component not available",
       );
+      return;
     }
+
+    console.log("[DEBUG] _viewEntity: Starting view modal configuration");
+    console.log("[DEBUG] _viewEntity: Entity data:", data);
+    console.log(
+      "[DEBUG] _viewEntity: Current modal config before update:",
+      this.modalComponent.config,
+    );
+
+    // Generate custom HTML content for the view modal
+    const viewContent = this._generateViewContent(data);
+    console.log(
+      "[DEBUG] _viewEntity: Generated custom content length:",
+      viewContent ? viewContent.length : "null",
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Generated content preview:",
+      viewContent ? viewContent.substring(0, 200) + "..." : "null",
+    );
+
+    // Update modal configuration for View mode with custom HTML
+    // CRITICAL: Remove form configuration to ensure content is rendered instead of form
+    this.modalComponent.updateConfig({
+      title: `View Migration Type: ${data.mit_name}`,
+      type: "custom", // Use custom type to render HTML content
+      size: "large",
+      closeable: true,
+      content: viewContent, // Provide the custom HTML content
+      form: null, // CRITICAL: Explicitly remove form configuration to force content rendering
+      buttons: [
+        { text: "Edit", action: "edit", variant: "primary" },
+        { text: "Close", action: "close", variant: "secondary" },
+      ],
+      onButtonClick: (action) => {
+        console.log("[DEBUG] _viewEntity: Button clicked:", action);
+        if (action === "edit") {
+          // Switch to edit mode
+          this.modalComponent.close();
+          setTimeout(() => {
+            this.handleEdit(data);
+          }, 350);
+          return true;
+        }
+        if (action === "close") {
+          this.modalComponent.close();
+          return true;
+        }
+        return false;
+      },
+    });
+
+    console.log(
+      "[DEBUG] _viewEntity: After updateConfig - Updated modal config:",
+      this.modalComponent.config,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.form after update:",
+      this.modalComponent.config.form,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.content length after update:",
+      this.modalComponent.config.content?.length,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.type after update:",
+      this.modalComponent.config.type,
+    );
+
+    // Open the modal
+    console.log("[DEBUG] _viewEntity: Opening modal...");
+    this.modalComponent.open();
+
+    // Apply color styles after modal is rendered
+    // Use setTimeout to ensure DOM is updated and SecurityUtils has processed the content
+    setTimeout(() => {
+      this._applyColorSwatchStyles();
+      // Fallback: If swatches still not found, try again after a longer delay
+      setTimeout(() => {
+        const swatches = document.querySelectorAll(".umig-color-swatch-view");
+        if (swatches.length > 0) {
+          console.log(
+            "[DEBUG] _viewEntity: Fallback color swatch application successful",
+          );
+          this._applyColorSwatchStyles();
+        }
+      }, 300);
+    }, 100);
+  }
+
+  /**
+   * Override the base _editEntity method to use our custom handleEdit
+   * This ensures the status field values are properly populated in edit mode
+   * @param {Object} data - Entity data to edit
+   * @private
+   */
+  async _editEntity(data) {
+    this.handleEdit(data);
   }
 
   /**
@@ -1202,16 +1789,42 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       console.log(
         "[MigrationTypesEntityManager] Starting data refresh with visual feedback",
       );
-      await this.loadData(
-        this.currentFilters,
-        this.currentSort,
-        this.currentPage,
-        this.currentPageSize,
+      console.log(
+        "[MigrationTypesEntityManager] Current state before refresh:",
+        {
+          isInitialized: this.isInitialized,
+          hasTableComponent: !!this.tableComponent,
+          currentDataLength: this.currentData?.length || 0,
+          currentFilters: this.currentFilters,
+          currentSort: this.currentSort,
+          currentPage: this.currentPage,
+          currentPageSize: this.currentPageSize,
+        },
       );
+
+      await this.loadData(
+        this.currentFilters || {},
+        this.currentSort,
+        this.currentPage || 1,
+        this.currentPageSize || this.config.paginationConfig?.pageSize || 20,
+      );
+
+      // Force table component update if initialization check failed
+      if (this.tableComponent && !this.isInitialized) {
+        console.warn(
+          "[MigrationTypesEntityManager] Force updating table component during refresh despite initialization state",
+        );
+        if (typeof this.tableComponent.updateData === "function") {
+          await this.tableComponent.updateData(this.currentData);
+        } else if (typeof this.tableComponent.setData === "function") {
+          await this.tableComponent.setData(this.currentData);
+        }
+      }
+
       // Step 4: Calculate performance and show success feedback
       const endTime = performance.now();
       const duration = Math.round(endTime - startTime);
-      const message = `Data refreshed successfully in ${duration}ms`;
+      const message = `Data refreshed successfully in ${duration}ms (${this.currentData?.length || 0} records)`;
       console.log(`[MigrationTypesEntityManager] ${message}`);
 
       // Track performance metrics
@@ -1224,10 +1837,24 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
         "[MigrationTypesEntityManager] Failed to refresh data:",
         error,
       );
+      // Enhanced error diagnostic
+      console.error(
+        "[MigrationTypesEntityManager] Refresh failure diagnostic:",
+        {
+          isInitialized: this.isInitialized,
+          hasTableComponent: !!this.tableComponent,
+          hasModalComponent: !!this.modalComponent,
+          orchestratorAvailable: !!this.orchestrator,
+          currentDataType: Array.isArray(this.currentData)
+            ? "array"
+            : typeof this.currentData,
+          error: error.message,
+        },
+      );
       this._showNotification(
         "error",
         "Refresh Failed",
-        "Failed to refresh migration type data. Please try again.",
+        `Failed to refresh migration type data: ${error.message}. Please try again.`,
       );
     } finally {
       // Step 6: Always restore UI state
@@ -1244,21 +1871,45 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Set refresh button loading state
-   * @param {HTMLElement} button - Button element
-   * @param {boolean} loading - Loading state
+   * Set refresh button loading state with visual feedback
+   * @param {HTMLElement} button - The refresh button element
+   * @param {boolean} loading - Whether button should show loading state
    * @private
    */
   _setRefreshButtonLoadingState(button, loading) {
     if (!button) return;
     if (loading) {
+      // Store original content
+      button._originalHTML = button.innerHTML;
+      // Update to loading state with simple spinning emoji
+      button.innerHTML =
+        '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">🔄</span> Refreshing ...';
       button.disabled = true;
-      button.innerHTML =
-        '<span class="aui-icon aui-icon-small aui-icon-wait"></span> Refreshing...';
+      button.style.opacity = "0.7";
+      button.style.cursor = "not-allowed";
+      // Add spinning animation if not already defined
+      if (!document.querySelector("#umig-refresh-spinner-styles")) {
+        const style = document.createElement("style");
+        style.id = "umig-refresh-spinner-styles";
+        style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
     } else {
+      // Restore original state
+      if (button._originalHTML) {
+        button.innerHTML = button._originalHTML;
+      } else {
+        // Fallback to default content
+        button.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
+      }
       button.disabled = false;
-      button.innerHTML =
-        '<span class="aui-icon aui-icon-small aui-icon-refresh"></span> Refresh';
+      button.style.opacity = "";
+      button.style.cursor = "";
     }
   }
 
