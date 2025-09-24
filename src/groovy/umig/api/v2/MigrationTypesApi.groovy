@@ -38,7 +38,7 @@ MigrationTypesRepository getMigrationTypesRepository() {
  * - GET /migrationTypes/{id} -> returns a single migration type by ID
  * - GET /migrationTypes/code/{code} -> returns a single migration type by code
  */
-migrationTypes(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         def extraPath = getAdditionalPath(request)
         def pathParts = extraPath?.split('/')?.findAll { it } ?: []

@@ -267,14 +267,17 @@ describe("EnvironmentsEntityManager", () => {
     test("should have correct modal configuration", () => {
       const modalConfig = environmentsManager.config.modalConfig;
 
-      expect(modalConfig.fields).toHaveLength(3);
-      expect(modalConfig.fields[0].name).toBe("env_code");
-      expect(modalConfig.fields[1].name).toBe("env_name");
-      expect(modalConfig.fields[2].name).toBe("env_description");
+      // Check the form structure (correct pattern like Applications)
+      expect(modalConfig.form).toBeDefined();
+      expect(modalConfig.form.fields).toHaveLength(3);
+      expect(modalConfig.form.fields[0].name).toBe("env_code");
+      expect(modalConfig.form.fields[1].name).toBe("env_name");
+      expect(modalConfig.form.fields[2].name).toBe("env_description");
 
-      expect(modalConfig.title.create).toBe("Create New Environment");
-      expect(modalConfig.title.edit).toBe("Edit Environment");
-      expect(modalConfig.title.view).toBe("Environment Details");
+      // Check title is a simple string (not object)
+      expect(modalConfig.title).toBe("Environment Management");
+      expect(modalConfig.size).toBe("large");
+      expect(modalConfig.containerId).toBe("editModal");
     });
 
     test("should have correct filter configuration", () => {

@@ -47,7 +47,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   constructor(options = {}) {
     // Call super constructor with merged configuration following Applications pattern
     super({
-      entityType: "iterationTypes",
+      entityType: "iteration-types",
       ...options, // Include apiBase, endpoints, orchestrator, performanceMonitor
       tableConfig: {
         containerId: "dataTable",
@@ -77,30 +77,62 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
             key: "itt_color",
             label: "Color",
             sortable: true,
-            renderer: (value) =>
-              `<div class="color-swatch" style="background-color: ${value || "#6B73FF"};" title="${value || "#6B73FF"}"></div>`,
+            renderer: (value) => this._renderColorSwatch(value),
           },
           {
             key: "itt_icon",
             label: "Icon",
             sortable: true,
-            renderer: (value) =>
-              `<i class="fas fa-${value || "circle"}" title="${value || "circle"}"></i>`,
+            renderer: (value) => {
+              const iconName = value || "circle";
+              // Use AUI icons with robust UTF-8 character fallbacks for cross-platform compatibility
+              const iconMap = {
+                "play-circle": {
+                  aui: "aui-icon-small aui-iconfont-media-play",
+                  unicode: "►",
+                  title: "Run",
+                },
+                "check-circle": {
+                  aui: "aui-icon-small aui-iconfont-approve",
+                  unicode: "✓",
+                  title: "Cutover",
+                },
+                refresh: {
+                  aui: "aui-icon-small aui-iconfont-refresh",
+                  unicode: "↻",
+                  title: "DR",
+                },
+                circle: {
+                  aui: "aui-icon-small aui-iconfont-generic",
+                  unicode: "●",
+                  title: "Default",
+                },
+              };
+              const iconConfig = iconMap[iconName] || iconMap["circle"];
+
+              // Use Unicode characters directly for reliable cross-platform display
+              return `<span class="umig-icon-container" title="${iconConfig.title} (${iconName})" style="font-size: 16px; font-weight: bold;">
+                ${iconConfig.unicode}
+              </span>`;
+            },
           },
           {
             key: "itt_display_order",
             label: "Order",
             sortable: true,
-            renderer: (value) => `<span class="order-badge">${value}</span>`,
+            renderer: (value) =>
+              `<span class="umig-order-badge">${value}</span>`,
           },
           {
             key: "itt_active",
             label: "Status",
             sortable: true,
             renderer: (value) => {
-              const badgeClass = value ? "badge-success" : "badge-secondary";
+              const badgeClass = value
+                ? "umig-badge-success"
+                : "umig-badge-secondary";
               const badgeText = value ? "Active" : "Inactive";
-              return `<span class="badge ${badgeClass}">${badgeText}</span>`;
+              return `<span class="umig-badge ${badgeClass}">${badgeText}</span>`;
             },
           },
         ],
@@ -296,6 +328,10 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     // Initialize periodic error boundary cleanup
     this._initializeErrorBoundaryCleanup();
 
+    // Color and icon validation configuration
+    this.colorValidationEnabled = options.colorValidationEnabled !== false; // Default to true
+    this.iconValidationEnabled = options.iconValidationEnabled !== false; // Default to true
+
     // Color and icon validation patterns
     this.validationPatterns = {
       color: /^#[0-9A-Fa-f]{6}$/,
@@ -303,9 +339,259 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       code: /^[a-zA-Z0-9_-]+$/,
     };
 
+    // Merge any custom properties from options
+    Object.keys(options).forEach((key) => {
+      if (key !== "entityType" && !this.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    });
+
+    // Add UMIG-specific styles to prevent Confluence conflicts
+    this._addUmigStyles();
+
     console.log(
       "[IterationTypesEntityManager] Initialized with Applications-style proven pattern and enterprise security",
     );
+  }
+
+  /**
+   * Add UMIG-specific styles to prevent Confluence CSS conflicts
+   * @private
+   */
+  _addUmigStyles() {
+    // Check if styles already added
+    if (document.getElementById("umig-iteration-types-styles")) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "umig-iteration-types-styles";
+    style.textContent = `
+      /* UMIG Iteration Types Styles - Prevent Confluence conflicts */
+      .umig-color-swatch {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+        vertical-align: middle;
+      }
+
+      .umig-order-badge {
+        background: #f4f5f7;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #5e6c84;
+      }
+
+      .umig-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .umig-badge-success {
+        background-color: #e3fcef;
+        color: #006644;
+        border: 1px solid #abd99b;
+      }
+
+      .umig-badge-secondary {
+        background-color: #f4f5f7;
+        color: #5e6c84;
+        border: 1px solid #dfe1e6;
+      }
+
+      .umig-text-success {
+        color: #006644 !important;
+      }
+
+      .umig-text-muted {
+        color: #97a0af !important;
+      }
+
+      .umig-code-cell {
+        font-family: monospace;
+        font-weight: bold;
+      }
+
+      .umig-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .umig-name-text {
+        flex: 1;
+      }
+
+      .umig-icon-container {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+      }
+
+      .umig-icon-fallback {
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      /* AUI icon override for better visibility */
+      .umig-icon-container .aui-icon {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 16px !important;
+        line-height: 16px !important;
+      }
+
+      /* Complete UMIG Button System - Professional Confluence-compatible styling */
+      .umig-btn-primary {
+        background-color: #0052cc;
+        border: 1px solid #0052cc;
+        color: #ffffff;
+        padding: 6px 12px;
+        border-radius: 3px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .umig-btn-primary:hover {
+        background-color: #0065ff;
+        border-color: #0065ff;
+        color: #ffffff;
+        text-decoration: none;
+      }
+
+      .umig-btn-primary:active {
+        background-color: #003b94;
+        border-color: #003b94;
+        transform: translateY(1px);
+      }
+
+      .umig-btn-primary:disabled {
+        background-color: #a5adba;
+        border-color: #a5adba;
+        color: #ffffff;
+        cursor: not-allowed;
+      }
+
+      .umig-btn-secondary {
+        background-color: #ffffff;
+        border: 1px solid #dfe1e6;
+        color: #42526e;
+        padding: 6px 12px;
+        border-radius: 3px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .umig-btn-secondary:hover {
+        background-color: #f4f5f7;
+        border-color: #c1c7d0;
+        color: #42526e;
+        text-decoration: none;
+      }
+
+      .umig-btn-secondary:active {
+        background-color: #e4e6ea;
+        border-color: #b3bac5;
+        transform: translateY(1px);
+      }
+
+      .umig-btn-secondary:disabled {
+        background-color: #f4f5f7;
+        border-color: #dfe1e6;
+        color: #a5adba;
+        cursor: not-allowed;
+      }
+
+      /* Common button styles */
+      .umig-btn-primary,
+      .umig-btn-secondary {
+        line-height: 1.2;
+        outline: none;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      .umig-btn-primary:focus,
+      .umig-btn-secondary:focus {
+        box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+      }
+
+      /* Icon styling within buttons */
+      .umig-btn-primary .aui-icon,
+      .umig-btn-secondary .aui-icon {
+        margin-right: 4px;
+        vertical-align: middle;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 16px !important;
+        line-height: 16px !important;
+        display: inline-block;
+      }
+
+      /* Refresh icon styling */
+      .umig-btn-icon {
+        font-size: 16px;
+        vertical-align: middle;
+      }
+    `;
+
+    document.head.appendChild(style);
+    console.log("[IterationTypesEntityManager] UMIG styles added successfully");
+  }
+
+  /**
+   * Setup icon fallback logic for AUI icons (enhanced for button icons)
+   * @private
+   */
+  _setupIconFallbacks() {
+    // Check if AUI icons are working, if not, show Unicode fallbacks
+    setTimeout(() => {
+      // Handle table icon containers
+      const iconContainers = document.querySelectorAll(".umig-icon-container");
+      iconContainers.forEach((container) => {
+        const auiIcon = container.querySelector(".aui-icon");
+        const fallback = container.querySelector(".umig-icon-fallback");
+
+        if (auiIcon && fallback) {
+          // Check if AUI icon is properly rendered
+          const computedStyle = window.getComputedStyle(auiIcon);
+          const hasAuiContent =
+            computedStyle.content && computedStyle.content !== "none";
+
+          if (!hasAuiContent) {
+            // AUI icon not working, show Unicode fallback
+            auiIcon.style.display = "none";
+            fallback.style.display = "inline";
+            console.log(
+              "[IterationTypesEntityManager] Using Unicode fallback for icon:",
+              container.title,
+            );
+          }
+        }
+      });
+
+      // Note: Refresh button now uses simple emoji icon, no fallback needed
+    }, 150); // Slightly longer delay to allow AUI fonts to load
   }
 
   /**
@@ -431,6 +717,9 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         "[IterationTypesEntityManager] Creating toolbar after render",
       );
       this.createToolbar();
+
+      // Setup icon fallbacks after rendering
+      this._setupIconFallbacks();
     } catch (error) {
       console.error("[IterationTypesEntityManager] Failed to render:", error);
       throw error;
@@ -501,10 +790,11 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       addButton.setAttribute("data-action", "add");
       addButton.onclick = () => this.handleAdd();
 
-      // Create Refresh button with UMIG-prefixed classes (matching Applications pattern)
+      // Create Refresh button with UMIG-prefixed classes and enhanced icon support
       const refreshButton = document.createElement("button");
       refreshButton.className = "umig-btn-secondary umig-button";
       refreshButton.id = "umig-refresh-iteration-types-btn";
+      // Refresh button with icon only (consistent with other entity managers)
       refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
       // Use addEventListener instead of onclick for better reliability (ADR-057 compliance)
       refreshButton.addEventListener("click", async () => {
@@ -534,12 +824,30 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     console.log(
       "[IterationTypesEntityManager] Opening Add Iteration Type modal",
     );
+
     // Check if modal component is available
     if (!this.modalComponent) {
       console.warn(
         "[IterationTypesEntityManager] Modal component not available",
       );
       return;
+    }
+
+    // Prevent duplicate modal creation - check if modal is already open
+    if (this.modalComponent.isOpen) {
+      console.log(
+        "[IterationTypesEntityManager] Modal is already open - ignoring duplicate request",
+      );
+      return;
+    }
+
+    // Clean up any existing legacy modal conflicts
+    const legacyModal = document.getElementById("editModal");
+    if (legacyModal && legacyModal.style.display !== "none") {
+      console.log(
+        "[IterationTypesEntityManager] Hiding conflicting legacy modal",
+      );
+      legacyModal.style.display = "none";
     }
 
     // Prepare empty data for new iteration type
@@ -552,6 +860,11 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       itt_display_order: 0,
       itt_active: "true",
     };
+
+    // Clear any existing tabs to ensure form mode for Add operation
+    if (this.modalComponent.clearTabs) {
+      this.modalComponent.clearTabs();
+    }
 
     // Update modal configuration for Add mode
     this.modalComponent.updateConfig({
@@ -597,12 +910,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       },
     });
 
-    // Reset form data to new iteration type defaults
-    if (this.modalComponent.resetForm) {
-      this.modalComponent.resetForm();
-    }
-
-    // Set form data to default values
+    // Set form data to default values (like Teams does)
     if (this.modalComponent.formData) {
       Object.assign(this.modalComponent.formData, newIterationTypeData);
     }
@@ -695,7 +1003,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Override the base _viewEntity method to provide form-based VIEW mode following Applications pattern
+   * Override the base _viewEntity method to provide custom HTML VIEW mode with color and icon rendering
    * @param {Object} data - Entity data to view
    * @private
    */
@@ -719,96 +1027,294 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       return;
     }
 
-    // Create enhanced modal configuration for View mode with audit fields
-    const viewFormConfig = {
-      fields: [
-        ...this.config.modalConfig.form.fields, // Original form fields
-        // Add usage information
-        {
-          name: "itt_usage_count",
-          type: "text",
-          label: "Usage Count",
-          value: `${data.usage_count || 0} iteration(s) using this type`,
-          readonly: true,
-        },
-        // Add audit information section
-        {
-          name: "audit_separator",
-          type: "separator",
-          label: "Audit Information",
-          isAuditField: true,
-        },
-        {
-          name: "itt_created_at",
-          type: "text",
-          label: "Created At",
-          value: this._formatDateTime(data.created_at),
-          isAuditField: true,
-        },
-        {
-          name: "itt_created_by",
-          type: "text",
-          label: "Created By",
-          value: data.created_by || "System",
-          isAuditField: true,
-        },
-        {
-          name: "itt_updated_at",
-          type: "text",
-          label: "Last Updated",
-          value: this._formatDateTime(data.updated_at),
-          isAuditField: true,
-        },
-        {
-          name: "itt_updated_by",
-          type: "text",
-          label: "Last Updated By",
-          value: data.updated_by || "System",
-          isAuditField: true,
-        },
-      ],
-    };
+    console.log("[DEBUG] _viewEntity: Starting view modal configuration");
+    console.log("[DEBUG] _viewEntity: Entity data:", data);
+    console.log(
+      "[DEBUG] _viewEntity: Current modal config before update:",
+      this.modalComponent.config,
+    );
 
-    // Update modal configuration for View mode
+    // Generate custom HTML content for the view modal
+    const viewContent = this._generateCustomViewContent(data);
+    console.log(
+      "[DEBUG] _viewEntity: Generated custom content length:",
+      viewContent ? viewContent.length : "null",
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Generated content preview:",
+      viewContent ? viewContent.substring(0, 200) + "..." : "null",
+    );
+
+    // Update modal configuration for View mode with custom HTML
+    // CRITICAL: Remove form configuration to ensure content is rendered instead of form
     this.modalComponent.updateConfig({
       title: `View Iteration Type: ${data.itt_name}`,
-      type: "form",
+      type: "custom", // Use custom type to render HTML content
       size: "large",
-      closeable: true, // Ensure close button works
-      form: viewFormConfig,
+      closeable: true,
+      content: viewContent, // Provide the custom HTML content
+      form: null, // CRITICAL: Explicitly remove form configuration to force content rendering
       buttons: [
         { text: "Edit", action: "edit", variant: "primary" },
         { text: "Close", action: "close", variant: "secondary" },
       ],
       onButtonClick: (action) => {
+        console.log("[DEBUG] _viewEntity: Button clicked:", action);
         if (action === "edit") {
-          // Switch to edit mode - restore original form config
+          // Switch to edit mode
           this.modalComponent.close();
-          // Wait for close animation to complete before opening edit modal
           setTimeout(() => {
             this.handleEdit(data);
-          }, 350); // 350ms to ensure close animation (300ms) completes
-          return true; // Close modal handled above
+          }, 350);
+          return true;
         }
         if (action === "close") {
-          // Explicitly handle close action to ensure it works
           this.modalComponent.close();
-          return true; // Close modal handled above
+          return true;
         }
-        return false; // Let default handling close the modal for other actions
+        return false;
       },
     });
 
-    // Set form data to current iteration type values with readonly mode
-    if (this.modalComponent.formData) {
-      Object.assign(this.modalComponent.formData, data);
-    }
-
-    // Mark modal as in VIEW mode
-    this.modalComponent.viewMode = true;
+    console.log(
+      "[DEBUG] _viewEntity: After updateConfig - Updated modal config:",
+      this.modalComponent.config,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.form after update:",
+      this.modalComponent.config.form,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.content length after update:",
+      this.modalComponent.config.content?.length,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.type after update:",
+      this.modalComponent.config.type,
+    );
 
     // Open the modal
+    console.log("[DEBUG] _viewEntity: Opening modal...");
     this.modalComponent.open();
+
+    // Apply color styles after modal is rendered
+    // Use setTimeout to ensure DOM is updated and SecurityUtils has processed the content
+    setTimeout(() => {
+      this._applyColorSwatchStyles();
+
+      // Fallback: If swatches still not found, try again after a longer delay
+      setTimeout(() => {
+        const swatches = document.querySelectorAll(".umig-color-swatch-view");
+        if (swatches.length > 0) {
+          console.log(
+            "[DEBUG] _viewEntity: Fallback color swatch application successful",
+          );
+          this._applyColorSwatchStyles();
+        }
+      }, 300);
+    }, 100);
+  }
+
+  /**
+   * Apply color styles to swatches after modal rendering
+   * This bypasses SecurityUtils by using CSS classes and data attributes instead of IDs
+   * @private
+   */
+  _applyColorSwatchStyles() {
+    console.log(
+      "[DEBUG] _applyColorSwatchStyles: Applying color styles to swatches",
+    );
+
+    // Find all color swatch elements using class selector (not ID) - IDs are stripped by SecurityUtils
+    const swatchElements = document.querySelectorAll(".umig-color-swatch-view");
+
+    if (swatchElements.length === 0) {
+      console.log(
+        "[DEBUG] _applyColorSwatchStyles: No color swatch elements found",
+      );
+      return;
+    }
+
+    console.log(
+      `[DEBUG] _applyColorSwatchStyles: Found ${swatchElements.length} swatch elements`,
+    );
+
+    // Apply styles to each swatch element
+    swatchElements.forEach((element, index) => {
+      const color = element.getAttribute("data-color") || "#6B73FF";
+      console.log(
+        `[DEBUG] _applyColorSwatchStyles: Applying color ${color} to swatch ${index + 1}`,
+      );
+
+      // Apply the background color directly to the element
+      element.style.backgroundColor = color;
+      // Ensure the element is properly styled
+      element.style.width = "20px";
+      element.style.height = "20px";
+      element.style.display = "inline-block";
+      element.style.border = "1px solid #ccc";
+      element.style.borderRadius = "3px";
+      element.style.marginRight = "8px";
+      element.style.verticalAlign = "middle";
+      element.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+
+      // Add hover effect for better UX
+      element.addEventListener("mouseenter", function () {
+        this.style.transform = "scale(1.1)";
+        this.style.transition = "transform 0.2s ease";
+      });
+
+      element.addEventListener("mouseleave", function () {
+        this.style.transform = "scale(1)";
+      });
+    });
+
+    // Clear the pending list (no longer needed but kept for compatibility)
+    this._pendingColorSwatches = [];
+  }
+
+  /**
+   * Generate custom HTML content for the view modal with proper color and icon rendering
+   * @param {Object} data - The entity data
+   * @returns {string} HTML content for the modal
+   * @private
+   */
+  _generateCustomViewContent(data) {
+    console.log("[DEBUG] _generateCustomViewContent: Called with data:", data);
+    const securityUtils = window.SecurityUtils || {};
+    const sanitize = securityUtils.sanitizeInput || ((val) => val);
+
+    // Clear any pending swatches from previous modals (legacy - no longer needed with CSS class approach)
+    this._pendingColorSwatches = [];
+
+    // Helper function to render color swatch
+    const renderColorSwatch = (color) => {
+      const hexColor = color || "#6B73FF";
+
+      // Use CSS class and data attributes instead of IDs - SecurityUtils strips IDs but allows class and data attributes
+      // The _applyColorSwatchStyles method will find elements by class and apply colors from data attributes
+      return `<span style="display: inline-flex; align-items: center;">
+        <div class="umig-color-swatch-view"
+             data-color="${hexColor}"
+             style="width: 20px; height: 20px; display: inline-block; margin-right: 8px;
+                    border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;
+                    background-color: ${hexColor};"
+             title="${hexColor}"></div>
+        <span>${hexColor}</span>
+      </span>`;
+    };
+
+    // Helper function to render icon
+    const renderIcon = (iconName) => {
+      const icon = iconName || "circle";
+      const iconMap = {
+        "play-circle": { unicode: "►", title: "Run" },
+        "check-circle": { unicode: "✓", title: "Cutover" },
+        refresh: { unicode: "↻", title: "DR" },
+        circle: { unicode: "●", title: "Default" },
+      };
+      const iconConfig = iconMap[icon] || iconMap["circle"];
+
+      return `<span class="umig-icon-display">
+        <span class="umig-icon-container" style="font-size: 18px; font-weight: bold;
+               margin-right: 8px; vertical-align: middle;" title="${iconConfig.title}">
+          ${iconConfig.unicode}
+        </span>
+        <span>${icon}</span>
+      </span>`;
+    };
+
+    // Build the HTML content with inline styles only (no <style> tags)
+    const html = `
+      <div style="padding: 20px;">
+        <div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Code</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.itt_code || "")}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Name</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.itt_name || "")}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Description</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.itt_description || "")}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Color</strong></label>
+            <div style="flex: 1; color: #555;">${renderColorSwatch(data.itt_color)}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Icon</strong></label>
+            <div style="flex: 1; color: #555;">${renderIcon(data.itt_icon)}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Display Order</strong></label>
+            <div style="flex: 1; color: #555;">${data.itt_display_order || 0}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Status</strong></label>
+            <div style="flex: 1; color: #555;">
+              ${
+                data.itt_active
+                  ? '<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">Active</span>'
+                  : '<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6;">Inactive</span>'
+              }
+              ${
+                !data.itt_active
+                  ? '<div style="font-size: 0.9em; color: #666; margin-top: 4px;">Inactive iteration types cannot be used in new iterations</div>'
+                  : ""
+              }
+            </div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Usage Count</strong></label>
+            <div style="flex: 1; color: #555;">${data.usage_count || 0} iteration(s) using this type</div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+          <h4 style="margin-bottom: 15px;">Audit Information</h4>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created At</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.created_at)}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.created_by || "system")}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.updated_at)}</div>
+          </div>
+
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.updated_by || "system")}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    console.log(
+      "[DEBUG] _generateCustomViewContent: Generated HTML length:",
+      html.length,
+    );
+    console.log(
+      "[DEBUG] _generateCustomViewContent: Generated HTML preview:",
+      html.substring(0, 300) + "...",
+    );
+    return html;
   }
 
   /**
@@ -868,7 +1374,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
           title: "Order",
           sortable: true,
           width: "8%",
-          render: (value) => `<span class="order-badge">${value}</span>`,
+          render: (value) => `<span class="umig-order-badge">${value}</span>`,
         },
         {
           key: "itt_active",
@@ -1079,6 +1585,12 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         params.append("sort", `${sort.key},${sort.order || "asc"}`);
       }
 
+      // CRITICAL FIX FOR ISSUE 2: Always include inactive records for complete table display
+      params.append("includeInactive", "true");
+      console.log(
+        "[IterationTypesEntityManager] Added includeInactive=true to show ALL records including inactive",
+      );
+
       // Add filters if provided - CRITICAL FIX: Exclude pagination parameters to prevent duplicates
       const excludedParams = new Set(["page", "size", "pageSize"]);
       Object.keys(filters).forEach((key) => {
@@ -1165,41 +1677,169 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Handle refresh with visual feedback following Applications pattern
-   * @param {HTMLElement} button - Refresh button element
+   * Handle refresh with comprehensive visual feedback (enhanced to match Teams implementation)
+   * @param {HTMLElement} refreshButton - The refresh button element
    * @private
    */
-  async _handleRefreshWithFeedback(button) {
-    const originalText = button.innerHTML;
-    const originalDisabled = button.disabled;
+  async _handleRefreshWithFeedback(refreshButton) {
+    const startTime = performance.now();
+
     try {
-      // Provide visual feedback
-      button.innerHTML = '<span class="umig-btn-icon">⏳</span> Refreshing...';
-      button.disabled = true;
-      // Refresh data
-      await this.loadData();
-      // Success feedback
-      button.innerHTML = '<span class="umig-btn-icon">✅</span> Refreshed';
-      // Restore original state after 1 second
-      setTimeout(() => {
-        button.innerHTML = originalText;
-        button.disabled = originalDisabled;
-      }, 1000);
+      // Step 1: Show loading state immediately
+      this._setRefreshButtonLoadingState(refreshButton, true);
+
+      // Step 2: Add visual feedback to table (fade effect)
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.transition = "opacity 0.2s ease-in-out";
+        tableContainer.style.opacity = "0.6";
+      }
+
+      // Step 3: Perform the actual refresh
+      console.log(
+        "[IterationTypesEntityManager] Starting data refresh with visual feedback",
+      );
+      await this.loadData(
+        this.currentFilters,
+        this.currentSort,
+        this.currentPage,
+      );
+
+      // Step 4: Calculate operation time
+      const operationTime = performance.now() - startTime;
+
+      // Step 5: Restore table opacity with slight delay for visual feedback
+      if (tableContainer) {
+        // Small delay to ensure user sees the refresh happening
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        tableContainer.style.opacity = "1";
+      }
+
+      // Step 6: Show success feedback
+      this._showRefreshSuccessMessage(operationTime);
+
+      console.log(
+        `[IterationTypesEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`,
+      );
     } catch (error) {
-      console.error("[IterationTypesEntityManager] Refresh failed:", error);
-      // Error feedback
-      button.innerHTML = '<span class="umig-btn-icon">❌</span> Error';
-      // Restore original state after 2 seconds
-      setTimeout(() => {
-        button.innerHTML = originalText;
-        button.disabled = originalDisabled;
-      }, 2000);
+      console.error(
+        "[IterationTypesEntityManager] Error refreshing data:",
+        error,
+      );
+
+      // Restore table opacity on error
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.opacity = "1";
+      }
+
+      // Show error message
       this._showNotification(
         "error",
         "Refresh Failed",
-        error.message || "An error occurred while refreshing.",
+        "Failed to refresh iteration type data. Please try again.",
       );
+    } finally {
+      // Step 7: Always restore button state
+      this._setRefreshButtonLoadingState(refreshButton, false);
     }
+  }
+
+  /**
+   * Set refresh button loading state with visual feedback
+   * @param {HTMLElement} button - The refresh button element
+   * @param {boolean} loading - Whether button should show loading state
+   * @private
+   */
+  _setRefreshButtonLoadingState(button, loading) {
+    if (!button) return;
+
+    if (loading) {
+      // Store original content
+      button._originalHTML = button.innerHTML;
+
+      // Update to loading state with simple spinning emoji
+      button.innerHTML =
+        '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">🔄</span> Refreshing ...';
+      button.disabled = true;
+      button.style.opacity = "0.7";
+      button.style.cursor = "not-allowed";
+
+      // Add spinning animation if not already defined
+      if (!document.querySelector("#umig-refresh-spinner-styles")) {
+        const style = document.createElement("style");
+        style.id = "umig-refresh-spinner-styles";
+        style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    } else {
+      // Restore original state
+      if (button._originalHTML) {
+        button.innerHTML = button._originalHTML;
+      }
+      button.disabled = false;
+      button.style.opacity = "1";
+      button.style.cursor = "pointer";
+    }
+  }
+
+  /**
+   * Show refresh success message with timing information
+   * @param {number} operationTime - Time taken for the operation in milliseconds
+   * @private
+   */
+  _showRefreshSuccessMessage(operationTime) {
+    // Create a temporary success indicator
+    const successIndicator = document.createElement("div");
+    successIndicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 13px;
+      z-index: 10000;
+      animation: fadeInOut 2.5s ease-in-out forwards;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    `;
+
+    const iterationTypeCount = this.currentData ? this.currentData.length : 0;
+    successIndicator.innerHTML = `
+      <strong>✓ Refreshed</strong><br>
+      ${iterationTypeCount} iteration types loaded in ${operationTime.toFixed(0)}ms
+    `;
+
+    // Add fade in/out animation
+    if (!document.querySelector("#umig-success-indicator-styles")) {
+      const style = document.createElement("style");
+      style.id = "umig-success-indicator-styles";
+      style.textContent = `
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(-10px); }
+          15% { opacity: 1; transform: translateY(0); }
+          85% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(successIndicator);
+
+    // Remove indicator after animation completes
+    setTimeout(() => {
+      if (successIndicator.parentNode) {
+        successIndicator.parentNode.removeChild(successIndicator);
+      }
+    }, 2500);
   }
 
   /**
@@ -1307,6 +1947,101 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
+   * Public interface for create operation (for testing and external use)
+   * @param {Object} data - Data to create
+   * @returns {Promise<Object>} Created entity
+   * @public
+   */
+  async create(data) {
+    return this._createEntityData(data);
+  }
+
+  /**
+   * Public interface for update operation (for testing and external use)
+   * @param {string} id - Entity ID
+   * @param {Object} data - Data to update
+   * @returns {Promise<Object>} Updated entity
+   * @public
+   */
+  async update(id, data) {
+    return this._updateEntityData(id, data);
+  }
+
+  /**
+   * Public interface for delete operation (for testing and external use)
+   * @param {string} id - Entity ID
+   * @returns {Promise<void>}
+   * @public
+   */
+  async delete(id) {
+    return this._deleteEntityData(id);
+  }
+
+  /**
+   * Validate and transform data before create/update operations
+   * @param {Object} data - Data to validate and transform
+   * @param {boolean} isUpdate - Whether this is an update operation
+   * @returns {Object} Validated and transformed data
+   * @private
+   */
+  validateAndTransformData(data, isUpdate = false) {
+    const validatedData = { ...data };
+
+    // Sanitize string fields
+    if (validatedData.itt_name && window.SecurityUtils?.sanitizeString) {
+      validatedData.itt_name = window.SecurityUtils.sanitizeString(
+        validatedData.itt_name,
+      );
+    }
+    if (validatedData.itt_description && window.SecurityUtils?.sanitizeString) {
+      validatedData.itt_description = window.SecurityUtils.sanitizeString(
+        validatedData.itt_description,
+      );
+    }
+    if (validatedData.itt_code && window.SecurityUtils?.sanitizeString) {
+      validatedData.itt_code = window.SecurityUtils.sanitizeString(
+        validatedData.itt_code,
+      );
+    }
+
+    // Validate color format
+    if (validatedData.itt_color) {
+      const colorRegex = /^#[0-9A-Fa-f]{6}$/;
+      if (!colorRegex.test(validatedData.itt_color)) {
+        throw new Error("Invalid color format. Must be #RRGGBB");
+      }
+    }
+
+    // Validate code format (alphanumeric, dash, underscore only)
+    if (!isUpdate && validatedData.itt_code) {
+      const codeRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!codeRegex.test(validatedData.itt_code)) {
+        throw new Error(
+          "Code must contain only alphanumeric characters, dashes, and underscores",
+        );
+      }
+    }
+
+    // Convert boolean fields
+    if (validatedData.itt_active !== undefined) {
+      validatedData.itt_active = String(validatedData.itt_active);
+    }
+
+    // Ensure display order is a number
+    if (validatedData.itt_display_order !== undefined) {
+      validatedData.itt_display_order = parseInt(
+        validatedData.itt_display_order,
+        10,
+      );
+      if (isNaN(validatedData.itt_display_order)) {
+        validatedData.itt_display_order = 0;
+      }
+    }
+
+    return validatedData;
+  }
+
+  /**
    * Create new iteration type via API following Applications pattern
    * @param {Object} data - Iteration type data
    * @returns {Promise<Object>} Created iteration type
@@ -1318,18 +2053,39 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         "[IterationTypesEntityManager] Creating new iteration type:",
         data,
       );
+
+      // Validate and transform data
+      const validatedData = this.validateAndTransformData(data, false);
+
       // Security validation
-      window.SecurityUtils.validateInput(data);
+      window.SecurityUtils.validateInput(validatedData);
       const response = await fetch(this.iterationTypesApiUrl, {
         method: "POST",
         headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data),
+        body: JSON.stringify(validatedData),
         credentials: "same-origin",
       });
       if (!response.ok) {
-        throw new Error(`Failed to create iteration type: ${response.status}`);
+        // Parse the error response for detailed error information
+        let errorMessage = `Failed to create iteration type: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          // Handle specific error cases
+          if (response.status === 409 && errorMessage.includes("exists")) {
+            errorMessage = "Code already exists";
+          }
+        } catch (parseError) {
+          console.warn(
+            "[IterationTypesEntityManager] Could not parse error response:",
+            parseError,
+          );
+        }
+        throw new Error(errorMessage);
       }
       const createdIterationType = await response.json();
       console.log(
@@ -1440,8 +2196,12 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         "[IterationTypesEntityManager] Filtered update data:",
         updateData,
       );
+
+      // Validate and transform data
+      const validatedData = this.validateAndTransformData(updateData, true);
+
       // Security validation
-      window.SecurityUtils.validateInput({ id, ...updateData });
+      window.SecurityUtils.validateInput({ id, ...validatedData });
       const response = await fetch(
         `${this.iterationTypesApiUrl}/${encodeURIComponent(id)}`,
         {
@@ -1449,12 +2209,29 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-          body: JSON.stringify(updateData),
+          body: JSON.stringify(validatedData),
           credentials: "same-origin",
         },
       );
       if (!response.ok) {
-        throw new Error(`Failed to update iteration type: ${response.status}`);
+        // Parse the error response for detailed error information
+        let errorMessage = `Failed to update iteration type: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          // Handle specific error cases
+          if (response.status === 404) {
+            errorMessage = "Iteration type not found";
+          }
+        } catch (parseError) {
+          console.warn(
+            "[IterationTypesEntityManager] Could not parse error response:",
+            parseError,
+          );
+        }
+        throw new Error(errorMessage);
       }
       const updatedIterationType = await response.json();
       console.log(
@@ -1968,6 +2745,12 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     const errors = [];
     const sanitizedData = { ...data };
 
+    // Debug logging to help troubleshoot form data issues
+    console.log(
+      `[IterationTypesEntityManager] Validating ${isUpdate ? "update" : "create"} data:`,
+      JSON.stringify(data, null, 2),
+    );
+
     try {
       // Validate required fields for create operations
       if (!isUpdate) {
@@ -2014,6 +2797,37 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         }
       }
 
+      // Convert itt_active from string to boolean if provided
+      if (data.itt_active !== undefined) {
+        if (typeof data.itt_active === "string") {
+          sanitizedData.itt_active = data.itt_active === "true";
+        } else if (typeof data.itt_active === "boolean") {
+          sanitizedData.itt_active = data.itt_active;
+        } else {
+          errors.push("itt_active must be a boolean value");
+        }
+      }
+
+      // Apply default values for optional fields if not provided and this is a create operation
+      if (!isUpdate) {
+        // Apply default color if not provided
+        if (!sanitizedData.itt_color) {
+          sanitizedData.itt_color = "#6B73FF";
+        }
+        // Apply default icon if not provided
+        if (!sanitizedData.itt_icon) {
+          sanitizedData.itt_icon = "play-circle";
+        }
+        // Apply default display order if not provided
+        if (sanitizedData.itt_display_order === undefined) {
+          sanitizedData.itt_display_order = 0;
+        }
+        // Apply default active status if not provided
+        if (sanitizedData.itt_active === undefined) {
+          sanitizedData.itt_active = true;
+        }
+      }
+
       // Sanitize string fields
       const SecurityUtils = window.SecurityUtils || {};
       const sanitizeString = SecurityUtils.sanitizeString || ((str) => str);
@@ -2029,6 +2843,13 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
           data.itt_description.trim(),
         );
       }
+
+      // Debug logging for final sanitized data
+      console.log(
+        `[IterationTypesEntityManager] Validation result - Valid: ${errors.length === 0}, Errors: ${errors.join(", ")}`,
+        "Final sanitized data:",
+        JSON.stringify(sanitizedData, null, 2),
+      );
 
       return {
         isValid: errors.length === 0,
@@ -2177,8 +2998,10 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    * @private
    */
   _renderCodeCell(value, row) {
-    const statusClass = row.itt_active ? "text-success" : "text-muted";
-    return `<span class="code-cell ${statusClass}">${value}</span>`;
+    const statusClass = row.itt_active
+      ? "umig-text-success"
+      : "umig-text-muted";
+    return `<span class="umig-code-cell ${statusClass}">${value}</span>`;
   }
 
   /**
@@ -2189,18 +3012,49 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    * @private
    */
   _renderNameCell(value, row) {
-    const icon = row.itt_icon || "circle";
-    return `<span class="name-cell"><i class="fas fa-${icon}"></i> ${value}</span>`;
+    const iconName = row.itt_icon || "circle";
+    // Use AUI icons with robust UTF-8 character fallbacks for cross-platform compatibility
+    const iconMap = {
+      "play-circle": {
+        aui: "aui-icon-small aui-iconfont-media-play",
+        unicode: "►",
+        title: "Run",
+      },
+      "check-circle": {
+        aui: "aui-icon-small aui-iconfont-approve",
+        unicode: "✓",
+        title: "Cutover",
+      },
+      refresh: {
+        aui: "aui-icon-small aui-iconfont-refresh",
+        unicode: "↻",
+        title: "DR",
+      },
+      circle: {
+        aui: "aui-icon-small aui-iconfont-generic",
+        unicode: "●",
+        title: "Default",
+      },
+    };
+    const iconConfig = iconMap[iconName] || iconMap["circle"];
+
+    return `<span class="umig-name-cell">
+      <span class="umig-icon-container" title="${iconConfig.title}" style="font-size: 16px; font-weight: bold;">
+        ${iconConfig.unicode}
+      </span>
+      <span class="umig-name-text">${value}</span>
+    </span>`;
   }
 
   /**
-   * Render color swatch
+   * Render color swatch with hex code text
    * @param {string} color - Color value
    * @returns {string} HTML content
    * @private
    */
   _renderColorSwatch(color) {
-    return `<div class="color-swatch" style="background-color: ${color || "#6B73FF"};" title="${color || "#6B73FF"}"></div>`;
+    const colorValue = color || "#6B73FF";
+    return `<span class="umig-color-indicator" style="background-color: ${colorValue}; width: 20px; height: 20px; display: inline-block; border: 1px solid #ccc; border-radius: 3px; margin-right: 5px;"></span>${colorValue}`;
   }
 
   /**
@@ -2210,7 +3064,35 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    * @private
    */
   _renderIcon(iconName) {
-    return `<i class="fas fa-${iconName || "circle"}" title="${iconName || "circle"}"></i>`;
+    const icon = iconName || "circle";
+    // Use AUI icons with robust UTF-8 character fallbacks for cross-platform compatibility
+    const iconMap = {
+      "play-circle": {
+        aui: "aui-icon-small aui-iconfont-media-play",
+        unicode: "►",
+        title: "Run",
+      },
+      "check-circle": {
+        aui: "aui-icon-small aui-iconfont-approve",
+        unicode: "✓",
+        title: "Cutover",
+      },
+      refresh: {
+        aui: "aui-icon-small aui-iconfont-refresh",
+        unicode: "↻",
+        title: "DR",
+      },
+      circle: {
+        aui: "aui-icon-small aui-iconfont-generic",
+        unicode: "●",
+        title: "Default",
+      },
+    };
+    const iconConfig = iconMap[icon] || iconMap["circle"];
+
+    return `<span class="umig-icon-container" title="${iconConfig.title} (${icon})" style="font-size: 16px; font-weight: bold;">
+      ${iconConfig.unicode}
+    </span>`;
   }
 
   /**
@@ -2220,9 +3102,9 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    * @private
    */
   _renderStatusBadge(active) {
-    const badgeClass = active ? "badge-success" : "badge-secondary";
+    const badgeClass = active ? "umig-badge-success" : "umig-badge-secondary";
     const badgeText = active ? "Active" : "Inactive";
-    return `<span class="badge ${badgeClass}">${badgeText}</span>`;
+    return `<span class="umig-badge ${badgeClass}">${badgeText}</span>`;
   }
 
   /**
@@ -2235,19 +3117,19 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     let buttons = [];
 
     if (this.userPermissions?.canUpdate) {
-      buttons.push(`<button class="btn btn-sm btn-outline-primary" onclick="editIterationType('${row.itt_code}')" title="Edit">
-        <i class="fas fa-edit"></i>
+      buttons.push(`<button class="umig-btn umig-btn-sm umig-btn-outline-primary" onclick="editIterationType('${row.itt_code}')" title="Edit">
+        <i class="fa fa-edit"></i>
       </button>`);
     }
 
     if (this.userPermissions?.canDelete && !row.itt_active) {
-      buttons.push(`<button class="btn btn-sm btn-outline-danger" onclick="deleteIterationType('${row.itt_code}')" title="Delete">
-        <i class="fas fa-trash"></i>
+      buttons.push(`<button class="umig-btn umig-btn-sm umig-btn-outline-danger" onclick="deleteIterationType('${row.itt_code}')" title="Delete">
+        <i class="fa fa-trash"></i>
       </button>`);
     }
 
-    buttons.push(`<button class="btn btn-sm btn-outline-info" onclick="viewIterationTypeStats('${row.itt_code}')" title="View Stats">
-      <i class="fas fa-chart-bar"></i>
+    buttons.push(`<button class="umig-btn umig-btn-sm umig-btn-outline-info" onclick="viewIterationTypeStats('${row.itt_code}')" title="View Stats">
+      <i class="fa fa-bar-chart"></i>
     </button>`);
 
     return buttons.join(" ");
@@ -2274,7 +3156,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
    * @private
    */
   _getColorPickerTemplate() {
-    return `<input type="color" class="form-control color-picker" />`;
+    return `<input type="color" class="umig-form-control umig-color-picker" />`;
   }
 
   /**
@@ -2313,11 +3195,11 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
     const options = commonIcons
       .map(
         (icon) =>
-          `<option value="${icon}"><i class="fas fa-${icon}"></i> ${icon}</option>`,
+          `<option value="${icon}"><i class="fa fa-${icon}"></i> ${icon}</option>`,
       )
       .join("");
 
-    return `<select class="form-control icon-picker">${options}</select>`;
+    return `<select class="umig-form-control umig-icon-picker">${options}</select>`;
   }
 
   /**
@@ -2426,6 +3308,9 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       const duration = performance.now() - startTime;
       this._trackPerformance("load", duration);
 
+      // Setup icon fallbacks after data is loaded and table is re-rendered
+      this._setupIconFallbacks();
+
       return result;
     } catch (error) {
       // Track error and handle gracefully
@@ -2439,6 +3324,168 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         pageSize: pageSize,
         totalPages: 0,
       };
+    }
+  }
+
+  /**
+   * Format field value for display in view modal
+   * Overrides BaseEntityManager to handle color swatches and icons
+   * @param {string} fieldName - Field name
+   * @param {*} value - Field value
+   * @returns {string} Formatted field value
+   * @private
+   */
+  _formatFieldValue(fieldName, value) {
+    // EXTREME DEBUG: Log everything to verify call path
+    console.log(
+      `[IterationTypesEntityManager] _formatFieldValue called with fieldName="${fieldName}", value="${value}"`,
+    );
+    console.log(
+      `[IterationTypesEntityManager] Field name type: ${typeof fieldName}, Value type: ${typeof value}`,
+    );
+    console.log(
+      `[IterationTypesEntityManager] Stack trace:`,
+      new Error().stack,
+    );
+
+    // Test all possible color field variations
+    if (
+      fieldName &&
+      (fieldName === "itt_color" || fieldName.includes("color"))
+    ) {
+      console.log(
+        `[IterationTypesEntityManager] PROCESSING COLOR FIELD: ${fieldName} = ${value}`,
+      );
+      const colorValue = value || "#6B73FF";
+      const result = `<div class="umig-color-swatch" style="width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ccc; background-color: ${colorValue}; display: inline-block; margin-right: 8px; vertical-align: middle;" title="${colorValue}"></div><span style="vertical-align: middle;">${colorValue}</span>`;
+      console.log(
+        `[IterationTypesEntityManager] Color field formatted: ${result}`,
+      );
+      return result;
+    }
+
+    // Test all possible icon field variations
+    if (fieldName && (fieldName === "itt_icon" || fieldName.includes("icon"))) {
+      console.log(
+        `[IterationTypesEntityManager] PROCESSING ICON FIELD: ${fieldName} = ${value}`,
+      );
+      const iconName = value || "circle";
+      // Use the same iconMap as in table rendering for consistency
+      const iconMap = {
+        "play-circle": {
+          aui: "aui-icon-small aui-iconfont-media-play",
+          unicode: "►",
+          title: "Run",
+        },
+        "check-circle": {
+          aui: "aui-icon-small aui-iconfont-approve",
+          unicode: "✓",
+          title: "Cutover",
+        },
+        refresh: {
+          aui: "aui-icon-small aui-iconfont-refresh",
+          unicode: "↻",
+          title: "DR",
+        },
+        circle: {
+          aui: "aui-icon-small aui-iconfont-generic",
+          unicode: "●",
+          title: "Default",
+        },
+      };
+      const iconConfig = iconMap[iconName] || iconMap["circle"];
+
+      const result = `<span class="umig-icon-container" style="font-size: 16px; font-weight: bold; margin-right: 8px; vertical-align: middle;" title="${iconConfig.title} (${iconName})">${iconConfig.unicode}</span><span style="vertical-align: middle;">${iconName}</span>`;
+      console.log(
+        `[IterationTypesEntityManager] Icon field formatted: ${result}`,
+      );
+      return result;
+    }
+
+    // For all other fields, use parent class formatting
+    const result = super._formatFieldValue(fieldName, value);
+    console.log(
+      `[IterationTypesEntityManager] Other field formatted: ${result}`,
+    );
+    return result;
+  }
+
+  /**
+   * CRITICAL FIX FOR ISSUE 1: Override _generateViewContent to ensure our _formatFieldValue is called
+   * The issue was that BaseEntityManager's _generateViewContent calls this._formatFieldValue,
+   * but there might be issues with the 'this' context or method binding.
+   * This override ensures our custom formatting is applied.
+   * @param {Object} data - Entity data
+   * @returns {string} HTML content for modal
+   * @private
+   */
+  _generateViewContent(data) {
+    console.log(
+      "[IterationTypesEntityManager] _generateViewContent called with data:",
+      data,
+    );
+    console.log("[IterationTypesEntityManager] Data type:", typeof data);
+    console.log(
+      "[IterationTypesEntityManager] Data keys:",
+      Object.keys(data || {}),
+    );
+    console.log(
+      "[IterationTypesEntityManager] Color field value:",
+      data?.itt_color,
+    );
+    console.log(
+      "[IterationTypesEntityManager] Icon field value:",
+      data?.itt_icon,
+    );
+
+    if (!data) {
+      return "<p>No data available</p>";
+    }
+
+    try {
+      // Generate a basic table view of the entity data with our custom formatting
+      let html = '<div class="entity-view-content">';
+      html += '<table class="aui aui-table">';
+      html += "<tbody>";
+
+      // Iterate through the data object and display key-value pairs
+      Object.keys(data).forEach((key) => {
+        if (data[key] !== null && data[key] !== undefined) {
+          const value = data[key];
+          const displayKey = this._formatFieldName(key);
+
+          console.log(
+            `[IterationTypesEntityManager] Processing field: ${key} with value: ${value}`,
+          );
+
+          // CRITICAL: Explicitly call our _formatFieldValue method with proper context
+          const displayValue = this._formatFieldValue(key, value);
+          console.log(
+            `[IterationTypesEntityManager] Modal field: ${key} = ${displayValue}`,
+          );
+
+          html += `<tr>`;
+          html += `<th style="width: 30%; white-space: nowrap;">${displayKey}</th>`;
+          html += `<td>${displayValue}</td>`;
+          html += `</tr>`;
+        }
+      });
+
+      html += "</tbody>";
+      html += "</table>";
+      html += "</div>";
+
+      console.log(
+        "[IterationTypesEntityManager] Generated modal content:",
+        html,
+      );
+      return html;
+    } catch (error) {
+      console.error(
+        "[IterationTypesEntityManager] Error generating view content:",
+        error,
+      );
+      return "<p>Error displaying entity data</p>";
     }
   }
 }

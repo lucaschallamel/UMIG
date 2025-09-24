@@ -393,7 +393,10 @@ if (typeof BaseEntityManager === "undefined") {
      * @param {number} pageSize - Page size
      * @returns {Promise<Object>} Data response with metadata
      */
-    async loadData(filters = {}, sort = null, page = 1, pageSize = 20) {
+    async loadData(filters = {}, sort = null, page = 1, pageSize = null) {
+      // Use configured pageSize as default, fallback to 20 if not configured
+      const actualPageSize =
+        pageSize || this.config.paginationConfig?.pageSize || 20;
       const startTime = performance.now();
 
       try {
@@ -401,7 +404,7 @@ if (typeof BaseEntityManager === "undefined") {
           filters,
           sort,
           page,
-          pageSize,
+          pageSize: actualPageSize,
         });
 
         // COMPREHENSIVE SECURITY VALIDATION
@@ -459,7 +462,7 @@ if (typeof BaseEntityManager === "undefined") {
           filters,
           sort,
           page,
-          pageSize,
+          actualPageSize,
         );
 
         // Update state with defensive array checking

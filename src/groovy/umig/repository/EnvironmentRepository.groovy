@@ -16,11 +16,15 @@ class EnvironmentRepository {
     List findAllEnvironmentsWithCounts() {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT 
+                SELECT
                     e.env_id,
                     e.env_code,
                     e.env_name,
                     e.env_description,
+                    e.created_at,
+                    e.created_by,
+                    e.updated_at,
+                    e.updated_by,
                     COALESCE(app_counts.app_count, 0)::INTEGER AS application_count,
                     COALESCE(ite_counts.iteration_count, 0)::INTEGER AS iteration_count
                 FROM environments_env e
@@ -47,11 +51,15 @@ class EnvironmentRepository {
     Map findEnvironmentById(int envId) {
         DatabaseUtil.withSql { sql ->
             def environment = sql.firstRow("""
-                SELECT 
+                SELECT
                     e.env_id,
                     e.env_code,
                     e.env_name,
-                    e.env_description
+                    e.env_description,
+                    e.created_at,
+                    e.created_by,
+                    e.updated_at,
+                    e.updated_by
                 FROM environments_env e
                 WHERE e.env_id = :envId
             """, [envId: envId])
@@ -367,11 +375,15 @@ class EnvironmentRepository {
             
             // Get paginated data
             def dataQuery = """
-                SELECT 
+                SELECT
                     e.env_id,
                     e.env_code,
                     e.env_name,
                     e.env_description,
+                    e.created_at,
+                    e.created_by,
+                    e.updated_at,
+                    e.updated_by,
                     COALESCE(app_counts.app_count, 0)::INTEGER AS application_count,
                     COALESCE(ite_counts.iteration_count, 0)::INTEGER AS iteration_count
                 FROM environments_env e

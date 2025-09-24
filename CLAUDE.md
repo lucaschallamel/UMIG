@@ -8,6 +8,12 @@ UMIG (Unified Migration Implementation Guide) is a pure ScriptRunner application
 
 **Stack**: Groovy 3.0.15 (ScriptRunner 9.21.0), Vanilla JS with AUI, PostgreSQL 14 with Liquibase, Podman containers, RESTful v2 APIs
 
+## Sprint 7 Status
+
+**Current Sprint**: 21 of 66 story points complete (32%)
+**Branch**: feature/US-087-admin-gui-phase2-completion
+**Focus**: Admin GUI Phase 2 migration - continuing entity migration from Phase 1
+
 ## Critical Commands
 
 ### Environment Management (from `local-dev-setup/`)
@@ -68,10 +74,15 @@ For session-based authentication setup with CURL, POSTMAN, and other API testing
 ```bash
 # JavaScript tests (Jest)
 npm run test:js:unit -- --testPathPattern='specific.test.js'
+npm run test:js:unit -- --testNamePattern='specific test name'
 
 # Groovy tests - Self-contained architecture (from project root)
 groovy src/groovy/umig/tests/unit/SpecificTest.groovy
 groovy src/groovy/umig/tests/integration/SpecificIntegrationTest.groovy
+
+# Running specific component tests
+npm run test:js:components -- --testPathPattern='TeamsEntityManager'
+npm run test:js:security -- --testPathPattern='ComponentOrchestrator.pentest'
 ```
 
 ## Architecture & Patterns
@@ -295,6 +306,16 @@ if (!filters || filters.isEmpty()) {
 - UserService provides intelligent user identification
 - Always log authentication context for audit
 
+### Component Loading Pattern (ADR-057)
+
+```javascript
+// ✅ CORRECT - Direct class declaration without IIFE
+class ModalComponent extends BaseComponent { ... }
+window.ModalComponent = ModalComponent;
+
+// ❌ WRONG - Never use IIFE wrappers (causes race conditions)
+```
+
 ## Services & Endpoints
 
 - **Confluence**: http://localhost:8090
@@ -323,9 +344,10 @@ Relationships: TeamsRelationship, UsersRelationship
 ### JavaScript Testing Framework
 
 - Location: `local-dev-setup/__tests__/` (modern structure)
-- Categories: unit, integration, e2e, dom, email, security, performance
+- Categories: unit, integration, e2e, dom, email, security, performance, components
 - Framework: Jest with specialized configurations
 - Pattern: `{component}.{type}.test.js`
+- Component tests: `jest.config.components.js` for entity manager validation
 
 ### Groovy Testing (Self-Contained Pattern)
 
@@ -333,6 +355,7 @@ Relationships: TeamsRelationship, UsersRelationship
 - Revolutionary self-contained architecture (embedded dependencies)
 - 100% ADR-036 compliance (pure Groovy, no external frameworks)
 - Static type optimization with strategic dynamic areas
+- Run directly: `groovy src/groovy/umig/tests/unit/TestName.groovy`
 
 ### Cross-Platform Testing
 
@@ -404,6 +427,13 @@ Relationships: TeamsRelationship, UsersRelationship
 - Check StepDataTransformationService
 - Ensure defensive null checking in templates
 
+### Groovy Test Issues
+
+- Ensure PostgreSQL JDBC driver is available: `npm run setup:groovy-jdbc`
+- Check classpath setup: `npm run groovy:classpath:status`
+- Run tests from project root, not from test directory
+- Self-contained tests embed all dependencies - no external setup needed
+
 ## Documentation Structure
 
 ### Sprint 7 Documentation (Current Sprint - 32% Complete)
@@ -435,15 +465,97 @@ Relationships: TeamsRelationship, UsersRelationship
 - Groovy framework: `src/groovy/umig/tests/README.md`
 - Technology-prefixed commands: `local-dev-setup/PHASE1_TECHNOLOGY_PREFIXED_TESTS.md`
 
-# important-instruction-reminders
+## Dev Environment Health Checks
 
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+```bash
+# Before starting work (from local-dev-setup/)
+npm run health:check          # Verify system health
+npm run postgres:check        # Check database connectivity
+npm run confluence:check      # Check Confluence status
+npm run scriptrunner:check    # Verify ScriptRunner installation
 
-- to connect to the database use .env credentials, and umig_app_db and umig_app_usr
-- to call UMIG apis with CURL you need to use basic auth with credentials in .env, so that you are a authenticated user.
-- You don't need to start or restart the stack, if you think you do, just ask me. But most of the time, the stack is already up, and I can refresh the scriptrunner cache manually
-- Never git add or commit on your own initiative. You always need to ask to user.
-- to restart the stack use "npm restart". if you need to reset data, use "npm run restart:erase:umig" and then "npm run generate-data"
+# If issues found
+npm run restart:erase         # Clean restart (WARNING: erases data)
+npm run setup:groovy-jdbc     # Fix Groovy JDBC driver issues
+```
+
+## Debugging Commands
+
+```bash
+# Frontend debugging - watch browser console for:
+# - "BaseComponent not available" → Module loading race condition (see ADR-057)
+# - CSRF token errors → Check SecurityUtils.js is loaded first
+# - API 404 errors → Verify endpoint registration in ScriptRunner UI
+
+# Backend debugging
+groovy -cp "lib/*" src/groovy/umig/tests/TestDebugger.groovy  # Test Groovy classpath
+npm run logs:confluence       # View Confluence logs
+npm run logs:postgres         # View PostgreSQL logs
+npm run logs:all              # View all container logs
+```
+
+## Performance Profiling
+
+```bash
+# Performance testing (from local-dev-setup/)
+npm run perf:api -- --endpoint=/teams --iterations=100
+npm run perf:components      # Component rendering benchmarks
+npm run perf:database        # Database query performance
+```
+
+## Common Development Workflows
+
+### Adding a New Entity to Admin GUI
+
+1. Create API endpoint: `src/groovy/umig/api/v2/{Entity}Api.groovy`
+2. Create repository: `src/groovy/umig/repository/{Entity}Repository.groovy`
+3. Create entity manager: `src/groovy/umig/web/js/entities/{entity}/{Entity}EntityManager.js`
+4. Register in ComponentOrchestrator
+5. Add database migrations in `liquibase/changelogs/`
+6. Write tests: `npm run test:js:components -- --testPathPattern={Entity}`
+
+### Fixing Type Safety Issues
+
+```groovy
+// Common patterns for ADR-031/043 compliance
+UUID.fromString(param as String)           // UUID conversion
+Integer.parseInt(param as String)          // Integer conversion
+param?.toString() ?: ''                    // Safe string conversion with null check
+(param as Map<String, Object>)?.get('key') // Safe map access
+```
+
+### Database Query Patterns
+
+```groovy
+// Repository pattern with proper error handling
+DatabaseUtil.withSql { sql ->
+    try {
+        def results = sql.rows('''
+            SELECT * FROM table_name
+            WHERE id = ? AND status = ?
+        ''', [id, 'ACTIVE'])
+        return results.collect { row ->
+            enrichEntity(row)  // Single enrichment point (ADR-047)
+        }
+    } catch (PSQLException e) {
+        if (e.getSQLState() == '23503') {
+            throw new BadRequestException("Foreign key violation: ${e.message}")
+        } else if (e.getSQLState() == '23505') {
+            throw new ConflictException("Unique constraint violation: ${e.message}")
+        }
+        throw e
+    }
+}
+```
+
+## Important Reminders
+
+- Database connection: Use `.env` credentials with `umig_app_db` and `umig_app_usr`
+- API testing: Use basic auth with `.env` credentials for CURL/Postman
+- Stack management: Usually already running, ask user before restarting
+- Never git add/commit without explicit user request
+- Stack restart: `npm restart` (from local-dev-setup/)
+- Data reset: `npm run restart:erase:umig` then `npm run generate-data`
+- ScriptRunner cache: Ask user to refresh manually when needed
+- Component loading: Never use IIFE wrappers - causes race conditions (ADR-057)
+- Schema authority: Database schema is truth - fix code, not schema (ADR-059)

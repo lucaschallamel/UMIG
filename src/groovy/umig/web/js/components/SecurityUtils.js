@@ -156,7 +156,12 @@ if (typeof SecurityUtils === "undefined") {
       });
     }
 
-    static sanitizeForAttribute(input) {
+    static sanitizeForAttribute(input, attributeName = null) {
+      // Special handling for style attributes
+      if (attributeName === "style") {
+        return SecurityUtils.sanitizeForCSS(input);
+      }
+
       return SecurityUtils.sanitizeXSS(input, {
         allowHTML: false,
         allowAttributes: false,
@@ -175,11 +180,52 @@ if (typeof SecurityUtils === "undefined") {
 
     static sanitizeForCSS(input) {
       if (!input || typeof input !== "string") return "";
-      // Remove potentially dangerous CSS content
-      return input
+
+      // Remove potentially dangerous CSS content while preserving valid CSS
+      let sanitized = input
+        // Remove HTML tags and script-related content
         .replace(/[<>"'`]/g, "")
         .replace(/javascript:/gi, "")
-        .replace(/expression\(/gi, "");
+        .replace(/expression\(/gi, "")
+        .replace(/url\(/gi, "") // Block url() function
+        .replace(/@import/gi, "") // Block @import
+        .replace(/\beval\b/gi, "") // Block eval
+        .replace(/\bexpression\b/gi, "") // Block expression
+        // Remove any content that looks like JavaScript
+        .replace(/on\w+\s*=/gi, "") // Block event handlers
+        .replace(/\s*:\s*javascript/gi, ""); // Block javascript: protocol
+
+      // Validate that the CSS contains only safe properties and values
+      // Allow common CSS properties for styling components
+      const allowedPatterns = [
+        /^background-color\s*:\s*#[0-9a-fA-F]{6}\s*;?\s*$/, // Hex colors
+        /^background-color\s*:\s*#[0-9a-fA-F]{3}\s*;?\s*$/, // Short hex colors
+        /^background-color\s*:\s*rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)\s*;?\s*$/, // RGB colors
+        /^background-color\s*:\s*rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[0-9.]+\s*\)\s*;?\s*$/, // RGBA colors
+        /^color\s*:\s*#[0-9a-fA-F]{6}\s*;?\s*$/, // Text colors
+        /^color\s*:\s*#[0-9a-fA-F]{3}\s*;?\s*$/, // Short text colors
+        /^display\s*:\s*(block|inline|inline-block|none|flex)\s*;?\s*$/, // Display values
+        /^width\s*:\s*\d+px\s*;?\s*$/, // Width in pixels
+        /^height\s*:\s*\d+px\s*;?\s*$/, // Height in pixels
+        /^margin\s*:\s*\d+px\s*;?\s*$/, // Margin in pixels
+        /^padding\s*:\s*\d+px\s*;?\s*$/, // Padding in pixels
+        /^border\s*:\s*\d+px\s+solid\s+#[0-9a-fA-F]{6}\s*;?\s*$/, // Simple borders
+        /^border-radius\s*:\s*\d+px\s*;?\s*$/, // Border radius
+      ];
+
+      // Check if the CSS matches any allowed pattern
+      const isAllowedCSS = allowedPatterns.some((pattern) =>
+        pattern.test(sanitized.trim()),
+      );
+
+      if (!isAllowedCSS) {
+        console.warn(
+          `[SecurityUtils] CSS blocked for security: "${sanitized}"`,
+        );
+        return ""; // Block unrecognized CSS
+      }
+
+      return sanitized;
     }
 
     /**
@@ -930,7 +976,7 @@ if (typeof SecurityUtils === "undefined") {
               // Sanitize attribute value
               el.setAttribute(
                 attr.name,
-                SecurityUtils.sanitizeForAttribute(attr.value),
+                SecurityUtils.sanitizeForAttribute(attr.value, attr.name),
               );
             }
           });
@@ -1401,7 +1447,12 @@ if (typeof SecurityUtils === "undefined") {
         ...details,
       };
 
-      console.log("[Security Audit]", logEntry);
+      // SECURITY FIX: Use ProductionLogger instead of console.log
+      if (typeof window.ProductionLogger !== "undefined") {
+        window.ProductionLogger.security("SecurityUtils", action, logEntry);
+      } else {
+        console.log("[Security Audit]", logEntry);
+      }
 
       // In production, this would send to a security monitoring service
       // For now, we'll store in sessionStorage for debugging
@@ -1485,8 +1536,8 @@ if (typeof SecurityUtils === "undefined") {
     window.SecurityUtils.ValidationException =
       SecurityUtils.ValidationException;
 
-    // Log successful exposure
-    console.log("[SecurityUtils] All methods exposed to window:", {
+    // Log successful exposure using ProductionLogger
+    const exposureInfo = {
       logSecurityEvent:
         typeof window.SecurityUtils.logSecurityEvent === "function",
       generateNonce: typeof window.SecurityUtils.generateNonce === "function",
@@ -1511,6 +1562,25 @@ if (typeof SecurityUtils === "undefined") {
         typeof window.SecurityUtils.SecurityException === "function",
       ValidationException:
         typeof window.SecurityUtils.ValidationException === "function",
-    });
+    };
+
+    // Use ProductionLogger for method exposure logging
+    if (typeof window.ProductionLogger !== "undefined") {
+      window.ProductionLogger.info(
+        "SecurityUtils",
+        "All methods exposed to window",
+        exposureInfo,
+      );
+    } else {
+      console.log(
+        "[SecurityUtils] All methods exposed to window:",
+        exposureInfo,
+      );
+    }
   }
 } // End of SecurityUtils undefined check
+
+// Node.js export for testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { SecurityUtils };
+}

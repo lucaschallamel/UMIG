@@ -436,6 +436,7 @@ console.log('[UMIG] Admin GUI loading...');
 <script src="${webResourcesPath}/js/components/SecurityUtils.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/EmailUtils.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/BaseComponent.js?v=${jsVersion}"></script>
+<script src="${webResourcesPath}/js/components/ColorPickerComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/ComponentOrchestrator.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/TableComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/ModalComponent.js?v=${jsVersion}"></script>

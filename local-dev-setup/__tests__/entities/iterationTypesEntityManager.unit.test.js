@@ -64,7 +64,7 @@ jest.mock(
   },
 );
 
-// Mock SecurityUtils
+// Mock SecurityUtils with comprehensive method coverage
 jest.mock("../../../src/groovy/umig/web/js/components/SecurityUtils.js", () => {
   return {
     SecurityUtils: {
@@ -74,11 +74,35 @@ jest.mock("../../../src/groovy/umig/web/js/components/SecurityUtils.js", () => {
         errors: [],
       }),
       sanitizeString: jest.fn((str) => str),
+      sanitizeHtml: jest.fn((str) => str),
+      addCSRFProtection: jest.fn((headers = {}) => ({
+        ...headers,
+        "X-CSRF-Token": "mock-csrf-token",
+        "Content-Type": "application/json",
+      })),
+      safeSetInnerHTML: jest.fn((element, html) => {
+        if (element && element.innerHTML !== undefined) {
+          element.innerHTML = html;
+        }
+      }),
+      setTextContent: jest.fn((element, text) => {
+        if (element && element.textContent !== undefined) {
+          element.textContent = text;
+        }
+      }),
+      sanitizeInput: jest.fn((input) => input),
+      logSecurityEvent: jest.fn(),
       ValidationException: class ValidationException extends Error {
         constructor(message, field, data) {
           super(message);
           this.field = field;
           this.data = data;
+        }
+      },
+      SecurityException: class SecurityException extends Error {
+        constructor(message, details) {
+          super(message);
+          this.details = details;
         }
       },
     },
@@ -102,6 +126,24 @@ const mockSecurityUtils = {
     errors: [],
   }),
   sanitizeString: jest.fn((str) => str),
+  sanitizeHtml: jest.fn((str) => str),
+  addCSRFProtection: jest.fn((headers = {}) => ({
+    ...headers,
+    "X-CSRF-Token": "mock-csrf-token",
+    "Content-Type": "application/json",
+  })),
+  safeSetInnerHTML: jest.fn((element, html) => {
+    if (element && element.innerHTML !== undefined) {
+      element.innerHTML = html;
+    }
+  }),
+  setTextContent: jest.fn((element, text) => {
+    if (element && element.textContent !== undefined) {
+      element.textContent = text;
+    }
+  }),
+  sanitizeInput: jest.fn((input) => input),
+  logSecurityEvent: jest.fn(),
   ValidationException: class ValidationException extends Error {
     constructor(message, field, data) {
       super(message);
@@ -109,10 +151,29 @@ const mockSecurityUtils = {
       this.data = data;
     }
   },
+  SecurityException: class SecurityException extends Error {
+    constructor(message, details) {
+      super(message);
+      this.details = details;
+    }
+  },
 };
 
-// Mock fetch
-global.fetch = jest.fn();
+// Mock fetch with comprehensive response handling
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: "OK",
+    json: () => Promise.resolve({ success: true, data: [] }),
+    text: () => Promise.resolve('{"success": true, "data": []}'),
+    headers: new Map(),
+    url: "http://localhost/api/test",
+    clone: function () {
+      return this;
+    },
+  }),
+);
 
 describe("IterationTypesEntityManager Unit Tests", () => {
   let entityManager;
@@ -122,6 +183,10 @@ describe("IterationTypesEntityManager Unit Tests", () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Setup SecurityUtils on window
+    global.window = global.window || {};
+    global.window.SecurityUtils = mockSecurityUtils;
 
     // Mock DOM container
     mockContainer = {
@@ -1086,7 +1151,8 @@ describe("IterationTypesEntityManager Unit Tests", () => {
 
       const result = entityManager._renderNameCell("Production Run", row);
 
-      expect(result).toContain("fa-play-circle");
+      // Changed to match Unicode implementation instead of FontAwesome
+      expect(result).toContain("►"); // Unicode play symbol
       expect(result).toContain("Production Run");
     });
 
@@ -1104,7 +1170,8 @@ describe("IterationTypesEntityManager Unit Tests", () => {
 
       const result = entityManager._renderIcon(iconName);
 
-      expect(result).toContain(`fa-${iconName}`);
+      // Changed to match Unicode implementation instead of FontAwesome
+      expect(result).toContain("●"); // Unicode circle symbol (default)
       expect(result).toContain(iconName);
     });
 

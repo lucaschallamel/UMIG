@@ -225,9 +225,13 @@ labels(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def direction = queryParams.getFirst('direction')
             
             // Admin GUI compatibility - handle parameterless calls
-            if (!migrationId && !iterationId && !planId && !sequenceId && !phaseId && 
+            // For Labels entity, provide default pagination instead of empty array
+            if (!migrationId && !iterationId && !planId && !sequenceId && !phaseId &&
                 !page && !size && !search && !sort && !direction) {
-                return Response.ok(new JsonBuilder([]).toString()).build()
+
+                // Default to first page with standard pagination for Labels
+                def result = labelRepository.findAllLabelsWithPagination(1, 50, null, null, 'asc')
+                return Response.ok(new JsonBuilder(result).toString()).build()
             }
             
             // Check for hierarchical filtering query parameters first
@@ -361,43 +365,69 @@ labels(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
         def jsonSlurper = new JsonSlurper()
         Map labelData = jsonSlurper.parseText(body) as Map
 
-        // Basic validation - required fields
-        if (!labelData['lbl_name'] || labelData['lbl_name'].toString().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name is required"]).toString()).build()
+        // Field mapping: Frontend sends display names, convert to database field names
+        def mappedData = [:]
+
+        // Map frontend field names to database field names
+        if (labelData.containsKey('name')) {
+            mappedData['lbl_name'] = labelData['name']
+        } else if (labelData.containsKey('lbl_name')) {
+            mappedData['lbl_name'] = labelData['lbl_name']
         }
 
-        if (!labelData['lbl_color'] || labelData['lbl_color'].toString().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color is required"]).toString()).build()
+        if (labelData.containsKey('description')) {
+            mappedData['lbl_description'] = labelData['description']
+        } else if (labelData.containsKey('lbl_description')) {
+            mappedData['lbl_description'] = labelData['lbl_description']
         }
 
-        if (!labelData['mig_id']) {
+        if (labelData.containsKey('color')) {
+            mappedData['lbl_color'] = labelData['color']
+        } else if (labelData.containsKey('lbl_color')) {
+            mappedData['lbl_color'] = labelData['lbl_color']
+        }
+
+        if (labelData.containsKey('mig_id')) {
+            mappedData['mig_id'] = labelData['mig_id']
+        }
+
+        // Basic validation - required fields (use mapped field names)
+        if (!mappedData['lbl_name'] || mappedData['lbl_name'].toString().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "name is required"]).toString()).build()
+        }
+
+        if (!mappedData['lbl_color'] || mappedData['lbl_color'].toString().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "color is required"]).toString()).build()
+        }
+
+        if (!mappedData['mig_id']) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "mig_id is required"]).toString()).build()
         }
 
         // Validate field lengths
-        if (labelData['lbl_name'].toString().length() > 100) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name must be 100 characters or less"]).toString()).build()
+        if (mappedData['lbl_name'].toString().length() > 100) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "name must be 100 characters or less"]).toString()).build()
         }
 
-        if (labelData['lbl_description'] && labelData['lbl_description'].toString().length() > 500) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_description must be 500 characters or less"]).toString()).build()
+        if (mappedData['lbl_description'] && mappedData['lbl_description'].toString().length() > 500) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "description must be 500 characters or less"]).toString()).build()
         }
 
-        if (labelData['lbl_color'].toString().length() > 7) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color must be 7 characters or less (hex color format)"]).toString()).build()
+        if (mappedData['lbl_color'].toString().length() > 7) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "color must be 7 characters or less (hex color format)"]).toString()).build()
         }
 
         // Type safety - explicit casting per ADR-031
         def processedLabelData = [:]
-        processedLabelData['lbl_name'] = labelData['lbl_name'].toString().trim()
-        processedLabelData['lbl_color'] = labelData['lbl_color'].toString().trim()
-        
-        if (labelData['lbl_description']) {
-            processedLabelData['lbl_description'] = labelData['lbl_description'].toString().trim()
+        processedLabelData['lbl_name'] = mappedData['lbl_name'].toString().trim()
+        processedLabelData['lbl_color'] = mappedData['lbl_color'].toString().trim()
+
+        if (mappedData['lbl_description']) {
+            processedLabelData['lbl_description'] = mappedData['lbl_description'].toString().trim()
         }
-        
+
         try {
-            processedLabelData['mig_id'] = UUID.fromString(labelData['mig_id'] as String)
+            processedLabelData['mig_id'] = UUID.fromString(mappedData['mig_id'] as String)
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid mig_id format. Must be a valid UUID."]).toString()).build()
         }
@@ -477,42 +507,68 @@ labels(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
         def jsonSlurper = new JsonSlurper()
         Map labelData = jsonSlurper.parseText(body) as Map
 
+        // Field mapping: Frontend sends display names, convert to database field names
+        def mappedData = [:]
+
+        // Map frontend field names to database field names for update
+        if (labelData.containsKey('name')) {
+            mappedData['lbl_name'] = labelData['name']
+        } else if (labelData.containsKey('lbl_name')) {
+            mappedData['lbl_name'] = labelData['lbl_name']
+        }
+
+        if (labelData.containsKey('description')) {
+            mappedData['lbl_description'] = labelData['description']
+        } else if (labelData.containsKey('lbl_description')) {
+            mappedData['lbl_description'] = labelData['lbl_description']
+        }
+
+        if (labelData.containsKey('color')) {
+            mappedData['lbl_color'] = labelData['color']
+        } else if (labelData.containsKey('lbl_color')) {
+            mappedData['lbl_color'] = labelData['lbl_color']
+        }
+
+        if (labelData.containsKey('mig_id')) {
+            mappedData['mig_id'] = labelData['mig_id']
+        }
+
         // Build update map with type safety
         def updates = [:]
-        
-        if (labelData.containsKey('lbl_name')) {
-            def name = labelData['lbl_name']?.toString()?.trim()
+
+        if (mappedData.containsKey('lbl_name')) {
+            def name = mappedData['lbl_name']?.toString()?.trim()
             if (!name || name.isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name cannot be empty"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "name cannot be empty"]).toString()).build()
             }
             if (name.length() > 100) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_name must be 100 characters or less"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "name must be 100 characters or less"]).toString()).build()
             }
             updates['lbl_name'] = name
         }
 
-        if (labelData.containsKey('lbl_description')) {
-            def description = labelData['lbl_description']?.toString()?.trim()
+        if (mappedData.containsKey('lbl_description')) {
+            def description = mappedData['lbl_description']?.toString()?.trim()
             if (description && description.length() > 500) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_description must be 500 characters or less"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "description must be 500 characters or less"]).toString()).build()
             }
             updates['lbl_description'] = description
         }
 
-        if (labelData.containsKey('lbl_color')) {
-            def color = labelData['lbl_color']?.toString()?.trim()
+        if (mappedData.containsKey('lbl_color')) {
+            def color = mappedData['lbl_color']?.toString()?.trim()
             if (!color || color.isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color cannot be empty"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "color cannot be empty"]).toString()).build()
             }
             if (color.length() > 7) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "lbl_color must be 7 characters or less (hex color format)"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "color must be 7 characters or less (hex color format)"]).toString()).build()
             }
             updates['lbl_color'] = color
         }
 
-        if (labelData.containsKey('mig_id')) {
+        if (mappedData.containsKey('mig_id')) {
             try {
-                updates['mig_id'] = UUID.fromString(labelData['mig_id'] as String)
+                updates['mig_id'] = UUID.fromString(mappedData['mig_id'] as String)
             } catch (IllegalArgumentException e) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid mig_id format. Must be a valid UUID."]).toString()).build()
             }

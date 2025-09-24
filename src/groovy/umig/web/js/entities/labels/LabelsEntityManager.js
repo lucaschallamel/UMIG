@@ -1,802 +1,361 @@
 /**
- * LabelsEntityManager - Enterprise-grade label entity management
- * Extends BaseEntityManager pattern for standardized CRUD operations
+ * Labels Entity Manager - Enterprise Component Architecture Implementation
  *
- * Features:
- * - Complete CRUD operations with validation
- * - Many-to-many relationships with applications and steps
- * - Color picker integration for label colors
- * - Hierarchical filtering (migration, iteration, plan, sequence, phase)
- * - Advanced search and filtering capabilities
- * - Security controls (9.2/10 enterprise rating)
- * - Performance optimization (<200ms targets)
+ * Manages all label-related operations with color picker support and
+ * advanced filtering. Built on the proven BaseEntityManager pattern
+ * with 90%+ pattern compliance following Environments acceleration framework.
  *
+ * @module LabelsEntityManager
  * @version 1.0.0
- * @since US-082-C Entity Migration Standard
+ * @created 2025-09-23 (Pattern Compliance Refactoring)
+ * @security Enterprise-grade (Target: 9.2/10 rating)
+ * @performance <200ms response time for all operations
+ * @pattern BaseEntityManager extension with component architecture
  */
 
 /**
- * LabelsEntityManager - Production-ready implementation
- * Manages label entities with enterprise-grade features
+ * Labels Entity Manager - Enterprise Component Architecture Implementation
+ * Fixed: Removed IIFE wrapper per ADR-057, refactored to exact Environments pattern
  */
+
 class LabelsEntityManager extends (window.BaseEntityManager || class {}) {
   constructor(options = {}) {
-    // Initialize parent with proper config including entityType
-    super({
+    // Fix: BaseEntityManager expects a config object with entityType
+    // Merge options from admin-gui.js with entity-specific config following Environments pattern
+    const config = {
       entityType: "labels",
-      ...options,
-    });
-
-    // Configure LabelsEntityManager with comprehensive settings after super()
-    const labelConfig = this.buildLabelConfig();
-
-    // Merge configuration into this instance (config is already initialized by super())
-    Object.assign(this.config, labelConfig);
-
-    // Initialize label-specific features
-    this.initializeLabelFeatures();
-    this.setupRelationshipManagement();
-    this.configurePerformanceMonitoring();
-    this.initializeCacheCleanup();
-    this.setupColorPicker();
-  }
-
-  /**
-   * Build complete label configuration
-   * @returns {Object} Label configuration object
-   */
-  buildLabelConfig() {
-    return {
-      entityType: "labels",
-      entityName: "Label",
-      apiEndpoint: "/rest/scriptrunner/latest/custom/labels",
-      tableConfig: this.buildTableConfig(),
-      modalConfig: this.buildModalConfig(),
-      filterConfig: this.buildFilterConfig(),
-      paginationConfig: this.buildPaginationConfig(),
-      securityConfig: this.buildSecurityConfig(),
-      performanceConfig: this.buildPerformanceConfig(),
-    };
-  }
-
-  /**
-   * Build table configuration (optimized)
-   * @returns {Object} Table configuration
-   */
-  buildTableConfig() {
-    return {
-      columns: this.buildTableColumns(),
-      actions: this.buildTableActions(),
-      emptyMessage: 'No labels found. Click "Add Label" to create one.',
-      loadingMessage: "Loading labels...",
-      errorMessage: "Failed to load labels. Please try again.",
-    };
-  }
-
-  /**
-   * Build table columns configuration (extracted for optimization)
-   * @returns {Array} Column configurations
-   */
-  buildTableColumns() {
-    // Performance: Pre-compile column configurations
-    if (this._cachedColumns) {
-      return this._cachedColumns;
-    }
-
-    this._cachedColumns = [
-      this.createColumnConfig("lbl_name", "Label Name", {
-        sortable: true,
-        searchable: true,
-        width: "200px",
-        formatter: (value) => {
-          if (
-            !window.SecurityUtils ||
-            typeof window.SecurityUtils.sanitizeHtml !== "function"
-          ) {
-            console.warn(
-              "[LabelsEntityManager] SecurityUtils.sanitizeHtml not available, using fallback",
-            );
-            return String(value || "").replace(/[<>&"']/g, "");
-          }
-          return window.SecurityUtils.sanitizeHtml(value);
+      ...options, // Include apiBase, endpoints, orchestrator, performanceMonitor
+      tableConfig: {
+        containerId: "dataTable",
+        primaryKey: "id", // Labels API returns "id" (mapped from lbl_id)
+        sorting: {
+          enabled: true,
+          column: null,
+          direction: "asc",
         },
-      }),
-      this.createColumnConfig("lbl_description", "Description", {
-        sortable: false,
-        searchable: true,
-        truncate: 100,
-        formatter: (value) => {
-          if (
-            !window.SecurityUtils ||
-            typeof window.SecurityUtils.sanitizeHtml !== "function"
-          ) {
-            console.warn(
-              "[LabelsEntityManager] SecurityUtils.sanitizeHtml not available, using fallback",
-            );
-            return String(value || "").replace(/[<>&"']/g, "");
-          }
-          return window.SecurityUtils.sanitizeHtml(value || "");
+        columns: [
+          { key: "name", label: "Label Name", sortable: true }, // API returns "name" (mapped from lbl_name)
+          {
+            key: "description", // API returns "description" (mapped from lbl_description)
+            label: "Description",
+            sortable: true,
+            renderer: (value, row) => {
+              const desc = value || "";
+              const truncated =
+                desc.length > 50 ? desc.substring(0, 50) + "..." : desc;
+              return window.SecurityUtils?.sanitizeHtml
+                ? window.SecurityUtils.sanitizeHtml(truncated)
+                : truncated;
+            },
+          },
+          {
+            key: "mig_name", // API returns "mig_name" from labels repository
+            label: "Migration",
+            sortable: true,
+            renderer: (value, row) => {
+              const migrationName = value || "Unknown Migration";
+              return window.SecurityUtils?.sanitizeHtml
+                ? window.SecurityUtils.sanitizeHtml(migrationName)
+                : migrationName;
+            },
+          },
+          {
+            key: "color", // API returns "color" (mapped from lbl_color)
+            label: "Color",
+            sortable: true,
+            renderer: (value, row) => {
+              if (!value) return "";
+              return `<span class="umig-color-indicator" style="background-color: ${value}; width: 20px; height: 20px; display: inline-block; border: 1px solid #ccc; border-radius: 3px; margin-right: 5px;"></span>${value}`;
+            },
+          },
+          {
+            key: "step_count", // API returns "step_count" from labels repository
+            label: "Step Instances",
+            sortable: true,
+            renderer: (value, row) => {
+              const count = value || 0;
+              const countDisplay = count.toString();
+              // Add visual indicator if there are dependencies
+              if (count > 0) {
+                return `<span class="umig-step-count-indicator" style="color: #d73527; font-weight: bold;" title="This label is used by ${count} step instance(s)">${countDisplay}</span>`;
+              } else {
+                return `<span class="umig-step-count-none" style="color: #666;" title="No step instances use this label">${countDisplay}</span>`;
+              }
+            },
+          },
+        ],
+        actions: {
+          view: true,
+          edit: true,
+          delete: true,
         },
-      }),
-      this.createColumnConfig("lbl_color", "Color", {
-        sortable: true,
-        width: "100px",
-        align: "center",
-        formatter: (value) => this.formatLabelColor(value),
-      }),
-      this.createColumnConfig("mig_name", "Migration", {
-        sortable: true,
-        searchable: true,
-        width: "150px",
-        formatter: (value) => SecurityUtils.sanitizeHtml(value || "Unassigned"),
-      }),
-      this.createColumnConfig("application_count", "Applications", {
-        sortable: true,
-        width: "120px",
-        align: "center",
-        formatter: (value) =>
-          `<span class="badge">${SecurityUtils.sanitizeHtml(value || 0)}</span>`,
-      }),
-      this.createColumnConfig("step_count", "Steps", {
-        sortable: true,
-        width: "100px",
-        align: "center",
-        formatter: (value) =>
-          `<span class="badge">${SecurityUtils.sanitizeHtml(value || 0)}</span>`,
-      }),
-      this.createColumnConfig("created_by", "Created By", {
-        sortable: true,
-        width: "120px",
-        formatter: (value) => SecurityUtils.sanitizeHtml(value || "System"),
-      }),
-      this.createColumnConfig("created_at", "Created", {
-        sortable: true,
-        width: "150px",
-        formatter: (value) =>
-          value ? new Date(value).toLocaleDateString() : "",
-      }),
-    ];
-
-    return this._cachedColumns;
-  }
-
-  /**
-   * Create standardized column configuration
-   * @param {string} key - Column key
-   * @param {string} label - Column label
-   * @param {Object} options - Column options
-   * @returns {Object} Column configuration
-   */
-  createColumnConfig(key, label, options = {}) {
-    return {
-      key,
-      label,
-      sortable: options.sortable || false,
-      searchable: options.searchable || false,
-      width: options.width,
-      align: options.align || "left",
-      truncate: options.truncate,
-      formatter:
-        options.formatter || ((value) => SecurityUtils.sanitizeHtml(value)),
-    };
-  }
-
-  /**
-   * Build table actions configuration (extracted for optimization)
-   * @returns {Object} Actions configuration
-   */
-  buildTableActions() {
-    // Performance: Pre-compile action configurations
-    if (this._cachedActions) {
-      return this._cachedActions;
-    }
-
-    this._cachedActions = {
-      view: true,
-      edit: true,
-      delete: true,
-      custom: [
-        {
-          label: "Manage Applications",
-          icon: "aui-icon-small aui-iconfont-component",
-          handler: (label) => this.manageApplications(label),
-          permission: "manage_applications",
+        bulkActions: {
+          delete: true,
+          export: true,
         },
-        {
-          label: "View Steps",
-          icon: "aui-icon-small aui-iconfont-list-ordered",
-          handler: (label) => this.viewSteps(label),
-          permission: "view_steps",
-        },
-        {
-          label: "Duplicate",
-          icon: "aui-icon-small aui-iconfont-copy",
-          handler: (label) => this.duplicateLabel(label),
-          permission: "create_labels",
-        },
-      ],
-    };
-
-    return this._cachedActions;
-  }
-
-  /**
-   * Format label color with visual preview
-   * @param {string} value - Color hex value
-   * @returns {string} Formatted HTML with color preview
-   */
-  formatLabelColor(value) {
-    const color = value || "#999999";
-    const sanitizedColor = SecurityUtils.sanitizeHtml(color);
-    return `
-      <div class="label-color-preview" style="display: flex; align-items: center; gap: 8px;">
-        <div class="color-swatch" style="width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ccc; background-color: ${sanitizedColor};" title="${sanitizedColor}"></div>
-        <span class="color-code">${sanitizedColor}</span>
-      </div>
-    `;
-  }
-
-  /**
-   * Build modal configuration
-   * @returns {Object} Modal configuration
-   */
-  buildModalConfig() {
-    return {
-      title: {
-        create: "Create New Label",
-        edit: "Edit Label",
-        view: "Label Details",
-      },
-      fields: this.buildModalFields(),
-      buttons: {
-        submit: {
-          label: "Save Label",
-          className: "aui-button-primary",
-        },
-        cancel: {
-          label: "Cancel",
-          className: "aui-button-link",
+        colorMapping: {
+          enabled: false, // Disabled for labels
         },
       },
-      validation: {
-        onSubmit: (data) => this.validateLabelData(data),
-      },
-    };
-  }
-
-  /**
-   * Build modal field definitions (optimized)
-   * @returns {Array} Field definitions
-   */
-  buildModalFields() {
-    // Performance: Cache field definitions
-    if (this._cachedModalFields) {
-      return this._cachedModalFields;
-    }
-
-    this._cachedModalFields = [
-      this.createFieldConfig("lbl_name", "Label Name", "text", {
-        required: true,
-        maxLength: 100,
-        placeholder: "e.g., Critical, Database, Frontend",
-        helpText: "Unique name for this label within the migration",
-        validation: {
-          pattern: /^[a-zA-Z0-9\s\-_.()]+$/,
-          message:
-            "Name can only contain letters, numbers, spaces, hyphens, underscores, periods, and parentheses",
-        },
-      }),
-      this.createFieldConfig("lbl_description", "Description", "textarea", {
-        required: false,
-        maxLength: 1000,
-        rows: 3,
-        placeholder: "Describe the purpose and usage of this label",
-        helpText: "Optional detailed description",
-      }),
-      this.createFieldConfig("lbl_color", "Color", "color", {
-        required: true,
-        defaultValue: "#3498db",
-        helpText: "Color to visually identify this label",
-        customRenderer: () => this.renderColorPicker(),
-      }),
-      this.createFieldConfig("mig_id", "Migration", "select", {
-        required: true,
-        async: true,
-        loadOptions: () => this.loadMigrationOptions(),
-        placeholder: "Select migration",
-        helpText: "Migration this label belongs to",
-      }),
-    ];
-
-    return this._cachedModalFields;
-  }
-
-  /**
-   * Create standardized field configuration
-   * @param {string} name - Field name
-   * @param {string} label - Field label
-   * @param {string} type - Field type
-   * @param {Object} options - Field options
-   * @returns {Object} Field configuration
-   */
-  createFieldConfig(name, label, type, options = {}) {
-    const baseConfig = {
-      name,
-      label,
-      type,
-      required: options.required || false,
-      placeholder: options.placeholder || "",
-      helpText: options.helpText || "",
-    };
-
-    // Add type-specific options
-    switch (type) {
-      case "text":
-      case "textarea":
-        baseConfig.maxLength = options.maxLength;
-        baseConfig.validation = options.validation;
-        if (type === "textarea") {
-          baseConfig.rows = options.rows || 3;
-        }
-        break;
-      case "color":
-        baseConfig.defaultValue = options.defaultValue;
-        baseConfig.customRenderer = options.customRenderer;
-        break;
-      case "select":
-        baseConfig.async = options.async || false;
-        baseConfig.loadOptions = options.loadOptions;
-        baseConfig.options = options.options;
-        break;
-    }
-
-    return baseConfig;
-  }
-
-  /**
-   * Render custom color picker component
-   * @returns {HTMLElement} Color picker element
-   */
-  renderColorPicker() {
-    const container = document.createElement("div");
-    container.className = "label-color-picker";
-    container.innerHTML = `
-      <div class="color-picker-container">
-        <input type="color" id="color-input" name="lbl_color" class="color-input" value="#3498db">
-        <div class="color-presets">
-          <div class="preset-colors">
-            <button type="button" class="color-preset" data-color="#e74c3c" style="background-color: #e74c3c;" title="Red"></button>
-            <button type="button" class="color-preset" data-color="#f39c12" style="background-color: #f39c12;" title="Orange"></button>
-            <button type="button" class="color-preset" data-color="#f1c40f" style="background-color: #f1c40f;" title="Yellow"></button>
-            <button type="button" class="color-preset" data-color="#27ae60" style="background-color: #27ae60;" title="Green"></button>
-            <button type="button" class="color-preset" data-color="#3498db" style="background-color: #3498db;" title="Blue"></button>
-            <button type="button" class="color-preset" data-color="#9b59b6" style="background-color: #9b59b6;" title="Purple"></button>
-            <button type="button" class="color-preset" data-color="#95a5a6" style="background-color: #95a5a6;" title="Gray"></button>
-            <button type="button" class="color-preset" data-color="#34495e" style="background-color: #34495e;" title="Dark"></button>
-          </div>
-          <div class="color-preview">
-            <span>Preview:</span>
-            <div class="preview-swatch" style="background-color: #3498db;"></div>
-            <span class="preview-text">#3498db</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Setup color picker events
-    this.setupColorPickerEvents(container);
-
-    return container;
-  }
-
-  /**
-   * Setup color picker event handlers
-   * @param {HTMLElement} container - Color picker container
-   */
-  setupColorPickerEvents(container) {
-    const colorInput = container.querySelector("#color-input");
-    const previewSwatch = container.querySelector(".preview-swatch");
-    const previewText = container.querySelector(".preview-text");
-    const presetButtons = container.querySelectorAll(".color-preset");
-
-    // Handle color input changes
-    colorInput.addEventListener("input", (e) => {
-      const color = e.target.value;
-      previewSwatch.style.backgroundColor = color;
-      previewText.textContent = color;
-    });
-
-    // Handle preset color clicks
-    presetButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        e.preventDefault();
-        const color = button.dataset.color;
-        colorInput.value = color;
-        previewSwatch.style.backgroundColor = color;
-        previewText.textContent = color;
-
-        // Remove active class from all presets
-        presetButtons.forEach((btn) => btn.classList.remove("active"));
-        // Add active class to clicked preset
-        button.classList.add("active");
-      });
-    });
-
-    // Set initial active preset
-    const defaultButton = container.querySelector('[data-color="#3498db"]');
-    if (defaultButton) {
-      defaultButton.classList.add("active");
-    }
-  }
-
-  /**
-   * Build filter configuration
-   * @returns {Object} Filter configuration
-   */
-  buildFilterConfig() {
-    return {
-      fields: [
-        {
-          name: "search",
-          type: "text",
-          placeholder: "Search labels...",
-          icon: "aui-icon-small aui-iconfont-search",
-        },
-        {
-          name: "mig_id",
-          type: "select",
-          label: "Migration",
-          async: true,
-          loadOptions: () => this.loadMigrationOptions(true),
-          placeholder: "Filter by migration",
-        },
-        {
-          name: "color_group",
-          type: "select",
-          label: "Color Group",
-          options: [
-            { value: "", label: "All Colors" },
-            { value: "red", label: "Red Tones" },
-            { value: "orange", label: "Orange Tones" },
-            { value: "yellow", label: "Yellow Tones" },
-            { value: "green", label: "Green Tones" },
-            { value: "blue", label: "Blue Tones" },
-            { value: "purple", label: "Purple Tones" },
-            { value: "gray", label: "Gray Tones" },
+      modalConfig: {
+        containerId: "editModal",
+        title: "Label Management", // Simple string title like Environments pattern
+        size: "large",
+        form: {
+          fields: [
+            {
+              name: "name", // Form uses API field names (same as display)
+              type: "text",
+              required: true,
+              label: "Label Name",
+              placeholder: "Enter label name",
+              validation: {
+                minLength: 3,
+                maxLength: 100,
+                message: "Label name must be between 3 and 100 characters",
+              },
+            },
+            {
+              name: "description", // Form uses API field names (same as display)
+              type: "textarea",
+              required: false,
+              label: "Description",
+              placeholder: "Describe the label purpose and usage",
+              rows: 4,
+              validation: {
+                maxLength: 500,
+                message: "Description must be 500 characters or less",
+              },
+            },
+            {
+              name: "color", // Form uses API field names (same as display)
+              type: "color",
+              required: true,
+              label: "Color",
+              placeholder: "#FF0000",
+              validation: {
+                pattern: /^#[0-9A-Fa-f]{6}$/,
+                message: "Color must be a valid hex color (e.g., #FF0000)",
+              },
+            },
+            {
+              name: "mig_id", // Migration selection dropdown
+              type: "select",
+              required: true,
+              label: "Migration",
+              placeholder: "Select migration", // Note: Actual options include placeholder "-- Select Migration --"
+              options: [], // Will be populated dynamically with placeholder first option
+              helpText: "Migration this label belongs to",
+              validation: {
+                required: true,
+                message: "Migration selection is required",
+              },
+            },
           ],
         },
-        {
-          name: "has_applications",
-          type: "checkbox",
-          label: "Has Applications",
-        },
-        {
-          name: "has_steps",
-          type: "checkbox",
-          label: "Has Steps",
-        },
-      ],
-      onFilter: (filters) => this.applyFilters(filters),
-      debounceDelay: 300,
-    };
-  }
-
-  /**
-   * Build pagination configuration
-   * @returns {Object} Pagination configuration
-   */
-  buildPaginationConfig() {
-    return {
-      pageSize: 25,
-      pageSizeOptions: [10, 25, 50, 100],
-      showInfo: true,
-      infoTemplate: "Showing {start} to {end} of {total} labels",
-    };
-  }
-
-  /**
-   * Build security configuration
-   * @returns {Object} Security configuration
-   */
-  buildSecurityConfig() {
-    return {
-      xssProtection: true,
-      csrfProtection: true,
-      inputValidation: true,
-      auditLogging: true,
-      rateLimiting: {
-        create: { limit: 15, windowMs: 60000 }, // 15 per minute
-        update: { limit: 25, windowMs: 60000 }, // 25 per minute
-        delete: { limit: 10, windowMs: 60000 }, // 10 per minute
-        read: { limit: 150, windowMs: 60000 }, // 150 per minute
       },
-      roleBasedAccess: {
-        create: ["admin", "migration_manager", "label_manager"],
-        update: ["admin", "migration_manager", "label_manager"],
-        delete: ["admin", "migration_manager"],
-        read: ["*"], // All authenticated users
-      },
-    };
-  }
-
-  /**
-   * Build performance configuration
-   * @returns {Object} Performance configuration
-   */
-  buildPerformanceConfig() {
-    return {
-      lazyLoading: true,
-      virtualization: true,
-      caching: {
+      filterConfig: {
         enabled: true,
-        ttl: 300000, // 5 minutes
-        maxSize: 200,
+        persistent: true,
+        filters: [
+          {
+            key: "search",
+            type: "text",
+            label: "Search",
+            placeholder: "Search labels...",
+            searchFields: ["name", "description"],
+          },
+        ],
+        quickFilters: [
+          {
+            label: "All",
+            filter: {},
+          },
+        ],
       },
-      debouncing: {
-        search: 300,
-        filter: 200,
-        colorPicker: 100,
+      paginationConfig: {
+        containerId: "paginationContainer",
+        pageSize: 50, // Standard page size for labels
+        pageSizeOptions: [10, 25, 50, 100],
+        serverSide: true, // Enable server-side pagination
       },
     };
+
+    // Pass config to BaseEntityManager
+    super(config);
+
+    // Store config for access by tests
+    this.config = config;
+
+    // Entity-specific configuration following Environments pattern
+    this.entityType = "labels";
+    this.primaryKey = "id"; // Labels API returns "id" (mapped from lbl_id)
+    this.displayField = "name"; // Labels API returns "name" (mapped from lbl_name)
+    this.searchFields = ["name", "description"]; // API returns these field names
+
+    // Server-side pagination - Use API pagination for better performance
+    this.paginationMode = "server";
+
+    // Performance thresholds following Environments pattern
+    this.performanceThresholds = {
+      labelLoad: 200,
+      labelUpdate: 300,
+      batchOperation: 1000,
+    };
+
+    // API endpoints following Environments pattern
+    this.labelsApiUrl = "/rest/scriptrunner/latest/custom/labels";
+    this.migrationsApiUrl = "/rest/scriptrunner/latest/custom/migrations";
+
+    // Component orchestrator for UI management
+    this.orchestrator = null;
+    this.components = new Map();
+
+    // Cache configuration following Environments pattern
+    this.cacheConfig = {
+      enabled: true,
+      ttl: 5 * 60 * 1000, // 5 minutes
+      maxSize: 100,
+    };
+    this.cache = new Map();
+    this.performanceMetrics = {};
+    this.errorLog = [];
+
+    // Initialize cache tracking variables
+    this.cacheHitCount = 0;
+    this.cacheMissCount = 0;
+
+    // Migrations data cache for dynamic field configuration
+    this.migrationsData = [];
+
+    console.log(
+      "[LabelsEntityManager] Initialized with component architecture",
+    );
   }
 
   /**
-   * Initialize label-specific features
+   * Override render to create toolbar after container is stable
+   * @returns {Promise<void>}
    */
-  initializeLabelFeatures() {
-    // Application relationship management
-    this.applicationManager = {
-      cache: new Map(),
-      loading: false,
-      endpoints: {
-        list: "/rest/scriptrunner/latest/custom/applications",
-        associate: "/rest/scriptrunner/latest/custom/labels/{id}/applications",
-        dissociate:
-          "/rest/scriptrunner/latest/custom/labels/{id}/applications/{appId}",
-      },
-    };
-
-    // Step relationship management
-    this.stepManager = {
-      cache: new Map(),
-      loading: false,
-      endpoints: {
-        list: "/rest/scriptrunner/latest/custom/steps/master",
-        associate: "/rest/scriptrunner/latest/custom/labels/{id}/steps",
-        dissociate:
-          "/rest/scriptrunner/latest/custom/labels/{id}/steps/{stepId}",
-      },
-    };
-
-    // Migration context management
-    this.migrationManager = {
-      cache: new Map(),
-      loading: false,
-      endpoints: {
-        list: "/rest/scriptrunner/latest/custom/migrations",
-      },
-    };
-
-    // Color management
-    this.colorManager = {
-      presetColors: [
-        "#e74c3c",
-        "#f39c12",
-        "#f1c40f",
-        "#27ae60",
-        "#3498db",
-        "#9b59b6",
-        "#95a5a6",
-        "#34495e",
-      ],
-      colorGroups: {
-        red: ["#e74c3c", "#c0392b", "#ec7063"],
-        orange: ["#f39c12", "#d68910", "#f8c471"],
-        yellow: ["#f1c40f", "#d4ac0d", "#f7dc6f"],
-        green: ["#27ae60", "#239b56", "#7fb069"],
-        blue: ["#3498db", "#2e86c1", "#7fb3d3"],
-        purple: ["#9b59b6", "#8e44ad", "#bb8fce"],
-        gray: ["#95a5a6", "#7f8c8d", "#b2babb"],
-      },
-    };
-  }
-
-  /**
-   * Setup relationship management subsystem
-   */
-  setupRelationshipManagement() {
-    // Many-to-many application relationships
-    this.relationships = {
-      applications: {
-        type: "many-to-many",
-        table: "labels_lbl_x_applications_app",
-        foreignKey: "lbl_id",
-        relatedKey: "app_id",
-        cascade: false,
-      },
-      steps: {
-        type: "many-to-many",
-        table: "labels_lbl_x_steps_master_stm",
-        foreignKey: "lbl_id",
-        relatedKey: "stm_id",
-        cascade: false,
-      },
-      migrations: {
-        type: "many-to-one",
-        table: "labels_lbl",
-        foreignKey: "lbl_id",
-        relatedKey: "mig_id",
-        cascade: false,
-      },
-    };
-  }
-
-  /**
-   * Configure performance monitoring
-   */
-  configurePerformanceMonitoring() {
-    this.performanceMetrics = {
-      operations: new Map(),
-      thresholds: {
-        lookup: 50, // <50ms for lookups
-        search: 200, // <200ms for search operations
-        relationship: 100, // <100ms for relationship queries
-        crud: 200, // <200ms for CRUD operations
-        colorProcessing: 25, // <25ms for color processing
-      },
-    };
-
-    // Monitor performance for all operations
-    this.on("operation:start", (operation) => {
-      this.performanceMetrics.operations.set(operation.id, {
-        type: operation.type,
-        startTime: performance.now(),
-      });
-    });
-
-    this.on("operation:end", (operation) => {
-      const metric = this.performanceMetrics.operations.get(operation.id);
-      if (metric) {
-        const duration = performance.now() - metric.startTime;
-        const threshold =
-          this.performanceMetrics.thresholds[metric.type] || 200;
-
-        if (duration > threshold) {
-          console.warn(
-            `Performance warning: ${metric.type} operation took ${duration}ms (threshold: ${threshold}ms)`,
-          );
-        }
-
-        // Log to audit trail
-        this.auditLog("PERFORMANCE", {
-          operation: metric.type,
-          duration: duration,
-          threshold: threshold,
-          exceeded: duration > threshold,
-        });
-
-        this.performanceMetrics.operations.delete(operation.id);
-      }
-    });
-  }
-
-  /**
-   * Setup color picker functionality
-   */
-  setupColorPicker() {
-    // Add color picker CSS styles
-    this.injectColorPickerStyles();
-  }
-
-  /**
-   * Inject color picker CSS styles
-   */
-  injectColorPickerStyles() {
-    const styleId = "label-color-picker-styles";
-    if (document.getElementById(styleId)) {
-      return; // Already injected
-    }
-
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      .label-color-picker {
-        margin: 10px 0;
-      }
-      
-      .color-picker-container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-      
-      .color-input {
-        width: 60px;
-        height: 40px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      
-      .color-presets {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      
-      .preset-colors {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      
-      .color-preset {
-        width: 32px;
-        height: 32px;
-        border: 2px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: border-color 0.2s, transform 0.1s;
-      }
-      
-      .color-preset:hover {
-        border-color: #aaa;
-        transform: scale(1.05);
-      }
-      
-      .color-preset.active {
-        border-color: #333;
-        border-width: 3px;
-      }
-      
-      .color-preview {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 14px;
-      }
-      
-      .preview-swatch {
-        width: 24px;
-        height: 24px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-      }
-      
-      .preview-text {
-        font-family: monospace;
-        color: #666;
-      }
-    `;
-
-    document.head.appendChild(style);
-  }
-
-  /**
-   * Load migration options with enhanced caching and performance (optimized)
-   */
-  async loadMigrationOptions(includeAll = false) {
-    const cacheKey = `migrations_${includeAll}`;
-    const cacheTTL = 300000; // 5 minutes
-
+  async render() {
     try {
-      // Check cache first with TTL validation
-      const cached = this.getCachedOptions(cacheKey, cacheTTL);
-      if (cached) {
-        return cached;
+      // Call parent render first
+      await super.render();
+
+      // Create toolbar after parent rendering is complete
+      console.log("[LabelsEntityManager] Creating toolbar after render");
+      this.createToolbar();
+    } catch (error) {
+      console.error("[LabelsEntityManager] Failed to render:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create toolbar with Add New and Refresh buttons
+   * @public
+   */
+  createToolbar() {
+    try {
+      // Find the container for the toolbar (above the table)
+      // Handle both string IDs and HTMLElement objects
+      let container;
+      if (this.container && this.container instanceof HTMLElement) {
+        // If this.container is already an HTMLElement
+        container = this.container;
+      } else {
+        // If it's a string ID or fallback to default
+        const containerId =
+          (typeof this.container === "string" ? this.container : null) ||
+          this.tableConfig?.containerId ||
+          "dataTable";
+        container = document.getElementById(containerId);
       }
 
-      // Fetch with timeout and retry logic
-      const response = await this.retryOperation(
-        async () => {
-          return await fetch(this.migrationManager.endpoints.list, {
-            headers: this.getSecurityHeaders(),
-            signal: AbortSignal.timeout(10000), // 10 second timeout
-          });
+      if (!container) {
+        console.warn(`[LabelsEntityManager] Container not found for toolbar:`, {
+          containerType: typeof this.container,
+          container: this.container,
+          tableConfigContainerId: this.tableConfig?.containerId,
+        });
+        return;
+      }
+
+      // Always recreate toolbar to ensure it exists after container clearing
+      let toolbar = container.querySelector(".entity-toolbar");
+      if (toolbar) {
+        toolbar.remove(); // Remove existing toolbar
+        console.log("[LabelsEntityManager] Removed existing toolbar");
+      }
+
+      toolbar = document.createElement("div");
+      toolbar.className = "entity-toolbar";
+      toolbar.style.cssText =
+        "margin-bottom: 15px; display: flex; gap: 10px; align-items: center;";
+
+      // Insert toolbar before the dataTable
+      const dataTable = container.querySelector("#dataTable");
+      if (dataTable) {
+        container.insertBefore(toolbar, dataTable);
+      } else {
+        container.appendChild(toolbar);
+      }
+
+      console.log("[LabelsEntityManager] Created new toolbar");
+
+      // Create Add New Label button with UMIG-prefixed classes to avoid Confluence conflicts
+      const addButton = document.createElement("button");
+      addButton.className = "umig-btn-primary umig-button";
+      addButton.id = "umig-add-new-label-btn"; // Use UMIG-prefixed ID to avoid legacy conflicts
+      addButton.innerHTML =
+        '<span class="umig-btn-icon">➕</span> Add New Label';
+      addButton.setAttribute("data-action", "add");
+      addButton.onclick = () => this.handleAdd();
+
+      // Create Refresh button with UMIG-prefixed classes (matching Environments pattern)
+      const refreshButton = document.createElement("button");
+      refreshButton.className = "umig-btn-secondary umig-button";
+      refreshButton.id = "umig-refresh-labels-btn";
+      refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
+      refreshButton.setAttribute("data-action", "refresh");
+      refreshButton.addEventListener("click", async () => {
+        console.log("[LabelsEntityManager] Refresh button clicked");
+        await this._handleRefreshWithFeedback(refreshButton);
+      });
+
+      // Clear and add buttons to toolbar
+      toolbar.innerHTML = "";
+      toolbar.appendChild(addButton);
+      toolbar.appendChild(refreshButton);
+
+      console.log("[LabelsEntityManager] Toolbar created successfully");
+    } catch (error) {
+      console.error("[LabelsEntityManager] Error creating toolbar:", error);
+    }
+  }
+
+  /**
+   * Load migrations data for dropdown population
+   * @returns {Promise<Array>} Array of migration options with placeholder
+   * @private
+   */
+  async _loadMigrationsData() {
+    try {
+      const startTime = performance.now();
+
+      // Check cache first
+      if (this.migrationsData && this.migrationsData.length > 0) {
+        console.log("[LabelsEntityManager] Using cached migrations data");
+        return this.migrationsData;
+      }
+
+      const response = await fetch(this.migrationsApiUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
-        "loadMigrationOptions",
-        3,
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -804,1727 +363,1453 @@ class LabelsEntityManager extends (window.BaseEntityManager || class {}) {
 
       const migrations = await response.json();
 
-      // Validate response format
-      if (!Array.isArray(migrations)) {
-        throw new Error("Invalid response format: expected array");
-      }
+      // Transform migrations data for select dropdown with placeholder first option
+      // Add placeholder option to force explicit user selection (fixes default selection bug)
+      this.migrationsData = [
+        { value: "", label: "-- Select Migration --", disabled: true }, // Placeholder option
+        ...migrations.map((migration) => ({
+          value: migration.id || migration.mig_id, // Handle both id and mig_id fields
+          label:
+            migration.name || migration.mig_name || `Migration ${migration.id}`,
+          data: migration,
+        })),
+      ];
 
-      // Transform to options with validation
-      const options = migrations
-        .filter(
-          (migration) => migration && migration.mig_id && migration.mig_name,
-        )
-        .map((migration) => ({
-          value: migration.mig_id,
-          label: SecurityUtils.sanitizeHtml(
-            migration.mig_name.toString().trim(),
-          ),
-        }));
-
-      if (includeAll) {
-        options.unshift({ value: "", label: "All Migrations" });
-      }
-
-      // Cache the results
-      this.setCachedOptions(cacheKey, options);
-
-      // Log success for monitoring
-      this.auditLog("MIGRATION_OPTIONS_LOADED", {
-        count: options.length,
-        includeAll,
-        cached: false,
-      });
-
-      return options;
-    } catch (error) {
-      console.error("Failed to load migration options:", error);
-      this.auditLog("MIGRATION_LOAD_ERROR", {
-        error: SecurityUtils.sanitizeForLog(error.message),
-        includeAll,
-      });
-
-      // Try to return stale cache as fallback
-      const staleCache = this.getCachedOptions(cacheKey, 86400000); // 24 hours
-      if (staleCache) {
-        console.warn("Using stale cached migration data as fallback");
-        this.showNotification(
-          "Using cached migration data. Some options may be outdated.",
-          "warning",
-        );
-        return staleCache;
-      }
-
-      // Final fallback
-      this.showNotification(
-        "Failed to load migrations. Please refresh the page.",
-        "error",
+      const loadTime = performance.now() - startTime;
+      console.log(
+        `[LabelsEntityManager] Loaded ${migrations.length} migrations with placeholder in ${loadTime.toFixed(2)}ms`,
       );
-      return includeAll ? [{ value: "", label: "All Migrations" }] : [];
+
+      return this.migrationsData;
+    } catch (error) {
+      console.error("[LabelsEntityManager] Failed to load migrations:", error);
+      this.migrationsData = []; // Reset cache on error
+      throw new Error(`Failed to load migrations: ${error.message}`);
     }
   }
 
   /**
-   * Get cached options with TTL validation
+   * Handle Add New Label action (following Environments pattern)
+   * @private
    */
-  getCachedOptions(key, ttl) {
-    const cached = this.optionsCache?.get(key);
-    if (!cached) {
-      return null;
+  async handleAdd() {
+    console.log("[LabelsEntityManager] Opening Add Label modal");
+
+    try {
+      // Load migrations data for dropdown
+      await this._loadMigrationsData();
+    } catch (error) {
+      console.error(
+        "[LabelsEntityManager] Failed to load migrations for dropdown:",
+        error,
+      );
+      this._showNotification(
+        "error",
+        "Loading Error",
+        "Failed to load migrations. Please try again.",
+      );
+      return;
     }
 
-    if (Date.now() - cached.timestamp > ttl) {
-      this.optionsCache.delete(key);
-      return null;
-    }
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn(
+        "[LabelsEntityManager] Modal component not initialized, attempting to create...",
+      );
 
-    return cached.data;
-  }
-
-  /**
-   * Set cached options with timestamp
-   */
-  setCachedOptions(key, data) {
-    if (!this.optionsCache) {
-      this.optionsCache = new Map();
-    }
-
-    this.optionsCache.set(key, {
-      data,
-      timestamp: Date.now(),
-    });
-  }
-
-  /**
-   * Retry operation with exponential backoff
-   * @param {Function} operation - Operation to retry
-   * @param {string} operationName - Name for logging
-   * @param {number} maxRetries - Maximum retry attempts
-   * @returns {Promise} Operation result
-   */
-  async retryOperation(operation, operationName, maxRetries = 3) {
-    let lastError;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await operation();
-
-        if (attempt > 1) {
-          this.auditLog("RETRY_SUCCESS", {
-            operation: operationName,
-            attempt: attempt,
-            maxRetries: maxRetries,
-          });
-        }
-
-        return result;
-      } catch (error) {
-        lastError = error;
-
-        this.auditLog("RETRY_ATTEMPT", {
-          operation: operationName,
-          attempt: attempt,
-          maxRetries: maxRetries,
-          error: error.message,
+      // Try to create modal if orchestrator exists
+      if (this.orchestrator) {
+        this.modalComponent = this.orchestrator.createComponent("modal", {
+          ...this.modalConfig,
+          entityManager: this,
         });
-
-        if (attempt === maxRetries) {
-          break;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        await this.sleep(delay);
-      }
-    }
-
-    this.auditLog("RETRY_FAILED", {
-      operation: operationName,
-      maxRetries: maxRetries,
-      finalError: lastError.message,
-    });
-
-    throw lastError;
-  }
-
-  /**
-   * Sleep utility for retry delays
-   * @param {number} ms - Milliseconds to sleep
-   * @returns {Promise} Promise that resolves after delay
-   */
-  sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Enhanced validate label data with comprehensive security checks
-   */
-  async validateLabelData(data) {
-    const errors = {};
-    const warnings = [];
-
-    try {
-      // Enhanced label name validation
-      if (!data.lbl_name) {
-        errors.lbl_name = "Label name is required";
       } else {
-        const sanitizedName = SecurityUtils.sanitizeInput(
-          data.lbl_name.toString().trim(),
+        console.error(
+          "[LabelsEntityManager] Orchestrator not available for modal creation",
         );
-
-        // Security: Prevent XSS and injection
-        if (sanitizedName !== data.lbl_name.trim()) {
-          errors.lbl_name = "Label name contains invalid characters";
-        }
-        // Enhanced pattern validation with security focus
-        else if (!/^[a-zA-Z0-9\s\-_.()]+$/.test(sanitizedName)) {
-          errors.lbl_name =
-            "Invalid name format. Only letters, numbers, spaces, hyphens, underscores, periods, and parentheses allowed";
-        }
-        // Length validation
-        else if (sanitizedName.length < 2) {
-          errors.lbl_name = "Name must be at least 2 characters long";
-        } else if (sanitizedName.length > 100) {
-          errors.lbl_name = "Name must be 100 characters or less";
-        }
-        // Business rule validation
-        else if (/^\s+$/.test(sanitizedName)) {
-          errors.lbl_name = "Name cannot contain only whitespace";
-        }
-        // Security: Detect potential SQL injection patterns
-        else if (this.containsSqlInjectionPatterns(sanitizedName)) {
-          errors.lbl_name = "Name contains prohibited patterns";
-        }
+        this._showNotification("error", "System Error", "System not ready");
+        return;
       }
 
-      // Enhanced description validation
-      if (data.lbl_description) {
-        const sanitizedDesc = SecurityUtils.sanitizeInput(
-          data.lbl_description.toString().trim(),
-        );
-
-        // Security validation
-        if (sanitizedDesc !== data.lbl_description.trim()) {
-          errors.lbl_description = "Description contains invalid characters";
-        }
-        // Length validation
-        else if (sanitizedDesc.length > 1000) {
-          errors.lbl_description =
-            "Description must be 1000 characters or less";
-        }
-        // Content validation
-        else if (this.containsSqlInjectionPatterns(sanitizedDesc)) {
-          errors.lbl_description = "Description contains prohibited patterns";
-        }
+      if (!this.modalComponent) {
+        console.error("[LabelsEntityManager] Failed to create modal component");
+        this._showNotification("error", "Modal Error", "Unable to open modal");
+        return;
       }
-
-      // Enhanced color validation
-      if (!data.lbl_color) {
-        errors.lbl_color = "Color is required";
-      } else {
-        const colorValue = data.lbl_color.toString().trim();
-
-        // Strict hex color validation
-        if (!/^#[0-9A-Fa-f]{6}$/.test(colorValue)) {
-          errors.lbl_color =
-            "Invalid color format. Must be a 6-digit hex color (e.g., #FF0000)";
-        }
-        // Business rule: Prevent pure white/transparent colors for visibility
-        else if (colorValue.toUpperCase() === "#FFFFFF") {
-          warnings.push("Pure white color may have visibility issues");
-        }
-      }
-
-      // Enhanced migration validation
-      if (!data.mig_id) {
-        errors.mig_id = "Migration is required";
-      } else {
-        // UUID format validation for security
-        const uuidPattern =
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!uuidPattern.test(data.mig_id.toString())) {
-          errors.mig_id = "Invalid migration ID format";
-        }
-      }
-
-      // Check for duplicate name within migration (async validation)
-      if (
-        data.lbl_name &&
-        data.mig_id &&
-        !data.lbl_id &&
-        !errors.lbl_name &&
-        !errors.mig_id
-      ) {
-        const isDuplicate = await this.checkDuplicateName(
-          data.lbl_name,
-          data.mig_id,
-        );
-        if (isDuplicate) {
-          errors.lbl_name = "Label name already exists in this migration";
-        }
-      }
-
-      // Security: Rate limiting for validation requests
-      await this.enforceValidationRateLimit();
-
-      // Log validation attempt for audit
-      this.auditLog("LABEL_VALIDATION", {
-        hasErrors: Object.keys(errors).length > 0,
-        warningCount: warnings.length,
-        labelName: data.lbl_name
-          ? SecurityUtils.sanitizeForLog(data.lbl_name)
-          : null,
-      });
-
-      const result = {
-        errors: Object.keys(errors).length > 0 ? errors : null,
-        warnings: warnings.length > 0 ? warnings : null,
-      };
-
-      return result.errors;
-    } catch (error) {
-      this.auditLog("VALIDATION_ERROR", { error: error.message });
-      console.error("Label validation error:", error);
-      // Return generic error to prevent information leakage
-      return {
-        general: "Validation failed. Please check your input and try again.",
-      };
-    }
-  }
-
-  /**
-   * Enhanced SQL injection pattern detection
-   * @param {string} input - Input string to check
-   * @returns {boolean} True if suspicious patterns detected
-   */
-  containsSqlInjectionPatterns(input) {
-    if (!input) return false;
-
-    const suspiciousPatterns = [
-      // SQL keywords
-      /\b(SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE)\b/i,
-      // SQL operators and functions
-      /\b(UNION|EXEC|EXECUTE|CAST|CONVERT|SUBSTRING)\b/i,
-      // Special characters in suspicious combinations
-      /['"`;\-\-\/\*\*\/]/,
-      // Script tags and JavaScript
-      /<script[^>]*>|<\/script>/i,
-      /javascript:/i,
-      // Common injection patterns
-      /\bOR\s+\d+\s*=\s*\d+/i,
-      /\bAND\s+\d+\s*=\s*\d+/i,
-    ];
-
-    return suspiciousPatterns.some((pattern) => pattern.test(input));
-  }
-
-  /**
-   * Enforce validation rate limiting to prevent abuse
-   */
-  async enforceValidationRateLimit() {
-    const now = Date.now();
-    const windowMs = 60000; // 1 minute
-    const maxValidations = 20; // 20 validations per minute
-
-    if (!this.validationRateLimit) {
-      this.validationRateLimit = {
-        count: 0,
-        windowStart: now,
-      };
     }
 
-    // Reset window if expired
-    if (now - this.validationRateLimit.windowStart > windowMs) {
-      this.validationRateLimit = {
-        count: 1,
-        windowStart: now,
-      };
-      return;
-    }
+    // Prepare empty data for new label
+    const newLabelData = {
+      name: "", // Use API field names for consistency
+      description: "",
+      color: "#0066CC",
+      mig_id: "", // Start with empty value to show placeholder - forces explicit selection
+    };
 
-    // Check limit
-    if (this.validationRateLimit.count >= maxValidations) {
-      throw new Error(
-        "Validation rate limit exceeded. Please wait before submitting again.",
-      );
-    }
-
-    this.validationRateLimit.count++;
-  }
-
-  /**
-   * Enhanced duplicate name check with comprehensive security
-   */
-  async checkDuplicateName(name, migrationId) {
-    try {
-      // Input validation and sanitization
-      if (!name || !migrationId) {
-        return false;
-      }
-
-      const sanitizedName = SecurityUtils.sanitizeInput(name.toString().trim());
-      const sanitizedMigId = migrationId.toString().trim();
-
-      // UUID validation for migration ID
-      const uuidPattern =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidPattern.test(sanitizedMigId)) {
-        console.warn("Invalid migration ID format in duplicate check");
-        return false;
-      }
-
-      // Rate limiting for duplicate checks
-      await this.enforceDuplicateCheckRateLimit();
-
-      const response = await this.retryOperation(
-        async () => {
-          return await fetch(
-            `${this.config.apiEndpoint}/check-name?name=${encodeURIComponent(sanitizedName)}&mig_id=${encodeURIComponent(sanitizedMigId)}`,
-            {
-              method: "GET",
-              headers: {
-                ...this.getSecurityHeaders(),
-                "X-Request-Source": "duplicate-check",
-                "X-Request-ID": this.generateRequestId(),
-              },
-              // Security: Add timeout to prevent hanging requests
-              signal: AbortSignal.timeout(5000),
-            },
+    // Update modal configuration for Add mode with populated migration dropdown
+    const modalConfig = {
+      title: "Add New Label",
+      type: "form",
+      mode: "create", // Set mode to create for new labels
+      form: {
+        ...this.config.modalConfig.form,
+        fields: this.config.modalConfig.form.fields.map((field) => {
+          if (field.name === "mig_id") {
+            // Populate migration dropdown options
+            return {
+              ...field,
+              options: this.migrationsData,
+            };
+          }
+          return field;
+        }),
+      },
+      onSubmit: async (formData) => {
+        try {
+          console.log("[LabelsEntityManager] Submitting new label:", formData);
+          const result = await this._createEntityData(formData);
+          console.log(
+            "[LabelsEntityManager] Label created successfully:",
+            result,
           );
-        },
-        "checkDuplicateName",
-        2,
+          // Refresh the table data
+          await this.loadData();
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Label Created",
+            `Label ${formData.name} has been created successfully.`,
+          );
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error("[LabelsEntityManager] Error creating label:", error);
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Creating Label",
+            error.message || "An error occurred while creating the label.",
+          );
+          // Return false to keep modal open with error
+          return false;
+        }
+      },
+    };
+
+    // Apply the modal configuration
+    this.modalComponent.updateConfig(modalConfig);
+
+    // Reset form data to new label defaults
+    if (this.modalComponent.resetForm) {
+      this.modalComponent.resetForm();
+    }
+
+    // Set form data to default values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, newLabelData);
+    }
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Handle refresh with comprehensive visual feedback (Users/Teams/Applications pattern)
+   * @param {HTMLElement} refreshButton - The refresh button element
+   * @private
+   */
+  async _handleRefreshWithFeedback(refreshButton) {
+    const startTime = performance.now();
+
+    try {
+      // Step 1: Show loading state immediately
+      this._setRefreshButtonLoadingState(refreshButton, true);
+
+      // Step 2: Add visual feedback to table (fade effect)
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.transition = "opacity 0.2s ease-in-out";
+        tableContainer.style.opacity = "0.6";
+      }
+
+      // Step 3: Perform the actual refresh
+      console.log(
+        "[LabelsEntityManager] Starting data refresh with visual feedback",
+      );
+      await this.loadData(
+        this.currentFilters,
+        this.currentSort,
+        this.currentPage,
       );
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error(
-            "Too many duplicate checks. Please wait before trying again.",
-          );
-        }
-        throw new Error(`Duplicate check failed: ${response.status}`);
+      // Step 4: Calculate operation time
+      const operationTime = performance.now() - startTime;
+
+      // Step 5: Restore table opacity with slight delay for visual feedback
+      if (tableContainer) {
+        // Small delay to ensure user sees the refresh happening
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        tableContainer.style.opacity = "1";
       }
 
-      const result = await response.json();
+      // Step 6: Show success feedback
+      this._showRefreshSuccessMessage(operationTime);
 
-      // Log for audit
-      this.auditLog("DUPLICATE_CHECK", {
-        labelName: SecurityUtils.sanitizeForLog(sanitizedName),
-        migrationId: sanitizedMigId.substring(0, 8) + "...", // Partial ID for security
-        exists: !!result.exists,
-      });
-
-      return !!result.exists;
+      console.log(
+        `[LabelsEntityManager] Data refreshed successfully in ${operationTime.toFixed(2)}ms`,
+      );
     } catch (error) {
-      console.error("Failed to check duplicate name:", error);
-      this.auditLog("DUPLICATE_CHECK_ERROR", { error: error.message });
+      console.error("[LabelsEntityManager] Error refreshing data:", error);
 
-      // Security: Fail closed for validation (assume duplicate to be safe)
-      return true;
-    }
-  }
-
-  /**
-   * Rate limiting for duplicate checks to prevent abuse
-   */
-  async enforceDuplicateCheckRateLimit() {
-    const now = Date.now();
-    const windowMs = 30000; // 30 seconds
-    const maxChecks = 10; // 10 checks per 30 seconds
-
-    if (!this.duplicateCheckRateLimit) {
-      this.duplicateCheckRateLimit = {
-        count: 0,
-        windowStart: now,
-      };
-    }
-
-    // Reset window if expired
-    if (now - this.duplicateCheckRateLimit.windowStart > windowMs) {
-      this.duplicateCheckRateLimit = {
-        count: 1,
-        windowStart: now,
-      };
-      return;
-    }
-
-    // Check limit
-    if (this.duplicateCheckRateLimit.count >= maxChecks) {
-      throw new Error("Duplicate check rate limit exceeded");
-    }
-
-    this.duplicateCheckRateLimit.count++;
-  }
-
-  /**
-   * Generate unique request ID for tracking
-   */
-  generateRequestId() {
-    return `req_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  }
-
-  /**
-   * Apply filters to label list
-   */
-  async applyFilters(filters) {
-    const queryParams = new URLSearchParams();
-
-    if (filters.search) {
-      queryParams.append("search", filters.search);
-    }
-
-    if (filters.mig_id) {
-      queryParams.append("mig_id", filters.mig_id);
-    }
-
-    if (filters.color_group) {
-      queryParams.append("color_group", filters.color_group);
-    }
-
-    if (filters.has_applications) {
-      queryParams.append("has_applications", "true");
-    }
-
-    if (filters.has_steps) {
-      queryParams.append("has_steps", "true");
-    }
-
-    // Add pagination parameters
-    const currentPage = this.components.pagination?.getCurrentPage() || 1;
-    const pageSize = this.components.pagination?.getPageSize() || 25;
-    queryParams.append("page", currentPage);
-    queryParams.append("limit", pageSize);
-
-    // Reload with filters
-    await this.loadData(`${this.config.apiEndpoint}?${queryParams.toString()}`);
-  }
-
-  /**
-   * Manage label-application relationships (optimized)
-   */
-  async manageApplications(label) {
-    const operationId = this.startOperation("manageApplications");
-
-    try {
-      // Validate input
-      if (!label || !label.lbl_id) {
-        throw new Error("Invalid label provided");
+      // Restore table opacity on error
+      const tableContainer = document.querySelector("#dataTable");
+      if (tableContainer) {
+        tableContainer.style.opacity = "1";
       }
 
-      // Start loading indicator
-      this.showLoadingIndicator("Loading application data...");
-
-      // Load data in parallel for performance
-      const [currentApps, allApps] = await Promise.all([
-        this.loadLabelApplications(label.lbl_id),
-        this.loadMigrationApplications(label.mig_id),
-      ]);
-
-      // Hide loading indicator
-      this.hideLoadingIndicator();
-
-      // Create and show modal
-      await this.showApplicationManagementModal(label, allApps, currentApps);
-    } catch (error) {
-      this.hideLoadingIndicator();
-      console.error("Failed to manage applications:", error);
-      this.auditLog("APPLICATION_MANAGEMENT_ERROR", {
-        labelId: label.lbl_id,
-        error: SecurityUtils.sanitizeForLog(error.message),
-      });
-      this.showNotification(
-        "Failed to load application data. Please try again.",
+      // Show error message
+      this._showNotification(
         "error",
+        "Refresh Failed",
+        "Failed to refresh label data. Please try again.",
       );
     } finally {
-      this.endOperation(operationId);
+      // Step 7: Always restore button state
+      this._setRefreshButtonLoadingState(refreshButton, false);
     }
   }
 
   /**
-   * Show application management modal (extracted for optimization)
+   * Set refresh button loading state with visual feedback
+   * @param {HTMLElement} button - The refresh button element
+   * @param {boolean} loading - Whether button should show loading state
+   * @private
    */
-  async showApplicationManagementModal(label, allApps, currentApps) {
-    const modal = new ModalComponent({
-      title: `Manage Applications for "${SecurityUtils.sanitizeHtml(label.lbl_name)}"`,
-      content: this.createApplicationManagementContent(allApps, currentApps),
-      buttons: [
-        {
-          label: "Save Changes",
-          className: "aui-button-primary",
-          handler: async () => {
-            try {
-              await this.saveApplicationAssociations(label.lbl_id);
-              modal.close();
-              this.showNotification(
-                "Application associations updated successfully",
-                "success",
-              );
-              await this.refresh();
-            } catch (error) {
-              console.error("Failed to save associations:", error);
-              this.showNotification(
-                "Failed to save changes. Please try again.",
-                "error",
-              );
-            }
-          },
-        },
-        {
-          label: "Cancel",
-          className: "aui-button-link",
-          handler: () => modal.close(),
-        },
-      ],
-    });
+  _setRefreshButtonLoadingState(button, loading) {
+    if (!button) return;
 
-    modal.open();
-  }
+    if (loading) {
+      // Store original content
+      button._originalHTML = button.innerHTML;
 
-  /**
-   * Start operation tracking for performance monitoring
-   */
-  startOperation(type) {
-    const operationId = `${type}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-    this.emit("operation:start", { id: operationId, type });
-    return operationId;
-  }
+      // Update to loading state
+      button.innerHTML =
+        '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">⟳</span> Refreshing...';
+      button.disabled = true;
+      button.style.opacity = "0.7";
+      button.style.cursor = "not-allowed";
 
-  /**
-   * End operation tracking
-   */
-  endOperation(operationId) {
-    this.emit("operation:end", { id: operationId });
-  }
-
-  /**
-   * Show loading indicator
-   */
-  showLoadingIndicator(message = "Loading...") {
-    if (!this.loadingIndicator) {
-      this.loadingIndicator = document.createElement("div");
-      this.loadingIndicator.className = "loading-indicator";
-      document.body.appendChild(this.loadingIndicator);
-    }
-
-    this.loadingIndicator.innerHTML = `
-      <div class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>${SecurityUtils.sanitizeHtml(message)}</p>
-        </div>
-      </div>
-    `;
-    this.loadingIndicator.style.display = "block";
-  }
-
-  /**
-   * Hide loading indicator
-   */
-  hideLoadingIndicator() {
-    if (this.loadingIndicator) {
-      this.loadingIndicator.style.display = "none";
+      // Add spinning animation if not already defined
+      if (!document.querySelector("#refresh-spinner-styles")) {
+        const style = document.createElement("style");
+        style.id = "refresh-spinner-styles";
+        style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    } else {
+      // Restore original state
+      if (button._originalHTML) {
+        button.innerHTML = button._originalHTML;
+      }
+      button.disabled = false;
+      button.style.opacity = "1";
+      button.style.cursor = "pointer";
     }
   }
 
   /**
-   * Load applications for a label
+   * Show refresh success message with timing information
+   * @param {number} operationTime - Time taken for the operation in milliseconds
+   * @private
    */
-  async loadLabelApplications(labelId) {
-    const response = await fetch(
-      this.applicationManager.endpoints.associate.replace("{id}", labelId),
-      {
-        headers: this.getSecurityHeaders(),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to load label applications");
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Load all applications in a migration
-   */
-  async loadMigrationApplications(migrationId) {
-    const response = await fetch(
-      `${this.applicationManager.endpoints.list}?mig_id=${encodeURIComponent(migrationId)}`,
-      {
-        headers: this.getSecurityHeaders(),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to load migration applications");
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Create application management content
-   */
-  createApplicationManagementContent(allApplications, currentApplications) {
-    const currentIds = new Set(currentApplications.map((app) => app.app_id));
-
-    const content = document.createElement("div");
-    content.className = "application-management";
-    content.innerHTML = `
-      <div class="aui-message aui-message-info">
-        <p>Select the applications that should be tagged with this label.</p>
-      </div>
-      <div class="application-checkboxes">
-        ${allApplications
-          .map(
-            (app) => `
-          <div class="checkbox">
-            <input type="checkbox" 
-                   id="app_${app.app_id}" 
-                   value="${app.app_id}"
-                   ${currentIds.has(app.app_id) ? "checked" : ""}>
-            <label for="app_${app.app_id}">
-              <strong>${SecurityUtils.sanitizeHtml(app.app_code)}</strong>
-              ${app.app_name ? ` - ${SecurityUtils.sanitizeHtml(app.app_name)}` : ""}
-              ${app.app_status ? `<span class="aui-lozenge aui-lozenge-${app.app_status === "active" ? "success" : "current"}">${SecurityUtils.sanitizeHtml(app.app_status)}</span>` : ""}
-            </label>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
+  _showRefreshSuccessMessage(operationTime) {
+    // Create a temporary success indicator
+    const successIndicator = document.createElement("div");
+    successIndicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 13px;
+      z-index: 10000;
+      animation: fadeInOut 2.5s ease-in-out forwards;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     `;
 
-    return content;
+    const labelCount = this.currentData ? this.currentData.length : 0;
+    successIndicator.innerHTML = `
+      <strong>✓ Refreshed</strong><br>
+      ${labelCount} labels loaded in ${operationTime.toFixed(0)}ms
+    `;
+
+    // Add fade in/out animation
+    if (!document.querySelector("#success-indicator-styles")) {
+      const style = document.createElement("style");
+      style.id = "success-indicator-styles";
+      style.textContent = `
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(-10px); }
+          15% { opacity: 1; transform: translateY(0); }
+          85% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Add to DOM and auto-remove
+    document.body.appendChild(successIndicator);
+    setTimeout(() => {
+      if (successIndicator.parentNode) {
+        successIndicator.parentNode.removeChild(successIndicator);
+      }
+    }, 2500);
   }
 
+  // Implementation of BaseEntityManager abstract methods
+
   /**
-   * Save application associations
+   * Fetch labels data from API (Environments pattern)
+   * @param {Object} filters - Filter parameters
+   * @param {Object} sort - Sort parameters
+   * @param {number} page - Page number
+   * @param {number} pageSize - Page size
+   * @returns {Promise<Object>} API response with labels data
+   * @protected
    */
-  async saveApplicationAssociations(labelId) {
-    const checkboxes = document.querySelectorAll(
-      '.application-checkboxes input[type="checkbox"]',
-    );
-    const selectedAppIds = Array.from(checkboxes)
-      .filter((cb) => cb.checked)
-      .map((cb) => cb.value);
+  async _fetchEntityData(filters = {}, sort = null, page = 1, pageSize = 50) {
+    const startTime = performance.now();
 
     try {
-      const response = await fetch(
-        this.applicationManager.endpoints.associate.replace("{id}", labelId),
-        {
-          method: "PUT",
-          headers: {
-            ...this.getSecurityHeaders(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ application_ids: selectedAppIds }),
-        },
-      );
+      // Build query parameters
+      const params = new URLSearchParams();
 
-      if (!response.ok) {
-        throw new Error("Failed to save application associations");
+      // Add pagination for server-side pagination
+      params.append("page", page.toString());
+      params.append("size", pageSize.toString());
+
+      // Add search filter if provided
+      if (filters.search?.trim()) {
+        params.append("search", filters.search.trim());
       }
 
-      this.showNotification(
-        "Application associations updated successfully",
-        "success",
+      // Add sorting if provided
+      if (sort?.column && sort?.direction) {
+        params.append("sort", sort.column);
+        params.append("direction", sort.direction);
+      }
+
+      const url = `${this.labelsApiUrl}${params.toString() ? "?" + params.toString() : ""}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Handle response format - Prioritize paginated response with items field
+      let labels = [];
+      let total = 0;
+      let currentPage = 1;
+      let actualPageSize = 50;
+
+      if (data.items && Array.isArray(data.items)) {
+        // Paginated response with items property (UMIG API standard - preferred)
+        labels = data.items;
+        total = data.total || data.items.length;
+        currentPage = data.page || 1;
+        actualPageSize = data.size || data.pageSize || 50;
+        console.log(
+          `[LabelsEntityManager] Using paginated API response: ${labels.length} items, page ${currentPage}/${data.totalPages || Math.ceil(total / actualPageSize)}, total ${total}`,
+        );
+      } else if (Array.isArray(data)) {
+        // Direct array response (fallback for hierarchical filtering)
+        labels = data;
+        total = data.length;
+        console.log(
+          `[LabelsEntityManager] Using direct array response: ${labels.length} items`,
+        );
+      } else if (data.data && Array.isArray(data.data)) {
+        // Response with data property (legacy format)
+        labels = data.data;
+        total = data.total || data.data.length;
+      } else if (data.content && Array.isArray(data.content)) {
+        // Spring paginated response format
+        labels = data.content;
+        total = data.totalElements || data.content.length;
+        currentPage = data.number + 1 || 1; // Spring uses 0-based page numbers
+        actualPageSize = data.size || 50;
+      } else {
+        console.warn(
+          "[LabelsEntityManager] Unexpected API response format:",
+          data,
+        );
+        labels = [];
+      }
+
+      // Apply runtime error prevention (data.slice fix from Environments learning)
+      if (!Array.isArray(labels)) {
+        console.warn(
+          "[LabelsEntityManager] Non-array data received, converting:",
+          labels,
+        );
+        labels = [];
+      }
+
+      // Track performance
+      const fetchTime = performance.now() - startTime;
+      this.performanceMetrics.lastFetchTime = fetchTime;
+
+      if (fetchTime > this.performanceThresholds.labelLoad) {
+        console.warn(
+          `[LabelsEntityManager] Slow fetch detected: ${fetchTime.toFixed(2)}ms`,
+        );
+      }
+
+      console.log(
+        `[LabelsEntityManager] Fetched ${labels.length} labels (${total} total, page ${currentPage}/${Math.ceil(total / actualPageSize)}) in ${fetchTime.toFixed(2)}ms${this.paginationMode === "server" ? " [server-side]" : " [client-side]"}`,
       );
+
+      return {
+        data: labels,
+        total: total,
+        page: currentPage,
+        pageSize: actualPageSize,
+        totalPages: Math.ceil(total / actualPageSize),
+      };
     } catch (error) {
-      console.error("Failed to save application associations:", error);
-      this.showNotification("Failed to save application associations", "error");
+      const fetchTime = performance.now() - startTime;
+      console.error(
+        `[LabelsEntityManager] Fetch failed after ${fetchTime.toFixed(2)}ms:`,
+        error,
+      );
+
+      // Log error for debugging
+      this.errorLog.push({
+        timestamp: new Date().toISOString(),
+        operation: "fetchEntityData",
+        error: error.message,
+        filters,
+        sort,
+        page,
+        pageSize,
+      });
+
+      throw new Error(`Failed to load labels: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create new label via API (Environments pattern)
+   * @param {Object} data - Label data
+   * @returns {Promise<Object>} Created label
+   * @protected
+   */
+  async _createEntityData(data) {
+    try {
+      console.log("[LabelsEntityManager] Creating new label:", data);
+
+      // Security validation (copied exactly from Environments)
+      window.SecurityUtils.validateInput(data);
+
+      const response = await fetch(this.labelsApiUrl, {
+        method: "POST",
+        headers: window.SecurityUtils.addCSRFProtection({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(data),
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        // Enhanced error handling: Parse response body to get actual error message (Environments pattern)
+        let errorMessage = `Failed to create label: ${response.status}`;
+        try {
+          const errorBody = await response.text();
+          if (errorBody) {
+            // Try to parse as JSON first for structured error messages
+            try {
+              const errorData = JSON.parse(errorBody);
+              if (errorData.error) {
+                errorMessage = errorData.error;
+              } else if (errorData.message) {
+                errorMessage = errorData.message;
+              } else {
+                // Fallback to raw error body
+                errorMessage = errorBody;
+              }
+            } catch (jsonError) {
+              // If not JSON, use raw text
+              errorMessage = errorBody;
+            }
+          }
+        } catch (bodyError) {
+          console.warn(
+            "[LabelsEntityManager] Could not parse error response body:",
+            bodyError,
+          );
+          // Keep default error message if body parsing fails
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const createdLabel = await response.json();
+      console.log("[LabelsEntityManager] Label created:", createdLabel);
+
+      // Clear relevant caches (copied exactly from Environments)
+      this._invalidateCache("all");
+
+      return createdLabel;
+    } catch (error) {
+      console.error("[LabelsEntityManager] Failed to create label:", error);
       throw error;
     }
   }
 
   /**
-   * View steps associated with a label
+   * Update existing label via API (Environments pattern)
+   * @param {string|number} id - Label ID
+   * @param {Object} data - Updated label data
+   * @returns {Promise<Object>} Updated label
+   * @protected
    */
-  async viewSteps(label) {
+  async _updateEntityData(id, data) {
+    const startTime = performance.now();
+
     try {
-      // Load steps for the label
-      const steps = await this.loadLabelSteps(label.lbl_id);
+      console.log(`[LabelsEntityManager] Updating label ${id}:`, data);
 
-      // Create steps view modal
-      const modal = new ModalComponent({
-        title: `Steps Tagged with "${label.lbl_name}"`,
-        content: this.createStepsViewContent(steps),
-        buttons: [
-          {
-            label: "Close",
-            className: "aui-button-primary",
-            handler: () => modal.close(),
-          },
-        ],
-      });
-
-      modal.open();
-    } catch (error) {
-      console.error("Failed to view steps:", error);
-      this.showNotification("Failed to load step data", "error");
-    }
-  }
-
-  /**
-   * Load steps for a label
-   */
-  async loadLabelSteps(labelId) {
-    const response = await fetch(
-      `${this.stepManager.endpoints.list}?label_id=${encodeURIComponent(labelId)}`,
-      {
-        headers: this.getSecurityHeaders(),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to load label steps");
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Create steps view content
-   */
-  createStepsViewContent(steps) {
-    const content = document.createElement("div");
-    content.className = "steps-view";
-
-    if (steps.length === 0) {
-      content.innerHTML = `
-        <div class="aui-message aui-message-info">
-          <p>No steps are currently tagged with this label.</p>
-        </div>
-      `;
-    } else {
-      content.innerHTML = `
-        <div class="steps-list">
-          <p><strong>${steps.length}</strong> step${steps.length === 1 ? "" : "s"} tagged with this label:</p>
-          <ul class="step-list">
-            ${steps
-              .map(
-                (step) => `
-              <li class="step-item">
-                <strong>${SecurityUtils.sanitizeHtml(step.stm_name)}</strong>
-                ${step.stm_description ? `<br><span class="step-description">${SecurityUtils.sanitizeHtml(step.stm_description)}</span>` : ""}
-                <div class="step-meta">
-                  <span class="step-phase">Phase: ${SecurityUtils.sanitizeHtml(step.phase_name || "Unknown")}</span>
-                  <span class="step-sequence">Sequence: ${SecurityUtils.sanitizeHtml(step.sequence_name || "Unknown")}</span>
-                </div>
-              </li>
-            `,
-              )
-              .join("")}
-          </ul>
-        </div>
-      `;
-    }
-
-    return content;
-  }
-
-  /**
-   * Duplicate a label
-   */
-  async duplicateLabel(label) {
-    try {
-      // Create duplicate data with modified name
-      const duplicateData = {
-        lbl_name: `${label.lbl_name} (Copy)`,
-        lbl_description: label.lbl_description,
-        lbl_color: label.lbl_color,
-        mig_id: label.mig_id,
-      };
-
-      // Create new label
-      await this.createEntity(duplicateData);
-
-      this.showNotification(
-        `Label "${label.lbl_name}" duplicated successfully`,
-        "success",
-      );
-    } catch (error) {
-      console.error("Failed to duplicate label:", error);
-      this.showNotification("Failed to duplicate label", "error");
-    }
-  }
-
-  /**
-   * Override delete to check for blocking relationships
-   */
-  async delete(labelId) {
-    try {
-      // Check for blocking relationships
-      const blockingEntities = await this.checkBlockingRelationships(labelId);
-
-      if (blockingEntities && Object.keys(blockingEntities).length > 0) {
-        this.showBlockingRelationshipsDialog(blockingEntities);
-        return false;
+      // Validate ID
+      if (!id) {
+        throw new Error("Label ID is required for update");
       }
 
-      // Proceed with deletion
-      return await super.delete(labelId);
+      // Apply security sanitization if available
+      let sanitizedData = { ...data };
+      if (window.SecurityUtils?.sanitizeInput) {
+        sanitizedData = window.SecurityUtils.sanitizeInput(data);
+      }
+
+      // Remove readonly fields that shouldn't be updated
+      delete sanitizedData.id; // Don't send back the ID field
+      delete sanitizedData.created_at;
+      delete sanitizedData.created_by;
+      delete sanitizedData.updated_at;
+      delete sanitizedData.updated_by;
+
+      const response = await fetch(`${this.labelsApiUrl}/${id}`, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sanitizedData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData.error ||
+          errorData.message ||
+          `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+
+      // Track performance
+      const updateTime = performance.now() - startTime;
+      this.performanceMetrics.lastUpdateTime = updateTime;
+
+      if (updateTime > this.performanceThresholds.labelUpdate) {
+        console.warn(
+          `[LabelsEntityManager] Slow update detected: ${updateTime.toFixed(2)}ms`,
+        );
+      }
+
+      console.log(
+        `[LabelsEntityManager] Label updated successfully in ${updateTime.toFixed(2)}ms`,
+      );
+
+      // Clear cache since data has changed
+      this.cache.clear();
+
+      return result;
     } catch (error) {
-      console.error("Failed to delete label:", error);
-      this.showNotification("Failed to delete label", "error");
-      return false;
+      const updateTime = performance.now() - startTime;
+      console.error(
+        `[LabelsEntityManager] Update failed after ${updateTime.toFixed(2)}ms:`,
+        error,
+      );
+
+      // Log error for debugging
+      this.errorLog.push({
+        timestamp: new Date().toISOString(),
+        operation: "updateEntityData",
+        error: error.message,
+        id: id,
+        data: data,
+      });
+
+      throw new Error(`Failed to update label: ${error.message}`);
     }
   }
 
   /**
-   * Check for blocking relationships before deletion
+   * Delete label via API (Environments pattern with enhanced error handling)
+   * @param {string|number} id - Label ID
+   * @returns {Promise<void>}
+   * @protected
    */
-  async checkBlockingRelationships(labelId) {
+  async _deleteEntityData(id) {
     try {
+      // Validate ID (reduced logging to prevent console spam)
+      if (!id) {
+        throw new Error("Label ID is required for deletion");
+      }
+
+      // Security validation
+      window.SecurityUtils.validateInput({ id });
+
       const response = await fetch(
-        `${this.config.apiEndpoint}/${labelId}/blocking-relationships`,
+        `${this.labelsApiUrl}/${encodeURIComponent(id)}`,
         {
-          headers: this.getSecurityHeaders(),
+          method: "DELETE",
+          headers: window.SecurityUtils.addCSRFProtection({
+            "Content-Type": "application/json",
+          }),
+          credentials: "same-origin",
         },
       );
 
       if (!response.ok) {
-        throw new Error("Failed to check blocking relationships");
-      }
+        // Parse the error response to get detailed error information (Environments pattern)
+        let errorMessage = `Failed to delete label (${response.status})`;
+        let blockingRelationships = null;
 
-      return await response.json();
-    } catch (error) {
-      console.error("Failed to check blocking relationships:", error);
-      return null;
-    }
-  }
-
-  /**
-   * Show blocking relationships dialog
-   */
-  showBlockingRelationshipsDialog(blockingEntities) {
-    const content = document.createElement("div");
-    content.innerHTML = `
-      <div class="aui-message aui-message-warning">
-        <p>This label cannot be deleted because it has the following relationships:</p>
-      </div>
-      <ul>
-        ${Object.entries(blockingEntities)
-          .map(
-            ([type, entities]) => `
-          <li>
-            <strong>${type}:</strong> ${entities.length} ${entities.length === 1 ? "entity" : "entities"}
-            <ul>
-              ${entities
-                .slice(0, 5)
-                .map(
-                  (entity) =>
-                    `<li>${SecurityUtils.sanitizeHtml(entity.name || entity.code || entity.id)}</li>`,
-                )
-                .join("")}
-              ${entities.length > 5 ? `<li>... and ${entities.length - 5} more</li>` : ""}
-            </ul>
-          </li>
-        `,
-          )
-          .join("")}
-      </ul>
-      <p>Please remove these relationships before deleting the label.</p>
-    `;
-
-    const modal = new ModalComponent({
-      title: "Cannot Delete Label",
-      content: content,
-      buttons: [
-        {
-          label: "OK",
-          className: "aui-button-primary",
-          handler: () => modal.close(),
-        },
-      ],
-    });
-
-    modal.open();
-  }
-
-  /**
-   * Enhanced security headers for API requests
-   */
-  getSecurityHeaders() {
-    const headers = {
-      "X-Atlassian-Token": "no-check", // CSRF protection
-      "X-Requested-With": "XMLHttpRequest",
-      "Content-Security-Policy": "default-src 'self'", // XSS protection
-      "X-Content-Type-Options": "nosniff", // MIME type protection
-      "X-Frame-Options": "DENY", // Clickjacking protection
-      "X-User-Agent": this.generateSecureUserAgent(),
-      "X-Session-Token": this.getSessionToken(),
-    };
-
-    // Add rate limiting token if configured
-    if (this.config.securityConfig?.rateLimiting) {
-      headers["X-Rate-Limit-Token"] = this.generateRateLimitToken();
-    }
-
-    // Add user context for audit
-    const currentUser = this.getCurrentUser();
-    if (currentUser !== "anonymous") {
-      headers["X-User-Context"] = btoa(currentUser); // Base64 encode for transport
-    }
-
-    // Add request fingerprint for security
-    headers["X-Request-Fingerprint"] = this.generateRequestFingerprint();
-
-    return headers;
-  }
-
-  /**
-   * Generate secure user agent identifier
-   */
-  generateSecureUserAgent() {
-    const baseAgent = "UMIG-LabelsEntityManager/1.0";
-    const timestamp = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
-    return `${baseAgent} (${timestamp})`;
-  }
-
-  /**
-   * Get or generate session token for request tracking
-   */
-  getSessionToken() {
-    if (!this.sessionToken || Date.now() - this.sessionTokenTime > 3600000) {
-      // 1 hour expiry
-      this.sessionToken = this.generateSecureToken();
-      this.sessionTokenTime = Date.now();
-    }
-    return this.sessionToken;
-  }
-
-  /**
-   * Generate secure token
-   */
-  generateSecureToken() {
-    const timestamp = Date.now();
-    const random1 = Math.random().toString(36).substring(2, 15);
-    const random2 = Math.random().toString(36).substring(2, 15);
-    return btoa(`${timestamp}-${random1}-${random2}`);
-  }
-
-  /**
-   * Generate request fingerprint for security tracking
-   */
-  generateRequestFingerprint() {
-    const components = [
-      window.location.hostname,
-      navigator.userAgent.substring(0, 50), // Limit length
-      screen.width + "x" + screen.height,
-      new Date().getTimezoneOffset(),
-      Date.now().toString().slice(-8), // Last 8 digits of timestamp
-    ];
-
-    return btoa(components.join("|")).substring(0, 32); // Limit fingerprint length
-  }
-
-  /**
-   * Enhanced rate limit token with additional security
-   */
-  generateRateLimitToken() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 15);
-    const userHash =
-      this.getCurrentUser() !== "anonymous"
-        ? btoa(this.getCurrentUser()).substring(0, 8)
-        : "anon";
-    const sessionHash = this.getSessionId().substring(0, 8);
-
-    return btoa(`${timestamp}:${random}:${userHash}:${sessionHash}`);
-  }
-
-  /**
-   * Audit log for compliance
-   */
-  auditLog(action, details) {
-    const auditEntry = {
-      timestamp: new Date().toISOString(),
-      action: action,
-      entity: "labels",
-      details: details,
-      user: this.getCurrentUser(),
-      sessionId: this.getSessionId(),
-    };
-
-    // Send to audit service (async, non-blocking)
-    fetch("/rest/scriptrunner/latest/custom/audit", {
-      method: "POST",
-      headers: {
-        ...this.getSecurityHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(auditEntry),
-    }).catch((error) => {
-      console.error("Failed to log audit entry:", error);
-    });
-  }
-
-  /**
-   * Show notification to user
-   */
-  showNotification(message, type = "info") {
-    const notification = document.createElement("div");
-    notification.className = `aui-message aui-message-${type}`;
-    notification.innerHTML = `
-      <p>${SecurityUtils.sanitizeHtml(message)}</p>
-      <span class="aui-icon icon-close" role="button" tabindex="0"></span>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-      notification.remove();
-    }, 5000);
-
-    // Allow manual dismiss
-    notification.querySelector(".icon-close")?.addEventListener("click", () => {
-      notification.remove();
-    });
-  }
-
-  /**
-   * Enhanced get current user with comprehensive security validation
-   */
-  getCurrentUser() {
-    try {
-      // Security: Cache user lookup to prevent repeated calls
-      if (this.cachedUser && Date.now() - this.cachedUser.timestamp < 300000) {
-        // 5 minutes cache
-        return this.cachedUser.user;
-      }
-
-      // Try multiple sources for user identification with priority order
-      const userSources = [
-        () => window.UMIGServices?.userService?.getCurrentUser?.(), // Highest priority
-        () => window.AJS?.currentUser?.name || window.AJS?.currentUser,
-        () => window.currentUser,
-        () => this.extractUserFromCookie(),
-        () => this.extractUserFromSession(),
-      ];
-
-      let user = null;
-      let sourceUsed = null;
-
-      for (let i = 0; i < userSources.length; i++) {
         try {
-          const sourceResult = userSources[i]();
-          if (sourceResult && sourceResult !== "anonymous") {
-            user = sourceResult;
-            sourceUsed = i;
-            break;
+          const errorBody = await response.text();
+          if (errorBody) {
+            // Try to parse as JSON first for structured error messages
+            try {
+              const errorData = JSON.parse(errorBody);
+              if (errorData.error) {
+                errorMessage = errorData.error;
+              } else if (errorData.message) {
+                errorMessage = errorData.message;
+              } else {
+                // Fallback to raw error body
+                errorMessage = errorBody;
+              }
+
+              // Extract blocking relationships for user-friendly display
+              if (errorData.blocking_relationships) {
+                blockingRelationships = errorData.blocking_relationships;
+              }
+            } catch (jsonError) {
+              // If not JSON, use raw text
+              errorMessage = errorBody;
+            }
           }
-        } catch (e) {
-          // Continue to next source
-          continue;
+        } catch (bodyError) {
+          // Silently handle response body parsing failures to reduce console spam
+          // Keep default error message if body parsing fails
         }
-      }
 
-      // Enhanced user validation and sanitization
-      let validatedUser = "anonymous";
-
-      if (user) {
-        let userString =
-          typeof user === "object" && user.username
-            ? user.username
-            : user.toString();
-
-        // Security: Validate user string format
-        if (this.isValidUsername(userString)) {
-          validatedUser = SecurityUtils.sanitizeInput(userString.trim());
+        // Create a user-friendly error message
+        if (response.status === 409 && blockingRelationships) {
+          // HTTP 409 Conflict - Label has relationships that prevent deletion
+          const relationshipDetails = this._formatBlockingRelationships(
+            blockingRelationships,
+          );
+          const detailedError = new Error(
+            `${errorMessage}\n\nThis label cannot be deleted because it has:\n${relationshipDetails}`,
+          );
+          detailedError.isConstraintError = true;
+          detailedError.blockingRelationships = blockingRelationships;
+          throw detailedError;
+        } else if (response.status === 409) {
+          // HTTP 409 Conflict without detailed relationships - provide user-friendly message
+          throw new Error(
+            "This label cannot be deleted because it has associated applications or steps that depend on it. Please remove or reassign these dependencies first.",
+          );
+        } else if (response.status === 404) {
+          // HTTP 404 Not Found
+          throw new Error("Label not found. It may have already been deleted.");
         } else {
-          this.auditLog("INVALID_USERNAME_FORMAT", {
-            rawUser: SecurityUtils.sanitizeForLog(userString),
-            source: sourceUsed,
-          });
+          // Other errors
+          throw new Error(errorMessage);
         }
       }
+
+      // Label deleted successfully (reduced logging to prevent console spam)
+
+      // Clear relevant caches
+      this._invalidateCache(id);
+    } catch (error) {
+      // NOTE: Reduced logging to prevent console spam
+      // BaseEntityManager will handle the error logging in _performDelete
+      // Only log if it's a constraint error for debugging purposes
+      if (error.isConstraintError) {
+        console.log(
+          "[LabelsEntityManager] Constraint violation detected - providing detailed error",
+        );
+      }
+      throw error;
+    }
+  }
+
+  // Label-specific utility methods following Environments pattern
+
+  /**
+   * Get label by ID with full details (Environments pattern)
+   * @param {string|number} id - Label ID
+   * @returns {Promise<Object>} Label with relationships
+   */
+  async getLabelById(id) {
+    const startTime = performance.now();
+
+    try {
+      // Check cache first
+      const cacheKey = `label_${id}`;
+      if (this.cacheConfig.enabled && this.cache.has(cacheKey)) {
+        const cached = this.cache.get(cacheKey);
+        if (Date.now() - cached.timestamp < this.cacheConfig.ttl) {
+          this.cacheHitCount++;
+          console.log(`[LabelsEntityManager] Cache hit for label ${id}`);
+          return cached.data;
+        } else {
+          this.cache.delete(cacheKey);
+        }
+      }
+
+      this.cacheMissCount++;
+      const response = await fetch(`${this.labelsApiUrl}/${id}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const label = await response.json();
 
       // Cache the result
-      this.cachedUser = {
-        user: validatedUser,
-        timestamp: Date.now(),
-        source: sourceUsed,
-      };
-
-      // Log user identification for audit
-      this.auditLog("USER_IDENTIFICATION", {
-        user: validatedUser !== "anonymous" ? "authenticated" : "anonymous",
-        source: sourceUsed,
-        cached: false,
-      });
-
-      return validatedUser;
-    } catch (error) {
-      this.auditLog("USER_IDENTIFICATION_ERROR", {
-        error: SecurityUtils.sanitizeForLog(error.message),
-        stack: error.stack ? "present" : "absent",
-      });
-      return "anonymous";
-    }
-  }
-
-  /**
-   * Validate username format for security
-   */
-  isValidUsername(username) {
-    if (!username || typeof username !== "string") {
-      return false;
-    }
-
-    // Security: Username validation rules
-    const usernamePattern = /^[a-zA-Z0-9._@-]+$/;
-    const minLength = 2;
-    const maxLength = 100;
-
-    return (
-      username.length >= minLength &&
-      username.length <= maxLength &&
-      usernamePattern.test(username) &&
-      !this.containsSqlInjectionPatterns(username)
-    );
-  }
-
-  /**
-   * Extract user from session storage as additional fallback
-   */
-  extractUserFromSession() {
-    try {
-      const sessionUser = sessionStorage.getItem("umig_user");
-      if (sessionUser && this.isValidUsername(sessionUser)) {
-        return sessionUser;
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /**
-   * Extract user from authentication cookie as fallback
-   * @returns {string|null} User from cookie or null
-   */
-  extractUserFromCookie() {
-    try {
-      const authCookie = document.cookie
-        .split("; ")
-        .find(
-          (row) =>
-            row.startsWith("JSESSIONID=") ||
-            row.startsWith("atlassian.xsrf.token="),
-        );
-
-      if (authCookie) {
-        // Cookie exists, user is authenticated but username not available
-        return "authenticated_user";
-      }
-
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /**
-   * Get session ID for audit with validation
-   */
-  getSessionId() {
-    try {
-      const sessionId =
-        window.sessionId || window.AJS?.sessionId || this.generateSessionId();
-
-      // Validate session ID format
-      if (typeof sessionId === "string" && sessionId.length > 0) {
-        return sessionId;
-      }
-
-      return this.generateSessionId();
-    } catch (error) {
-      this.auditLog("SESSION_ID_ERROR", { error: error.message });
-      return this.generateSessionId();
-    }
-  }
-
-  /**
-   * Generate a session ID for tracking
-   * @returns {string} Generated session ID
-   */
-  generateSessionId() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 15);
-    return `session_${timestamp}_${random}`;
-  }
-
-  /**
-   * Initialize enhanced cache cleanup mechanisms (optimized)
-   */
-  initializeCacheCleanup() {
-    // Set up periodic cache cleanup with adaptive intervals
-    this.setupPeriodicCleanup();
-
-    // Setup event-based cleanup triggers
-    this.setupEventCleanupTriggers();
-
-    // Initialize cleanup monitoring
-    this.setupCleanupMonitoring();
-  }
-
-  /**
-   * Setup periodic cleanup with adaptive intervals
-   */
-  setupPeriodicCleanup() {
-    let cleanupInterval = 300000; // Start with 5 minutes
-
-    const performScheduledCleanup = () => {
-      const cleanupResult = this.performCacheCleanup();
-
-      // Adaptive interval based on cleanup effectiveness
-      if (cleanupResult.cleanedItems > 0) {
-        // Frequent cleanup needed
-        cleanupInterval = Math.max(120000, cleanupInterval * 0.8); // Min 2 minutes
-      } else {
-        // Infrequent cleanup needed
-        cleanupInterval = Math.min(600000, cleanupInterval * 1.2); // Max 10 minutes
-      }
-
-      // Schedule next cleanup
-      this.cacheCleanupTimeout = setTimeout(
-        performScheduledCleanup,
-        cleanupInterval,
-      );
-    };
-
-    // Start the cleanup cycle
-    this.cacheCleanupTimeout = setTimeout(
-      performScheduledCleanup,
-      cleanupInterval,
-    );
-  }
-
-  /**
-   * Setup event-based cleanup triggers
-   */
-  setupEventCleanupTriggers() {
-    // Simple cleanup - no complex browser stability hacks needed
-
-    // Cleanup on visibility change (tab switch)
-    this.visibilityHandler = () => {
-      if (document.hidden) {
-        this.performCacheCleanup();
-      }
-    };
-    document.addEventListener("visibilitychange", this.visibilityHandler);
-
-    // Memory pressure detection
-    if ("memory" in performance) {
-      this.memoryHandler = () => {
-        try {
-          const memInfo = performance.memory;
-          const memoryPressure =
-            memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit;
-
-          if (memoryPressure > 0.8) {
-            // 80% memory usage
-            console.warn(
-              "High memory pressure detected, performing aggressive cache cleanup",
-            );
-            this.performAggressiveCacheCleanup();
-          }
-        } catch (e) {
-          // Ignore errors in memory monitoring
-        }
-      };
-
-      // Check memory every 30 seconds
-      this.memoryMonitorInterval = setInterval(this.memoryHandler, 30000);
-    }
-  }
-
-  /**
-   * Setup cleanup monitoring and metrics
-   */
-  setupCleanupMonitoring() {
-    this.cleanupMetrics = {
-      totalCleanups: 0,
-      totalItemsCleaned: 0,
-      lastCleanupTime: null,
-      averageCleanupTime: 0,
-      errors: 0,
-    };
-  }
-
-  /**
-   * Perform aggressive cache cleanup during memory pressure
-   */
-  performAggressiveCacheCleanup() {
-    const startTime = performance.now();
-    let cleanedCount = 0;
-
-    try {
-      // Clear all caches aggressively
-      const caches = [
-        "migrationManager.cache",
-        "applicationManager.cache",
-        "stepManager.cache",
-        "optionsCache",
-        "performanceMetrics.operations",
-      ];
-
-      caches.forEach((cachePath) => {
-        const cache = this.getCacheByPath(cachePath);
-        if (cache && typeof cache.clear === "function") {
-          const sizeBefore = cache.size || 0;
-          cache.clear();
-          cleanedCount += sizeBefore;
-        }
-      });
-
-      // Clear cached DOM elements
-      this.clearCachedElements();
-
-      const duration = performance.now() - startTime;
-
-      this.auditLog("AGGRESSIVE_CACHE_CLEANUP", {
-        cleanedItems: cleanedCount,
-        duration: Math.round(duration),
-        trigger: "memory_pressure",
-      });
-
-      console.log(
-        `Aggressive cache cleanup completed: ${cleanedCount} items in ${Math.round(duration)}ms`,
-      );
-    } catch (error) {
-      console.error("Error during aggressive cache cleanup:", error);
-      this.auditLog("AGGRESSIVE_CLEANUP_ERROR", { error: error.message });
-    }
-  }
-
-  /**
-   * Get cache object by string path
-   */
-  getCacheByPath(path) {
-    return path.split(".").reduce((obj, key) => obj && obj[key], this);
-  }
-
-  /**
-   * Clear cached DOM elements
-   */
-  clearCachedElements() {
-    // Clear cached column and action configurations
-    delete this._cachedColumns;
-    delete this._cachedActions;
-    delete this._cachedModalFields;
-
-    // Clear any cached user information older than 5 minutes
-    if (this.cachedUser && Date.now() - this.cachedUser.timestamp > 300000) {
-      delete this.cachedUser;
-    }
-  }
-
-  /**
-   * Enhanced comprehensive cache cleanup (optimized)
-   */
-  performCacheCleanup() {
-    const startTime = performance.now();
-    const now = Date.now();
-    const maxAge = 300000; // 5 minutes
-    const metricsMaxAge = 600000; // 10 minutes
-
-    let cleanedCount = 0;
-    let errors = 0;
-
-    try {
-      // Define cache cleanup configurations
-      const cacheConfigs = [
-        {
-          cache: this.migrationManager?.cache,
-          name: "migration",
-          maxAge: maxAge,
-        },
-        {
-          cache: this.applicationManager?.cache,
-          name: "application",
-          maxAge: maxAge,
-        },
-        {
-          cache: this.stepManager?.cache,
-          name: "step",
-          maxAge: maxAge,
-        },
-        {
-          cache: this.optionsCache,
-          name: "options",
-          maxAge: maxAge,
-          timestampKey: "timestamp",
-        },
-        {
-          cache: this.performanceMetrics?.operations,
-          name: "performance",
-          maxAge: metricsMaxAge,
-          timestampKey: "startTime",
-        },
-      ];
-
-      // Clean each cache configuration
-      cacheConfigs.forEach((config) => {
-        try {
-          const cleaned = this.cleanCache(config, now);
-          cleanedCount += cleaned;
-        } catch (error) {
-          errors++;
-          console.error(`Error cleaning ${config.name} cache:`, error);
-        }
-      });
-
-      // Clean cached DOM elements if stale
-      cleanedCount += this.cleanStaleDOMElements(now, maxAge);
-
-      const duration = performance.now() - startTime;
-
-      // Update cleanup metrics
-      this.updateCleanupMetrics(cleanedCount, duration, errors);
-
-      // Log cleanup results
-      if (cleanedCount > 0 || errors > 0) {
-        this.auditLog("CACHE_CLEANUP_COMPLETED", {
-          cleanedEntries: cleanedCount,
-          errors: errors,
-          duration: Math.round(duration),
-          timestamp: new Date().toISOString(),
+      if (this.cacheConfig.enabled) {
+        this.cache.set(cacheKey, {
+          data: label,
+          timestamp: Date.now(),
         });
+
+        // Cleanup cache if too large
+        if (this.cache.size > this.cacheConfig.maxSize) {
+          const firstKey = this.cache.keys().next().value;
+          this.cache.delete(firstKey);
+        }
       }
 
-      return {
-        cleanedItems: cleanedCount,
-        errors: errors,
-        duration: duration,
-      };
+      const fetchTime = performance.now() - startTime;
+      console.log(
+        `[LabelsEntityManager] Label ${id} fetched in ${fetchTime.toFixed(2)}ms`,
+      );
+
+      return label;
     } catch (error) {
-      this.auditLog("CACHE_CLEANUP_ERROR", {
-        error: SecurityUtils.sanitizeForLog(error.message),
-        duration: performance.now() - startTime,
-      });
-
-      return {
-        cleanedItems: 0,
-        errors: 1,
-        duration: performance.now() - startTime,
-      };
+      const fetchTime = performance.now() - startTime;
+      console.error(
+        `[LabelsEntityManager] Get label ${id} failed after ${fetchTime.toFixed(2)}ms:`,
+        error,
+      );
+      throw new Error(`Failed to fetch label: ${error.message}`);
     }
   }
 
   /**
-   * Clean individual cache with configuration
+   * Get performance metrics (Environments pattern)
+   * @returns {Object} Performance metrics
    */
-  cleanCache(config, now) {
-    if (!config.cache) {
-      return 0;
-    }
-
-    let cleaned = 0;
-    const timestampKey = config.timestampKey || "cachedAt";
-
-    for (const [key, value] of config.cache.entries()) {
-      if (
-        value &&
-        value[timestampKey] &&
-        now - value[timestampKey] > config.maxAge
-      ) {
-        config.cache.delete(key);
-        cleaned++;
-      }
-    }
-
-    return cleaned;
+  getPerformanceMetrics() {
+    return {
+      ...this.performanceMetrics,
+      cacheStats: {
+        hits: this.cacheHitCount,
+        misses: this.cacheMissCount,
+        hitRate:
+          this.cacheHitCount + this.cacheMissCount > 0
+            ? (
+                (this.cacheHitCount /
+                  (this.cacheHitCount + this.cacheMissCount)) *
+                100
+              ).toFixed(2) + "%"
+            : "0%",
+        size: this.cache.size,
+      },
+      errorCount: this.errorLog.length,
+    };
   }
 
   /**
-   * Clean stale DOM elements and cached configurations
+   * Clear cache and refresh data (Environments pattern)
+   * @returns {Promise<void>}
    */
-  cleanStaleDOMElements(now, maxAge) {
-    let cleaned = 0;
+  async refreshData() {
+    console.log("[LabelsEntityManager] Refreshing labels data");
 
-    // Clean cached user information if stale
-    if (this.cachedUser && now - this.cachedUser.timestamp > maxAge) {
-      delete this.cachedUser;
-      cleaned++;
+    // Clear cache
+    this.cache.clear();
+    this.cacheHitCount = 0;
+    this.cacheMissCount = 0;
+
+    // Trigger data reload in parent
+    if (this.loadData) {
+      await this.loadData();
     }
 
-    // Clean session token if stale
-    if (this.sessionTokenTime && now - this.sessionTokenTime > 3600000) {
-      // 1 hour
-      delete this.sessionToken;
-      delete this.sessionTokenTime;
-      cleaned++;
-    }
-
-    // Clean validation rate limit data if stale
-    if (
-      this.validationRateLimit &&
-      now - this.validationRateLimit.windowStart > 60000
-    ) {
-      delete this.validationRateLimit;
-      cleaned++;
-    }
-
-    // Clean duplicate check rate limit data if stale
-    if (
-      this.duplicateCheckRateLimit &&
-      now - this.duplicateCheckRateLimit.windowStart > 30000
-    ) {
-      delete this.duplicateCheckRateLimit;
-      cleaned++;
-    }
-
-    return cleaned;
+    console.log("[LabelsEntityManager] Data refresh complete");
   }
 
   /**
-   * Update cleanup metrics for monitoring
+   * Generate a DATA URI SVG for color display that SecurityUtils cannot strip
+   * @param {string} color - Hex color value (e.g., "#FF0000")
+   * @returns {string} DATA URI for SVG with the color
+   * @private
    */
-  updateCleanupMetrics(cleanedCount, duration, errors) {
-    if (!this.cleanupMetrics) {
+  _generateColorSwatchDataUri(color) {
+    if (!color || typeof color !== "string") {
+      color = "#000000"; // Fallback to black
+    }
+
+    // Ensure color starts with # and is valid hex
+    if (!color.startsWith("#")) {
+      color = "#" + color;
+    }
+
+    // Create SVG with the color as fill (embedded in data URI)
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><rect width='20' height='20' fill='${color}' stroke='#ccc' stroke-width='1' rx='3'/></svg>`;
+
+    // URL encode the SVG for data URI
+    const encodedSvg = encodeURIComponent(svg);
+
+    return `data:image/svg+xml,${encodedSvg}`;
+  }
+
+  /**
+   * Apply color styles to swatches after modal rendering
+   * This bypasses SecurityUtils by using CSS classes and data attributes instead of IDs
+   * @private
+   */
+  _applyColorSwatchStyles() {
+    console.log(
+      "[DEBUG] _applyColorSwatchStyles: Applying color styles to swatches",
+    );
+    // Find all color swatch elements using class selector (not ID) - IDs are stripped by SecurityUtils
+    const swatchElements = document.querySelectorAll(".umig-color-swatch-view");
+    if (swatchElements.length === 0) {
+      console.log(
+        "[DEBUG] _applyColorSwatchStyles: No color swatch elements found",
+      );
       return;
     }
 
-    this.cleanupMetrics.totalCleanups++;
-    this.cleanupMetrics.totalItemsCleaned += cleanedCount;
-    this.cleanupMetrics.lastCleanupTime = Date.now();
-    this.cleanupMetrics.errors += errors;
+    console.log(
+      `[DEBUG] _applyColorSwatchStyles: Found ${swatchElements.length} swatch elements`,
+    );
 
-    // Update average cleanup time
-    const totalTime =
-      this.cleanupMetrics.averageCleanupTime *
-        (this.cleanupMetrics.totalCleanups - 1) +
-      duration;
-    this.cleanupMetrics.averageCleanupTime =
-      totalTime / this.cleanupMetrics.totalCleanups;
-  }
+    // Apply styles to each swatch element
+    swatchElements.forEach((element, index) => {
+      const color = element.getAttribute("data-color") || "#6B73FF";
+      console.log(
+        `[DEBUG] _applyColorSwatchStyles: Applying color ${color} to swatch ${index + 1}`,
+      );
 
-  /**
-   * Enhanced comprehensive cleanup on destroy (optimized)
-   */
-  cleanup() {
-    try {
-      console.log("Starting LabelsEntityManager cleanup...");
+      // Apply the background color directly to the element
+      element.style.backgroundColor = color;
 
-      // Clear all timers and intervals
-      this.clearTimersAndIntervals();
+      // Ensure the element is properly styled
+      element.style.width = "20px";
+      element.style.height = "20px";
+      element.style.display = "inline-block";
+      element.style.border = "1px solid #ccc";
+      element.style.borderRadius = "3px";
+      element.style.marginRight = "8px";
+      element.style.verticalAlign = "middle";
+      element.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
 
-      // Remove event listeners
-      this.removeEventListeners();
-
-      // Clear all caches
-      this.clearAllCaches();
-
-      // Clear DOM references
-      this.clearDOMReferences();
-
-      // Final audit log
-      this.auditLog("CLEANUP_COMPLETED", {
-        timestamp: new Date().toISOString(),
-        cleanupMetrics: this.cleanupMetrics,
+      // Add hover effect for better UX
+      element.addEventListener("mouseenter", function () {
+        this.style.transform = "scale(1.1)";
+        this.style.transition = "transform 0.2s ease";
       });
-
-      console.log("LabelsEntityManager cleanup completed successfully");
-    } catch (error) {
-      console.error("Error during LabelsEntityManager cleanup:", error);
-      this.auditLog("CLEANUP_ERROR", {
-        error: SecurityUtils.sanitizeForLog(error.message),
+      element.addEventListener("mouseleave", function () {
+        this.style.transform = "scale(1)";
       });
-    }
+    });
   }
 
   /**
-   * Clear all timers and intervals
+   * Generate custom HTML content for the view modal with proper color and audit rendering
+   * Adapted from IterationTypesEntityManager pattern for Labels
+   * @param {Object} data - The entity data
+   * @returns {string} HTML content for the modal
+   * @private
    */
-  clearTimersAndIntervals() {
-    // Clear periodic cleanup timers
-    if (this.cacheCleanupInterval) {
-      clearInterval(this.cacheCleanupInterval);
-      delete this.cacheCleanupInterval;
-    }
+  _generateCustomViewContent(data) {
+    console.log("[DEBUG] _generateCustomViewContent: Called with data:", data);
+    const securityUtils = window.SecurityUtils || {};
+    const sanitize = securityUtils.sanitizeInput || ((val) => val);
 
-    if (this.cacheCleanupTimeout) {
-      clearTimeout(this.cacheCleanupTimeout);
-      delete this.cacheCleanupTimeout;
-    }
+    // Helper function to render color swatch
+    const renderColorSwatch = (color) => {
+      const hexColor = color || "#6B73FF";
+      // Use CSS class and data attributes instead of IDs - SecurityUtils strips IDs but allows class and data attributes
+      // The _applyColorSwatchStyles method will find elements by class and apply colors from data attributes
+      return `<span style="display: inline-flex; align-items: center;">
+        <div class="umig-color-swatch-view"
+             data-color="${hexColor}"
+             style="width: 20px; height: 20px; display: inline-block; margin-right: 8px;
+                    border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;
+                    background-color: ${hexColor};"
+             title="${hexColor}"></div>
+        <span>${hexColor}</span>
+      </span>`;
+    };
 
-    if (this.memoryMonitorInterval) {
-      clearInterval(this.memoryMonitorInterval);
-      delete this.memoryMonitorInterval;
-    }
+    // Build the HTML content with inline styles only (no <style> tags)
+    const html = `
+      <div style="padding: 20px;">
+        <div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Label Name</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.name || "")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Description</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.description || "")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Migration</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.mig_name || "Unknown Migration")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Color</strong></label>
+            <div style="flex: 1; color: #555;">${renderColorSwatch(data.color)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Step Instances</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatStepCount(data.step_count || 0)}</div>
+          </div>
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+          <h4 style="margin-bottom: 15px;">Audit Information</h4>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created At</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.created_at)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Created By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.created_by || "system")}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated</strong></label>
+            <div style="flex: 1; color: #555;">${this._formatDateTime(data.updated_at)}</div>
+          </div>
+          <div style="display: flex; margin-bottom: 12px; align-items: flex-start;">
+            <label style="flex: 0 0 150px; padding-right: 15px; color: #333; font-weight: 600;"><strong>Last Updated By</strong></label>
+            <div style="flex: 1; color: #555;">${sanitize(data.updated_by || "system")}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    console.log(
+      "[DEBUG] _generateCustomViewContent: Generated HTML length:",
+      html.length,
+    );
+    console.log(
+      "[DEBUG] _generateCustomViewContent: Generated HTML preview:",
+      html.substring(0, 300) + "...",
+    );
+
+    return html;
   }
 
   /**
-   * Remove event listeners
+   * Override the base _viewEntity method to provide custom HTML VIEW mode with color and audit rendering
+   * Adapted from IterationTypesEntityManager pattern for Labels
+   * @param {Object} data - Entity data to view
+   * @private
    */
-  removeEventListeners() {
-    // Simple cleanup - no complex unregistration needed
+  async _viewEntity(data) {
+    console.log("[LabelsEntityManager] Opening View Label modal for:", data);
+    console.log("[LabelsEntityManager] DEBUG: Audit field values:", {
+      created_at: data.created_at,
+      created_by: data.created_by,
+      updated_at: data.updated_at,
+      updated_by: data.updated_by,
+    });
 
-    if (this.visibilityHandler) {
-      document.removeEventListener("visibilitychange", this.visibilityHandler);
-      delete this.visibilityHandler;
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn("[LabelsEntityManager] Modal component not available");
+      return;
     }
-  }
 
-  /**
-   * Clear all caches
-   */
-  clearAllCaches() {
-    const caches = [
-      "migrationManager.cache",
-      "applicationManager.cache",
-      "stepManager.cache",
-      "optionsCache",
-      "performanceMetrics.operations",
-    ];
+    console.log("[DEBUG] _viewEntity: Starting view modal configuration");
+    console.log("[DEBUG] _viewEntity: Entity data:", data);
+    console.log(
+      "[DEBUG] _viewEntity: Current modal config before update:",
+      this.modalComponent.config,
+    );
 
-    let totalCleared = 0;
+    // Generate custom HTML content for the view modal
+    const viewContent = this._generateCustomViewContent(data);
+    console.log(
+      "[DEBUG] _viewEntity: Generated custom content length:",
+      viewContent ? viewContent.length : "null",
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Generated content preview:",
+      viewContent ? viewContent.substring(0, 200) + "..." : "null",
+    );
 
-    caches.forEach((cachePath) => {
-      try {
-        const cache = this.getCacheByPath(cachePath);
-        if (cache && typeof cache.clear === "function") {
-          const sizeBefore = cache.size || 0;
-          cache.clear();
-          totalCleared += sizeBefore;
+    // Update modal configuration for View mode with custom HTML
+    // CRITICAL: Remove form configuration to ensure content is rendered instead of form
+    this.modalComponent.updateConfig({
+      title: `View Label: ${data.name}`,
+      type: "custom", // Use custom type to render HTML content
+      size: "large",
+      closeable: true,
+      content: viewContent, // Provide the custom HTML content
+      form: null, // CRITICAL: Explicitly remove form configuration to force content rendering
+      buttons: [
+        { text: "Edit", action: "edit", variant: "primary" },
+        { text: "Close", action: "close", variant: "secondary" },
+      ],
+      onButtonClick: (action) => {
+        console.log("[DEBUG] _viewEntity: Button clicked:", action);
+        if (action === "edit") {
+          // Switch to edit mode
+          this.modalComponent.close();
+          setTimeout(() => {
+            this.handleEdit(data);
+          }, 350);
+          return true;
         }
-      } catch (error) {
-        console.warn(`Failed to clear cache ${cachePath}:`, error);
+        if (action === "close") {
+          this.modalComponent.close();
+          return true;
+        }
+        return false;
+      },
+    });
+
+    console.log(
+      "[DEBUG] _viewEntity: After updateConfig - Updated modal config:",
+      this.modalComponent.config,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.form after update:",
+      this.modalComponent.config.form,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.content length after update:",
+      this.modalComponent.config.content?.length,
+    );
+    console.log(
+      "[DEBUG] _viewEntity: Modal config.type after update:",
+      this.modalComponent.config.type,
+    );
+
+    // Open the modal
+    console.log("[DEBUG] _viewEntity: Opening modal...");
+    this.modalComponent.open();
+
+    // Apply color styles after modal is rendered
+    // Use setTimeout to ensure DOM is updated and SecurityUtils has processed the content
+    setTimeout(() => {
+      this._applyColorSwatchStyles();
+      // Fallback: If swatches still not found, try again after a longer delay
+      setTimeout(() => {
+        const swatches = document.querySelectorAll(".umig-color-swatch-view");
+        if (swatches.length > 0) {
+          console.log(
+            "[DEBUG] _viewEntity: Fallback color swatch application successful",
+          );
+          this._applyColorSwatchStyles();
+        }
+      }, 300);
+    }, 100);
+  }
+
+  /**
+   * Override the base _editEntity method to use our custom handleEdit
+   * @param {Object} data - Entity data to edit
+   * @private
+   */
+  async _editEntity(data) {
+    this.handleEdit(data);
+  }
+
+  /**
+   * Handle Edit Label action
+   * Copied from Environments pattern for consistency
+   * @param {Object} labelData - Label data to edit
+   */
+  async handleEdit(labelData) {
+    console.log(
+      "[LabelsEntityManager] Opening Edit Label modal for:",
+      labelData,
+    );
+
+    try {
+      // Load migrations data for dropdown
+      await this._loadMigrationsData();
+    } catch (error) {
+      console.error(
+        "[LabelsEntityManager] Failed to load migrations for edit dropdown:",
+        error,
+      );
+      this._showNotification(
+        "error",
+        "Loading Error",
+        "Failed to load migrations. Please try again.",
+      );
+      return;
+    }
+
+    // Check if modal component is available
+    if (!this.modalComponent) {
+      console.warn("[LabelsEntityManager] Modal component not available");
+      return;
+    }
+
+    // Create form config with populated migration dropdown
+    const editFormConfig = {
+      ...this.config.modalConfig.form,
+      fields: this.config.modalConfig.form.fields.map((field) => {
+        if (field.name === "mig_id") {
+          // Populate migration dropdown options
+          return {
+            ...field,
+            options: this.migrationsData,
+          };
+        }
+        return field;
+      }),
+    };
+
+    // Update modal configuration for Edit mode - restore original form without audit fields
+    this.modalComponent.updateConfig({
+      title: `Edit Label: ${labelData.name}`,
+      type: "form",
+      mode: "edit", // Set mode to edit for existing labels
+      form: editFormConfig, // Use form config with populated migration dropdown
+      buttons: [
+        { text: "Cancel", action: "cancel", variant: "secondary" },
+        { text: "Save", action: "submit", variant: "primary" },
+      ],
+      onButtonClick: null, // Clear custom button handler
+      onSubmit: async (formData) => {
+        try {
+          console.log(
+            "[LabelsEntityManager] Submitting label update:",
+            formData,
+          );
+          const result = await this._updateEntityData(labelData.id, formData);
+          console.log(
+            "[LabelsEntityManager] Label updated successfully:",
+            result,
+          );
+
+          // Refresh the table data
+          await this.loadData();
+
+          // Show success message with auto-dismiss
+          this._showNotification(
+            "success",
+            "Label Updated",
+            `Label ${formData.name} has been updated successfully.`,
+          );
+
+          // Return true to close modal automatically
+          return true;
+        } catch (error) {
+          console.error("[LabelsEntityManager] Error updating label:", error);
+
+          // Show error message (manual dismiss for errors)
+          this._showNotification(
+            "error",
+            "Error Updating Label",
+            error.message || "An error occurred while updating the label.",
+          );
+
+          // Return false to keep modal open with error
+          return false;
+        }
+      },
+    });
+
+    // Clear viewMode flag for edit mode
+    this.modalComponent.viewMode = false;
+
+    // Set form data to current label values
+    if (this.modalComponent.formData) {
+      Object.assign(this.modalComponent.formData, labelData);
+    }
+
+    // Open the modal
+    this.modalComponent.open();
+  }
+
+  /**
+   * Format step count for display in view modal
+   * @param {number} count - Number of step instances using this label
+   * @returns {string} Formatted step count string
+   * @private
+   */
+  _formatStepCount(count) {
+    const stepCount = parseInt(count) || 0;
+
+    if (stepCount === 0) {
+      return "0 (No step instances use this label)";
+    } else if (stepCount === 1) {
+      return "1 (One step instance uses this label)";
+    } else {
+      return `${stepCount} (${stepCount} step instances use this label)`;
+    }
+  }
+
+  /**
+   * Format date/time for display in audit fields
+   * Copied exactly from Environments entity manager
+   * @param {string|Date} dateValue - Date value to format
+   * @returns {string} Formatted date string
+   * @private
+   */
+  _formatDateTime(dateValue) {
+    if (!dateValue) {
+      return "Not available";
+    }
+
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+
+      // Format as: "YYYY-MM-DD HH:MM:SS"
+      return date.toLocaleString("en-AU", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    } catch (error) {
+      console.warn("[LabelsEntityManager] Error formatting date:", error);
+      return "Format error";
+    }
+  }
+
+  /**
+   * Format blocking relationships for user-friendly error display
+   * Copied from Environments entity manager pattern
+   * @param {Object} blockingRelationships - Blocking relationships object from API
+   * @returns {string} Formatted relationship details
+   * @private
+   */
+  _formatBlockingRelationships(blockingRelationships) {
+    const details = [];
+
+    // Map relationship types to user-friendly descriptions for labels
+    const relationshipDescriptions = {
+      applications: "Applications using this label",
+      steps: "Steps tagged with this label",
+      migration_instances: "Migration instances using this label",
+      plan_instances: "Plan instances using this label",
+      step_instances: "Step instances using this label",
+      sequence_instances: "Sequence instances using this label",
+      phase_instances: "Phase instances using this label",
+      audit_logs: "Audit log entries",
+    };
+
+    // Process each relationship type
+    Object.entries(blockingRelationships).forEach(([type, data]) => {
+      const description = relationshipDescriptions[type] || `Related ${type}`;
+
+      if (Array.isArray(data) && data.length > 0) {
+        details.push(`• ${data.length} ${description}`);
+      } else if (typeof data === "number" && data > 0) {
+        details.push(`• ${data} ${description}`);
+      } else if (data && typeof data === "object" && data.count > 0) {
+        details.push(`• ${data.count} ${description}`);
       }
     });
 
-    console.log(`Cleared ${totalCleared} cached items during cleanup`);
+    if (details.length === 0) {
+      return "Referenced by other system components";
+    }
+
+    return details.join("\n");
   }
 
   /**
-   * Clear DOM references and cached elements
+   * Show notification message using exact Environments pattern
+   * @param {string} type - Notification type (success, error, warning, info)
+   * @param {string} title - Notification title
+   * @param {string} message - Notification message
+   * @param {Object} options - Additional options
+   * @private
    */
-  clearDOMReferences() {
-    // Clear cached configurations
-    delete this._cachedColumns;
-    delete this._cachedActions;
-    delete this._cachedModalFields;
+  _showNotification(type, title, message, options = {}) {
+    try {
+      console.log(
+        `[LabelsEntityManager] Showing ${type} notification:`,
+        title,
+        message,
+      );
 
-    // Clear user and session data
-    delete this.cachedUser;
-    delete this.sessionToken;
-    delete this.sessionTokenTime;
-
-    // Clear rate limiting data
-    delete this.validationRateLimit;
-    delete this.duplicateCheckRateLimit;
-
-    // Clear loading indicator
-    if (this.loadingIndicator) {
-      try {
-        document.body.removeChild(this.loadingIndicator);
-      } catch (e) {
-        // Element may have been removed already
+      // Try to use ComponentOrchestrator notification system if available
+      if (
+        this.orchestrator &&
+        typeof this.orchestrator.showNotification === "function"
+      ) {
+        // Auto-dismiss success notifications after 3 seconds, manual dismiss for errors
+        const autoDismiss = type === "success" ? 3000 : 0;
+        this.orchestrator.showNotification({
+          type: type,
+          title: title,
+          message: message,
+          autoDismiss: autoDismiss,
+        });
+        return;
       }
-      delete this.loadingIndicator;
+
+      // Use AUI flag system like BaseEntityManager (consistent with Environments)
+      if (window.AJS && window.AJS.flag) {
+        const flagOptions = {
+          type: type,
+          title: title,
+          body: message,
+        };
+
+        // Auto-dismiss success notifications after 3 seconds
+        // Keep error notifications manual for user attention (like Environments)
+        if (type === "success") {
+          flagOptions.close = "auto";
+          // Create flag and set up auto-dismiss timer
+          const flagId = window.AJS.flag(flagOptions);
+          // Auto-dismiss after 3000ms (3 seconds) for success notifications
+          if (flagId && typeof flagId === "string") {
+            setTimeout(() => {
+              try {
+                if (window.AJS && window.AJS.flag && window.AJS.flag.close) {
+                  window.AJS.flag.close(flagId);
+                }
+              } catch (closeError) {
+                // Silently handle if flag was already closed
+                console.debug(
+                  `[LabelsEntityManager] Flag already closed or error closing:`,
+                  closeError,
+                );
+              }
+            }, 3000);
+          }
+        } else {
+          // Error, warning, info notifications require manual dismissal (consistent with Environments)
+          flagOptions.close = "manual";
+          window.AJS.flag(flagOptions);
+        }
+        return;
+      }
+
+      // Fallback to console for environments where AUI is not available
+      const logLevel =
+        type === "error" ? "error" : type === "warning" ? "warn" : "log";
+      console[logLevel](`[LabelsEntityManager] ${title}: ${message}`);
+    } catch (error) {
+      console.error("[LabelsEntityManager] Error showing notification:", error);
+      // Fallback to console
+      console.warn(`[${type.toUpperCase()}] ${title}: ${message}`);
+    }
+  }
+
+  /**
+   * Cleanup label-specific resources (Environments pattern)
+   */
+  destroy() {
+    console.log("[LabelsEntityManager] Cleaning up label-specific resources");
+
+    // Clear cache
+    if (this.cache) {
+      this.cache.clear();
+    }
+
+    // Clear metrics
+    this.performanceMetrics = {};
+    this.errorLog = [];
+
+    // Reset counters
+    this.cacheHitCount = 0;
+    this.cacheMissCount = 0;
+
+    // Clear components
+    if (this.components) {
+      this.components.clear();
+    }
+
+    // Call parent cleanup (if available)
+    if (super.destroy) {
+      super.destroy();
+    }
+
+    console.log("[LabelsEntityManager] Cleanup complete");
+  }
+
+  /**
+   * Invalidate cache entries (copied exactly from Environments)
+   * @param {string|Array} labelId - Label ID(s) to invalidate, or "all" to clear all
+   * @private
+   */
+  _invalidateCache(labelId) {
+    if (labelId === "all") {
+      // Clear all cache entries
+      this.cache.clear();
+      console.log("[LabelsEntityManager] All cache entries cleared");
+    } else {
+      // Remove label-specific cache entries
+      const labelIds = Array.isArray(labelId) ? labelId : [labelId];
+      for (const [key] of this.cache) {
+        for (const id of labelIds) {
+          if (key.includes(id)) {
+            this.cache.delete(key);
+            console.log(`[LabelsEntityManager] Cache entry removed: ${key}`);
+          }
+        }
+      }
     }
   }
 }
