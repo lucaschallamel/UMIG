@@ -89,7 +89,7 @@ class ModalComponent extends BaseComponent {
   createModalStructure() {
     const modalHTML = `
       <div class="umig-modal-backdrop"
-           onclick="if(event.target === this && ${this.config.closeOnOverlay}) ${this.globalCloseFunction}()"
+           data-close-on-overlay="${this.config.closeOnOverlay}"
            style="
         position: fixed !important;
         top: 0 !important;
@@ -151,7 +151,7 @@ class ModalComponent extends BaseComponent {
                 this.config.closeable
                   ? `
                 <button class="umig-modal-close" aria-label="Close modal"
-                        onclick="${this.globalCloseFunction}()"
+                        data-action="close"
                         style="
                           background: none !important;
                           border: none !important;
@@ -341,7 +341,56 @@ class ModalComponent extends BaseComponent {
             },
           });
         } else {
-          body.innerHTML = this.renderForm();
+          // SECURITY FIX: Replace innerHTML with SecurityUtils.safeSetInnerHTML
+          if (
+            typeof window.SecurityUtils !== "undefined" &&
+            window.SecurityUtils.safeSetInnerHTML
+          ) {
+            window.SecurityUtils.safeSetInnerHTML(body, this.renderForm(), {
+              allowedTags: [
+                "div",
+                "label",
+                "input",
+                "select",
+                "option",
+                "textarea",
+                "span",
+                "p",
+                "br",
+                "button",
+              ],
+              allowedAttributes: {
+                div: ["class", "style", "id"],
+                label: ["class", "for"],
+                input: [
+                  "type",
+                  "name",
+                  "value",
+                  "placeholder",
+                  "required",
+                  "disabled",
+                  "class",
+                  "id",
+                  "checked",
+                ],
+                select: ["name", "class", "id", "required", "disabled"],
+                option: ["value", "selected"],
+                textarea: [
+                  "name",
+                  "placeholder",
+                  "rows",
+                  "cols",
+                  "class",
+                  "id",
+                  "disabled",
+                ],
+                span: ["class", "style"],
+                button: ["type", "class", "data-action"],
+              },
+            });
+          } else {
+            body.innerHTML = this.renderForm();
+          }
         }
       } else {
         console.log(
@@ -384,7 +433,52 @@ class ModalComponent extends BaseComponent {
             },
           });
         } else {
-          body.innerHTML = this.config.content;
+          // SECURITY FIX: Replace innerHTML with SecurityUtils.safeSetInnerHTML
+          if (
+            typeof window.SecurityUtils !== "undefined" &&
+            window.SecurityUtils.safeSetInnerHTML
+          ) {
+            window.SecurityUtils.safeSetInnerHTML(body, this.config.content, {
+              allowedTags: [
+                "div",
+                "p",
+                "span",
+                "br",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "ul",
+                "ol",
+                "li",
+                "strong",
+                "em",
+                "a",
+                "img",
+              ],
+              allowedAttributes: {
+                div: ["class", "style"],
+                span: ["class", "style", "title"],
+                a: ["href", "target", "rel"],
+                img: ["src", "alt", "class", "style"],
+                h1: ["class"],
+                h2: ["class"],
+                h3: ["class"],
+                h4: ["class"],
+                h5: ["class"],
+                h6: ["class"],
+                ul: ["class"],
+                ol: ["class"],
+                li: ["class"],
+                strong: ["class"],
+                em: ["class"],
+              },
+            });
+          } else {
+            body.innerHTML = this.config.content;
+          }
         }
         console.log(
           "[DEBUG] ModalComponent.onRender: Content rendered successfully",
@@ -405,7 +499,20 @@ class ModalComponent extends BaseComponent {
           },
         });
       } else {
-        footer.innerHTML = this.renderButtons();
+        // SECURITY FIX: Replace innerHTML with SecurityUtils.safeSetInnerHTML
+        if (
+          typeof window.SecurityUtils !== "undefined" &&
+          window.SecurityUtils.safeSetInnerHTML
+        ) {
+          window.SecurityUtils.safeSetInnerHTML(footer, this.renderButtons(), {
+            allowedTags: ["button"],
+            allowedAttributes: {
+              button: ["class", "data-action", "disabled", "type"],
+            },
+          });
+        } else {
+          footer.innerHTML = this.renderButtons();
+        }
       }
     }
 
@@ -828,17 +935,10 @@ class ModalComponent extends BaseComponent {
 
     return buttons
       .map((btn) => {
-        // ✅ BULLETPROOF: Add multiple close mechanisms for buttons that close the modal
-        const closeActions = ["close", "cancel"];
-        const hasCloseAction = closeActions.includes(btn.action);
-        const onclickHandler = hasCloseAction
-          ? `onclick="${this.globalCloseFunction}()"`
-          : "";
-
+        // SECURITY FIX: Remove inline onclick handlers, use event delegation instead
         return `
       <button class="umig-modal-btn umig-modal-btn-${btn.variant || "secondary"}"
               data-action="${btn.action}"
-              ${onclickHandler}
               ${btn.disabled ? "disabled" : ""}>
         ${btn.text}
       </button>
@@ -1551,17 +1651,21 @@ class ModalComponent extends BaseComponent {
       });
     }
 
-    // Backdrop click
+    // SECURITY FIX: Backdrop click using data attribute instead of inline onclick
     const backdrop = this.container.querySelector(".umig-modal-backdrop");
-    if (backdrop && this.config.closeOnOverlay) {
-      // Direct event binding for backdrop
-      backdrop.addEventListener("click", (e) => {
-        if (e.target === backdrop) {
-          e.preventDefault();
-          e.stopPropagation();
-          this.close();
-        }
-      });
+    if (backdrop) {
+      const closeOnOverlay =
+        backdrop.getAttribute("data-close-on-overlay") === "true";
+      if (closeOnOverlay) {
+        // Direct event binding for backdrop
+        backdrop.addEventListener("click", (e) => {
+          if (e.target === backdrop) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.close();
+          }
+        });
+      }
     }
 
     // ✅ BULLETPROOF: Use event delegation on footer container instead of individual buttons

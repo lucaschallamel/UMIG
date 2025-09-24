@@ -548,31 +548,9 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         display: inline-block;
       }
 
-      /* Specific refresh icon improvements */
-      .umig-btn-secondary .aui-icon-refresh {
-        font-family: 'aui-iconfont', Arial, sans-serif;
-        speak: none;
-        font-style: normal;
-        font-weight: normal;
-        font-variant: normal;
-        text-transform: none;
-        line-height: 1;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-
-      /* Fallback for AUI refresh icon using Unicode */
-      .umig-btn-secondary .aui-icon-refresh:before {
-        content: "⟳";
-        font-size: 14px;
-        font-weight: bold;
-      }
-
-      /* Button icon fallback when AUI fails */
+      /* Refresh icon styling */
       .umig-btn-icon {
-        margin-right: 4px;
-        font-size: 14px;
-        font-weight: bold;
+        font-size: 16px;
         vertical-align: middle;
       }
     `;
@@ -612,44 +590,7 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         }
       });
 
-      // Handle refresh button icons specifically
-      const refreshButton = document.getElementById(
-        "umig-refresh-iteration-types-btn",
-      );
-      if (refreshButton) {
-        const auiIcon = refreshButton.querySelector(".aui-icon-refresh");
-        const fallbackIcon = refreshButton.querySelector(".umig-btn-icon");
-
-        if (auiIcon && fallbackIcon) {
-          // Check if AUI refresh icon is properly rendered
-          const computedStyle = window.getComputedStyle(auiIcon);
-          const hasAuiContent =
-            computedStyle.content &&
-            computedStyle.content !== "none" &&
-            computedStyle.content !== '""';
-
-          // Also check for font-family and other AUI properties
-          const hasAuiFont =
-            computedStyle.fontFamily &&
-            computedStyle.fontFamily.includes("aui");
-
-          if (!hasAuiContent && !hasAuiFont) {
-            // AUI icon not working, show Unicode fallback
-            auiIcon.style.display = "none";
-            fallbackIcon.style.display = "inline";
-            console.log(
-              "[IterationTypesEntityManager] Using Unicode fallback for refresh button icon",
-            );
-          } else {
-            // AUI icon working, hide Unicode fallback
-            auiIcon.style.display = "inline";
-            fallbackIcon.style.display = "none";
-            console.log(
-              "[IterationTypesEntityManager] AUI refresh icon working properly",
-            );
-          }
-        }
-      }
+      // Note: Refresh button now uses simple emoji icon, no fallback needed
     }, 150); // Slightly longer delay to allow AUI fonts to load
   }
 
@@ -853,12 +794,8 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       const refreshButton = document.createElement("button");
       refreshButton.className = "umig-btn-secondary umig-button";
       refreshButton.id = "umig-refresh-iteration-types-btn";
-      // Enhanced refresh button with both AUI icon and Unicode fallback
-      refreshButton.innerHTML = `
-        <span class="aui-icon aui-icon-small aui-icon-refresh" style="margin-right: 4px;"></span>
-        <span class="umig-btn-icon" style="display: none;">⟳</span>
-        Refresh
-      `;
+      // Refresh button with icon only (consistent with other entity managers)
+      refreshButton.innerHTML = '<span class="umig-btn-icon">🔄</span> Refresh';
       // Use addEventListener instead of onclick for better reliability (ADR-057 compliance)
       refreshButton.addEventListener("click", async () => {
         console.log("[IterationTypesEntityManager] Refresh button clicked");
@@ -1821,12 +1758,9 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
       // Store original content
       button._originalHTML = button.innerHTML;
 
-      // Update to loading state - use enhanced refresh icon with animation
-      button.innerHTML = `
-        <span class="aui-icon aui-icon-small aui-icon-refresh" style="animation: spin 1s linear infinite; margin-right: 4px;"></span>
-        <span class="umig-btn-icon" style="animation: spin 1s linear infinite; margin-right: 4px; display: none;">⟳</span>
-        Refreshing...
-      `;
+      // Update to loading state with simple spinning emoji
+      button.innerHTML =
+        '<span class="umig-btn-icon" style="animation: spin 1s linear infinite;">🔄</span> Refreshing ...';
       button.disabled = true;
       button.style.opacity = "0.7";
       button.style.cursor = "not-allowed";
@@ -1843,78 +1777,14 @@ class IterationTypesEntityManager extends (window.BaseEntityManager ||
         `;
         document.head.appendChild(style);
       }
-
-      // Apply icon fallback logic for loading state as well
-      setTimeout(() => {
-        const auiIcon = button.querySelector(".aui-icon-refresh");
-        const fallbackIcon = button.querySelector(".umig-btn-icon");
-
-        if (auiIcon && fallbackIcon) {
-          const computedStyle = window.getComputedStyle(auiIcon);
-          const hasAuiContent =
-            computedStyle.content &&
-            computedStyle.content !== "none" &&
-            computedStyle.content !== '""';
-          const hasAuiFont =
-            computedStyle.fontFamily &&
-            computedStyle.fontFamily.includes("aui");
-
-          if (!hasAuiContent && !hasAuiFont) {
-            auiIcon.style.display = "none";
-            fallbackIcon.style.display = "inline";
-          } else {
-            auiIcon.style.display = "inline";
-            fallbackIcon.style.display = "none";
-          }
-        }
-      }, 50);
     } else {
       // Restore original state
       if (button._originalHTML) {
         button.innerHTML = button._originalHTML;
-
-        // Re-apply icon fallback logic after restoring original content
-        setTimeout(() => {
-          this._setupRefreshButtonIconFallback(button);
-        }, 50);
       }
       button.disabled = false;
       button.style.opacity = "1";
       button.style.cursor = "pointer";
-    }
-  }
-
-  /**
-   * Setup icon fallback specifically for refresh button
-   * @param {HTMLElement} button - The refresh button element
-   * @private
-   */
-  _setupRefreshButtonIconFallback(button) {
-    const auiIcon = button.querySelector(".aui-icon-refresh");
-    const fallbackIcon = button.querySelector(".umig-btn-icon");
-
-    if (auiIcon && fallbackIcon) {
-      const computedStyle = window.getComputedStyle(auiIcon);
-      const hasAuiContent =
-        computedStyle.content &&
-        computedStyle.content !== "none" &&
-        computedStyle.content !== '""';
-      const hasAuiFont =
-        computedStyle.fontFamily && computedStyle.fontFamily.includes("aui");
-
-      if (!hasAuiContent && !hasAuiFont) {
-        auiIcon.style.display = "none";
-        fallbackIcon.style.display = "inline";
-        console.log(
-          "[IterationTypesEntityManager] Using Unicode fallback for refresh button icon",
-        );
-      } else {
-        auiIcon.style.display = "inline";
-        fallbackIcon.style.display = "none";
-        console.log(
-          "[IterationTypesEntityManager] AUI refresh icon working properly",
-        );
-      }
     }
   }
 

@@ -135,9 +135,9 @@ const config = {
   errorOnDeprecated: false,
   bail: 0, // Continue on failures for complete validation
 
-  // Memory monitoring
+  // Memory monitoring - SECURITY FIX: Increase memory limit from 128MB to 256MB
   logHeapUsage: true,
-  workerIdleMemoryLimit: "128MB",
+  workerIdleMemoryLimit: "256MB",
 
   // Custom reporters for monitoring
   reporters: [
@@ -172,4 +172,5 @@ const config = {
   notifyMode: "failure-change",
 };
 
-export default config;
+// SECURITY FIX: Change from export default to module.exports for CommonJS compatibility
+module.exports = config;

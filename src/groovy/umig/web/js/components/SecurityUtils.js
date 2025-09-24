@@ -1447,7 +1447,12 @@ if (typeof SecurityUtils === "undefined") {
         ...details,
       };
 
-      console.log("[Security Audit]", logEntry);
+      // SECURITY FIX: Use ProductionLogger instead of console.log
+      if (typeof window.ProductionLogger !== "undefined") {
+        window.ProductionLogger.security("SecurityUtils", action, logEntry);
+      } else {
+        console.log("[Security Audit]", logEntry);
+      }
 
       // In production, this would send to a security monitoring service
       // For now, we'll store in sessionStorage for debugging
@@ -1531,8 +1536,8 @@ if (typeof SecurityUtils === "undefined") {
     window.SecurityUtils.ValidationException =
       SecurityUtils.ValidationException;
 
-    // Log successful exposure
-    console.log("[SecurityUtils] All methods exposed to window:", {
+    // Log successful exposure using ProductionLogger
+    const exposureInfo = {
       logSecurityEvent:
         typeof window.SecurityUtils.logSecurityEvent === "function",
       generateNonce: typeof window.SecurityUtils.generateNonce === "function",
@@ -1557,7 +1562,21 @@ if (typeof SecurityUtils === "undefined") {
         typeof window.SecurityUtils.SecurityException === "function",
       ValidationException:
         typeof window.SecurityUtils.ValidationException === "function",
-    });
+    };
+
+    // Use ProductionLogger for method exposure logging
+    if (typeof window.ProductionLogger !== "undefined") {
+      window.ProductionLogger.info(
+        "SecurityUtils",
+        "All methods exposed to window",
+        exposureInfo,
+      );
+    } else {
+      console.log(
+        "[SecurityUtils] All methods exposed to window:",
+        exposureInfo,
+      );
+    }
   }
 } // End of SecurityUtils undefined check
 
