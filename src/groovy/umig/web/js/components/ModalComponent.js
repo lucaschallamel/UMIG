@@ -195,27 +195,37 @@ class ModalComponent extends BaseComponent {
       </div>
     `;
 
-    // Use SecurityUtils for safe modal structure creation if available
-    if (typeof window.SecurityUtils !== "undefined") {
-      window.SecurityUtils.safeSetInnerHTML(this.container, modalHTML, {
-        allowedTags: ["div", "button", "span", "h2"],
-        allowedAttributes: {
-          div: [
-            "class",
-            "role",
-            "aria-modal",
-            "aria-labelledby",
-            "aria-describedby",
-            "hidden",
-          ],
-          button: ["class", "aria-label"],
-          span: ["aria-hidden"],
-          h2: ["id", "class"],
-        },
-      });
-    } else {
-      this.container.innerHTML = modalHTML;
+    // MANDATORY SecurityUtils - no unsafe fallback allowed
+    if (
+      typeof window.SecurityUtils === "undefined" ||
+      !window.SecurityUtils.safeSetInnerHTML
+    ) {
+      console.error(
+        "[ModalComponent] SecurityUtils required but not available",
+      );
+      this.container.textContent =
+        "[Security Error: Cannot render modal without XSS protection]";
+      return;
     }
+
+    // Use SecurityUtils for safe HTML insertion
+    window.SecurityUtils.safeSetInnerHTML(this.container, modalHTML, {
+      allowedTags: ["div", "button", "span", "h2"],
+      allowedAttributes: {
+        div: [
+          "class",
+          "role",
+          "aria-modal",
+          "aria-labelledby",
+          "aria-describedby",
+          "hidden",
+          "data-close-on-overlay",
+        ],
+        button: ["class", "aria-label", "data-action"],
+        span: ["aria-hidden"],
+        h2: ["id", "class"],
+      },
+    });
   }
 
   /**
@@ -389,7 +399,11 @@ class ModalComponent extends BaseComponent {
               },
             });
           } else {
-            body.innerHTML = this.renderForm();
+            console.error(
+              "[ModalComponent] SecurityUtils not available for form rendering",
+            );
+            body.textContent =
+              "[Security Error: Cannot render form without XSS protection]";
           }
         }
       } else {
@@ -477,7 +491,10 @@ class ModalComponent extends BaseComponent {
               },
             });
           } else {
-            body.innerHTML = this.config.content;
+            console.error(
+              "[ModalComponent] SecurityUtils not available for content rendering",
+            );
+            body.textContent = this.config.content; // Use safe textContent instead
           }
         }
         console.log(
@@ -511,7 +528,11 @@ class ModalComponent extends BaseComponent {
             },
           });
         } else {
-          footer.innerHTML = this.renderButtons();
+          console.error(
+            "[ModalComponent] SecurityUtils not available for button rendering",
+          );
+          footer.textContent =
+            "[Security Error: Cannot render buttons without XSS protection]";
         }
       }
     }
@@ -1270,7 +1291,11 @@ class ModalComponent extends BaseComponent {
         },
       });
     } else {
-      tabsNav.innerHTML = tabsHTML;
+      console.error(
+        "[ModalComponent] SecurityUtils not available for tabs rendering",
+      );
+      tabsNav.textContent =
+        "[Security Error: Cannot render tabs without XSS protection]";
     }
 
     // Setup tab click handlers
@@ -1301,7 +1326,7 @@ class ModalComponent extends BaseComponent {
         const result = await activeTab.content();
         if (result instanceof HTMLElement) {
           // Clear body and append element
-          body.innerHTML = "";
+          body.textContent = ""; // Use safe textContent to clear
           body.appendChild(result);
           return;
         } else {
@@ -1358,11 +1383,39 @@ class ModalComponent extends BaseComponent {
           },
         });
       } else {
-        body.innerHTML = content;
+        // Use SecurityUtils for tab content
+        if (window.SecurityUtils && window.SecurityUtils.safeSetInnerHTML) {
+          window.SecurityUtils.safeSetInnerHTML(body, content, {
+            allowedTags: [
+              "div",
+              "p",
+              "span",
+              "ul",
+              "ol",
+              "li",
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5",
+              "h6",
+            ],
+            allowedAttributes: {
+              "*": ["class", "id", "data-*"],
+            },
+          });
+        } else {
+          body.textContent = content; // Safe fallback to text
+        }
       }
     } catch (error) {
       console.error("[Modal] Error rendering tab content:", error);
-      body.innerHTML = `<div class="error">Error loading tab content</div>`;
+      // Safe error message display
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "error";
+      errorDiv.textContent = "Error loading tab content";
+      body.textContent = "";
+      body.appendChild(errorDiv);
     }
   }
 
@@ -2092,7 +2145,12 @@ class ModalComponent extends BaseComponent {
           } else {
             // For HTML content, create a temporary container
             const temp = document.createElement("div");
-            temp.innerHTML = content; // Parse HTML
+            // Use DOMParser for safe HTML parsing
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, "text/html");
+            temp.appendChild(
+              doc.body.firstChild || doc.createTextNode(content),
+            );
             // Move sanitized nodes
             while (temp.firstChild) {
               body.appendChild(temp.firstChild);
