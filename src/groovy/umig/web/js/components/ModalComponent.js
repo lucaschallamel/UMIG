@@ -253,7 +253,22 @@ class ModalComponent extends BaseComponent {
 
     // Set content
     if (body) {
+      console.log("[DEBUG] ModalComponent.onRender: About to render content");
+      console.log(
+        "[DEBUG] ModalComponent.onRender: config.form:",
+        this.config.form,
+      );
+      console.log(
+        "[DEBUG] ModalComponent.onRender: config.content length:",
+        this.config.content?.length,
+      );
+      console.log(
+        "[DEBUG] ModalComponent.onRender: config.type:",
+        this.config.type,
+      );
+
       if (this.config.form) {
+        console.log("[DEBUG] ModalComponent.onRender: Rendering FORM content");
         // Use SecurityUtils for form rendering if available
         if (typeof window.SecurityUtils !== "undefined") {
           window.SecurityUtils.safeSetInnerHTML(body, this.renderForm(), {
@@ -312,7 +327,14 @@ class ModalComponent extends BaseComponent {
               ],
               option: ["value", "selected"],
               label: ["for", "class"],
-              div: ["class", "role"],
+              div: [
+                "class",
+                "role",
+                "id",
+                "data-field-name",
+                "data-field-value",
+                "data-field-required",
+              ],
               span: ["id", "class", "role"],
               a: ["href", "title", "target", "aria-label", "class"],
               em: ["style"],
@@ -322,6 +344,13 @@ class ModalComponent extends BaseComponent {
           body.innerHTML = this.renderForm();
         }
       } else {
+        console.log(
+          "[DEBUG] ModalComponent.onRender: Rendering CONTENT (not form)",
+        );
+        console.log(
+          "[DEBUG] ModalComponent.onRender: Content to render:",
+          this.config.content?.substring(0, 200) + "...",
+        );
         // Use SecurityUtils for content rendering if available
         if (typeof window.SecurityUtils !== "undefined") {
           window.SecurityUtils.safeSetInnerHTML(body, this.config.content, {
@@ -343,17 +372,26 @@ class ModalComponent extends BaseComponent {
               "h4",
               "h5",
               "h6",
+              "hr",
+              "label",
             ],
             allowedAttributes: {
               a: ["href", "title", "target"],
-              span: ["class"],
-              div: ["class"],
+              span: ["class", "style", "title"], // ✅ FIXED: Allow style for color swatches and title for icons
+              div: ["class", "style"], // ✅ FIXED: Allow style for layout and formatting
+              hr: ["style"], // Allow styling for separators
+              label: ["class"], // Allow label styling
             },
           });
         } else {
           body.innerHTML = this.config.content;
         }
+        console.log(
+          "[DEBUG] ModalComponent.onRender: Content rendered successfully",
+        );
       }
+    } else {
+      console.log("[DEBUG] ModalComponent.onRender: No body element found!");
     }
 
     // Render buttons
@@ -373,6 +411,9 @@ class ModalComponent extends BaseComponent {
 
     // Apply type-specific styling
     this.applyTypeStyling();
+
+    // Initialize color picker components after rendering
+    this.initializeColorPickers();
   }
 
   /**
@@ -671,6 +712,54 @@ class ModalComponent extends BaseComponent {
         }
         break;
 
+      case "color":
+        if (isViewMode) {
+          // In view mode, show color swatch with hex value
+          const colorValue = value || "#6B73FF";
+          fieldHTML += `
+            <div class="form-control-static view-field-value"
+                 style="
+                   padding: 8px 12px !important;
+                   background-color: #f8f9fa !important;
+                   border: 1px solid #e9ecef !important;
+                   border-radius: 4px !important;
+                   min-height: 34px !important;
+                   color: #495057 !important;
+                   font-family: inherit !important;
+                   line-height: 1.5 !important;
+                   display: flex !important;
+                   align-items: center !important;
+                   gap: 8px !important;
+                 ">
+              <div class="umig-color-swatch-view"
+                   style="
+                     width: 24px;
+                     height: 24px;
+                     border-radius: 4px;
+                     border: 1px solid #c1c7d0;
+                     background-color: ${colorValue};
+                     flex-shrink: 0;
+                   "
+                   title="${colorValue}">
+              </div>
+              <span style="font-family: monospace; font-size: 13px;">${colorValue}</span>
+            </div>
+          `;
+        } else {
+          // In edit mode, create container for ColorPickerComponent
+          const containerId = `umig-color-picker-${field.name}`;
+          fieldHTML += `
+            <div id="${containerId}"
+                 class="umig-color-picker-container-field"
+                 data-field-name="${field.name}"
+                 data-field-value="${value || field.defaultValue || "#6B73FF"}"
+                 data-field-required="${field.required || false}">
+              <!-- ColorPickerComponent will be mounted here -->
+            </div>
+          `;
+        }
+        break;
+
       case "separator":
         // Special case for audit section separator
         if (isViewMode && field.isAuditField) {
@@ -776,6 +865,163 @@ class ModalComponent extends BaseComponent {
     // Add type-specific class
     if (this.config.type !== "default") {
       dialog.classList.add(`umig-modal-${this.config.type}`);
+    }
+  }
+
+  /**
+   * Initialize color picker components after modal rendering
+   * This method finds all color picker containers and mounts ColorPickerComponent instances
+   */
+  initializeColorPickers() {
+    const colorPickerContainers = this.container.querySelectorAll(
+      ".umig-color-picker-container-field",
+    );
+
+    if (colorPickerContainers.length === 0) {
+      return; // No color pickers to initialize
+    }
+
+    console.log(
+      `[ModalComponent] Initializing ${colorPickerContainers.length} color picker(s)`,
+    );
+
+    // Clear any existing color picker instances to prevent memory leaks
+    if (this.colorPickerInstances) {
+      this.colorPickerInstances.forEach((instance) => {
+        if (instance && typeof instance.destroy === "function") {
+          instance.destroy();
+        }
+      });
+    }
+    this.colorPickerInstances = [];
+
+    colorPickerContainers.forEach((container, index) => {
+      try {
+        const fieldName = container.dataset.fieldName;
+        const fieldValue = container.dataset.fieldValue;
+        const fieldRequired = container.dataset.fieldRequired === "true";
+
+        if (!window.ColorPickerComponent) {
+          console.error(
+            "[ModalComponent] ColorPickerComponent not available globally",
+          );
+          return;
+        }
+
+        console.log(
+          `[ModalComponent] Creating color picker for field: ${fieldName}, value: ${fieldValue}`,
+        );
+
+        // Create ColorPickerComponent instance
+        const colorPicker = new ColorPickerComponent({
+          container: container,
+          defaultColor: fieldValue || "#6B73FF",
+          onChange: (color) => {
+            console.log(
+              `[ModalComponent] Color changed for ${fieldName}: ${color}`,
+            );
+            // Update form data
+            if (this.formData) {
+              this.formData[fieldName] = color;
+            }
+            // Create or update hidden input for form submission
+            this.updateColorFieldInput(fieldName, color);
+          },
+          onValidationChange: (isValid) => {
+            console.log(
+              `[ModalComponent] Color validation changed for ${fieldName}: ${isValid}`,
+            );
+            // You could add visual feedback here if needed
+          },
+          allowCustomColors: true,
+          showHexInput: true,
+          required: fieldRequired,
+        });
+
+        // Initialize and mount the color picker
+        colorPicker
+          .initialize()
+          .then(() => {
+            return colorPicker.mount();
+          })
+          .then(() => {
+            console.log(
+              `[ModalComponent] Color picker mounted successfully for field: ${fieldName}`,
+            );
+            this.colorPickerInstances.push(colorPicker);
+          })
+          .catch((error) => {
+            console.error(
+              `[ModalComponent] Failed to initialize color picker for field ${fieldName}:`,
+              error,
+            );
+          });
+      } catch (error) {
+        console.error(
+          `[ModalComponent] Error creating color picker ${index}:`,
+          error,
+        );
+      }
+    });
+  }
+
+  /**
+   * Update or create hidden input for color field form submission
+   * @param {string} fieldName - Name of the color field
+   * @param {string} color - Selected color value
+   */
+  updateColorFieldInput(fieldName, color) {
+    // Find or create hidden input for form submission
+    let hiddenInput = this.container.querySelector(
+      `input[name="${fieldName}"]`,
+    );
+
+    if (!hiddenInput) {
+      // Create hidden input if it doesn't exist
+      hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = fieldName;
+
+      // Add to the form
+      const form = this.container.querySelector(".umig-modal-form");
+      if (form) {
+        form.appendChild(hiddenInput);
+      }
+    }
+
+    hiddenInput.value = color;
+    console.log(
+      `[ModalComponent] Updated hidden input for ${fieldName}: ${color}`,
+    );
+  }
+
+  /**
+   * Cleanup color picker instances
+   * This method should be called when the modal is closed to prevent memory leaks
+   */
+  cleanupColorPickers() {
+    if (this.colorPickerInstances && this.colorPickerInstances.length > 0) {
+      console.log(
+        `[ModalComponent] Cleaning up ${this.colorPickerInstances.length} color picker instance(s)`,
+      );
+
+      this.colorPickerInstances.forEach((instance, index) => {
+        try {
+          if (instance && typeof instance.destroy === "function") {
+            instance.destroy();
+            console.log(
+              `[ModalComponent] Color picker instance ${index} destroyed successfully`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[ModalComponent] Error destroying color picker instance ${index}:`,
+            error,
+          );
+        }
+      });
+
+      this.colorPickerInstances = [];
     }
   }
 
@@ -1188,6 +1434,9 @@ class ModalComponent extends BaseComponent {
       this.activeTabId =
         this.tabs.size > 0 ? this.tabs.keys().next().value : null;
     }
+
+    // Cleanup color picker instances
+    this.cleanupColorPickers();
 
     // Call close callback
     if (this.config.onClose) {
@@ -1626,7 +1875,33 @@ class ModalComponent extends BaseComponent {
    * Update modal configuration
    */
   updateConfig(config) {
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Called with config:",
+      config,
+    );
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Current config before merge:",
+      this.config,
+    );
+
     this.config = { ...this.config, ...config };
+
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Config after merge:",
+      this.config,
+    );
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Final config.form:",
+      this.config.form,
+    );
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Final config.content length:",
+      this.config.content?.length,
+    );
+    console.log(
+      "[DEBUG] ModalComponent.updateConfig: Final config.type:",
+      this.config.type,
+    );
 
     // Update mode if provided
     if (config.mode !== undefined) {
@@ -1634,6 +1909,9 @@ class ModalComponent extends BaseComponent {
     }
 
     if (this.isOpen) {
+      console.log(
+        "[DEBUG] ModalComponent.updateConfig: Modal is open, calling render()",
+      );
       this.render();
     }
   }
@@ -1687,12 +1965,16 @@ class ModalComponent extends BaseComponent {
               "th",
               "td",
               "img",
+              "hr",
+              "label",
             ],
             allowedAttributes: {
               a: ["href", "title", "target"],
-              span: ["class"],
-              div: ["class"],
+              span: ["class", "style", "title"], // ✅ FIXED: Allow style for color swatches and title for icons
+              div: ["class", "style"], // ✅ FIXED: Allow style for layout and formatting
               img: ["src", "alt", "title", "width", "height"],
+              hr: ["style"], // Allow styling for separators
+              label: ["class"], // Allow label styling
             },
           });
         } else {

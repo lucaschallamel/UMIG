@@ -201,14 +201,35 @@ export class EntityMigrationTracker {
   trackError(architecture, operation, error, context = {}) {
     try {
       const timestamp = new Date().toISOString();
+
+      // Defensive error handling - ensure error object is properly formatted
+      let errorInfo = {
+        message: "Unknown error",
+        stack: null,
+        name: "Error",
+      };
+
+      if (error) {
+        if (typeof error === "string") {
+          errorInfo.message = error;
+        } else if (
+          error instanceof Error ||
+          (error && typeof error.message !== "undefined")
+        ) {
+          errorInfo.message = error.message || "Unknown error";
+          errorInfo.stack = error.stack || null;
+          errorInfo.name = error.name || "Error";
+        } else if (typeof error === "object") {
+          errorInfo.message = error.toString() || "Unknown error";
+        } else {
+          errorInfo.message = String(error);
+        }
+      }
+
       const errorEntry = {
         timestamp,
         operation,
-        error: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
+        error: errorInfo,
         context,
         sessionId: this.abTesting.sessionId,
         userGroup: this.abTesting.userGroup,

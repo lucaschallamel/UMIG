@@ -380,6 +380,101 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
+   * Public interface for create operation (for testing and external use)
+   * @param {Object} data - Data to create
+   * @returns {Promise<Object>} Created entity
+   * @public
+   */
+  async create(data) {
+    return this._createEntityData(data);
+  }
+
+  /**
+   * Public interface for update operation (for testing and external use)
+   * @param {string} id - Entity ID
+   * @param {Object} data - Data to update
+   * @returns {Promise<Object>} Updated entity
+   * @public
+   */
+  async update(id, data) {
+    return this._updateEntityData(id, data);
+  }
+
+  /**
+   * Public interface for delete operation (for testing and external use)
+   * @param {string} id - Entity ID
+   * @returns {Promise<void>}
+   * @public
+   */
+  async delete(id) {
+    return this._deleteEntityData(id);
+  }
+
+  /**
+   * Validate and transform data before create/update operations
+   * @param {Object} data - Data to validate and transform
+   * @param {boolean} isUpdate - Whether this is an update operation
+   * @returns {Object} Validated and transformed data
+   * @private
+   */
+  validateAndTransformData(data, isUpdate = false) {
+    const validatedData = { ...data };
+
+    // Sanitize string fields
+    if (validatedData.mit_name && window.SecurityUtils?.sanitizeString) {
+      validatedData.mit_name = window.SecurityUtils.sanitizeString(
+        validatedData.mit_name,
+      );
+    }
+    if (validatedData.mit_description && window.SecurityUtils?.sanitizeString) {
+      validatedData.mit_description = window.SecurityUtils.sanitizeString(
+        validatedData.mit_description,
+      );
+    }
+    if (validatedData.mit_code && window.SecurityUtils?.sanitizeString) {
+      validatedData.mit_code = window.SecurityUtils.sanitizeString(
+        validatedData.mit_code,
+      );
+    }
+
+    // Validate color format
+    if (validatedData.mit_color) {
+      const colorRegex = /^#[0-9A-Fa-f]{6}$/;
+      if (!colorRegex.test(validatedData.mit_color)) {
+        throw new Error("Invalid color format. Must be #RRGGBB");
+      }
+    }
+
+    // Validate code format (alphanumeric, dash, underscore only)
+    if (!isUpdate && validatedData.mit_code) {
+      const codeRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!codeRegex.test(validatedData.mit_code)) {
+        throw new Error(
+          "Code must contain only alphanumeric characters, dashes, and underscores",
+        );
+      }
+    }
+
+    // Convert boolean fields
+    if (validatedData.mit_active !== undefined) {
+      validatedData.mit_active = String(validatedData.mit_active);
+    }
+
+    // Ensure display order is a number
+    if (validatedData.mit_display_order !== undefined) {
+      validatedData.mit_display_order = parseInt(
+        validatedData.mit_display_order,
+        10,
+      );
+      if (isNaN(validatedData.mit_display_order)) {
+        validatedData.mit_display_order = 0;
+      }
+    }
+
+    return validatedData;
+  }
+
+  /**
    * Create migration type data via API following Applications pattern
    * @param {Object} data - Migration type data
    * @returns {Promise<Object>} Created migration type
@@ -392,14 +487,18 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
         "[MigrationTypesEntityManager] Creating new migration type:",
         data,
       );
+
+      // Validate and transform data
+      const validatedData = this.validateAndTransformData(data, false);
+
       // Security validation
-      window.SecurityUtils.validateInput(data);
+      window.SecurityUtils.validateInput(validatedData);
       const response = await fetch(this.migrationTypesApiUrl, {
         method: "POST",
         headers: window.SecurityUtils.addCSRFProtection({
           "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data),
+        body: JSON.stringify(validatedData),
         credentials: "same-origin",
       });
       if (!response.ok) {
@@ -478,8 +577,12 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
         "[MigrationTypesEntityManager] Filtered update data:",
         updateData,
       );
+
+      // Validate and transform data
+      const validatedData = this.validateAndTransformData(updateData, true);
+
       // Security validation
-      window.SecurityUtils.validateInput(updateData);
+      window.SecurityUtils.validateInput(validatedData);
       const response = await fetch(
         `${this.migrationTypesApiUrl}/${encodeURIComponent(id)}`,
         {
@@ -487,7 +590,7 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
           headers: window.SecurityUtils.addCSRFProtection({
             "Content-Type": "application/json",
           }),
-          body: JSON.stringify(updateData),
+          body: JSON.stringify(validatedData),
           credentials: "same-origin",
         },
       );
@@ -941,7 +1044,91 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
   }
 
   /**
-   * Override the base _viewEntity method to provide form-based VIEW mode
+   * Override _generateViewContent to properly display color/icon in VIEW modal
+   * @param {Object} data - Entity data
+   * @returns {string} HTML content for view modal
+   * @protected
+   */
+  _generateViewContent(data) {
+    console.log(
+      "[MigrationTypesEntityManager] _generateViewContent called with:",
+      data,
+    );
+
+    const color = data.mit_color || "#6B73FF";
+    const icon = data.mit_icon || "layers";
+
+    return `
+      <div class="entity-view-content">
+        <div class="field-group">
+          <label>Code:</label>
+          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_code || "") : data.mit_code || ""}</span>
+        </div>
+        <div class="field-group">
+          <label>Name:</label>
+          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_name || "") : data.mit_name || ""}</span>
+        </div>
+        <div class="field-group">
+          <label>Description:</label>
+          <span>${window.SecurityUtils?.sanitizeHtml ? window.SecurityUtils.sanitizeHtml(data.mit_description || "") : data.mit_description || ""}</span>
+        </div>
+        <div class="field-group">
+          <label>Color:</label>
+          <span>
+            <span class="color-indicator" style="background-color: ${color}; width: 20px; height: 20px; display: inline-block; border-radius: 3px; margin-right: 8px; vertical-align: middle;"></span>
+            ${color}
+          </span>
+        </div>
+        <div class="field-group">
+          <label>Icon:</label>
+          <span>
+            <span class="aui-icon aui-icon-small aui-icon-${icon}" style="margin-right: 8px;"></span>
+            ${icon}
+          </span>
+        </div>
+        <div class="field-group">
+          <label>Display Order:</label>
+          <span>${data.mit_display_order || 0}</span>
+        </div>
+        <div class="field-group">
+          <label>Status:</label>
+          <span class="badge badge-${data.mit_active === true || data.mit_active === 1 || data.mit_active === "true" ? "success" : "secondary"}">
+            ${data.mit_active === true || data.mit_active === 1 || data.mit_active === "true" ? "Active" : "Inactive"}
+          </span>
+        </div>
+        <div class="field-group">
+          <label>Created At:</label>
+          <span>${this._formatDateTime(data.created_at)}</span>
+        </div>
+        <div class="field-group">
+          <label>Updated At:</label>
+          <span>${this._formatDateTime(data.updated_at)}</span>
+        </div>
+      </div>
+      <style>
+        .entity-view-content .field-group {
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+        }
+        .entity-view-content .field-group label {
+          font-weight: bold;
+          min-width: 120px;
+          margin-right: 10px;
+        }
+        .entity-view-content .field-group span {
+          flex: 1;
+        }
+        .entity-view-content .color-indicator {
+          border: 1px solid #ddd;
+        }
+      </style>
+    `;
+  }
+
+  /**
+   * Override the base _viewEntity method to use BaseEntityManager's info modal pattern
+   * This ensures _generateViewContent is called and visual elements display properly
    * @param {Object} data - Entity data to view
    * @private
    */
@@ -950,70 +1137,49 @@ class MigrationTypesEntityManager extends (window.BaseEntityManager ||
       "[MigrationTypesEntityManager] Opening View Migration Type modal for:",
       data,
     );
-    // Check if modal component is available
-    if (!this.modalComponent) {
-      console.warn(
-        "[MigrationTypesEntityManager] Modal component not available",
+
+    // Use BaseEntityManager's approach with info modal type to leverage _generateViewContent
+    if (this.modalComponent) {
+      console.log(
+        `[MigrationTypesEntityManager] Opening modal with data for ${this.entityType}`,
       );
-      return;
-    }
-    // Create enhanced modal configuration for View mode with audit fields
-    const viewFormConfig = {
-      fields: [
-        ...this.config.modalConfig.form.fields, // Original form fields
-        // Add additional information fields for viewing
-        {
-          name: "mit_created_at",
-          type: "text",
-          label: "Created At",
-          value: this._formatDateTime(data.created_at),
-          readonly: true,
+
+      // Configure the modal (matching BaseEntityManager pattern with Edit button)
+      this.modalComponent.updateConfig({
+        title: `View Migration Type: ${data.mit_name}`,
+        type: "info",
+        content: this._generateViewContent(data),
+        size: "large",
+        buttons: [
+          { text: "Edit", action: "edit", variant: "primary" },
+          { text: "Close", action: "close", variant: "secondary" },
+        ],
+        onButtonClick: (action) => {
+          if (action === "edit") {
+            // Switch to edit mode
+            this.modalComponent.close();
+            // Wait for close animation to complete before opening edit modal
+            setTimeout(() => {
+              this.handleEdit(data);
+            }, 350); // 350ms to ensure close animation (300ms) completes
+            return true; // Close modal handled above
+          }
+          if (action === "close") {
+            this.modalComponent.close();
+            return true; // Close modal
+          }
+          return false;
         },
-        {
-          name: "mit_updated_at",
-          type: "text",
-          label: "Updated At",
-          value: this._formatDateTime(data.updated_at),
-          readonly: true,
-        },
-      ],
-    };
-    // Update modal configuration for View mode
-    this.modalComponent.updateConfig({
-      title: `View Migration Type: ${data.mit_name}`,
-      type: "form",
-      size: "large",
-      closeable: true, // Ensure close button works
-      form: viewFormConfig,
-      buttons: [
-        { text: "Edit", action: "edit", variant: "primary" },
-        { text: "Close", action: "close", variant: "secondary" },
-      ],
-      onButtonClick: (action) => {
-        if (action === "edit") {
-          // Switch to edit mode - restore original form config
-          this.modalComponent.close();
-          // Wait for close animation to complete before opening edit modal
-          setTimeout(() => {
-            this.handleEdit(data);
-          }, 350); // 350ms to ensure close animation (300ms) completes
-          return true; // Close modal handled above
-        }
-        if (action === "close") {
-          this.modalComponent.close();
-          return true; // Close modal
-        }
-        return false;
-      },
-    });
-    // Set viewMode flag to make fields readonly
-    this.modalComponent.viewMode = true;
-    // Set form data to current migration type values
-    if (this.modalComponent.formData) {
-      Object.assign(this.modalComponent.formData, data);
+      });
+
+      // Then open the modal (no parameters)
+      await this.modalComponent.open();
+      console.log(`[MigrationTypesEntityManager] Modal opened successfully`);
+    } else {
+      console.error(
+        `[MigrationTypesEntityManager] No modal component available`,
+      );
     }
-    // Open the modal
-    this.modalComponent.open();
   }
 
   /**

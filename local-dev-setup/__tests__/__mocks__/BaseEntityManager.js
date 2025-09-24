@@ -24,6 +24,13 @@ export class BaseEntityManager {
   constructor(config = {}) {
     // Basic configuration setup
     this.entityType = config.entityType || "mock-entity";
+    // Convert entityType to camelCase for API endpoint (e.g., "iteration-types" -> "iterationTypes")
+    const apiEndpointName =
+      config.apiEndpointName ||
+      this._convertToApiEndpointName(config.entityType || "mockEntity");
+    this.apiEndpoint =
+      config.apiEndpoint ||
+      `/rest/scriptrunner/latest/custom/${apiEndpointName}`;
     this.config = {
       ...this._getDefaultConfig(),
       ...config,
@@ -79,6 +86,17 @@ export class BaseEntityManager {
 
     // Mock methods that would be called by constructor
     this._initializeSecurityContext();
+  }
+
+  /**
+   * Convert kebab-case entityType to camelCase for API endpoints
+   * @param {string} entityType - The entity type in kebab-case (e.g., "iteration-types")
+   * @returns {string} The API endpoint name in camelCase (e.g., "iterationTypes")
+   */
+  _convertToApiEndpointName(entityType) {
+    return entityType.replace(/-([a-z])/g, (match, letter) =>
+      letter.toUpperCase(),
+    );
   }
 
   /**

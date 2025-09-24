@@ -3761,7 +3761,7 @@ class StepRepository {
                 updateFields << "updated_at = :updated_at"
                 params.updated_at = new Timestamp(System.currentTimeMillis())
                 updateFields << "updated_by = :updated_by"
-                params.updated_by = 'admin'
+                params.updated_by = 'admin' as String
                 
                 if (updateFields.isEmpty()) {
                     throw new IllegalArgumentException("No fields to update")
@@ -3974,7 +3974,7 @@ class StepRepository {
                 // Always update timestamp with valid schema fields
                 updateFields << "updated_at = CURRENT_TIMESTAMP"
                 updateFields << "updated_by = :updated_by"
-                params.updated_by = 'admin'
+                params.updated_by = 'admin' as String
                 
                 if (updateFields.isEmpty()) {
                     throw new IllegalArgumentException("No fields to update")

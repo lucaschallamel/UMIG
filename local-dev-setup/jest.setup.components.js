@@ -196,4 +196,22 @@ global.ComponentTestUtils = {
   },
 };
 
+// Load SecurityUtils mock for component testing
+try {
+  const SecurityUtilsMock = require("./__tests__/__mocks__/SecurityUtils.unit.js");
+  global.SecurityUtils = SecurityUtilsMock;
+
+  // Ensure window.SecurityUtils is available in browser-like environment
+  if (typeof window !== "undefined") {
+    window.SecurityUtils = SecurityUtilsMock;
+  }
+
+  console.log("[Jest Setup] SecurityUtils mock loaded for component testing");
+} catch (error) {
+  console.warn(
+    "[Jest Setup] Failed to load SecurityUtils mock:",
+    error.message,
+  );
+}
+
 console.log("[Jest Setup] Component testing environment initialized");

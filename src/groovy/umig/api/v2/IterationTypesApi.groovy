@@ -54,7 +54,7 @@ private static boolean isValidIconName(String iconName) {
  * - includeInactive: boolean to include inactive iteration types
  * - stats: boolean to include usage statistics
  */
-iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -217,7 +217,7 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
  * POST /iterationTypes - Create a new iteration type
  * Body should contain iteration type data in JSON format
  */
-iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         // Extract user context
         def userContext = userService.getCurrentUserContext()
@@ -377,7 +377,7 @@ iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMa
  * PUT /iterationTypes/{code} - Update an existing iteration type
  * Body should contain updated iteration type data in JSON format
  */
-iterationTypes(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -528,7 +528,7 @@ iterationTypes(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
  * DELETE /iterationTypes/{code} - Soft delete an iteration type (set itt_active = false)
  * Checks for blocking relationships before allowing deletion
  */
-iterationTypes(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 

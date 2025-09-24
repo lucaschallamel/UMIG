@@ -484,6 +484,7 @@ if (typeof window !== "undefined") {
 describe("Teams Accessibility Tests - WCAG 2.1 AA Compliance", () => {
   let container;
   let accessibilityTester;
+  let teamsManager;
 
   beforeEach(() => {
     container = document.getElementById("test-container");

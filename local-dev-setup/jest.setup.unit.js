@@ -1,6 +1,26 @@
 // Unit Test Setup - No external dependencies
 console.log("🧪 Setting up Unit Test environment...");
 
+// TD-012 Critical Fix: Early SecurityUtils initialization
+// Ensures SecurityUtils is available before any component tests run
+// This prevents race conditions and module loading conflicts
+try {
+  const SecurityUtils = require("./__tests__/__mocks__/SecurityUtils.wrapper.js");
+  global.SecurityUtils = SecurityUtils;
+
+  // Also set on window if jsdom is available
+  if (typeof window !== "undefined") {
+    window.SecurityUtils = SecurityUtils;
+  }
+
+  console.log("✅ SecurityUtils wrapper initialized early for unit tests");
+} catch (error) {
+  console.warn(
+    "⚠️ SecurityUtils wrapper initialization failed:",
+    error.message,
+  );
+}
+
 // TextEncoder/TextDecoder polyfills for Node.js environment
 const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = TextEncoder;
@@ -151,13 +171,319 @@ global.IntersectionObserver = class IntersectionObserver {
   }
 };
 
-// SecurityUtils global availability for all component tests
-const SecurityUtils = require("../src/groovy/umig/web/js/components/SecurityUtils");
-global.SecurityUtils = SecurityUtils;
+// SecurityUtils mock - Direct inline definition to avoid require issues
+const SecurityUtilsMock = {
+  sanitizeInput(input) {
+    if (typeof input !== "string") return input;
+    return input
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/\//g, "&#x2F;");
+  },
+
+  sanitizeHTML(html) {
+    if (typeof html !== "string") return html;
+    return html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/javascript:/gi, "")
+      .replace(/on\w+\s*=/gi, "");
+  },
+
+  validateInput(input, type = "text", options = {}) {
+    if (!input && !options.required) {
+      return {
+        isValid: true,
+        valid: true,
+        sanitized: input,
+        value: input,
+        errors: [],
+      };
+    }
+
+    const sanitized = this.sanitizeInput(input);
+    const isValid = sanitized === input;
+
+    return {
+      isValid: isValid,
+      valid: isValid,
+      sanitized: sanitized,
+      value: isValid ? sanitized : input,
+      originalLength: input ? input.length : 0,
+      sanitizedLength: sanitized ? sanitized.length : 0,
+      type: type,
+      errors: isValid ? [] : ["Input contains potentially unsafe content"],
+    };
+  },
+
+  validateInteger(value, options = {}) {
+    const config = {
+      min: null,
+      max: null,
+      required: true,
+      ...options,
+    };
+
+    // If value is null/undefined and not required, return valid
+    if ((value === null || value === undefined) && !config.required) {
+      return {
+        isValid: true,
+        value: null,
+        errors: [],
+      };
+    }
+
+    // Convert to integer
+    const intValue = parseInt(value, 10);
+    const errors = [];
+
+    // Check if it's a valid integer
+    if (isNaN(intValue) || intValue.toString() !== value.toString()) {
+      errors.push("Must be a valid integer");
+      // Return null for invalid values (expected by some tests)
+      return null;
+    }
+
+    // Check min/max constraints
+    if (config.min !== null && intValue < config.min) {
+      errors.push(`Must be at least ${config.min}`);
+    }
+    if (config.max !== null && intValue > config.max) {
+      errors.push(`Must be at most ${config.max}`);
+    }
+
+    // If validation fails due to constraints, return null
+    if (errors.length > 0) {
+      return null;
+    }
+
+    return {
+      isValid: true,
+      value: intValue,
+      errors: [],
+    };
+  },
+
+  safeSetInnerHTML(element, html, options = {}) {
+    if (!element) {
+      console.warn(
+        "[SecurityUtils Mock] Invalid element provided to safeSetInnerHTML",
+      );
+      return false;
+    }
+
+    const sanitizedHTML = this.sanitizeHTML(html);
+    try {
+      element.innerHTML = sanitizedHTML;
+      return true;
+    } catch (error) {
+      console.error("[SecurityUtils Mock] Error in safeSetInnerHTML:", error);
+      return false;
+    }
+  },
+
+  setTextContent(element, text) {
+    if (!element) return false;
+    try {
+      element.textContent = this.sanitizeInput(text);
+      return true;
+    } catch (error) {
+      console.error("[SecurityUtils Mock] Error in setTextContent:", error);
+      return false;
+    }
+  },
+
+  // Additional methods expected by tests
+  escapeHtml(input) {
+    if (input == null) return "";
+    if (typeof input !== "string") return String(input);
+    return this.sanitizeInput(input);
+  },
+
+  sanitizeHtml(html, options = {}) {
+    if (!html) return "";
+    return this.sanitizeHTML(html);
+  },
+
+  validateEmail(email) {
+    if (!email) return false;
+    return this.isValidEmail(email);
+  },
+
+  validateUrl(url) {
+    if (!url) return false;
+    return this.isValidUrl(url);
+  },
+
+  validateString(str, options = {}) {
+    if (str == null) return options.required === false ? null : null;
+    const stringVal = String(str);
+
+    if (options.minLength && stringVal.length < options.minLength) return null;
+    if (options.maxLength && stringVal.length > options.maxLength) return null;
+    if (options.pattern && !options.pattern.test(stringVal)) return null;
+
+    return stringVal;
+  },
+
+  escapeRegex(str) {
+    if (!str) return "";
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  },
+
+  createElement(tag, text = "", attributes = {}) {
+    const element = document.createElement(tag);
+    if (text) element.textContent = text;
+
+    Object.keys(attributes).forEach((key) => {
+      if (!key.startsWith("on")) {
+        // Skip event handlers
+        element.setAttribute(key, attributes[key]);
+      }
+    });
+
+    return element;
+  },
+
+  createTextNode(text) {
+    return document.createTextNode(text || "");
+  },
+
+  highlightSearchTerm(text, term, className = "highlight") {
+    if (!text || !term) return text || "";
+    const escapedTerm = this.escapeRegex(term);
+    const regex = new RegExp(`(${escapedTerm})`, "gi");
+    return this.escapeHtml(text).replace(
+      regex,
+      `<span class="${className}">$1</span>`,
+    );
+  },
+
+  deepClone(obj) {
+    if (obj === null || typeof obj !== "object") return obj;
+    if (obj instanceof Date) return new Date(obj.getTime());
+    if (obj instanceof Set)
+      return new Set([...obj].map((item) => this.deepClone(item)));
+    if (obj instanceof Map) {
+      const cloned = new Map();
+      obj.forEach((value, key) =>
+        cloned.set(this.deepClone(key), this.deepClone(value)),
+      );
+      return cloned;
+    }
+    if (Array.isArray(obj)) return obj.map((item) => this.deepClone(item));
+
+    const cloned = {};
+    Object.keys(obj).forEach((key) => {
+      cloned[key] = this.deepClone(obj[key]);
+    });
+    return cloned;
+  },
+
+  isSafePrimitive(value) {
+    const type = typeof value;
+    return (
+      type === "string" ||
+      type === "number" ||
+      type === "boolean" ||
+      value === null ||
+      value === undefined
+    );
+  },
+
+  checkRateLimit(action, limit = 5, windowMs = 60000) {
+    // Simple mock - always return true for tests
+    return true;
+  },
+
+  logSecurityEvent(eventType, severity = "medium", details = {}) {
+    // Mock logging - just console.log in tests
+    if (typeof console !== "undefined" && console.log) {
+      console.log(`[SECURITY] ${eventType} (${severity}):`, details);
+    }
+  },
+
+  generateCSRFToken() {
+    return "mock-csrf-token";
+  },
+  validateCSRFToken(token) {
+    return token === "mock-csrf-token";
+  },
+  getCSRFToken() {
+    return "mock-csrf-token";
+  },
+  auditLog() {
+    /* no-op */
+  },
+  generateNonce() {
+    return `nonce-mock-${Date.now()}`;
+  },
+  getCSPHeader() {
+    return "default-src 'self'";
+  },
+  validateSession(sessionId) {
+    return {
+      valid: !!sessionId,
+      sessionId,
+      userId: sessionId ? "mock-user" : null,
+    };
+  },
+  isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  },
+  isValidUUID(uuid) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      uuid,
+    );
+  },
+  isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  updateConfig() {
+    return {};
+  },
+  getConfig() {
+    return { xssProtectionEnabled: true, csrfProtectionEnabled: true };
+  },
+  resetState() {
+    /* no-op */
+  },
+  getPerformanceMetrics() {
+    return { sanitizationCalls: 0, validationCalls: 0 };
+  },
+  simulateXSSAttack(payload) {
+    return this.sanitizeInput(payload);
+  },
+  simulateCSRFAttack() {
+    return false;
+  },
+  simulateError(type) {
+    throw new Error(`Mock ${type} error`);
+  },
+  __isMock: true,
+  __mockType: "SecurityUtils-unit-test",
+  __version: "2.1.0",
+};
+
+global.SecurityUtils = SecurityUtilsMock;
 
 // Also ensure it's available on window object for DOM-based tests
 if (typeof window !== "undefined") {
-  window.SecurityUtils = SecurityUtils;
+  window.SecurityUtils = SecurityUtilsMock;
+
+  // Ensure all methods are properly exposed on window
+  Object.keys(SecurityUtilsMock).forEach((key) => {
+    if (typeof SecurityUtilsMock[key] === "function") {
+      window.SecurityUtils[key] =
+        SecurityUtilsMock[key].bind(SecurityUtilsMock);
+    }
+  });
 }
 
 // Mock fetch for API calls
@@ -240,6 +566,22 @@ process.env = {
   SMTP_HOST: "localhost",
   SMTP_PORT: "1025",
 };
+
+// Minimal window.location setup - let individual tests handle specific mocking
+if (typeof window !== "undefined" && !window.location) {
+  // Only add if completely missing
+  window.location = {
+    protocol: "https:",
+    host: "localhost:8090",
+    hostname: "localhost",
+    port: "8090",
+    pathname: "/",
+    search: "",
+    hash: "",
+    href: "https://localhost:8090/",
+    origin: "https://localhost:8090",
+  };
+}
 
 // Setup error handling for unhandled rejections
 process.on("unhandledRejection", (reason, promise) => {

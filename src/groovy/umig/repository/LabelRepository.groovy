@@ -108,11 +108,11 @@ class LabelRepository {
     Map findAllLabelsWithPagination(int pageNumber = 1, int pageSize = 50, String searchTerm = null, String sortField = 'lbl_id', String sortDirection = 'asc') {
         DatabaseUtil.withSql { sql ->
             def offset = (pageNumber - 1) * pageSize
-            def params = [:]
+            Map<String, Object> params = [:]
             
             // Base query parts
             def selectClause = """
-                SELECT 
+                SELECT
                     l.lbl_id,
                     l.lbl_name,
                     l.lbl_description,
@@ -120,6 +120,8 @@ class LabelRepository {
                     l.mig_id,
                     l.created_at,
                     l.created_by,
+                    l.updated_at,
+                    l.updated_by,
                     m.mig_name,
                     COALESCE(app_counts.app_count, 0)::INTEGER AS application_count,
                     COALESCE(step_counts.step_count, 0)::INTEGER AS step_count
@@ -188,17 +190,19 @@ class LabelRepository {
             
             def labels = sql.rows(query, params)
             
-            // Transform results to match frontend expectations
+            // Transform results to match frontend expectations (consistent with findAllLabels)
             def items = labels.collect { row ->
                 [
-                    lbl_id: row.lbl_id,
-                    lbl_name: row.lbl_name,
-                    lbl_description: row.lbl_description,
-                    lbl_color: row.lbl_color,
+                    id: row.lbl_id,                    // Frontend expects 'id' not 'lbl_id'
+                    name: row.lbl_name,                // Frontend expects 'name' not 'lbl_name'
+                    description: row.lbl_description,  // Frontend expects 'description' not 'lbl_description'
+                    color: row.lbl_color,              // Frontend expects 'color' not 'lbl_color'
                     mig_id: row.mig_id,
                     mig_name: row.mig_name,
                     created_at: row.created_at,
                     created_by: row.created_by,
+                    updated_at: row.updated_at,
+                    updated_by: row.updated_by,
                     application_count: row.application_count,
                     step_count: row.step_count
                 ]
@@ -222,7 +226,7 @@ class LabelRepository {
     Map findLabelById(int labelId) {
         DatabaseUtil.withSql { sql ->
             def label = sql.firstRow("""
-                SELECT 
+                SELECT
                     l.lbl_id,
                     l.lbl_name,
                     l.lbl_description,
@@ -230,6 +234,8 @@ class LabelRepository {
                     l.mig_id,
                     l.created_at,
                     l.created_by,
+                    l.updated_at,
+                    l.updated_by,
                     m.mig_name,
                     u.usr_first_name,
                     u.usr_last_name
@@ -240,16 +246,18 @@ class LabelRepository {
             """, [labelId: labelId])
 
             if (label) {
-                // Transform to proper structure
+                // Transform to proper structure (consistent with other methods)
                 def result = [
-                    lbl_id: label.lbl_id,
-                    lbl_name: label.lbl_name,
-                    lbl_description: label.lbl_description,
-                    lbl_color: label.lbl_color,
+                    id: label.lbl_id,                    // Frontend expects 'id' not 'lbl_id'
+                    name: label.lbl_name,                // Frontend expects 'name' not 'lbl_name'
+                    description: label.lbl_description,  // Frontend expects 'description' not 'lbl_description'
+                    color: label.lbl_color,              // Frontend expects 'color' not 'lbl_color'
                     mig_id: label.mig_id,
                     mig_name: label.mig_name,
                     created_at: label.created_at,
                     created_by: label.created_by,
+                    updated_at: label.updated_at,
+                    updated_by: label.updated_by,
                     created_by_name: label.usr_first_name ? "${label.usr_first_name} ${label.usr_last_name}" : null
                 ]
 
@@ -304,26 +312,26 @@ class LabelRepository {
         DatabaseUtil.withSql { sql ->
             // Build dynamic UPDATE query based on provided fields
             def setClause = []
-            def params = [lbl_id: labelId]
+            Map<String, Object> params = [lbl_id: labelId]
             
             if (updates.containsKey('lbl_name')) {
                 setClause.add('lbl_name = :lbl_name')
-                params.lbl_name = updates['lbl_name']
+                params['lbl_name'] = updates['lbl_name'] as String
             }
-            
+
             if (updates.containsKey('lbl_description')) {
                 setClause.add('lbl_description = :lbl_description')
-                params.lbl_description = updates['lbl_description']
+                params['lbl_description'] = updates['lbl_description'] as String
             }
-            
+
             if (updates.containsKey('lbl_color')) {
                 setClause.add('lbl_color = :lbl_color')
-                params.lbl_color = updates['lbl_color']
+                params['lbl_color'] = updates['lbl_color'] as String
             }
-            
+
             if (updates.containsKey('mig_id')) {
                 setClause.add('mig_id = :mig_id')
-                params.mig_id = updates['mig_id']
+                params['mig_id'] = updates['mig_id']
             }
             
             if (setClause.isEmpty()) {
@@ -331,6 +339,16 @@ class LabelRepository {
                 return findLabelById(labelId)
             }
             
+            // Always update updated_at and updated_by when modifying records
+            setClause.add('updated_at = NOW()')
+            if (updates.containsKey('updated_by')) {
+                setClause.add('updated_by = :updated_by')
+                params['updated_by'] = updates['updated_by'] as String
+            } else {
+                setClause.add('updated_by = :updated_by')
+                params['updated_by'] = 'system' as String
+            }
+
             def query = """
                 UPDATE labels_lbl
                 SET ${setClause.join(', ')}

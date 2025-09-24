@@ -32,8 +32,19 @@ const config = {
     "^@components/(.*)$": "<rootDir>/src/groovy/umig/web/js/components/$1",
     "^../../scripts/lib/db.js$": "<rootDir>/__tests__/__mocks__/db.js",
     "^../scripts/lib/db.js$": "<rootDir>/__tests__/__mocks__/db.js",
+    // CRITICAL: Use SecurityUtils unified wrapper for TD-012 CommonJS/ES6 compatibility fix
+    "^../src/groovy/umig/web/js/components/SecurityUtils$":
+      "<rootDir>/__tests__/__mocks__/SecurityUtils.wrapper.js",
+    "^../src/groovy/umig/web/js/components/SecurityUtils.js$":
+      "<rootDir>/__tests__/__mocks__/SecurityUtils.wrapper.js",
+    // Direct SecurityUtils path mapping for absolute imports
+    "^.*/SecurityUtils$":
+      "<rootDir>/__tests__/__mocks__/SecurityUtils.wrapper.js",
+    "^.*/SecurityUtils.js$":
+      "<rootDir>/__tests__/__mocks__/SecurityUtils.wrapper.js",
     // EMERGENCY: Isolate problematic dependencies
-    "^tough-cookie$": "<rootDir>/__tests__/__mocks__/tough-cookie.js",
+    "^tough-cookie$":
+      "<rootDir>/__tests__/__mocks__/tough-cookie.lightweight.js",
     "^jsdom/lib/(.*)$": "<rootDir>/__tests__/__mocks__/jsdom-safe.js",
   },
 

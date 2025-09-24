@@ -1,0 +1,78 @@
+{
+  "name": "umig-local-dev-setup",
+  "version": "1.0.0",
+  "description": "Scripts for managing the UMIG local development environment, including data utilities.",
+  "type": "module",
+  "scripts": {
+    "_comment_environment": "Environment Management (4 commands)",
+    "start": "node scripts/start.js",
+    "stop": "node scripts/stop.js",
+    "restart": "node scripts/restart.js",
+    "restart:clean": "node scripts/restart.js --erase --all",
+
+    "_comment_data": "Data Management (3 commands)",
+    "generate-data": "node scripts/umig_generate_fake_data.js",
+    "generate-data:clean": "node scripts/umig_generate_fake_data.js --erase",
+    "import-csv": "node scripts/umig_csv_importer.js",
+
+    "_comment_testing_core": "Core Testing Commands (8 commands)",
+    "test": "npm run test:smart",
+    "test:unit": "jest --config jest.config.consolidated.js --selectProjects unit",
+    "test:integration": "jest --config jest.config.consolidated.js --selectProjects integration",
+    "test:e2e": "jest --config jest.config.consolidated.js --selectProjects e2e",
+    "test:security": "jest --config jest.config.consolidated.js --selectProjects security",
+    "test:all": "jest --config jest.config.consolidated.js --passWithNoTests",
+    "test:watch": "jest --config jest.config.consolidated.js --selectProjects unit --watch",
+    "test:coverage": "jest --config jest.config.consolidated.js --selectProjects unit --coverage",
+
+    "_comment_testing_specialized": "Specialized Testing (5 commands)",
+    "test:memory": "jest --config jest.config.memory.js --maxWorkers=1 --forceExit",
+    "test:performance": "jest --config jest.config.performance.js --testTimeout=30000",
+    "test:components": "jest --config jest.config.consolidated.js --selectProjects unit --testPathPattern=components",
+    "test:entities": "jest --config jest.config.consolidated.js --selectProjects unit --testPathPattern=entities",
+    "test:quick": "jest --config jest.config.consolidated.js --selectProjects unit --testPathPattern='unit/(components|entities)' --maxWorkers=1",
+
+    "_comment_groovy": "Groovy Testing (2 commands)",
+    "test:groovy:unit": "node scripts/test-runners/run-groovy-test.js src/groovy/umig/tests/unit",
+    "test:groovy:integration": "node scripts/test-runners/run-groovy-test.js src/groovy/umig/tests/integration",
+
+    "_comment_utilities": "Development Utilities (5 commands)",
+    "health:check": "node scripts/test-runners/HealthCheckRunner.js",
+    "auth:test": "node scripts/session-auth-test.js",
+    "email:test": "node scripts/utilities/email-database-sender.js && jest --config jest.config.consolidated.js --selectProjects integration --testPathPattern=email",
+    "validate:infrastructure": "node scripts/test-runners/InfrastructureValidationRunner.js",
+    "clean:test-cache": "rm -rf .jest-cache* coverage node_modules/.cache",
+
+    "_comment_legacy_compatibility": "Legacy Compatibility (3 commands)",
+    "test:js:unit": "npm run test:unit",
+    "test:js:integration": "npm run test:integration",
+    "test:js:all": "npm run test:all"
+  },
+  "author": "Lucas Challamel",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "chalk": "^5.4.1",
+    "commander": "^11.1.0",
+    "csv-parser": "^3.0.0",
+    "execa": "^9.6.0",
+    "nodemailer": "^6.9.14",
+    "pg": "^8.11.3",
+    "playwright": "^1.54.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.0",
+    "@redocly/cli": "^1.19.0",
+    "babel-jest": "^30.0.2",
+    "dotenv": "^17.2.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.1.2",
+    "jsdom": "^26.1.0",
+    "markdownlint-cli": "^0.45.0",
+    "openapi-to-postmanv2": "5.0.2",
+    "prettier": "^3.0.0",
+    "supertest": "^7.1.4",
+    "swagger-ui-cli": "^0.0.11"
+  }
+}
