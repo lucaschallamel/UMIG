@@ -781,7 +781,7 @@ class ComponentLifecycleTechnology {
 - Session validation against UMIG APIs
 - POSTMAN collection variable integration
 
-### ADR-061 CSS Namespace Isolation Technology
+### ADR-064 CSS Namespace Isolation Technology
 
 **Technology Pattern**: umig- prefix for complete platform isolation
 **Implementation Scope**:

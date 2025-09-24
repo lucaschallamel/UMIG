@@ -588,7 +588,7 @@ function debugLog(component, message, data) {
 - **ADR-057**: JavaScript Module Loading Anti-Pattern - Component loading foundation
 - **ADR-058**: Global SecurityUtils Access Pattern - Security integration for input validation
 - **ADR-060**: BaseEntityManager Interface Compatibility - Entity manager integration patterns
-- **ADR-061**: UMIG Namespace Prefixing - Event naming and isolation strategy
+- **ADR-064**: UMIG Namespace Prefixing - Event naming and isolation strategy
 
 ## Validation
 

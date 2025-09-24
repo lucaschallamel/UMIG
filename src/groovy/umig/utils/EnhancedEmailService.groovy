@@ -26,18 +26,20 @@ import umig.utils.UrlConstructionService
 
 /**
  * EnhancedEmailService - Email notifications with dynamic URL construction
- * 
+ *
  * Extends the existing EmailService with intelligent URL construction for stepView links.
- * Uses the system_configuration_scf table to build environment-specific URLs for 
+ * Uses the system_configuration_scf table to build environment-specific URLs for
  * email notifications, ensuring recipients can easily navigate to the relevant steps.
- * 
+ *
  * Key Features:
  * - Dynamic URL construction based on environment detection
  * - Security validation and parameter sanitization
  * - Fallback handling for URL construction failures
  * - Integration with existing email template system
  * - Comprehensive audit logging
- * 
+ *
+ * SCHEMA FIXED: usr_username→usr_code (2025-09-24)
+ *
  * @author UMIG Project Team
  * @since 2025-08-21
  */
@@ -451,8 +453,8 @@ class EnhancedEmailService {
         }
         
         try {
-            def user = sql.firstRow('SELECT usr_username FROM users_usr WHERE usr_id = ?', [userId])
-            return user?.usr_username ?: "User ${userId}"
+            def user = sql.firstRow('SELECT usr_code FROM users_usr WHERE usr_id = ?', [userId])
+            return user?.usr_code ?: "User ${userId}"
         } catch (Exception e) {
             return "User ${userId}"
         }

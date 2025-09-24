@@ -81,7 +81,7 @@ Modal Container: {display: 'block', visibility: 'visible', width: '800px', heigh
 - ADR-058: Global SecurityUtils Access Pattern
 - ADR-059: SQL Schema-First Development
 - ADR-060: BaseEntityManager Interface Compatibility
-- ADR-061: UMIG Namespace Prefixing for Confluence Isolation
+- ADR-064: UMIG Namespace Prefixing for Confluence Isolation
 
 ## Professional CSS Enhancement
 

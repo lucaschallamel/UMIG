@@ -83,7 +83,7 @@ class ModalComponent extends BaseComponent {
   }
 
   /**
-   * Create modal HTML structure with UMIG namespace (ADR-061)
+   * Create modal HTML structure with UMIG namespace (ADR-064)
    * Uses umig- prefix for all classes to avoid Confluence conflicts
    */
   createModalStructure() {

@@ -52,8 +52,9 @@ class StepNotificationIntegration {
                 return updateResult // Return the original error
             }
 
-            // Build comprehensive DTO with all email notification data
-            def stepData = buildEmailNotificationDTO(stepInstanceId)
+            // Build comprehensive DTO with all email notification data - ensure stepInstanceId is properly typed as UUID (ADR-031)
+            UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+            def stepData = buildEmailNotificationDTO(stepUuid)
 
             if (stepData) {
                 // Get old and new status names for notification
@@ -169,9 +170,10 @@ class StepNotificationIntegration {
                 if (!(openResult.success as Boolean)) {
                     return openResult // Return the original error
                 }
-                
-                // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContext(sql, stepInstanceId)
+
+                // Extract migration and iteration context for URL construction - ensure stepInstanceId is properly typed as UUID (ADR-031)
+                UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+                def contextInfo = extractMigrationIterationContext(sql, stepUuid)
                 
                 if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
                     // Send enhanced notification with URL
@@ -235,9 +237,10 @@ class StepNotificationIntegration {
                 if (!(completeResult.success as Boolean)) {
                     return completeResult // Return the original error
                 }
-                
-                // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContext(sql, stepInstanceId)
+
+                // Extract migration and iteration context for URL construction - ensure stepInstanceId is properly typed as UUID (ADR-031)
+                UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+                def contextInfo = extractMigrationIterationContext(sql, stepUuid)
                 
                 if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
                     // Send enhanced notification with URL
@@ -354,9 +357,10 @@ class StepNotificationIntegration {
             // Get old status name for comparison
             def oldStatus = getStatusNameById(sql, stepInstance.old_status_id as Integer)
             def newStatus = getStatusNameById(sql, newStatusId)
-            
-            // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
+
+            // Get teams for notification - ensure stepInstanceId is properly typed as UUID (ADR-031)
+            UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+            def teams = getTeamsForStepNotification(sql, stepUuid)
             def cutoverTeam = getCutoverTeam(sql)
             
             // Send enhanced notification
@@ -389,10 +393,11 @@ class StepNotificationIntegration {
                 println "StepNotificationIntegration: Step instance not found: ${stepInstanceId}"
                 return
             }
-            
-            // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
-            
+
+            // Get teams for notification - ensure stepInstanceId is properly typed as UUID (ADR-031)
+            UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+            def teams = getTeamsForStepNotification(sql, stepUuid)
+
             // Send enhanced notification
             EnhancedEmailService.sendStepOpenedNotificationWithUrl(
                 stepInstance,
@@ -422,10 +427,11 @@ class StepNotificationIntegration {
                 println "StepNotificationIntegration: Instruction or step instance not found"
                 return
             }
-            
-            // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
-            
+
+            // Get teams for notification - ensure stepInstanceId is properly typed as UUID (ADR-031)
+            UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+            def teams = getTeamsForStepNotification(sql, stepUuid)
+
             // Send enhanced notification
             EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
                 instruction,
@@ -446,9 +452,11 @@ class StepNotificationIntegration {
      * Get step instance details for notifications
      */
     private static Map getStepInstanceDetails(Sql sql, UUID stepInstanceId) {
+        println "${LOG_PREFIX} 📋 Executing getStepInstanceDetails query for step: ${stepInstanceId}"
+
         def query = '''
             SELECT sti.sti_id, sti.sti_name, sti.sti_status, stm.stt_code, stm.stm_number,
-                   stm.stm_name, mig.mig_name as migration_name,
+                   stm.stm_name as step_master_name, mig.mig_name as migration_name,
                    -- Email template fields
                    stm.stm_description,
                    phm.phm_name as phase_name,
@@ -487,7 +495,26 @@ class StepNotificationIntegration {
                      owner_team.tms_name, owner_team.tms_email
         '''
         
-        return sql.firstRow(query, [stepInstanceId: stepInstanceId])
+        def result = sql.firstRow(query, [stepInstanceId: stepInstanceId])
+
+        if (result) {
+            println "${LOG_PREFIX} ✅ Step data retrieved successfully. Available properties:"
+            result.each { key, value ->
+                println "${LOG_PREFIX}   ${key}: ${value} (${value?.getClass()?.name ?: 'null'})"
+            }
+
+            // Validate critical properties
+            if (!result.step_master_name) {
+                println "${LOG_PREFIX} ⚠️  WARNING: step_master_name is null or empty"
+            }
+            if (!result.sti_name) {
+                println "${LOG_PREFIX} ⚠️  WARNING: sti_name is null or empty"
+            }
+        } else {
+            println "${LOG_PREFIX} ❌ No step data found for ID: ${stepInstanceId}"
+        }
+
+        return result
     }
     
     /**
@@ -677,26 +704,52 @@ class StepNotificationIntegration {
 
                     // Test StepDataTransformationService compatibility
                     println "${LOG_PREFIX} 🧪 Testing StepDataTransformationService compatibility..."
+                    // Create a test map with both camelCase and snake_case properties - declare outside try block for catch access
+                    // Enhanced compatibility mapping with comprehensive field coverage
+                    def testMap = [
+                        sti_id: dto.stepInstanceId,
+                        sti_name: dto.stepName,
+                        // Support both old and new field names for backward compatibility
+                        stm_name: safeGetField(stepData, 'step_master_name', 'Step Master Name') ?: dto.stepName ?: 'Unknown Step',
+                        step_master_name: safeGetField(stepData, 'step_master_name', 'Step Master Name') ?: dto.stepName ?: 'Unknown Step',
+                        stm_id: dto.stepId,
+                        stm_description: safeGetField(stepData, 'step_master_description', 'Step Master Description'),
+                        sti_description: dto.stepDescription,
+                        sti_status: dto.stepStatus
+                    ]
+
                     try {
                         def transformationService = new StepDataTransformationService()
-                        // Create a test map with both camelCase and snake_case properties
-                        def testMap = [
-                            sti_id: dto.stepInstanceId,
-                            sti_name: dto.stepName,
-                            stm_name: safeGetField(stepData, 'step_master_name', 'Step Master Name') ?: dto.stepName ?: 'Unknown Step',
-                            stm_id: dto.stepId,
-                            stm_description: safeGetField(stepData, 'step_master_description', 'Step Master Description'),
-                            sti_description: dto.stepDescription,
-                            sti_status: dto.stepStatus
-                        ]
+
+                        println "${LOG_PREFIX} 🧪 Test map contains these properties:"
+                        testMap.each { key, value ->
+                            println "${LOG_PREFIX}   ${key}: ${value}"
+                        }
 
                         def testDto = transformationService.fromDatabaseRow(testMap)
                         println "${LOG_PREFIX} ✅ StepDataTransformationService processing succeeded!"
                         println "${LOG_PREFIX} Generated DTO: stepName='${testDto.stepName}', stepId='${testDto.stepId}'"
                     } catch (Exception transformEx) {
                         println "${LOG_PREFIX} ❌ StepDataTransformationService failed: ${transformEx.message}"
+                        println "${LOG_PREFIX} 🔍 Error details:"
+                        println "${LOG_PREFIX}   Exception class: ${transformEx.getClass().name}"
+                        println "${LOG_PREFIX}   Stack trace:"
                         transformEx.printStackTrace()
-                        // Don't throw here, just log the issue
+
+                        // If this is a "No such property" error, provide detailed debugging
+                        if (transformEx.message?.contains("No such property")) {
+                            println "${LOG_PREFIX} 🚨 CRITICAL: Missing property error detected!"
+                            println "${LOG_PREFIX} 📋 Available stepData properties:"
+                            stepData?.each { key, value ->
+                                println "${LOG_PREFIX}   stepData.${key}: ${value}"
+                            }
+                            println "${LOG_PREFIX} 🧪 Test map properties:"
+                            testMap?.each { key, value ->
+                                println "${LOG_PREFIX}   testMap.${key}: ${value}"
+                            }
+                        }
+
+                        // Don't throw here, just log the issue for debugging
                     }
 
                     // Return comprehensive result with debugging info
@@ -728,9 +781,11 @@ class StepNotificationIntegration {
                         planName: emailData.planName,
                         impactedTeams: emailData.impactedTeams,
                         // Snake_case properties for EmailService compatibility (required by StepDataTransformationService)
+                        // Support both old and new field names for maximum compatibility
                         sti_id: dto.stepInstanceId,
                         sti_name: dto.stepName,
                         stm_name: safeGetField(stepData, 'step_master_name', 'Step Master Name') ?: dto.stepName ?: 'Unknown Step',
+                        step_master_name: safeGetField(stepData, 'step_master_name', 'Step Master Name') ?: dto.stepName ?: 'Unknown Step',
                         stm_id: dto.stepId,
                         stm_description: safeGetField(stepData, 'step_master_description', 'Step Master Description'),
                         sti_description: dto.stepDescription,

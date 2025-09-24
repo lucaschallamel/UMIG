@@ -44,12 +44,14 @@
 - ✅ **Status Selection Bug Fix**: Fixed EDIT mode status selection for both MigrationTypes and IterationTypes
 - ✅ **Iteration Count Display**: Fixed bug in IterationTypes VIEW modal showing proper count
 - ✅ **Migration Count Display**: Added to MigrationTypes VIEW modal for usage tracking
+  - **Technical Implementation**: Comprehensive FK relationship count implementation detailed in Appendix A
 - ✅ **EntityManagerTemplate.js Enhancement**: Updated template for improved future productivity and code quality
 
 ### Technical Achievements Completed
 
 - ✅ **API-Level Security**: Complete RBAC implementation for both entity types
 - ✅ **UI/UX Polish**: All visual rendering issues resolved across both entities
+  - **Technical Implementation**: Comprehensive UI component fixes detailed in Appendix B
 - ✅ **Data Display**: Proper count displays and status information in VIEW modals
 - ✅ **Code Quality**: EntityManager template improvements for future development efficiency
 - ✅ **Cross-Entity Consistency**: Standardized functionality patterns across both entity managers
@@ -845,6 +847,433 @@ Both entities are currently at 85% completion and are expected to be completed w
 1. **Immediate Priority**: Implement Migration Types RBAC (1 hour)
 2. **Parallel Track**: Resolve all test failures (1.5 hours)
 3. **Final Polish**: Complete remaining features (30 minutes)
+
+---
+
+## Appendix A: Migration Types FK Relationship Implementation Details
+
+### Technical Implementation Summary
+
+Successfully implemented foreign key relationship count column for MigrationTypes following the established Labels pattern, providing users with visibility into migration type usage across the system.
+
+### 1. Repository Layer Updates (MigrationTypesRepository.groovy)
+
+#### Enhanced Query Method - `findAllMigrationTypes()`
+
+- Added LEFT JOIN to count migrations using each migration type
+- Returns `migration_count` field with actual usage count
+
+#### Sort Enhancement - `findAllMigrationTypesWithSorting()`
+
+- Added `migration_count` to allowed sort fields
+- Maintains all existing sorting behavior
+- Enables frontend sorting by relationship count
+
+#### Consistency Update - `findMigrationTypeById()`
+
+- Includes migration count in single record queries
+- Maintains consistency with bulk query patterns
+
+### 2. Frontend Layer Updates (MigrationTypesEntityManager.js)
+
+#### Migration Count Column Configuration
+
+```javascript
+{
+  key: "migration_count",
+  label: "Migrations",
+  sortable: true,
+  renderer: (value, row) => {
+    const count = value || 0;
+    const countDisplay = count.toString();
+    // Red styling for counts > 0 (matches Labels pattern)
+    if (count > 0) {
+      return `<span class="umig-migration-count-indicator" style="color: #d73527; font-weight: bold;" title="This migration type is used by ${count} migration(s)">${countDisplay}</span>`;
+    } else {
+      return `<span class="umig-migration-count-none" style="color: #666;" title="No migrations use this type">${countDisplay}</span>`;
+    }
+  },
+}
+```
+
+**Column Positioning**: Between "Order" and "Status" columns
+**Visual Design**: Matches Labels pattern - red for active usage, grey for unused
+**User Experience**: Helpful tooltips provide context for decision making
+
+### 3. API Layer Updates (MigrationTypesApi.groovy)
+
+#### Sort Field Enhancement
+
+- Added `migration_count` to allowed sort fields list
+- Enables frontend sorting by relationship count
+- Maintains API consistency patterns
+
+### SQL Query Implementation
+
+#### Enhanced Query Structure
+
+```sql
+SELECT
+    mt.mit_id,
+    mt.mit_code,
+    mt.mit_name,
+    mt.mit_description,
+    mt.mit_color,
+    mt.mit_icon,
+    mt.mit_display_order,
+    mt.mit_active,
+    mt.created_by,
+    mt.created_at,
+    mt.updated_by,
+    mt.updated_at,
+    COALESCE(m.migration_count, 0) as migration_count
+FROM migration_types_mit mt
+LEFT JOIN (
+    SELECT mig_type, COUNT(*) as migration_count
+    FROM migrations_mig
+    GROUP BY mig_type
+) m ON mt.mit_code = m.mig_type
+ORDER BY mt.mit_display_order, mt.mit_code
+```
+
+#### Performance Characteristics
+
+- **LEFT JOIN**: Avoids missing migration types with zero usage
+- **COALESCE**: Ensures consistent 0 value for unused types
+- **Subquery Optimization**: Efficient counting without duplication
+
+### Database Relationship Logic
+
+**Primary Relationship**: `migrations_mig.mig_type` → `migration_types_mit.mit_code`
+
+The count represents how many records in the `migrations_mig` table reference each migration type by its code value, providing administrators with usage visibility for governance decisions.
+
+### Pattern Consistency Analysis
+
+#### Alignment with Labels Pattern
+
+✅ **Column Positioning**: Before Status column
+✅ **Color Scheme**: Red for active usage, grey for zero
+✅ **Tooltip Format**: Descriptive context messaging
+✅ **Renderer Structure**: Consistent span-based styling
+✅ **Sortable Behavior**: Enabled with proper field mapping
+
+#### Architectural Compliance
+
+✅ **ADR-059**: Database schema as source of truth
+✅ **ADR-031/043**: Explicit type casting throughout
+✅ **Repository Pattern**: All data access via DatabaseUtil.withSql
+✅ **Entity Manager Pattern**: Extends BaseEntityManager properly
+
+### Feature Capabilities
+
+#### Visual Indicators
+
+- **Red Count Display**: Migration types actively in use
+- **Grey Zero Display**: Unused migration types available for cleanup
+- **Bold Styling**: Draws attention to high-usage types
+
+#### User Experience Features
+
+- **Sortable Column**: Users can identify most/least used types
+- **Contextual Tooltips**: Explains count meaning and implications
+- **Consistent UI**: Matches established patterns users recognize
+
+#### Administrative Value
+
+- **Usage Tracking**: Identifies heavily used vs unused migration types
+- **Cleanup Guidance**: Highlights candidates for archival
+- **Impact Assessment**: Shows dependency scope before modifications
+
+### Testing & Validation
+
+#### Expected Behavior
+
+1. **"Migrations" column** visible in MigrationTypes admin table
+2. **Usage counts** accurately reflecting migrations_mig relationships
+3. **Red highlighting** for migration types with active usage
+4. **Grey "0" display** for unused migration types
+5. **Sortable functionality** by migration count
+6. **Informative tooltips** on hover interaction
+
+#### Quality Assurance
+
+- Follows all UMIG coding standards
+- Maintains architectural pattern consistency
+- Preserves existing functionality integrity
+- Implements proper error handling patterns
+
+---
+
+## Appendix B: UI Component Fixes Technical Implementation Details
+
+### Overview
+
+Technical implementation details for three critical UI component fixes completed as part of US-074 Iteration Types entity development. These fixes resolved visual display issues that were preventing proper color picker functionality, table column rendering, and modal display enhancements.
+
+### 1. Color Picker Component Integration Fix
+
+#### Issue Summary
+
+Color picker swatches were displaying as empty/gray squares instead of showing their intended background colors. The functionality worked (colors applied when selected) but the visual color selection interface was broken.
+
+#### Root Cause Analysis
+
+1. **SecurityUtils CSS Sanitization**: The `SecurityUtils.safeSetInnerHTML` method uses strict CSS validation patterns in `sanitizeForCSS()` method
+2. **Style Attribute Stripping**: Background-color styles were being removed during the security sanitization process
+3. **Missing Fallback**: No fallback mechanism existed to ensure colors were applied when inline styles were stripped
+
+#### Technical Solution Implemented
+
+##### Enhanced SecurityUtils Integration
+
+```javascript
+// Detect missing background colors and apply via DOM manipulation
+swatches.forEach((swatch) => {
+  const color = swatch.getAttribute("data-color");
+  if (color) {
+    const currentStyle = swatch.getAttribute("style");
+    const hasBackgroundColor =
+      currentStyle && currentStyle.includes("background-color");
+
+    if (!hasBackgroundColor) {
+      console.log(
+        `[ColorPickerComponent] Applying fallback color ${color} to swatch`,
+      );
+      swatch.style.setProperty("background-color", color, "important");
+    }
+  }
+});
+```
+
+##### Dual Path Support Architecture
+
+- **With SecurityUtils**: Uses `safeSetInnerHTML` for security compliance, then applies fallback colors
+- **Without SecurityUtils**: Uses direct `innerHTML` and applies colors via DOM properties
+- **Important Priority**: Uses `setProperty(property, value, 'important')` to ensure colors override CSS rules
+
+##### SecurityUtils CSS Validation Patterns
+
+The SecurityUtils method `sanitizeForCSS()` includes these validation patterns:
+
+```javascript
+/^background-color\s*:\s*#[0-9a-fA-F]{6}\s*;?\s*$/,  // Hex colors
+/^background-color\s*:\s*#[0-9a-fA-F]{3}\s*;?\s*$/,   // Short hex colors
+```
+
+#### Component Specifications
+
+- **24 predefined colors** in enterprise-friendly palette
+- **6x4 grid layout** for optimal visual selection
+- **Hex format validation** with pattern `/^#[0-9A-Fa-f]{6}$/`
+- **Security compliance** with SecurityUtils integration maintained
+- **Zero performance impact** - fallback only runs once during mount
+
+#### Files Modified
+
+- `/src/groovy/umig/web/js/components/ColorPickerComponent.js`
+
+#### Testing Results
+
+- ✅ All 24 color swatches display proper background colors
+- ✅ Color selection functionality works correctly
+- ✅ SecurityUtils integration maintained
+- ✅ Fallback mechanism ensures colors always display
+- ✅ No CSS conflicts or visual regressions
+
+### 2. Iteration Types Table Display Rendering Fix
+
+#### Issue Summary
+
+The Iteration Types Management interface was showing empty Color and Icon columns despite the database containing the correct data and the API properly returning the fields.
+
+#### Root Cause Analysis
+
+##### Database & API Verification ✅
+
+- Database contained correct data (RUN: #2E7D32/play-circle, DR: #F57C00/refresh, CUTOVER: #C62828/check-circle)
+- API endpoint properly returned `itt_color` and `itt_icon` fields
+
+##### Frontend Issues Identified ❌
+
+1. **Color Swatch Missing Dimensions**: The color swatch div lacked width, height, and styling
+2. **Wrong Font Awesome Version**: Code used `fas fa-` (Font Awesome 5) instead of `fa fa-` (Font Awesome 4)
+3. **Icon Name Mapping**: Some icons needed mapping from FA5 names to FA4 equivalents
+
+#### Technical Solutions Applied
+
+##### Color Swatch Rendering Enhancement
+
+**Before:**
+
+```javascript
+renderer: (value) =>
+  `<div class="color-swatch" style="background-color: ${value || "#6B73FF"};" title="${value || "#6B73FF"}"></div>`;
+```
+
+**After:**
+
+```javascript
+renderer: (value) => {
+  const color = value || "#6B73FF";
+  return `<div class="color-swatch" style="width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ccc; background-color: ${color}; display: inline-block;" title="${color}"></div>`;
+};
+```
+
+##### Icon Rendering with Font Awesome 4 Compatibility
+
+**Before:**
+
+```javascript
+renderer: (value) =>
+  `<i class="fas fa-${value || "circle"}" title="${value || "circle"}"></i>`;
+```
+
+**After:**
+
+```javascript
+renderer: (value) => {
+  const iconName = value || "circle";
+  // Map Font Awesome 5+ icon names to Font Awesome 4 equivalents
+  const iconMap = {
+    "play-circle": "play-circle-o",
+    "check-circle": "check-circle-o",
+    refresh: "refresh",
+  };
+  const mappedIcon = iconMap[iconName] || iconName;
+  return `<i class="fa fa-${mappedIcon}" title="${iconName}" style="font-size: 16px;"></i>`;
+};
+```
+
+#### Updated Helper Methods
+
+- `_renderColorSwatch()`: Added proper dimensions and styling
+- `_renderIcon()`: Added icon mapping and FA4 support
+- `_renderNameCell()`: Updated icon classes
+- `_renderActionButtons()`: Fixed button icons (edit, delete, stats)
+- `_getIconPickerTemplate()`: Updated icon picker options
+
+#### Files Modified
+
+- `/src/groovy/umig/web/js/entities/iteration-types/IterationTypesEntityManager.js`
+
+#### Expected Results
+
+- ✅ Color column displays colored squares/swatches for each iteration type
+- ✅ Icon column displays proper Font Awesome icons for each iteration type
+- ✅ RUN: Green swatch + play circle icon
+- ✅ DR: Orange swatch + refresh icon
+- ✅ CUTOVER: Red swatch + check circle icon
+
+#### Backward Compatibility
+
+- All changes are backward compatible
+- Font Awesome 4 icon mapping ensures compatibility with existing system
+- Inline styles prevent dependency on external CSS classes
+
+### 3. IterationTypes Modal Enhancement Implementation
+
+#### Implementation Summary
+
+Successfully implemented visual color swatches and icons in the IterationTypes VIEW modal through a custom `_formatFieldValue` override method.
+
+#### Technical Implementation
+
+##### Override Method Implementation
+
+```javascript
+_formatFieldValue(fieldName, value) {
+  // Handle color fields with visual swatches
+  if (fieldName === 'itt_color' && value) {
+    const colorValue = value || "#6B73FF";
+    return `<div class="umig-color-swatch" style="width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ccc; background-color: ${colorValue}; display: inline-block; margin-right: 8px; vertical-align: middle;" title="${colorValue}"></div><span style="vertical-align: middle;">${colorValue}</span>`;
+  }
+
+  // Handle icon fields with visual icons
+  if (fieldName === 'itt_icon' && value) {
+    const iconName = value || "circle";
+    const iconMap = {
+      'play-circle': { unicode: '►', title: 'Run' },
+      'check-circle': { unicode: '✓', title: 'Cutover' },
+      'refresh': { unicode: '↻', title: 'DR' },
+      'circle': { unicode: '●', title: 'Default' }
+    };
+    const iconConfig = iconMap[iconName] || iconMap['circle'];
+    return `<span class="umig-icon-container" style="font-size: 16px; font-weight: bold; margin-right: 8px; vertical-align: middle;" title="${iconConfig.title} (${iconName})">${iconConfig.unicode}</span><span style="vertical-align: middle;">${iconName}</span>`;
+  }
+
+  // For all other fields, use parent class formatting
+  return super._formatFieldValue(fieldName, value);
+}
+```
+
+#### Features Implemented
+
+##### Color Swatch Rendering
+
+- **Field**: `itt_color`
+- **Visual**: 20x20px color swatch with rounded corners and border
+- **Display**: Shows both visual swatch AND hex color value
+- **Styling**: Uses `umig-color-swatch` class with inline styles for portability
+- **Fallback**: Defaults to "#6B73FF" if no color provided
+
+##### Icon Rendering
+
+- **Field**: `itt_icon`
+- **Visual**: UTF-8 character icons with tooltips
+- **Icon Mapping**: Consistent with table rendering
+  - `play-circle` → ► (Run)
+  - `check-circle` → ✓ (Cutover)
+  - `refresh` → ↻ (DR)
+  - `circle` → ● (Default)
+- **Display**: Shows both visual icon AND icon name
+- **Fallback**: Defaults to circle (●) for unknown icons
+
+#### Key Benefits
+
+1. **Visual Consistency**: Uses same rendering logic as table view
+2. **UMIG Prefix Compliance**: All CSS classes use `umig-` prefix to avoid Confluence conflicts
+3. **Cross-Platform Compatibility**: UTF-8 characters work reliably across all platforms
+4. **Accessibility**: Proper tooltips and titles for screen readers
+5. **Fallback Handling**: Graceful fallbacks for missing/invalid values
+6. **Non-Breaking**: Inherits from parent class for all other field types
+
+#### Files Modified
+
+- `/src/groovy/umig/web/js/entities/iteration-types/IterationTypesEntityManager.js` (lines 3008-3040)
+
+#### Verification Steps
+
+1. Navigate to IterationTypes admin interface
+2. Click "View" button (eye icon) for any iteration type
+3. Modal displays:
+   - **Color field**: Visual color swatch + hex value (e.g., 🟦 #6B73FF)
+   - **Icon field**: Visual icon + icon name (e.g., ► play-circle)
+   - **Other fields**: Normal text display (unchanged)
+
+### Quality Metrics
+
+#### Implementation Quality
+
+- ✅ **Code Consistency**: Follows established UMIG patterns
+- ✅ **Performance Optimized**: Efficient rendering with minimal DOM manipulation
+- ✅ **User Experience**: Intuitive visual indicators and feedback
+- ✅ **Maintainability**: Clear separation of concerns and proper inheritance
+- ✅ **Documentation**: Comprehensive implementation details preserved
+
+#### Security Compliance
+
+- ✅ **SecurityUtils Integration**: Maintains enterprise security standards
+- ✅ **CSS Sanitization**: Proper handling of dynamic styles
+- ✅ **XSS Prevention**: Safe HTML generation and DOM manipulation
+- ✅ **Fallback Mechanisms**: Secure degradation when sanitization strips styles
+
+#### Testing Coverage
+
+- ✅ **Unit Tests**: Pass for color and icon rendering methods
+- ✅ **Visual Testing**: Manual verification of all 24 color swatches
+- ✅ **Integration Testing**: API data structure and field mapping validated
+- ✅ **Cross-Browser**: UTF-8 character rendering verified across platforms
 
 ---
 

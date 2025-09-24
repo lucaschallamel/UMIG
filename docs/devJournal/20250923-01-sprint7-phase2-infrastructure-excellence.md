@@ -504,7 +504,7 @@ def enrichFields(rows) {
 
 #### Technical Debt Documentation Created
 
-1. **TD-012-test-infrastructure-consolidation.md**: Test infrastructure modernization plan
+1. **TD-012-test-infrastructure-consolidation.md**: Test infrastructure modernization plan (comprehensive consolidated document)
 2. **TD-013-groovy-test-coverage-expansion.md**: Groovy testing enhancement strategy
 
 #### Implementation Documentation Delivered
@@ -519,7 +519,7 @@ def enrichFields(rows) {
 
 1. **TEST_INFRASTRUCTURE_CONSOLIDATION_PROJECT_PLAN.md**: Comprehensive project roadmap
 2. **TEST_INFRASTRUCTURE_REMEDIATION_IMPLEMENTATION_SUMMARY.md**: Implementation summary
-3. **TD-012-PHASE1-VALIDATION-REPORT.md**: Phase 1 validation results
+3. **TD-012-Phase1-Validation-Report.md**: Phase 1 validation results (now archived in docs/archive/Sprint7_archives/)
 
 ## Technical Achievements Summary
 
