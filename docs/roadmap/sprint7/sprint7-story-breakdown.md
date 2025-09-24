@@ -21,55 +21,66 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 
 ### COMPLETED STORIES (✅ DONE)
 
-| Story ID      | Story Title                                  | Points | Priority | Status      | Notes                                                        |
-| ------------- | -------------------------------------------- | ------ | -------- | ----------- | ------------------------------------------------------------ |
-| US-082-C      | Entity Migration Standard                    | 8      | P1       | ✅ COMPLETE | Foundation for component migration                           |
-| US-084        | Plans-as-Templates Hierarchy Fix             | 5      | P2       | ✅ COMPLETE | Critical hierarchy fixes                                     |
-| US-087-P1     | Admin GUI Component Migration Phase 1        | 6      | P1       | ✅ COMPLETE | Infrastructure foundation established                        |
-| US-087-P2     | Admin GUI Component Migration Phase 2        | 8      | P1       | ✅ COMPLETE | Applications, Environments, Labels entities 100% operational |
-| US-049        | StepView Email Integration                   | 5      | P2       | ✅ COMPLETE | Consolidated implementation                                  |
-| US-058        | EmailService Refactoring & Security Phase 1  | 3      | P1       | ✅ COMPLETE | Critical vulnerabilities resolved                            |
-| TD-003        | Eliminate Hardcoded Status Values            | 8      | P2       | ✅ COMPLETE | Production code migration                                    |
-| TD-004        | BaseEntityManager Interface Resolution       | 2      | P2       | ✅ COMPLETE | 42% development acceleration                                 |
-| TD-005        | JavaScript Test Infrastructure Resolution    | 5      | P2       | ✅ COMPLETE | 100% test pass rate achieved                                 |
-| TD-007        | Remove Redundant Admin Splash Login          | 3      | P2       | ✅ COMPLETE | Streamlined auth flow                                        |
-| TD-008        | Session-Based Authentication Infrastructure  | 5      | P1       | ✅ COMPLETE | Enterprise security enhancement                              |
-| TD-010        | Filter System Consolidation & Dynamic Status | 8      | P1       | ✅ COMPLETE | Critical infrastructure foundation                           |
-| TD-012        | Test Infrastructure Consolidation            | 8      | P1       | ✅ COMPLETE | 88% script reduction, 95%+ pass rate                         |
-| US-074        | Complete Admin Types Management API-RBAC     | 14     | P1       | ✅ COMPLETE | Both entity types complete with exceptional enhancements     |
-| TD-013-P1&2   | Groovy Test Coverage Expansion Phases 1-2    | 8      | P1       | ✅ COMPLETE | 65-70% coverage achieved, 97.8% test success rate            |
-| **COMPLETED** |                                              | **96** |          |             |                                                              |
+| Story ID      | Story Title                                             | Points | Priority | Status      | Notes                                                        |
+| ------------- | ------------------------------------------------------- | ------ | -------- | ----------- | ------------------------------------------------------------ |
+| US-082-C      | Entity Migration Standard                               | 8      | P1       | ✅ COMPLETE | Foundation for component migration                           |
+| US-084        | Plans-as-Templates Hierarchy Fix                        | 5      | P2       | ✅ COMPLETE | Critical hierarchy fixes                                     |
+| US-087-P1     | Admin GUI Component Migration Phase 1                   | 6      | P1       | ✅ COMPLETE | Infrastructure foundation established                        |
+| US-087-P2     | Admin GUI Component Migration Phase 2                   | 8      | P1       | ✅ COMPLETE | Applications, Environments, Labels entities 100% operational |
+| US-049        | StepView Email Integration                              | 5      | P2       | ✅ COMPLETE | Consolidated implementation                                  |
+| US-058        | EmailService Refactoring & Security Phase 1             | 3      | P1       | ✅ COMPLETE | Critical vulnerabilities resolved                            |
+| TD-003        | Eliminate Hardcoded Status Values                       | 8      | P2       | ✅ COMPLETE | Production code migration                                    |
+| TD-004        | BaseEntityManager Interface Resolution                  | 2      | P2       | ✅ COMPLETE | 42% development acceleration                                 |
+| TD-005        | JavaScript Test Infrastructure Resolution               | 5      | P2       | ✅ COMPLETE | 100% test pass rate achieved                                 |
+| TD-007        | Remove Redundant Admin Splash Login                     | 3      | P2       | ✅ COMPLETE | Streamlined auth flow                                        |
+| TD-008        | Session-Based Authentication Infrastructure             | 5      | P1       | ✅ COMPLETE | Enterprise security enhancement                              |
+| TD-010        | Filter System Consolidation & Dynamic Status            | 8      | P1       | ✅ COMPLETE | Critical infrastructure foundation                           |
+| TD-012        | Test Infrastructure Consolidation                       | 8      | P1       | ✅ COMPLETE | 88% script reduction, 95%+ pass rate                         |
+| US-074        | Complete Admin Types Management API-RBAC                | 14     | P1       | ✅ COMPLETE | Both entity types complete with exceptional enhancements     |
+| TD-013A-P1&2  | Comprehensive Groovy Test Coverage Expansion Phases 1-2 | 8      | P1       | ✅ COMPLETE | 65-70% coverage achieved, 97.8% test success rate            |
+| **COMPLETED** |                                                         | **96** |          |             |                                                              |
 
-### IN-PROGRESS STORIES (🔄 ACTIVE)
+### IN-PROGRESS STORIES (🔄 ACTIVE - POST REBALANCING)
 
-| Story ID        | Story Title                        | Points   | Priority | Status         | Progress | Notes                          |
-| --------------- | ---------------------------------- | -------- | -------- | -------------- | -------- | ------------------------------ |
-| TD-013-P3A      | Groovy Test Coverage Phase 3A      | 4        | P1       | 🔄 READY       | 0%       | Target 75-78% coverage         |
-| US-035-P1       | IterationView API Migration        | 7.5      | P1       | 🔄 IN PROGRESS | 60%      | Email foundation established   |
-| US-088          | Build Process & Deployment for UAT | 5        | P1       | 🔄 READY       | 0%       | UAT enablement                 |
-| US-041A         | Audit Logging Infrastructure       | 5        | P2       | 🔄 READY       | 0%       | Comprehensive audit framework  |
-| US-041B         | PILOT Instance Management          | 3        | P2       | 🔄 READY       | 0%       | Pilot operations               |
-| TD-003B         | Test Suite Migration Plan          | 3        | P2       | 🔄 PENDING     | 15%      | Test infrastructure completion |
-| **IN PROGRESS** |                                    | **27.5** |          |                |          |                                |
+| Story ID        | Story Title                                 | Points        | Priority | Status         | Progress | Notes                                                                 |
+| --------------- | ------------------------------------------- | ------------- | -------- | -------------- | -------- | --------------------------------------------------------------------- |
+| **US-058-P2**   | **EmailService Phase 2 Wiring Fixes**       | **7-9**       | **P1**   | **🔄 ADDED**   | **0%**   | **CRITICAL: Resolve email backend wiring for iterationView/stepView** |
+| TD-013A-P3A     | Comprehensive Groovy Test Coverage Phase 3A | 4             | P1       | ✅ COMPLETE    | 100%     | Authentication layer validated, 75-78% coverage achieved              |
+| US-035-P1       | IterationView API Migration                 | 7.5           | P1       | 🔄 IN PROGRESS | 60%      | Email foundation established                                          |
+| US-088          | Build Process & Deployment for UAT          | 5             | P1       | 🔄 READY       | 0%       | UAT enablement                                                        |
+| US-041A         | Audit Logging Infrastructure                | 5             | P2       | 🔄 READY       | 0%       | Comprehensive audit framework                                         |
+| US-041B         | PILOT Instance Management                   | 3             | P2       | 🔄 READY       | 0%       | Pilot operations                                                      |
+| TD-003B         | Test Suite Migration Plan                   | 3             | P2       | 🔄 PENDING     | 15%      | Test infrastructure completion                                        |
+| **IN PROGRESS** |                                             | **34.5-36.5** |          |                |          | **NET CHANGE: +7 to +9 points**                                       |
+
+### SPRINT 7 REVISED SCOPE CHANGES (🔄 UPDATED PLAN)
+
+**DECISION EXECUTED: Defer US-093-A to Sprint 8, Bring Back US-058 to Sprint 7**
+
+| Change Type | Story ID  | Story Title                       | Points  | Action        | Justification                                         |
+| ----------- | --------- | --------------------------------- | ------- | ------------- | ----------------------------------------------------- |
+| REMOVE      | US-093-A  | Phase 1 Additive DTO Enhancement  | 16-19   | DEFER TO S8   | Over-capacity risk + complex integration dependencies |
+| ADD         | US-058-P2 | EmailService Phase 2 Wiring Fixes | 7-9     | ADD TO S7     | Resolves email backend wiring issues - critical       |
+| **NET**     |           | **Sprint Capacity Adjustment**    | **-10** | **REBALANCE** | 83.5 → 73.5/80 points (92% capacity - optimal)        |
 
 ### SPRINT 8+ STORIES (📋 FUTURE)
 
-| Story ID     | Story Title                      | Points    | Priority | Status     | Notes                          |
-| ------------ | -------------------------------- | --------- | -------- | ---------- | ------------------------------ |
-| US-093       | Step DTO Canonical Format Epic   | 34        | P1       | 📋 PLANNED | Epic spanning multiple sprints |
-| US-093-A     | Phase 1 Additive DTO Enhancement | 13        | P1       | 📋 PLANNED | Phase 1 of US-093 Epic         |
-| US-087-P2    | Admin GUI Components Phase 2     | TBD       | P1       | 📋 PLANNED | Component integration          |
-| US-058-P2/P3 | EmailService Phases 2-3          | 9-12      | P1       | 📋 PLANNED | Remaining email work           |
-| US-082-D     | Complex Migration Optimization   | 5.5       | P3       | 📋 STRETCH | Performance optimization       |
-| **FUTURE**   |                                  | **61.5+** |          |            |                                |
+| Story ID    | Story Title                      | Points    | Priority | Status         | Notes                                                               |
+| ----------- | -------------------------------- | --------- | -------- | -------------- | ------------------------------------------------------------------- |
+| US-093      | Step DTO Canonical Format Epic   | 34        | P1       | 📋 PLANNED     | Epic spanning multiple sprints                                      |
+| US-093-A    | Phase 1 Additive DTO Enhancement | 16-19     | P1       | 📋 S8 PRIORITY | **MOVED FROM S7** - Complex integration requiring proper foundation |
+| US-087-P3-7 | Admin GUI Components Phases 3-7  | 12-15     | P1       | 📋 PLANNED     | Remaining component migration                                       |
+| US-058-P3   | EmailService Phase 3 Advanced    | 6-8       | P2       | 📋 PLANNED     | Advanced email features                                             |
+| US-082-D    | Complex Migration Optimization   | 5.5       | P3       | 📋 STRETCH     | Performance optimization                                            |
+| **FUTURE**  |                                  | **54-62** |          |                |                                                                     |
 
-### SPRINT 7 TOTALS (Updated with US-074 Completion)
+### SPRINT 7 REVISED TOTALS (Post-Rebalancing - Sept 24, 2025)
 
-| Category     | Stories | Points    | Percentage | Notes                   |
-| ------------ | ------- | --------- | ---------- | ----------------------- |
-| Completed    | 14      | 96        | 86.1%      | Exceptional achievement |
-| In Progress  | 6       | 15.5      | 13.9%      | Final completion items  |
-| **SPRINT 7** | **20**  | **111.5** | **100%**   | Total identified scope  |
+| Category     | Stories | Points    | Percentage | Notes                                                     |
+| ------------ | ------- | --------- | ---------- | --------------------------------------------------------- |
+| Completed    | 14      | 96        | 86.1%      | Exceptional achievement                                   |
+| In Progress  | 5       | 13.5      | 12.1%      | **US-058-P2 ADDED (7-9pts), US-093-A REMOVED (16-19pts)** |
+| **SPRINT 7** | **19**  | **109.5** | **100%**   | **REBALANCED: 73.5/80 capacity (92%)**                    |
 
 ### COMPLETION ANALYSIS (Updated with US-074 Completion)
 
@@ -123,7 +134,8 @@ Complete Admin GUI component migration, modernize critical API views, establish 
 **REFERENCE DOCUMENTS**:
 
 - **Capacity Analysis**: `docs/roadmap/sprint7/Sprint7-Capacity-Analysis.md`
-- **Architectural Decision**: `docs/architecture/adr/ADR-061-Phased-Implementation-Strategy.md`
+- **Risk Assessment (Archived)**: `docs/roadmap/sprint7/_technical_details/Sprint7-Plan-Change-Risk-Assessment-ARCHIVED.md`
+- **Architectural Decision**: `docs/architecture/adr/ADR-065-Phased-Implementation-Strategy.md`
 - **US-058 Revision**: `docs/roadmap/sprint7/US-058-EmailService-Refactoring-and-Security-Enhancement.md`
 - **US-093-A Revision**: `docs/roadmap/sprint7/US-093-A-phase1-additive-dto-enhancement.md`
 

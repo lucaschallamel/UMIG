@@ -9,7 +9,7 @@
  * - Security-compliant architecture (8.5/10 rating)
  * - Responsive design with AUI framework compatibility
  *
- * ADR-061 Compliance: UMIG namespace prefixing
+ * ADR-064 Compliance: UMIG namespace prefixing
  * ADR-057 Compliance: Direct class declaration without IIFE wrapper
  * ADR-058 Compliance: window.SecurityUtils integration
  */

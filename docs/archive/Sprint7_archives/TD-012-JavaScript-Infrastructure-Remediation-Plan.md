@@ -1,10 +1,11 @@
-# Comprehensive JavaScript Test Infrastructure Remediation Plan
+# TD-012 JavaScript Test Infrastructure Remediation Plan
 
 **Project**: UMIG Test Infrastructure Excellence Initiative
-**Version**: 1.0
-**Date**: September 24, 2025
+**Version**: 1.1 (Relocated from local-dev-setup/)
+**Date**: September 24, 2025 (Moved to Sprint 7 documentation)
 **Sprint Context**: US-087 Phase 2 Completion - Admin GUI Migration Continuation
 **Status**: Ready for US-087 Phase 2 Proceed Decision
+**Integration**: Part of comprehensive TD-012 test infrastructure consolidation
 
 ---
 
@@ -430,143 +431,34 @@ class SpecificEntityManager extends BaseEntityManager {
 
 ---
 
-## ⚡ Risk Mitigation Strategies
+## Integration with Broader TD-012 Infrastructure Consolidation
 
-### High-Risk Areas & Mitigation
+### Alignment with Strategic Infrastructure Plan
 
-**Risk 1: SecurityUtils Integration Complexity**
+This JavaScript-specific remediation plan fully aligns with the broader TD-012 consolidation documented in `TD-012-Strategic-Infrastructure-Plan.md`:
 
-- **Mitigation**: Implement comprehensive wrapper with fallback mechanisms
-- **Contingency**: Manual SecurityUtils integration if automated wrapper fails
-- **Timeline Impact**: +2 hours if contingency needed
+- **Script Consolidation**: JavaScript improvements support the 88% script reduction (252→30 commands)
+- **Memory Optimization**: Contributes to <512MB usage targets across all test types
+- **Quality Standards**: Maintains >95% pass rate targets across all technologies
+- **Rollback Capability**: JavaScript fixes included in dual-mode operation
 
-**Risk 2: Entity Manager Interface Conflicts**
+### Cross-Technology Integration
 
-- **Mitigation**: Dynamic adaptation pattern with backward compatibility
-- **Contingency**: Component-specific interface implementations
-- **Timeline Impact**: +3 hours if full component overhaul needed
+**Command Integration**:
 
-**Risk 3: Performance Regression During Optimization**
+```bash
+# JavaScript-specific commands work within consolidated infrastructure
+npm run test:js:unit            # JavaScript unit tests (this plan)
+npm run test:groovy:unit        # Groovy unit tests (TD-012-Groovy-Infrastructure-Plan.md)
+npm run test:all:comprehensive  # Both technologies together
+```
 
-- **Mitigation**: Incremental optimization with rollback points
-- **Contingency**: Accept current performance if optimization introduces instability
-- **Timeline Impact**: +1 hour for rollback scenarios
+**Shared Infrastructure Benefits**:
 
-**Risk 4: Integration Test Environment Instability**
-
-- **Mitigation**: Enhanced environment health checks and service mocking
-- **Contingency**: Reduced integration test scope with focused component testing
-- **Timeline Impact**: +2 hours for environment stabilization
-
-### Risk Monitoring & Response
-
-**Daily Risk Assessment**:
-
-- Monitor test pass rates for regression indicators
-- Track memory usage for performance degradation
-- Validate component loading consistency
-- Assess integration test reliability trends
-
-**Escalation Criteria**:
-
-- Test pass rate drops below 85% during any phase
-- Memory usage exceeds 100MB consistently
-- Component loading failures exceed 5%
-- Integration test reliability drops below 85%
-
----
-
-## 📊 Resource Requirements & Dependencies
-
-### Technical Requirements
-
-**Development Environment**:
-
-- Node.js 18.x with Jest testing framework
-- Groovy 3.0.15 with ScriptRunner 9.21.0
-- PostgreSQL 14 with test database isolation
-- Local development stack operational
-
-**External Dependencies**:
-
-- TD-004 BaseEntityManager interface fixes (COMPLETE)
-- TD-012 SecurityUtils resolution (IN PROGRESS)
-- US-087 Phase 1 completion (6 of 8 story points COMPLETE)
-- Component architecture operational (25/25 components loading)
-
-### Team & Skills Requirements
-
-**Primary Developer Profile**:
-
-- Expert-level JavaScript/Jest testing experience
-- Advanced Groovy and Java testing knowledge
-- Component architecture and entity management experience
-- Performance optimization and memory management skills
-
-**Supporting Skills**:
-
-- Database testing and performance optimization
-- Security testing and validation
-- Integration testing with external services
-- Test automation and CI/CD integration
-
-### Infrastructure Requirements
-
-**Test Infrastructure**:
-
-- Dedicated test database with cleanup automation
-- Isolated test environments for parallel execution
-- Mock service infrastructure for integration testing
-- Performance monitoring and benchmarking tools
-
-**Continuous Integration**:
-
-- Automated test execution on commit
-- Performance regression detection
-- Test result reporting and trend analysis
-- Automatic rollback on quality gate failures
-
----
-
-## 🔄 Coordination with Existing Infrastructure
-
-### Integration Points
-
-**Component Architecture (US-082-B Complete)**:
-
-- Maintain 25/25 component loading success rate
-- Preserve ComponentOrchestrator security rating (8.5/10)
-- Support BaseEntityManager architecture (ADR-060)
-- Ensure backward compatibility with existing patterns
-
-**Admin GUI Infrastructure (US-087 Phase 1)**:
-
-- Support existing entity managers: Teams, Users, Environments, Applications, Labels
-- Maintain configuration entities: MigrationTypes, IterationTypes
-- Prepare for Phase 2-7 entities: Migrations, Iterations, Plans, Sequences, Phases, Steps, Instructions
-
-**Security Architecture**:
-
-- Maintain XSS/CSRF protection across all test scenarios
-- Validate security control propagation in component interactions
-- Ensure security hardening ratings >9.0/10 for critical components
-- Support enterprise-grade security validation
-
-### Architectural Decision Records (ADR) Compliance
-
-**Critical ADRs for Test Infrastructure**:
-
-- **ADR-057**: JavaScript Module Loading Anti-Pattern compliance
-- **ADR-058**: Global SecurityUtils Access Pattern
-- **ADR-059**: SQL Schema-First Development Principle
-- **ADR-060**: BaseEntityManager Interface Compatibility
-
-**Test-Specific ADR Requirements**:
-
-- Maintain self-contained test architecture (TD-001 pattern)
-- Follow explicit type casting patterns (ADR-031)
-- Implement single enrichment point validation (ADR-047)
-- Support unified DTO architecture (ADR-049)
+- Unified monitoring and reporting with TD-012 infrastructure
+- Consistent performance targets across JS and Groovy
+- Integrated CI/CD pipeline with consolidated commands
+- Shared validation frameworks and quality gates
 
 ---
 
@@ -692,128 +584,17 @@ class SpecificEntityManager extends BaseEntityManager {
 
 ---
 
-## 📖 Implementation Guide & Next Steps
+## Conclusion
 
-### Phase 1 Implementation Priority (Day 1)
+This JavaScript test infrastructure remediation plan provides a comprehensive, phased approach to achieving enterprise-grade test quality while directly supporting US-087 Phase 2-7 entity migrations. The plan is fully integrated with the broader TD-012 infrastructure consolidation strategy, ensuring consistent quality and performance standards across all technologies.
 
-**Morning (4 hours)**:
+**Primary Success Metric**: Achieve >95% JavaScript test pass rate while maintaining compatibility with TD-012's strategic infrastructure improvements.
 
-1. SecurityUtils module loading resolution (1.5 hours)
-2. Entity manager interface harmonization (1.5 hours)
-3. Test environment configuration optimization (1 hour)
-
-**Afternoon (2 hours)**: 4. Critical test case remediation - focus on highest-impact failures
-
-**Success Checkpoint**: 90%+ unit test pass rate achieved
-
-### Phase 2 Implementation (Day 2)
-
-**Morning (4 hours)**:
-
-1. Comprehensive test coverage expansion (3 hours)
-2. Test data management optimization (1 hour)
-
-**Afternoon (4 hours)**: 3. Performance test integration (2 hours) 4. Quality validation and metrics collection (2 hours)
-
-**Success Checkpoint**: 95%+ overall test pass rate achieved
-
-### Phase 3-4 Implementation (Day 3)
-
-**Morning (3 hours)**:
-
-1. Test execution performance optimization (2 hours)
-2. Integration test reliability enhancement (1 hour)
-
-**Afternoon (3 hours)**: 3. Cross-component integration validation (1 hour) 4. US-087 Phase 2 enablement framework (1.5 hours) 5. Migration readiness gates validation (30 minutes)
-
-**Success Checkpoint**: All readiness criteria met for US-087 Phase 2
-
-### Quality Assurance & Validation Process
-
-**Daily Quality Gates**:
-
-- Morning: Review previous day's test results and metrics
-- Midday: Validate current phase progress against success criteria
-- Evening: Prepare next day's priorities and risk assessment
-
-**Continuous Monitoring**:
-
-- Test pass rate trending analysis
-- Performance regression detection
-- Memory usage pattern validation
-- Component loading reliability tracking
-
-### Documentation & Knowledge Transfer
-
-**Required Documentation Updates**:
-
-- Test execution guides for new entity patterns
-- Performance benchmarking procedures
-- Security testing validation procedures
-- Integration testing best practices
-
-**Knowledge Transfer Requirements**:
-
-- Team training on new testing patterns
-- Documentation of test infrastructure architecture
-- Troubleshooting guides for common test failures
-- Best practices for maintaining test quality
+**Integration Status**: Fully aligned with TD-012 strategic consolidation for maximum impact and efficiency.
 
 ---
 
-## 🔮 Long-term Vision & Sustainability
-
-### Future-State Architecture
-
-**6-Month Vision**:
-
-- Fully automated test execution with zero manual intervention
-- Intelligent test selection based on code change analysis
-- Predictive performance regression detection
-- Self-healing test infrastructure with automatic remediation
-
-**12-Month Vision**:
-
-- AI-powered test generation for new entity patterns
-- Comprehensive test coverage across all UMIG components
-- Integration with production monitoring for test-to-prod validation
-- Enterprise-grade test quality metrics and reporting
-
-### Sustainability Strategy
-
-**Automated Maintenance**:
-
-- Scheduled test infrastructure health checks
-- Automatic dependency updates with regression testing
-- Performance baseline updates with system evolution
-- Test data management with automatic cleanup cycles
-
-**Continuous Improvement Process**:
-
-- Monthly test quality reviews and optimization opportunities
-- Quarterly architecture assessments for emerging patterns
-- Annual test infrastructure technology updates
-- Ongoing team training and knowledge sharing initiatives
-
-### Integration with Broader UMIG Strategy
-
-**Enterprise Readiness**:
-
-- Test infrastructure supporting enterprise-scale deployments
-- Quality metrics aligned with business objectives
-- Security testing integrated with compliance requirements
-- Performance testing supporting scalability planning
-
-**Technology Evolution Support**:
-
-- Test patterns ready for new Groovy/JavaScript framework versions
-- Component architecture supporting modern web development patterns
-- Database testing supporting PostgreSQL upgrades and optimization
-- Security testing evolving with emerging threat landscape
-
----
-
-**Document Status**: ✅ Complete - Ready for Implementation
-**Review Required**: Technical Lead, QA Lead, Product Owner
-**Next Action**: Phase 1 Implementation Kickoff
-**Success Criteria**: All readiness gates met for US-087 Phase 2 proceed decision
+_Plan Status: APPROVED for implementation - Relocated to sprint7/ documentation structure_
+_Next Review: Daily progress assessments integrated with TD-012 milestones_
+_Escalation Path: Sprint progress reviews with comprehensive stakeholder communication_
+_Integration: Part of broader TD-012 test infrastructure consolidation strategy_

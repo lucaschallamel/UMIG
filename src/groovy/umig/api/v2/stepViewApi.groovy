@@ -8,7 +8,7 @@ import umig.repository.UserRepository
 import umig.repository.AuditLogRepository
 import umig.service.UserService
 import umig.utils.DatabaseUtil
-import umig.utils.EnhancedEmailService
+import umig.utils.EmailService
 import groovy.json.JsonSlurper
 
 import javax.servlet.http.HttpServletRequest
@@ -27,7 +27,7 @@ import java.util.UUID
 final StepRepository stepRepository = new StepRepository()
 final UserRepository userRepository = new UserRepository()
 final AuditLogRepository auditLogRepository = new AuditLogRepository()
-final EnhancedEmailService emailService = new EnhancedEmailService()
+// EmailService is now used as static methods - no instance needed
 
 /**
  * Step View API - Returns step instance data for standalone step view
@@ -42,7 +42,7 @@ final EnhancedEmailService emailService = new EnhancedEmailService()
  * US-049 Phase 1: Core API endpoint for step email notifications
  * POST /stepViewApi/email
  *
- * Integrates with US-058 EnhancedEmailService for step status change notifications.
+ * Integrates with US-058 EmailService (enhanced methods) for step status change notifications.
  * Includes performance monitoring and comprehensive audit logging.
  */
 stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
@@ -180,7 +180,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    emailService.sendStepStatusChangedNotificationWithUrl(
+                    EmailService.sendStepStatusChangedNotificationWithUrl(
                         stepData as Map,
                         teams,
                         cutoverTeam,
@@ -200,7 +200,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    emailService.sendInstructionCompletedNotificationWithUrl(
+                    EmailService.sendInstructionCompletedNotificationWithUrl(
                         instruction,
                         stepData as Map,
                         teams,
@@ -217,7 +217,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    emailService.sendStepOpenedNotificationWithUrl(
+                    EmailService.sendStepOpenedNotificationWithUrl(
                         stepData as Map,
                         teams,
                         ((currentUser as Map)?.usr_id as Integer),
@@ -236,7 +236,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    emailService.sendStepStatusChangedNotificationWithUrl(
+                    EmailService.sendStepStatusChangedNotificationWithUrl(
                         stepData as Map,
                         teams,
                         cutoverTeam,

@@ -35,11 +35,13 @@ import umig.service.StatusService
 
 /**
  * EmailService - Centralized email notification service for UMIG
- * 
+ *
  * Handles all email notifications for step status changes, instruction completions,
  * and other workflow events. Uses Confluence's native mail API as per ADR-032
  * and logs all notifications to the audit_log_aud table for audit purposes.
- * 
+ *
+ * SCHEMA FIXED: usr_username→usr_code, teams_tea→teams_tms, UUID casting (2025-09-24 12:56)
+ *
  * @author UMIG Project Team
  * @since 2025-01-16
  */
@@ -1103,8 +1105,8 @@ class EmailService {
         }
         
         try {
-            def user = sql.firstRow('SELECT usr_username FROM users_usr WHERE usr_id = ?', [userId])
-            return user?.usr_username ?: "User ${userId}"
+            def user = sql.firstRow('SELECT usr_code FROM users_usr WHERE usr_id = ?', [userId])
+            return user?.usr_code ?: "User ${userId}"
         } catch (Exception e) {
             return "User ${userId}"
         }
@@ -1817,7 +1819,7 @@ class EmailService {
             DatabaseUtil.withSql { sql ->
                 def teams = getImpactedTeamsForStep(sql, stepInstance.sti_id)
                 teams.each { team ->
-                    def teamId = team.tea_id as Integer
+                    def teamId = team.tms_id as Integer
                     if (!teamGroups[teamId]) {
                         teamGroups[teamId] = [] as List<Map>
                     }
@@ -1944,28 +1946,25 @@ class EmailService {
      */
     private static List<Map> getImpactedTeamsForStep(Sql sql, def stepInstanceId) {
         try {
+            // Ensure stepInstanceId is properly typed as UUID (ADR-031)
+            UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
+
             List<groovy.sql.GroovyRowResult> queryResults = sql.rows('''
                 SELECT DISTINCT
-                    t.tea_id, t.tea_name, t.tea_email,
-                    stmxt.impact_level,
-                    stmxt.notification_required
+                    t.tms_id, t.tms_name, t.tms_email
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN steps_master_stm_x_teams_tms_impacted stmxt ON stm.stm_id = stmxt.stm_id
-                LEFT JOIN teams_tea t ON stmxt.tea_id = t.tea_id
+                LEFT JOIN teams_tms t ON stmxt.tms_id = t.tms_id
                 WHERE sti.sti_id = ?
-                AND t.tea_active = true
-                AND (stmxt.notification_required IS NULL OR stmxt.notification_required = true)
-            ''', [stepInstanceId])
+            ''', [stepUuid])
 
             // Convert GroovyRowResult to List<Map> for type safety (ADR-031)
             return queryResults.collect { row ->
                 [
-                    tea_id: row.tea_id,
-                    tea_name: row.tea_name,
-                    tea_email: row.tea_email,
-                    impact_level: row.impact_level,
-                    notification_required: row.notification_required
+                    tms_id: row.tms_id,
+                    tms_name: row.tms_name,
+                    tms_email: row.tms_email
                 ] as Map
             } as List<Map>
         } catch (Exception e) {
@@ -1979,9 +1978,12 @@ class EmailService {
      */
     private static List<Map> getTeamsForIteration(Sql sql, def iterationId) {
         try {
+            // Ensure iterationId is properly typed as UUID (ADR-031)
+            UUID iterationUuid = iterationId instanceof UUID ? iterationId : UUID.fromString(iterationId.toString())
+
             List<groovy.sql.GroovyRowResult> queryResults = sql.rows('''
                 SELECT DISTINCT
-                    t.tea_id, t.tea_name, t.tea_email
+                    t.tms_id, t.tms_name, t.tms_email
                 FROM iterations_ite ite
                 JOIN plans_instance_pli pli ON ite.ite_id = pli.ite_id
                 JOIN sequences_instance_sqi sqi ON pli.pli_id = sqi.pli_id
@@ -1989,17 +1991,16 @@ class EmailService {
                 JOIN steps_instance_sti sti ON phi.phi_id = sti.phi_id
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN steps_master_stm_x_teams_tms_impacted stmxt ON stm.stm_id = stmxt.stm_id
-                LEFT JOIN teams_tea t ON stmxt.tea_id = t.tea_id
+                LEFT JOIN teams_tms t ON stmxt.tms_id = t.tms_id
                 WHERE ite.ite_id = ?
-                AND t.tea_active = true
-            ''', [iterationId])
+            ''', [iterationUuid])
 
             // Convert GroovyRowResult to List<Map> for type safety (ADR-031)
             return queryResults.collect { row ->
                 [
-                    tea_id: row.tea_id,
-                    tea_name: row.tea_name,
-                    tea_email: row.tea_email
+                    tms_id: row.tms_id,
+                    tms_name: row.tms_name,
+                    tms_email: row.tms_email
                 ] as Map
             } as List<Map>
         } catch (Exception e) {
@@ -2014,15 +2015,386 @@ class EmailService {
     private static List<String> getTeamEmailsById(Sql sql, Integer teamId) {
         try {
             def team = sql.firstRow('''
-                SELECT tea_email FROM teams_tea
-                WHERE tea_id = ? AND tea_active = true
+                SELECT tms_email FROM teams_tms
+                WHERE tms_id = ?
             ''', [teamId])
 
             // Explicit type conversion to List<String> for type safety (ADR-031)
-            return team?.tea_email ? [team.tea_email as String] as List<String> : [] as List<String>
+            return team?.tms_email ? [team.tms_email as String] as List<String> : [] as List<String>
         } catch (Exception e) {
             logError('getTeamEmailsById', e, [teamId: teamId])
             return []
+        }
+    }
+
+    // ========================================
+    // US-058 PHASE 2 DAY 1: ENHANCED EMAIL METHODS WITH URL CONSTRUCTION
+    // Merged from EnhancedEmailService to restore stepViewApi integration chain
+    // ========================================
+
+    /**
+     * Send notification when a USER changes step-level status with dynamic URL construction
+     * Recipients: Assigned TEAM + IMPACTED TEAMS + IT CUTOVER TEAM
+     *
+     * Enhanced version that integrates URL construction from EnhancedEmailService
+     * while maintaining all existing EmailService capabilities and security features.
+     */
+    static void sendStepStatusChangedNotificationWithUrl(Map stepInstance, List<Map> teams, Map cutoverTeam,
+                                                        String oldStatus, String newStatus, Integer userId = null,
+                                                        String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Debug logging
+                println "EmailService.sendStepStatusChangedNotificationWithUrl called:"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Old Status: ${oldStatus}"
+                println "  - New Status: ${newStatus}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - Migration Code: ${migrationCode}"
+                println "  - Iteration Code: ${iterationCode}"
+
+                // Include cutover team in recipients
+                def allTeams = new ArrayList(teams)
+                if (cutoverTeam) {
+                    allTeams.add(cutoverTeam)
+                }
+                def recipients = extractTeamEmails(allTeams)
+
+                println "  - Recipients extracted: ${recipients}"
+
+                if (!recipients) {
+                    println "EmailService: No recipients found for step status change ${stepInstance.sti_name}"
+                    return
+                }
+
+                // Get email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
+                if (!template) {
+                    println "EmailService: No active template found for STEP_STATUS_CHANGED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        extractTeamEmails(allTeams),
+                        "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                        "No active email template found for STEP_STATUS_CHANGED"
+                    )
+                    return
+                }
+
+                // Use existing processNotificationTemplate with enhanced variables for URL context
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    statusColor: getStatusColor(newStatus),
+                    changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    changedBy: getUsernameById(sql, userId),
+                    // Enhanced context for URL-aware templates
+                    migrationCode: migrationCode,
+                    iterationCode: iterationCode,
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                ])
+
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
+
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+                // Send email - with explicit type casting per ADR-031
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+                // Enhanced audit logging with URL context
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        recipients,
+                        processedSubject as String,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'STEP_STATUS_CHANGED_WITH_URL',
+                            step_name: stepInstance.sti_name,
+                            old_status: oldStatus,
+                            new_status: newStatus,
+                            step_view_url: stepViewUrl,
+                            migration_code: migrationCode,
+                            iteration_code: iterationCode
+                        ]
+                    )
+
+                    // Also log the status change itself
+                    AuditLogRepository.logStepStatusChange(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        oldStatus,
+                        newStatus
+                    )
+                }
+
+            } catch (Exception e) {
+                logError('sendStepStatusChangedNotificationWithUrl', e, [
+                    stepId: stepInstance.sti_id,
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    migrationCode: migrationCode,
+                    iterationCode: iterationCode
+                ])
+
+                // Log the failure
+                DatabaseUtil.withSql { errorSql ->
+                    // Rebuild allTeams list for error logging
+                    def errorTeams = new ArrayList(teams)
+                    if (cutoverTeam) {
+                        errorTeams.add(cutoverTeam)
+                    }
+                    AuditLogRepository.logEmailFailed(
+                        errorSql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        extractTeamEmails(errorTeams),
+                        "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                        e.message
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Send notification when a PILOT opens a step with dynamic URL construction
+     * Recipients: Assigned TEAM + IMPACTED TEAMS
+     *
+     * Enhanced version that integrates URL construction from EnhancedEmailService
+     * while maintaining all existing EmailService capabilities and security features.
+     */
+    static void sendStepOpenedNotificationWithUrl(Map stepInstance, List<Map> teams, Integer userId = null,
+                                                 String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                def recipients = extractTeamEmails(teams)
+
+                if (!recipients) {
+                    println "EmailService: No recipients found for step ${stepInstance.sti_name}"
+                    return
+                }
+
+                // Get email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
+                if (!template) {
+                    println "EmailService: No active template found for STEP_OPENED"
+                    return
+                }
+
+                // Use existing processNotificationTemplate with enhanced variables for URL context
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    openedBy: getUsernameById(sql, userId ?: 0),
+                    openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    // Enhanced context for URL-aware templates
+                    migrationCode: migrationCode,
+                    iterationCode: iterationCode,
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                ])
+
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
+
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+                // Send email - with explicit type casting per ADR-031
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+                // Enhanced audit logging with URL context
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        recipients,
+                        processedSubject as String,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'STEP_OPENED_WITH_URL',
+                            step_name: stepInstance.sti_name,
+                            migration_name: stepInstance.migration_name,
+                            step_view_url: stepViewUrl,
+                            migration_code: migrationCode,
+                            iteration_code: iterationCode
+                        ]
+                    )
+                }
+
+            } catch (Exception e) {
+                logError('sendStepOpenedNotificationWithUrl', e, [stepId: stepInstance.sti_id])
+
+                // Log the failure
+                DatabaseUtil.withSql { errorSql ->
+                    AuditLogRepository.logEmailFailed(
+                        errorSql,
+                        userId,
+                        UUID.fromString(stepInstance.sti_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Step Ready: ${stepInstance.sti_name}",
+                        e.message
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Send notification when a USER completes an instruction with dynamic URL construction
+     * Recipients: Assigned TEAM + IMPACTED TEAMS
+     *
+     * Enhanced version that integrates URL construction from EnhancedEmailService
+     * while maintaining all existing EmailService capabilities and security features.
+     */
+    static void sendInstructionCompletedNotificationWithUrl(Map instruction, Map stepInstance, List<Map> teams,
+                                                           Integer userId = null, String migrationCode = null,
+                                                           String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Debug logging
+                println "EmailService.sendInstructionCompletedNotificationWithUrl called:"
+                println "  - Instruction: ${instruction?.ini_name}"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+
+                def recipients = extractTeamEmails(teams)
+
+                println "  - Recipients extracted: ${recipients}"
+
+                if (!recipients) {
+                    println "EmailService: No recipients found for instruction ${instruction.ini_name}"
+                    return
+                }
+
+                // Get email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
+                if (!template) {
+                    println "EmailService: No active template found for INSTRUCTION_COMPLETED"
+
+                    // Log missing template as audit event
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Instruction Completed: ${instruction.ini_name}",
+                        "No active email template found for INSTRUCTION_COMPLETED",
+                        'INSTRUCTION_INSTANCE'
+                    )
+                    return
+                }
+
+                // Use existing processNotificationTemplate with enhanced variables for URL context
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    instruction: instruction,
+                    completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    completedBy: getUsernameById(sql, userId),
+                    // Enhanced context for URL-aware templates
+                    migrationCode: migrationCode,
+                    iterationCode: iterationCode,
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                ])
+
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
+
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
+
+                // Send email - with explicit type casting per ADR-031
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
+
+                // Enhanced audit logging with URL context
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        recipients,
+                        processedSubject as String,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'INSTRUCTION_COMPLETED_WITH_URL',
+                            instruction_name: instruction.ini_name,
+                            step_name: stepInstance.sti_name,
+                            step_view_url: stepViewUrl,
+                            migration_code: migrationCode,
+                            iteration_code: iterationCode
+                        ],
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
+                    )
+                }
+
+            } catch (Exception e) {
+                logError('sendInstructionCompletedNotificationWithUrl', e, [
+                    instructionId: instruction.ini_id,
+                    stepId: stepInstance.sti_id
+                ])
+
+                // Log the failure
+                DatabaseUtil.withSql { errorSql ->
+                    AuditLogRepository.logEmailFailed(
+                        errorSql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Instruction Completed: ${instruction.ini_name}",
+                        e.message,
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Health check for monitoring URL construction capabilities
+     * Integrated from EnhancedEmailService for comprehensive service monitoring
+     */
+    static Map healthCheck() {
+        try {
+            def urlServiceHealth = UrlConstructionService.healthCheck()
+            def configHealth = urlServiceHealth.status == 'healthy'
+
+            return [
+                service: 'EmailService (Enhanced)',
+                status: configHealth ? 'healthy' : 'degraded',
+                urlConstruction: urlServiceHealth,
+                capabilities: [
+                    dynamicUrls: configHealth,
+                    emailTemplates: true,
+                    auditLogging: true,
+                    securityValidation: true,
+                    templateCaching: true,
+                    phase2aMethods: true // Indicates availability of enhanced methods
+                ],
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]
+        } catch (Exception e) {
+            return [
+                service: 'EmailService (Enhanced)',
+                status: 'error',
+                error: e.message,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]
         }
     }
 

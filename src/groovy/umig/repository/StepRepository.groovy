@@ -397,7 +397,7 @@ class StepRepository {
                     sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status,
                     sti.sti_duration_minutes, stm.tms_id_owner,
                     -- Master step data
-                    stm.stm_id, stm.stm_name as master_name,
+                    stm.stm_id, stm.stm_name,
                     -- Sequence and phase hierarchy
                     sqm.sqm_id, sqm.sqm_name, sqm.sqm_order,
                     phm.phm_id, phm.phm_name, phm.phm_order,
@@ -1236,7 +1236,7 @@ class StepRepository {
                     stm.stm_id,
                     stm.stt_code,
                     stm.stm_number,
-                    stm.stm_name as master_name,
+                    stm.stm_name,
                     stm.stm_description,
                     stm.stm_duration_minutes as master_duration,
                     stm.tms_id_owner,
@@ -1775,7 +1775,7 @@ class StepRepository {
                     sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status, 
                     sti.sti_duration_minutes, stm.tms_id_owner, sti.sti_start_time, sti.sti_end_time,
                     -- Master step data
-                    stm.stm_id, stm.stm_name as master_name, stm.stm_description,
+                    stm.stm_id, stm.stm_name, stm.stm_description,
                     -- Sequence and phase hierarchy
                     sqm.sqm_id, sqm.sqm_name, sqm.sqm_order,
                     phm.phm_id, phm.phm_name, phm.phm_order,
@@ -3164,8 +3164,10 @@ class StepRepository {
                 -- Core step identification
                 stm.stm_id,
                 sti.sti_id,
-                COALESCE(sti.sti_name, stm.stm_name) as stm_name,
-                COALESCE(sti.sti_description, stm.stm_description) as stm_description,
+                stm.stm_name as step_master_name,
+                stm.stm_description,
+                COALESCE(sti.sti_name, stm.stm_name) as display_name,
+                COALESCE(sti.sti_description, stm.stm_description) as display_description,
                 sts.sts_name as step_status,
 
                 -- Team assignment

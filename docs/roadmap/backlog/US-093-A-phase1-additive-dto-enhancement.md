@@ -268,43 +268,88 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
 }
 ```
 
-## Implementation Tasks
+## 🏗️ DETAILED IMPLEMENTATION PLAN
 
-### Database Layer (3 points)
+### **Phase 1: Foundation Architecture** (Sprint 8 Week 1-2, 10 points)
 
-- [ ] Create findImpactedTeams() query method
-- [ ] Create findInstructions() query method
-- [ ] Create findEnvironment() query method
-- [ ] Create findDependencies() query method
-- [ ] Optimize queries with appropriate indexes
+#### **US-093-A-1: Enhanced DTO Core Implementation** (3 points)
 
-### DTO Enhancement (3 points)
+- [ ] Add `toCanonicalJson()` method to StepInstanceDTO/StepMasterDTO
+- [ ] Implement canonical format with consistent field naming
+- [ ] **CRITICAL**: Zero modification to existing `toTemplateMap()` method
+- [ ] Add new fields: stepMasterId, impactedTeams, environment, instructions, dependencies
+- [ ] Implement overrides pattern for master/instance field differences
+- [ ] Add @JsonProperty annotations for canonical format consistency
 
-- [ ] Add new fields to StepInstanceDTO
-- [ ] Implement toCanonicalJson() method
-- [ ] Add hierarchy fields to StepMasterDTO
-- [ ] Update validation rules for new fields
+#### **US-093-A-2: Format Negotiation Framework** (2 points)
 
-### Repository Layer (3 points)
+- [ ] Add `?canonical=true` parameter support to StepsAPI
+- [ ] Implement dual-format response handling in GET /steps endpoint
+- [ ] Maintain complete backward compatibility (default behavior unchanged)
+- [ ] Add content negotiation headers for format identification
+- [ ] Implement graceful fallback when canonical format unavailable
 
-- [ ] Implement findCompleteStepInstance() method
-- [ ] Add batch loading optimization
-- [ ] Create transformation helpers
-- [ ] Ensure backward compatibility
+#### **US-093-A-3: Database Query Optimization** (3 points)
 
-### API Integration (2 points)
+- [ ] Optimize to ≤3 queries per request target
+- [ ] Implement efficient JOIN strategies for hierarchy navigation
+- [ ] Create findCompleteStepInstance() method with single optimized query
+- [ ] Add query performance monitoring and metrics collection
+- [ ] Implement batch loading for collections (teams, instructions, dependencies)
+- [ ] Add appropriate database indexes for performance optimization
 
-- [ ] Add canonical parameter handling
-- [ ] Implement format negotiation logic
-- [ ] Update API documentation
-- [ ] Add response examples
+#### **US-093-A-4: Schema Versioning Support** (2 points)
 
-### Testing (2 points)
+- [ ] Implement canonical field mappings with schema versioning
+- [ ] Add version-aware transformation logic
+- [ ] Ensure ADR-059 schema immutability compliance
+- [ ] Create schema validation framework for canonical format
+- [ ] Document field mapping between legacy and canonical formats
 
-- [ ] Write unit tests for new methods
-- [ ] Create integration tests for both formats
-- [ ] Add performance tests
-- [ ] Verify regression test suite passes
+### **Phase 2: Integration & Performance** (Sprint 8 Week 3-4, 9 points)
+
+#### **US-093-A-5: StepDataTransformationService Enhancement** (2 points)
+
+- [ ] Extend service for canonical format support
+- [ ] Maintain existing transformation methods unchanged
+- [ ] Add performance optimizations for large dataset handling
+- [ ] Implement caching layer for frequently accessed transformations
+- [ ] Add memory optimization for iteration view scenarios
+
+#### **US-093-A-6: Email Service Backend Wiring Resolution** (3 points)
+
+- [ ] **CRITICAL**: Fix backend wiring issues blocking email functionality from iterationView/stepView
+- [ ] Integrate with US-058 Phase 2 security enhancements
+- [ ] Ensure proper information passing to email service
+- [ ] Validate email template compatibility with enhanced DTOs
+- [ ] Test end-to-end email notification workflows
+- [ ] Resolve any remaining integration gaps between step data and email service
+
+#### **US-093-A-7: Performance Validation Framework** (2 points)
+
+- [ ] Achieve ≤800ms response time target for canonical format
+- [ ] Implement load testing with 10+ concurrent requests
+- [ ] Memory optimization validation for large datasets (500+ step instances)
+- [ ] Establish performance baseline metrics
+- [ ] Create continuous performance monitoring dashboard
+
+#### **US-093-A-8: Comprehensive Testing Suite** (2 points)
+
+- [ ] Achieve 85%+ test coverage for all new functionality
+- [ ] Complete regression testing for all 36 existing files using DTOs
+- [ ] Integration testing with email service backend wiring fixes
+- [ ] End-to-end workflow validation with iterationView/stepView email functionality
+- [ ] Performance testing under realistic load conditions
+
+### **Cross-Phase Quality Assurance**
+
+#### **US-093-A-9: Regression Testing Framework** (Embedded in above stories)
+
+- [ ] Automated testing for all 36 files using StepInstanceDTO (22) and StepMasterDTO (14)
+- [ ] Continuous integration validation that existing functionality unchanged
+- [ ] Email service regression testing to ensure no disruption
+- [ ] Admin GUI compatibility testing
+- [ ] CSV export functionality validation
 
 ## Testing Strategy
 

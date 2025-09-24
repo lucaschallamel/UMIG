@@ -1127,7 +1127,7 @@ class OptimisedEventDelegator {
 
 ## Previous Patterns (September 21, 2025)
 
-### CSS Namespace Isolation Pattern (ADR-061)
+### CSS Namespace Isolation Pattern (ADR-064)
 
 **Pattern**: Comprehensive umig- prefix isolation preventing platform conflicts
 **Implementation**: All CSS classes prefixed to avoid Confluence interference
@@ -1183,7 +1183,7 @@ async function captureSession() {
 - Interactive guidance for all browsers
 - Session validation before use
 
-### Modal Render Override Pattern (ADR-061 Critical Fix)
+### Modal Render Override Pattern (ADR-064 Critical Fix)
 
 **Pattern**: Prevent container clearing to maintain modal structure
 **Critical**: Modal must NOT clear container

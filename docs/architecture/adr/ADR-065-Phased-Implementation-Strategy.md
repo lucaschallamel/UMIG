@@ -1,4 +1,4 @@
-# ADR-061: Phased Implementation Strategy for Complex Stories
+# ADR-065: Phased Implementation Strategy for Complex Stories
 
 **Status**: Accepted
 **Date**: 2025-09-22

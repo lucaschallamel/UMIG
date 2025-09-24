@@ -1,4 +1,4 @@
-# ADR-061: UMIG Namespace Prefixing for Confluence Platform Isolation
+# ADR-064: UMIG Namespace Prefixing for Confluence Platform Isolation
 
 ## Status
 

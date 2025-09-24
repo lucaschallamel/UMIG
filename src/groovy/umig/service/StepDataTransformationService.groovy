@@ -80,8 +80,8 @@ class StepDataTransformationService {
                 // Core identification - with defensive UUID handling
                 .stepId(safeUUIDToString(row.stm_id ?: row.sti_id))
                 .stepInstanceId(safeUUIDToString(row.sti_id))
-                .stepName(safeString(row.stm_name ?: row.sti_name))
-                .stepDescription(safeString(row.stm_description ?: row.sti_description))
+                .stepName(safeString(row.display_name ?: row.step_master_name ?: row.stm_name ?: row.sti_name))
+                .stepDescription(safeString(row.display_description ?: row.stm_description ?: row.sti_description))
                 .stepStatus(safeString(row.step_status ?: row.sti_status ?: getStatusService().getDefaultStatus('Step')))
                 
                 // Team assignment

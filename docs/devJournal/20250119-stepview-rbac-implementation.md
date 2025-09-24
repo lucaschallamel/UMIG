@@ -3,6 +3,7 @@
 **Date**: 2025-01-19
 **Sprint**: 7
 **Story**: RBAC Technical Debt Resolution
+**Architecture Decision**: [ADR-061: StepView RBAC Security Implementation](/docs/architecture/adr/ADR-061-stepview-rbac-security-implementation.md)
 
 ## Issues Addressed
 
