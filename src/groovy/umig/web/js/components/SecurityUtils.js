@@ -991,6 +991,29 @@ if (typeof SecurityUtils === "undefined") {
         // Set the filtered content
         element.innerHTML = tempDiv.innerHTML;
 
+        // CONFLUENCE DOM COMPATIBILITY FIX: Ensure all created child elements have getElementsByClassName
+        // ROOT CAUSE: Confluence's batch.js MutationObserver expects all DOM nodes to have
+        // getElementsByClassName method, but elements created via innerHTML don't always have this method.
+        //
+        // SOLUTION: Add getElementsByClassName method to all child elements that don't have it.
+        const ensureChildCompatibility = (parentEl) => {
+          if (parentEl && parentEl.children) {
+            Array.from(parentEl.children).forEach(child => {
+              // Add getElementsByClassName if missing
+              if (child && !child.getElementsByClassName && child.nodeType === Node.ELEMENT_NODE) {
+                child.getElementsByClassName = function(className) {
+                  return this.querySelectorAll('.' + className);
+                };
+              }
+              // Recursively process children
+              ensureChildCompatibility(child);
+            });
+          }
+        };
+
+        // Apply compatibility fix to all child elements
+        ensureChildCompatibility(element);
+
         // Log security event
         SecurityUtils.logSecurityEvent("safeSetInnerHTML", {
           elementTag: element.tagName,

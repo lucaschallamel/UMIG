@@ -26,7 +26,7 @@
 -- Author: Lucas Challamel
 -- ================================================================================
 
---changeset lucaschallamel:teams-entity-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_teams-entity-performance-optimization runInTransaction:false
 --comment: US-082-C Teams Entity: Bidirectional query performance optimization
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'teams_tms_x_users_usr' AND indexname = 'idx_teams_users_usr_id_created';
@@ -70,7 +70,7 @@ COMMENT ON INDEX idx_teams_users_stats IS 'Performance index for team statistics
 --rollback DROP INDEX IF EXISTS idx_users_active;
 --rollback DROP INDEX IF EXISTS idx_teams_users_stats;
 
---changeset lucaschallamel:users-entity-primary-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_users-entity-primary-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Primary performance indexes for user operations
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'users_usr' AND indexname = 'idx_users_usr_id_active';
@@ -119,7 +119,7 @@ COMMENT ON INDEX idx_users_names_search IS 'Full-text search index for user name
 --rollback DROP INDEX IF EXISTS idx_users_role_active;
 --rollback DROP INDEX IF EXISTS idx_users_names_search;
 
---changeset lucaschallamel:users-entity-audit-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_users-entity-audit-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Audit trail and activity tracking performance indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'audit_log_aud' AND indexname = 'idx_audit_log_user_entity';
@@ -159,7 +159,7 @@ COMMENT ON INDEX idx_audit_log_role_changes IS 'Performance index for role chang
 --rollback DROP INDEX IF EXISTS idx_audit_log_user_activity;
 --rollback DROP INDEX IF EXISTS idx_audit_log_role_changes;
 
---changeset lucaschallamel:users-entity-relationship-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_users-entity-relationship-performance-optimization runInTransaction:false
 --comment: US-082-C Users Entity: Team relationship and lifecycle tracking performance indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'teams_tms_x_users_usr' AND indexname = 'idx_teams_users_reverse_lookup';
@@ -209,7 +209,7 @@ COMMENT ON INDEX idx_teams_users_member_stats IS 'Performance index for team mem
 --rollback DROP INDEX IF EXISTS idx_users_pagination_sort;
 --rollback DROP INDEX IF EXISTS idx_teams_users_member_stats;
 
---changeset lucaschallamel:applications-entity-primary-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_applications-entity-primary-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Primary table performance indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'applications_app' AND indexname = 'idx_applications_app_code_lookup';
@@ -253,7 +253,7 @@ COMMENT ON INDEX idx_applications_pagination IS 'Performance index for applicati
 --rollback DROP INDEX IF EXISTS idx_applications_search_composite;
 --rollback DROP INDEX IF EXISTS idx_applications_pagination;
 
---changeset lucaschallamel:applications-entity-relationship-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_applications-entity-relationship-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Environment, Team, and Label relationship indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'environments_env_x_applications_app' AND indexname = 'idx_env_app_assoc_app_id';
@@ -313,7 +313,7 @@ COMMENT ON INDEX idx_label_app_assoc_composite IS 'Composite performance index f
 --rollback DROP INDEX IF EXISTS idx_label_app_assoc_label_id;
 --rollback DROP INDEX IF EXISTS idx_label_app_assoc_composite;
 
---changeset lucaschallamel:applications-entity-advanced-performance-optimization runInTransaction:false
+--changeset lucas.challamel:030_applications-entity-advanced-performance-optimization runInTransaction:false
 --comment: US-082-C Applications Entity: Advanced performance optimization with INCLUDE columns
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'applications_app' AND indexname = 'idx_applications_count_optimization';
@@ -396,7 +396,7 @@ COMMENT ON INDEX idx_apps_by_label IS 'Performance index for applications filter
 --rollback DROP INDEX IF EXISTS idx_apps_by_team;
 --rollback DROP INDEX IF EXISTS idx_apps_by_label;
 
---changeset lucaschallamel:entity-performance-statistics-update
+--changeset lucas.challamel:030_entity-performance-statistics-update
 --comment: US-082-C Entity Performance: Update table statistics for query planner optimization
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM pg_tables WHERE tablename = 'teams_tms';

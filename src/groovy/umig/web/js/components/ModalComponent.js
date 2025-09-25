@@ -226,6 +226,16 @@ class ModalComponent extends BaseComponent {
         h2: ["id", "class"],
       },
     });
+
+    // ADDITIONAL DOM COMPATIBILITY CHECK: Extra protection layer for modal elements
+    // Even though SecurityUtils now handles this, we add defensive programming
+    // to ensure modal-specific elements are always batch.js compatible
+    const modalWrapper = this.container.querySelector('.umig-modal-wrapper');
+    if (modalWrapper && !modalWrapper.getElementsByClassName && modalWrapper.nodeType === Node.ELEMENT_NODE) {
+      modalWrapper.getElementsByClassName = function(className) {
+        return this.querySelectorAll('.' + className);
+      };
+    }
   }
 
   /**

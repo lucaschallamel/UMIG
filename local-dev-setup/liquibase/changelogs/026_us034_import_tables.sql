@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset LucasChallamel:026_us034_import_tables author:UMIG Development Team
+-- changeset lucas.challamel:026_us034_import_tables author:UMIG Development Team
 -- comment: Create US-034 Enhanced Import Architecture tables with correct stg_ prefix naming
 
 -- Step 1: Import Queue Management Table
