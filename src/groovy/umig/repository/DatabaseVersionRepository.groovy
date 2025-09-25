@@ -412,6 +412,173 @@ class DatabaseVersionRepository {
     }
 
     /**
+     * Read SQL file content from filesystem for package generation
+     * US-088-B Enhancement: Self-contained package generation
+     *
+     * @param filename String - SQL migration filename (e.g., "001_baseline.sql")
+     * @return String SQL file content or error message
+     */
+    String readSqlFileContent(String filename) {
+        if (!filename || filename.trim().isEmpty()) {
+            return "-- Error: Empty filename provided"
+        }
+
+        try {
+            // Security: Sanitize filename to prevent path traversal
+            def sanitizedFilename = filename.replaceAll('[^a-zA-Z0-9_.-]', '')
+            if (sanitizedFilename != filename) {
+                return "-- Error: Invalid characters in filename: ${filename}"
+            }
+
+            // Construct safe path to changelogs directory
+            def basePath = '/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/'
+            def file = new File(basePath + sanitizedFilename)
+
+            // Security: Ensure file is within expected directory
+            def canonicalFile = file.getCanonicalPath()
+            def canonicalBase = new File(basePath).getCanonicalPath()
+            if (!canonicalFile.startsWith(canonicalBase)) {
+                return "-- Error: File path outside allowed directory: ${filename}"
+            }
+
+            // Read file content if exists
+            if (file.exists() && file.isFile()) {
+                return file.text
+            } else {
+                return "-- File not found: ${filename}\n-- Expected location: ${canonicalFile}"
+            }
+
+        } catch (Exception e) {
+            return "-- Error reading file ${filename}: ${e.message}"
+        }
+    }
+
+    /**
+     * Generate self-contained SQL package with embedded migration content
+     * US-088-B Enhancement: Transform reference scripts to executable packages
+     *
+     * @param filenames List<String> - List of migration filenames to include
+     * @return String Complete SQL script with embedded migrations
+     */
+    String generateSelfContainedSqlPackage(List<String> filenames) {
+        if (!filenames || filenames.isEmpty()) {
+            return "-- No migrations to package"
+        }
+
+        def script = []
+
+        // Header with package metadata
+        script.addAll([
+            "-- =================================================================",
+            "-- UMIG Self-Contained SQL Deployment Package",
+            "-- Generated: ${new Date().toInstant()}",
+            "-- Migrations: ${filenames.size()}",
+            "-- Format: PostgreSQL",
+            "-- =================================================================",
+            "",
+            "-- Transaction wrapper for atomic deployment",
+            "BEGIN;",
+            ""
+        ])
+
+        // Process each migration file
+        filenames.eachWithIndex { filename, index ->
+            def sequenceNumber = String.format("%03d", index + 1)
+
+            script.addAll([
+                "-- =================================================================",
+                "-- Migration ${sequenceNumber}: ${filename}",
+                "-- =================================================================",
+                ""
+            ])
+
+            // Read and embed actual SQL content
+            def sqlContent = readSqlFileContent(filename)
+            script.add(sqlContent)
+            script.addAll(["", "-- End of ${filename}", ""])
+        }
+
+        // Footer
+        script.addAll([
+            "-- =================================================================",
+            "-- Package deployment completed successfully",
+            "-- =================================================================",
+            "",
+            "COMMIT;",
+            "",
+            "-- Package generation summary:",
+            "-- Total migrations: ${filenames.size()}",
+            "-- Generation time: ${new Date().toInstant()}",
+            "-- Ready for deployment!"
+        ])
+
+        return script.join('\n')
+    }
+
+    /**
+     * Generate self-contained Liquibase XML with embedded SQL content
+     * US-088-B Enhancement: Alternative package format for Liquibase deployments
+     *
+     * @param filenames List<String> - List of migration filenames to include
+     * @return String Complete Liquibase XML with embedded SQL
+     */
+    String generateSelfContainedLiquibaseXml(List<String> filenames) {
+        if (!filenames || filenames.isEmpty()) {
+            return "<!-- No migrations to package -->"
+        }
+
+        def xml = []
+
+        // XML header
+        xml.addAll([
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<databaseChangeLog',
+            '    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"',
+            '    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+            '    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog',
+            '    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">',
+            '',
+            '    <!-- UMIG Self-Contained Liquibase Package -->',
+            '    <!-- Generated: ' + new Date().toInstant() + ' -->',
+            '    <!-- Migrations: ' + filenames.size() + ' -->',
+            ''
+        ])
+
+        // Process each migration file
+        filenames.each { filename ->
+            def changesetId = filename.replace('.sql', '') + '_embedded'
+
+            xml.addAll([
+                "    <!-- ${filename} -->",
+                "    <changeSet id=\"${changesetId}\" author=\"umig-package-generator\">",
+                "        <comment>Embedded content from ${filename}</comment>",
+                "        <sql><![CDATA["
+            ])
+
+            // Read and embed actual SQL content
+            def sqlContent = readSqlFileContent(filename)
+            xml.add("            ${sqlContent}")
+
+            xml.addAll([
+                "        ]]></sql>",
+                "    </changeSet>",
+                ""
+            ])
+        }
+
+        // XML footer
+        xml.addAll([
+            '    <!-- Package Summary -->',
+            '    <!-- Total migrations: ' + filenames.size() + ' -->',
+            '    <!-- Ready for: liquibase update -->',
+            '',
+            '</databaseChangeLog>'
+        ])
+
+        return xml.join('\n')
+    }
+
+    /**
      * Validate changeset ID format for security
      * Prevents SQL injection and ensures valid format
      *

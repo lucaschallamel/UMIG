@@ -16,8 +16,8 @@
  * @author UMIG Development Team
  */
 
-import { BuildOrchestrator } from "./build/BuildOrchestrator.js";
-import { SourcePackager } from "./build/SourcePackager.js";
+import BuildOrchestrator from "./build/BuildOrchestrator.js";
+import SourcePackager from "./build/SourcePackager.js";
 import chalk from "chalk";
 import { Command } from "commander";
 
@@ -41,6 +41,14 @@ async function main() {
   console.log(chalk.gray(`Version: 1.0.0 (Phase 1 - Core Infrastructure)`));
   console.log("");
 
+  // Global timeout to prevent infinite hangs (5 minutes for complete build)
+  const globalTimeout = setTimeout(() => {
+    console.error(chalk.red("❌ Build process timed out after 5 minutes"));
+    console.error(chalk.red("This suggests a hang in database operations or file system access"));
+    console.error(chalk.yellow("💡 Try running with --verbose to identify the hang point"));
+    process.exit(1);
+  }, 300000); // 5 minutes
+
   try {
     // Initialize BuildOrchestrator
     const orchestrator = new BuildOrchestrator({
@@ -56,15 +64,19 @@ async function main() {
       );
       await orchestrator.validateConfiguration();
       console.log(chalk.green("✅ Configuration validation complete"));
+      clearTimeout(globalTimeout);
       return;
     }
 
     // Execute Phase 1 build process
     console.log(chalk.blue("📦 Starting Phase 1 build process..."));
+    console.log(chalk.gray("⏱️  Global timeout: 5 minutes to prevent infinite hangs"));
     await orchestrator.executeBuild();
 
+    clearTimeout(globalTimeout);
     console.log(chalk.green("✅ Build process completed successfully"));
   } catch (error) {
+    clearTimeout(globalTimeout);
     console.error(chalk.red("❌ Build process failed:"));
     console.error(chalk.red(error.message));
 

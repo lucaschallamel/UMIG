@@ -1,0 +1,188 @@
+{
+  "version": "1.0.0",
+  "description": "UMIG Build Configuration for Focused Deployment Packaging",
+  "source": {
+    "baseDirectory": "./",
+    "validation": {
+      "requiredDirectories": [
+        "src/groovy/umig",
+        "local-dev-setup/liquibase",
+        "docs/deployment"
+      ],
+      "maxArchiveSize": "500MB",
+      "minCompressionRatio": 20
+    },
+    "deploymentStructure": {
+      "umig": {
+        "description": "Core application components",
+        "inclusionPatterns": [
+          "src/groovy/umig/**/*.groovy",
+          "src/groovy/umig/**/*.js",
+          "src/groovy/umig/**/*.css",
+          "src/groovy/umig/**/*.html",
+          "src/groovy/umig/**/*.json",
+          "src/groovy/umig/**/*.properties"
+        ],
+        "exclusionPatterns": [
+          "src/groovy/umig/tests/**",
+          "src/groovy/umig/**/*test*",
+          "src/groovy/umig/**/*.test.*"
+        ]
+      },
+      "database": {
+        "description": "Database deployment assets",
+        "inclusionPatterns": [
+          "local-dev-setup/liquibase/**/*.sql",
+          "local-dev-setup/liquibase/**/*.xml",
+          "local-dev-setup/liquibase/**/*.yml",
+          "local-dev-setup/liquibase/**/*.yaml",
+          "local-dev-setup/liquibase/**/*.properties"
+        ],
+        "exclusionPatterns": [
+          "local-dev-setup/liquibase/tmp/**",
+          "local-dev-setup/liquibase/**/*.log"
+        ],
+        "generateSchemaDump": true,
+        "schemaDumpOptions": {
+          "outputFile": "schema-dump.sql",
+          "includeData": false,
+          "includeIndexes": true,
+          "includeConstraints": true
+        }
+      },
+      "documentation": {
+        "description": "Deployment documentation",
+        "inclusionPatterns": [
+          "docs/deployment/**/*.md",
+          "docs/deployment/**/*.html",
+          "docs/deployment/**/*.pdf"
+        ],
+        "exclusionPatterns": [
+          "docs/deployment/**/*.tmp"
+        ]
+      }
+    },
+    "globalExclusionPatterns": [
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/.DS_Store",
+      "**/*.log",
+      "**/*.tmp",
+      "**/.env*",
+      "**/target/**",
+      "**/build/**",
+      "**/.gradle/**",
+      "**/*.class",
+      "**/test-results/**",
+      "**/.idea/**",
+      "**/.vscode/**",
+      "**/coverage/**",
+      "**/__tests__/**",
+      "**/local-dev-setup/scripts/**",
+      "**/local-dev-setup/__tests__/**"
+    ]
+  },
+  "build": {
+    "outputDirectory": "./build",
+    "tempDirectory": "./build/temp"
+  },
+  "sources": [
+    {
+      "name": "groovy-source",
+      "path": "../src/groovy",
+      "description": "Groovy source code",
+      "required": true
+    },
+    {
+      "name": "web-assets",
+      "path": "../src/groovy/umig/web",
+      "description": "Web assets (JavaScript, CSS)",
+      "required": true
+    },
+    {
+      "name": "database-migrations",
+      "path": "../liquibase",
+      "description": "Database migration scripts",
+      "required": true
+    },
+    {
+      "name": "documentation",
+      "path": "../docs",
+      "description": "Project documentation",
+      "required": false
+    },
+    {
+      "name": "configuration",
+      "path": "../src/conf",
+      "description": "Configuration files",
+      "required": false
+    }
+  ],
+  "environments": {
+    "dev": {
+      "includeTests": true,
+      "compression": "gzip",
+      "validationLevel": "basic"
+    },
+    "uat": {
+      "includeTests": false,
+      "compression": "gzip",
+      "validationLevel": "standard",
+      "schemaDumpEnabled": false
+    },
+    "prod": {
+      "includeTests": false,
+      "compression": "gzip",
+      "validationLevel": "strict",
+      "schemaDumpEnabled": false
+    }
+  },
+  "output": {
+    "directory": "./build",
+    "filenameTemplate": "umig-{version}-{environment}-{timestamp}",
+    "format": "tar.gz"
+  },
+  "validation": {
+    "checkGitStatus": true,
+    "requireCleanWorktree": false,
+    "validateDependencies": true,
+    "checksums": true
+  },
+  "metadata": {
+    "includeGitInfo": true,
+    "includeBuildInfo": true,
+    "includeEnvironmentInfo": true,
+    "includeComponentInfo": true,
+    "formats": ["json", "html"]
+  },
+  "database": {
+    "sourceDirectory": "../liquibase/changelogs",
+    "masterFile": "db.changelog-master.xml",
+    "connection": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "umig_app_db",
+      "username": "umig_app_usr"
+    },
+    "schemaDump": {
+      "enabled": true,
+      "outputFile": "schema-dump.sql",
+      "pgDumpPath": "pg_dump",
+      "options": [
+        "--schema-only",
+        "--no-privileges",
+        "--no-owner",
+        "--clean",
+        "--if-exists"
+      ]
+    },
+    "options": {
+      "consolidated": {
+        "outputFile": "database-consolidated-{version}-{timestamp}.sql"
+      },
+      "liquibase": {
+        "sourceDirectory": "../liquibase"
+      }
+    }
+  }
+}

@@ -128,6 +128,9 @@ class ComponentVersionTracker extends (window.BaseEntityManager || class {}) {
         if (this.autoRefresh && this.canPerformSecureOperation()) {
             this.startSecureAutoRefresh();
         }
+
+        // US-088: Phase 2B - Track active instances for component registration notifications
+        this.trackAsActiveInstance();
     }
 
     /**
@@ -2141,12 +2144,669 @@ class ComponentVersionTracker extends (window.BaseEntityManager || class {}) {
             this.rateLimiter.apiCalls.clear();
         }
 
+        // US-088: Phase 2B - Remove from active instances tracking
+        this.removeFromActiveInstances();
+
         // Call parent destroy if exists
         if (super.destroy) {
             super.destroy();
         }
 
         console.log("[ComponentVersionTracker] Component destroyed and cleaned up");
+    }
+
+    /**
+     * US-088: Phase 2B - Track this instance as active for component registration notifications
+     */
+    trackAsActiveInstance() {
+        if (!window.ComponentVersionTracker._activeInstances) {
+            window.ComponentVersionTracker._activeInstances = new Set();
+        }
+        window.ComponentVersionTracker._activeInstances.add(this);
+        console.log(`[ComponentVersionTracker] Instance tracked (total: ${window.ComponentVersionTracker._activeInstances.size})`);
+    }
+
+    /**
+     * US-088: Phase 2B - Remove this instance from active tracking (called on destroy)
+     */
+    removeFromActiveInstances() {
+        if (window.ComponentVersionTracker._activeInstances) {
+            window.ComponentVersionTracker._activeInstances.delete(this);
+            console.log(`[ComponentVersionTracker] Instance removed (remaining: ${window.ComponentVersionTracker._activeInstances.size})`);
+        }
+    }
+
+    /**
+     * US-088: Phase 2B - Handle component registration notification
+     */
+    onComponentRegistered(componentName, componentInterface) {
+        console.log(`[ComponentVersionTracker] New component registered: ${componentName}`);
+
+        // Update internal registries if needed
+        if (componentInterface.getVersion) {
+            this.refreshComponentVersions();
+        }
+    }
+
+    /**
+     * US-088: Phase 2B - Refresh component versions from registered components
+     */
+    async refreshComponentVersions() {
+        try {
+            const registry = window.ComponentVersionTracker.getRegisteredComponents();
+
+            for (const [componentName, componentInfo] of registry) {
+                if (componentInfo.interface.getVersion) {
+                    const versionData = await componentInfo.interface.getVersion();
+
+                    // Update internal version data
+                    if (versionData && versionData.version) {
+                        this.versionData.set(componentName, {
+                            version: versionData.version,
+                            lastUpdated: new Date().toISOString(),
+                            status: versionData.status || 'UNKNOWN'
+                        });
+                    }
+                }
+            }
+
+            console.log(`[ComponentVersionTracker] Refreshed versions for ${registry.size} components`);
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Version refresh failed:', error);
+        }
+    }
+
+    /**
+     * US-088: Phase 2B - Static method to register components for version tracking
+     * This enables other components like DatabaseVersionManager to register themselves
+     */
+    static registerComponent(componentName, componentInterface) {
+        try {
+            // Ensure global registry exists
+            if (!window.ComponentVersionTracker._globalComponentRegistry) {
+                window.ComponentVersionTracker._globalComponentRegistry = new Map();
+            }
+
+            // Register the component
+            window.ComponentVersionTracker._globalComponentRegistry.set(componentName, {
+                name: componentName,
+                interface: componentInterface,
+                registeredAt: new Date().toISOString()
+            });
+
+            console.log(`[ComponentVersionTracker] Registered component: ${componentName}`);
+
+            // If there are active instances, notify them
+            if (window.ComponentVersionTracker._activeInstances) {
+                window.ComponentVersionTracker._activeInstances.forEach(instance => {
+                    if (instance.onComponentRegistered) {
+                        instance.onComponentRegistered(componentName, componentInterface);
+                    }
+                });
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`[ComponentVersionTracker] Failed to register component ${componentName}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * US-088: Phase 2B - Get all registered components for build integration
+     */
+    static getRegisteredComponents() {
+        return window.ComponentVersionTracker._globalComponentRegistry || new Map();
+    }
+
+    /**
+     * US-088: Phase 2B - Get build manifest from all registered components
+     */
+    static async getBuildManifest() {
+        const manifest = {
+            generatedAt: new Date().toISOString(),
+            components: {},
+            summary: {
+                totalComponents: 0,
+                healthyComponents: 0,
+                errorComponents: 0
+            }
+        };
+
+        try {
+            const registry = window.ComponentVersionTracker.getRegisteredComponents();
+
+            for (const [componentName, componentInfo] of registry) {
+                try {
+                    const componentInterface = componentInfo.interface;
+                    let componentData = {};
+
+                    // Get version information
+                    if (componentInterface.getVersion) {
+                        componentData.version = await componentInterface.getVersion();
+                    }
+
+                    // Get database info if available
+                    if (componentInterface.getDatabaseInfo) {
+                        componentData.database = await componentInterface.getDatabaseInfo();
+                    }
+
+                    // Validate connection if available
+                    if (componentInterface.validateConnection) {
+                        componentData.connectionValid = await componentInterface.validateConnection();
+                    }
+
+                    componentData.status = 'HEALTHY';
+                    componentData.registeredAt = componentInfo.registeredAt;
+
+                    manifest.components[componentName] = componentData;
+                    manifest.summary.healthyComponents++;
+
+                } catch (error) {
+                    manifest.components[componentName] = {
+                        status: 'ERROR',
+                        error: error.message,
+                        registeredAt: componentInfo.registeredAt
+                    };
+                    manifest.summary.errorComponents++;
+                }
+
+                manifest.summary.totalComponents++;
+            }
+
+            return manifest;
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Build manifest generation failed:', error);
+            return {
+                generatedAt: new Date().toISOString(),
+                error: error.message,
+                components: {},
+                summary: { totalComponents: 0, healthyComponents: 0, errorComponents: 1 }
+            };
+        }
+    }
+
+    /**
+     * US-088: Phase 2D - Enhanced Build Metadata Generation with comprehensive manifests
+     * Provides detailed build system integration with deployment readiness assessment
+     */
+    static async getEnhancedBuildManifest() {
+        const manifest = {
+            generatedAt: new Date().toISOString(),
+            buildId: 'build-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            version: '1.0.0',
+            environment: {
+                nodeEnv: process?.env?.NODE_ENV || 'unknown',
+                userAgent: navigator.userAgent,
+                buildMachine: window.location.hostname,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            },
+            components: {},
+            summary: {
+                totalComponents: 0,
+                healthyComponents: 0,
+                errorComponents: 0,
+                overallScore: 0
+            },
+            health: {
+                score: 0,
+                status: 'UNKNOWN',
+                categories: {
+                    connectivity: { score: 0, status: 'UNKNOWN', details: [] },
+                    compatibility: { score: 0, status: 'UNKNOWN', details: [] },
+                    security: { score: 0, status: 'UNKNOWN', details: [] },
+                    performance: { score: 0, status: 'UNKNOWN', details: [] }
+                }
+            },
+            deployment: {
+                readiness: false,
+                blockers: [],
+                requirements: [],
+                environment: 'development'
+            }
+        };
+
+        try {
+            const registry = window.ComponentVersionTracker.getRegisteredComponents();
+
+            for (const [componentName, componentInfo] of registry) {
+                try {
+                    const componentInterface = componentInfo.interface;
+                    const componentData = await this._assessComponentHealth(componentName, componentInterface);
+
+                    manifest.components[componentName] = componentData;
+                    manifest.summary.totalComponents++;
+
+                    if (componentData.status === 'HEALTHY') {
+                        manifest.summary.healthyComponents++;
+                    } else {
+                        manifest.summary.errorComponents++;
+                    }
+
+                } catch (error) {
+                    manifest.components[componentName] = {
+                        status: 'ERROR',
+                        error: error.message,
+                        score: 0,
+                        registeredAt: componentInfo.registeredAt
+                    };
+                    manifest.summary.errorComponents++;
+                    manifest.summary.totalComponents++;
+                }
+            }
+
+            // Calculate overall health
+            manifest.health = this._calculateOverallHealth(manifest.components);
+            manifest.summary.overallScore = manifest.health.score;
+
+            // Assess deployment readiness
+            manifest.deployment = this._assessDeploymentReadiness(manifest);
+
+            return manifest;
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Enhanced build manifest generation failed:', error);
+            return {
+                ...manifest,
+                error: error.message,
+                summary: { totalComponents: 0, healthyComponents: 0, errorComponents: 1, overallScore: 0 }
+            };
+        }
+    }
+
+    /**
+     * US-088: Phase 2D - Assess individual component health with scoring
+     */
+    static async _assessComponentHealth(componentName, componentInterface) {
+        const componentData = {
+            name: componentName,
+            status: 'UNKNOWN',
+            score: 0,
+            metrics: {},
+            diagnostics: {}
+        };
+
+        try {
+            // Get version information
+            if (componentInterface.getVersion) {
+                componentData.version = await componentInterface.getVersion();
+                componentData.score += 25; // Version availability = 25 points
+            }
+
+            // Get database info if available (DatabaseVersionManager pattern)
+            if (componentInterface.getDatabaseInfo) {
+                componentData.database = await componentInterface.getDatabaseInfo();
+                componentData.score += 25; // Database connectivity = 25 points
+            }
+
+            // Validate connection if available
+            if (componentInterface.validateConnection) {
+                const connectionValid = await componentInterface.validateConnection();
+                componentData.connectionValid = connectionValid;
+                if (connectionValid) {
+                    componentData.score += 25; // Connection validity = 25 points
+                }
+            }
+
+            // Check health status if available
+            if (componentData.version && componentData.version.healthStatus) {
+                const healthStatus = componentData.version.healthStatus;
+                if (healthStatus === 'HEALTHY') {
+                    componentData.score += 25; // Health status = 25 points
+                } else if (healthStatus === 'DEGRADED') {
+                    componentData.score += 15;
+                } else if (healthStatus === 'WARNING') {
+                    componentData.score += 10;
+                }
+            }
+
+            // Set status based on score
+            if (componentData.score >= 75) {
+                componentData.status = 'HEALTHY';
+            } else if (componentData.score >= 50) {
+                componentData.status = 'DEGRADED';
+            } else if (componentData.score >= 25) {
+                componentData.status = 'WARNING';
+            } else {
+                componentData.status = 'CRITICAL';
+            }
+
+        } catch (error) {
+            componentData.status = 'ERROR';
+            componentData.error = error.message;
+            componentData.score = 0;
+        }
+
+        return componentData;
+    }
+
+    /**
+     * US-088: Phase 2D - Calculate overall system health from component assessments
+     */
+    static _calculateOverallHealth(components) {
+        const health = {
+            score: 0,
+            status: 'UNKNOWN',
+            categories: {
+                connectivity: { score: 0, status: 'UNKNOWN', details: [] },
+                compatibility: { score: 0, status: 'UNKNOWN', details: [] },
+                security: { score: 0, status: 'UNKNOWN', details: [] },
+                performance: { score: 0, status: 'UNKNOWN', details: [] }
+            }
+        };
+
+        try {
+            const componentEntries = Object.entries(components);
+            if (componentEntries.length === 0) {
+                return health;
+            }
+
+            // Calculate average component score
+            const totalScore = componentEntries.reduce((sum, [name, component]) => {
+                return sum + (component.score || 0);
+            }, 0);
+
+            health.score = Math.round(totalScore / componentEntries.length);
+
+            // Categorize health assessments
+            componentEntries.forEach(([name, component]) => {
+                // Connectivity assessment
+                if (component.connectionValid !== undefined) {
+                    health.categories.connectivity.details.push({
+                        component: name,
+                        connected: component.connectionValid,
+                        score: component.connectionValid ? 100 : 0
+                    });
+                }
+
+                // Compatibility assessment (based on version data)
+                if (component.version && component.version.buildCompatible !== undefined) {
+                    health.categories.compatibility.details.push({
+                        component: name,
+                        compatible: component.version.buildCompatible,
+                        score: component.version.buildCompatible ? 100 : 0
+                    });
+                }
+
+                // Security assessment (if security data available)
+                if (component.version && component.version.securityLevel) {
+                    health.categories.security.details.push({
+                        component: name,
+                        securityLevel: component.version.securityLevel,
+                        score: component.version.securityLevel >= 8 ? 100 : component.version.securityLevel * 10
+                    });
+                }
+
+                // Performance assessment (based on health status)
+                const performanceScore = component.status === 'HEALTHY' ? 100 :
+                                       component.status === 'DEGRADED' ? 75 :
+                                       component.status === 'WARNING' ? 50 : 0;
+                health.categories.performance.details.push({
+                    component: name,
+                    status: component.status,
+                    score: performanceScore
+                });
+            });
+
+            // Calculate category scores
+            Object.keys(health.categories).forEach(category => {
+                const details = health.categories[category].details;
+                if (details.length > 0) {
+                    const categoryScore = details.reduce((sum, detail) => sum + detail.score, 0) / details.length;
+                    health.categories[category].score = Math.round(categoryScore);
+                    health.categories[category].status = categoryScore >= 80 ? 'HEALTHY' :
+                                                       categoryScore >= 60 ? 'DEGRADED' :
+                                                       categoryScore >= 40 ? 'WARNING' : 'CRITICAL';
+                }
+            });
+
+            // Overall status determination
+            if (health.score >= 80) {
+                health.status = 'HEALTHY';
+            } else if (health.score >= 60) {
+                health.status = 'DEGRADED';
+            } else if (health.score >= 40) {
+                health.status = 'WARNING';
+            } else {
+                health.status = 'CRITICAL';
+            }
+
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Health calculation failed:', error);
+            health.status = 'ERROR';
+            health.error = error.message;
+        }
+
+        return health;
+    }
+
+    /**
+     * US-088: Phase 2D - Assess deployment readiness with blockers and requirements
+     */
+    static _assessDeploymentReadiness(manifest) {
+        const deployment = {
+            readiness: false,
+            blockers: [],
+            requirements: [],
+            environment: 'development',
+            score: 0
+        };
+
+        try {
+            // Check overall health score
+            if (manifest.health.score < 60) {
+                deployment.blockers.push({
+                    type: 'HEALTH',
+                    severity: 'HIGH',
+                    message: `Overall system health too low: ${manifest.health.score}/100 (minimum 60 required)`
+                });
+            } else {
+                deployment.score += 30;
+            }
+
+            // Check component error rates
+            const errorRate = (manifest.summary.errorComponents / manifest.summary.totalComponents) * 100;
+            if (errorRate > 20) {
+                deployment.blockers.push({
+                    type: 'ERRORS',
+                    severity: 'HIGH',
+                    message: `Too many component errors: ${errorRate.toFixed(1)}% (maximum 20% allowed)`
+                });
+            } else {
+                deployment.score += 25;
+            }
+
+            // Check security requirements
+            const securityComponents = Object.values(manifest.components).filter(c =>
+                c.version && c.version.securityLevel !== undefined
+            );
+            if (securityComponents.length > 0) {
+                const avgSecurity = securityComponents.reduce((sum, c) => sum + c.version.securityLevel, 0) / securityComponents.length;
+                if (avgSecurity < 7.0) {
+                    deployment.blockers.push({
+                        type: 'SECURITY',
+                        severity: 'MEDIUM',
+                        message: `Security level too low: ${avgSecurity.toFixed(1)}/10 (minimum 7.0 required)`
+                    });
+                } else {
+                    deployment.score += 25;
+                }
+            }
+
+            // Check database connectivity
+            const dbComponents = Object.values(manifest.components).filter(c => c.database);
+            if (dbComponents.length > 0) {
+                const dbIssues = dbComponents.filter(c => !c.connectionValid);
+                if (dbIssues.length > 0) {
+                    deployment.blockers.push({
+                        type: 'DATABASE',
+                        severity: 'CRITICAL',
+                        message: `Database connectivity issues in ${dbIssues.length} component(s)`
+                    });
+                } else {
+                    deployment.score += 20;
+                }
+            }
+
+            // Determine readiness
+            deployment.readiness = deployment.blockers.length === 0 && deployment.score >= 70;
+
+            // Add requirements for deployment
+            deployment.requirements = [
+                'All components must have HEALTHY status',
+                'Database connectivity must be verified',
+                'Security level must be >= 7.0/10',
+                'Error rate must be <= 20%',
+                'Overall health score must be >= 60/100'
+            ];
+
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Deployment readiness assessment failed:', error);
+            deployment.blockers.push({
+                type: 'SYSTEM',
+                severity: 'CRITICAL',
+                message: `Assessment failed: ${error.message}`
+            });
+        }
+
+        return deployment;
+    }
+
+    /**
+     * US-088: Phase 2D - Export build manifest in various formats for CI/CD integration
+     */
+    static async exportBuildManifest(format = 'json') {
+        try {
+            const manifest = await this.getEnhancedBuildManifest();
+
+            switch (format.toLowerCase()) {
+                case 'json':
+                    return JSON.stringify(manifest, null, 2);
+
+                case 'yaml':
+                    // Simple YAML-like format for basic compatibility
+                    return this._convertToYamlLike(manifest);
+
+                case 'summary':
+                    return this._generateBuildSummary(manifest);
+
+                case 'deployment-report':
+                    return this._generateDeploymentReport(manifest);
+
+                default:
+                    throw new Error(`Unsupported export format: ${format}`);
+            }
+        } catch (error) {
+            console.error('[ComponentVersionTracker] Build manifest export failed:', error);
+            return `# Build Manifest Export Error\nError: ${error.message}\nTimestamp: ${new Date().toISOString()}`;
+        }
+    }
+
+    /**
+     * US-088: Phase 2D - Convert manifest to YAML-like format
+     */
+    static _convertToYamlLike(manifest) {
+        const lines = [];
+        lines.push('# UMIG Build Manifest');
+        lines.push(`generatedAt: "${manifest.generatedAt}"`);
+        lines.push(`buildId: "${manifest.buildId}"`);
+        lines.push(`version: "${manifest.version}"`);
+        lines.push('');
+        lines.push('summary:');
+        lines.push(`  totalComponents: ${manifest.summary.totalComponents}`);
+        lines.push(`  healthyComponents: ${manifest.summary.healthyComponents}`);
+        lines.push(`  errorComponents: ${manifest.summary.errorComponents}`);
+        lines.push(`  overallScore: ${manifest.summary.overallScore}`);
+        lines.push('');
+        lines.push('health:');
+        lines.push(`  score: ${manifest.health.score}`);
+        lines.push(`  status: "${manifest.health.status}"`);
+        lines.push('');
+        lines.push('deployment:');
+        lines.push(`  readiness: ${manifest.deployment.readiness}`);
+        lines.push(`  blockers: ${manifest.deployment.blockers.length}`);
+        lines.push(`  environment: "${manifest.deployment.environment}"`);
+        lines.push('');
+        lines.push('components:');
+        Object.entries(manifest.components).forEach(([name, component]) => {
+            lines.push(`  ${name}:`);
+            lines.push(`    status: "${component.status}"`);
+            lines.push(`    score: ${component.score}`);
+            if (component.version) {
+                lines.push(`    version: "${component.version.version || 'unknown'}"`);
+            }
+        });
+
+        return lines.join('\n');
+    }
+
+    /**
+     * US-088: Phase 2D - Generate human-readable build summary
+     */
+    static _generateBuildSummary(manifest) {
+        const lines = [];
+        lines.push('=== UMIG Build Summary ===');
+        lines.push(`Build ID: ${manifest.buildId}`);
+        lines.push(`Generated: ${manifest.generatedAt}`);
+        lines.push('');
+        lines.push(`📊 Overall Health: ${manifest.health.score}/100 (${manifest.health.status})`);
+        lines.push(`🔧 Components: ${manifest.summary.totalComponents} total, ${manifest.summary.healthyComponents} healthy, ${manifest.summary.errorComponents} errors`);
+        lines.push(`🚀 Deployment Ready: ${manifest.deployment.readiness ? 'YES' : 'NO'}`);
+
+        if (manifest.deployment.blockers.length > 0) {
+            lines.push('');
+            lines.push('⚠️ Deployment Blockers:');
+            manifest.deployment.blockers.forEach(blocker => {
+                lines.push(`  - ${blocker.severity}: ${blocker.message}`);
+            });
+        }
+
+        lines.push('');
+        lines.push('📈 Component Status:');
+        Object.entries(manifest.components).forEach(([name, component]) => {
+            const statusIcon = component.status === 'HEALTHY' ? '✅' :
+                              component.status === 'DEGRADED' ? '⚠️' :
+                              component.status === 'WARNING' ? '⚠️' : '❌';
+            lines.push(`  ${statusIcon} ${name}: ${component.status} (${component.score}/100)`);
+        });
+
+        return lines.join('\n');
+    }
+
+    /**
+     * US-088: Phase 2D - Generate deployment readiness report
+     */
+    static _generateDeploymentReport(manifest) {
+        const lines = [];
+        lines.push('=== UMIG Deployment Readiness Report ===');
+        lines.push(`Assessment Date: ${manifest.generatedAt}`);
+        lines.push(`Build ID: ${manifest.buildId}`);
+        lines.push('');
+        lines.push(`DEPLOYMENT READY: ${manifest.deployment.readiness ? '🟢 YES' : '🔴 NO'}`);
+        lines.push(`Overall Score: ${manifest.deployment.score}/100`);
+        lines.push('');
+
+        if (manifest.deployment.blockers.length > 0) {
+            lines.push('🚫 BLOCKERS (must be resolved):');
+            manifest.deployment.blockers.forEach((blocker, index) => {
+                lines.push(`${index + 1}. [${blocker.severity}] ${blocker.type}: ${blocker.message}`);
+            });
+            lines.push('');
+        }
+
+        lines.push('📋 REQUIREMENTS:');
+        manifest.deployment.requirements.forEach((req, index) => {
+            lines.push(`${index + 1}. ${req}`);
+        });
+
+        lines.push('');
+        lines.push('🏥 HEALTH BREAKDOWN:');
+        Object.entries(manifest.health.categories).forEach(([category, data]) => {
+            const icon = data.status === 'HEALTHY' ? '✅' :
+                        data.status === 'DEGRADED' ? '⚠️' : '❌';
+            lines.push(`  ${icon} ${category.toUpperCase()}: ${data.score}/100 (${data.status})`);
+        });
+
+        return lines.join('\n');
     }
 }
 

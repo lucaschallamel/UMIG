@@ -360,15 +360,12 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     enterSecureMode() {
         console.warn('[DatabaseVersionManager] Entering secure mode - limited functionality');
         this.secureMode = true;
-        
-        // Disable dangerous operations
-        this.generateSQLPackage = () => {
-            throw new Error('Package generation disabled in secure mode');
-        };
-        
-        this.generateLiquibasePackage = () => {
-            throw new Error('Package generation disabled in secure mode');
-        };
+
+        // NOTE: DO NOT override methods here - they already have secure mode checks
+        // The generateSQLPackage() and generateLiquibasePackage() methods
+        // will throw errors appropriately when this.secureMode is true
+
+        console.warn('[DatabaseVersionManager] Package generation disabled - methods check secureMode flag');
     }
     
     /**
@@ -440,26 +437,59 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             throw error;
         }
     }
-    
+
+    /**
+     * Helper function to extract base filename from full path
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
+     */
+    extractBaseFilename(filename) {
+        if (!filename || typeof filename !== 'string') {
+            return '';
+        }
+
+        // Extract basename, handling both formats
+        if (filename.startsWith('changelogs/')) {
+            return filename.substring('changelogs/'.length);
+        }
+
+        return filename;
+    }
+
     /**
      * Validate changeset name for security
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
      */
     validateChangesetName(name) {
-        // Prevent path traversal and injection
-        const validPattern = /^[0-9]{3}_[a-z0-9_]+\.sql$/i;
-        
-        if (!validPattern.test(name)) {
+        if (!name || typeof name !== 'string') {
             return false;
         }
-        
-        // Check for dangerous patterns
-        const dangerousPatterns = ['..', '/', '\\', ';', '--', '/*', '*/', 'DROP', 'DELETE'];
+
+        // Extract base filename for validation
+        const fileName = this.extractBaseFilename(name);
+        if (!fileName) {
+            return false;
+        }
+
+        // Prevent path traversal and injection
+        const validPattern = /^[0-9]{3}_[a-z0-9_]+\.sql$/i;
+
+        if (!validPattern.test(fileName)) {
+            return false;
+        }
+
+        // Check for dangerous patterns in the full name (for security)
+        const dangerousPatterns = ['..', '\\', ';', '--', '/*', '*/', 'DROP', 'DELETE'];
         for (const pattern of dangerousPatterns) {
             if (name.toUpperCase().includes(pattern)) {
                 return false;
             }
         }
-        
+
+        // Additional check: ensure no multiple slashes or invalid path components
+        if (name.includes('//') || name.includes('../') || name.includes('\\')) {
+            return false;
+        }
+
         return true;
     }
     
@@ -492,9 +522,17 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     
     /**
      * Extract sequence number with validation
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
      */
     extractSequenceNumber(fileName) {
-        const match = fileName.match(/^(\d{3})_/);
+        if (!fileName || typeof fileName !== 'string') {
+            return 0;
+        }
+
+        // Extract basename using helper function
+        const baseName = this.extractBaseFilename(fileName);
+
+        const match = baseName.match(/^(\d{3})_/);
         if (match) {
             const sequence = parseInt(match[1], 10);
             if (sequence >= 0 && sequence <= 999) {
@@ -506,8 +544,16 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     
     /**
      * Categorize changeset based on patterns
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
      */
     categorizeChangeset(fileName) {
+        if (!fileName || typeof fileName !== 'string') {
+            return 'GENERAL';
+        }
+
+        // Extract basename using helper function
+        const baseName = this.extractBaseFilename(fileName);
+
         const categories = {
             'baseline': 'BASELINE',
             'email_template': 'EMAIL_TEMPLATES',
@@ -521,45 +567,61 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             'create': 'TABLE_CREATION',
             'dto': 'DTO_OPTIMIZATION'
         };
-        
+
         for (const [pattern, category] of Object.entries(categories)) {
-            if (fileName.includes(pattern)) {
+            if (baseName.includes(pattern)) {
                 return category;
             }
         }
-        
+
         return 'GENERAL';
     }
     
     /**
      * Check if changeset is structural
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
      */
     isStructuralChange(fileName) {
+        if (!fileName || typeof fileName !== 'string') {
+            return false;
+        }
+
+        // Extract basename using helper function
+        const baseName = this.extractBaseFilename(fileName);
+
         const structuralPatterns = [
             'baseline', 'create_', 'add_', 'drop_', 'alter_table',
             'foreign_key', 'index', 'constraint', 'normalization'
         ];
-        return structuralPatterns.some(pattern => fileName.includes(pattern));
+        return structuralPatterns.some(pattern => baseName.includes(pattern));
     }
     
     /**
      * Identify changeset dependencies
+     * Handles both formats: "001_file.sql" and "changelogs/001_file.sql"
      */
     identifyDependencies(fileName, sequence) {
+        if (!fileName || typeof fileName !== 'string') {
+            return [];
+        }
+
+        // Extract basename using helper function
+        const baseName = this.extractBaseFilename(fileName);
+
         const dependencies = [];
-        
+
         if (sequence > 1) {
             dependencies.push('001_unified_baseline.sql');
         }
-        
-        if (fileName.includes('status') && !fileName.includes('015_remove_fields')) {
+
+        if (baseName.includes('status') && !baseName.includes('015_remove_fields')) {
             dependencies.push('015_remove_fields_from_steps_instance_and_add_status_table.sql');
         }
-        
-        if (fileName.includes('021_add_status_foreign_keys')) {
+
+        if (baseName.includes('021_add_status_foreign_keys')) {
             dependencies.push('019_status_field_normalization.sql');
         }
-        
+
         return dependencies;
     }
     
@@ -621,22 +683,35 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
         }
         
         try {
-            const changesets = await this.resolveChangesetSelection(selection);
-            
-            const packageData = {
-                metadata: {
-                    version: this.computePackageVersion(changesets),
-                    format: this.sanitizeString(format),
-                    generatedAt: new Date().toISOString(),
-                    changesetCount: changesets.length,
-                    securityValidated: true
-                },
-                deploymentScript: await this.generateDeploymentScript(changesets, format),
-                rollbackScript: await this.generateRollbackScript(changesets),
-                validation: await this.generateValidationQueries(changesets),
-                checksum: this.generatePackageChecksum(changesets)
+            // Call new API endpoint for self-contained package generation
+            const queryParams = new URLSearchParams({
+                selection: selection,
+                format: format
+            }).toString();
+
+            const response = await this.fetchWithCSRF(
+                `/rest/scriptrunner/latest/custom/databaseVersionsPackageSQL?${queryParams}`,
+                { method: 'GET' }
+            );
+
+            if (!response.ok) {
+                console.error(`[DatabaseVersionManager] API Error: ${response.status} - ${response.statusText}`);
+                if (response.status === 404) {
+                    console.error('[DatabaseVersionManager] CRITICAL: API endpoint not found - check URL pattern');
+                }
+                throw new Error(`API call failed: ${response.status}`);
+            }
+
+            const packageData = await response.json();
+
+            // Add local security metadata
+            packageData.metadata = {
+                ...packageData.metadata,
+                generatedAt: new Date().toISOString(),
+                securityValidated: true,
+                generatedBy: 'DatabaseVersionManager'
             };
-            
+
             return packageData;
             
         } catch (error) {
@@ -669,23 +744,34 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
         }
         
         try {
-            const changesets = await this.resolveChangesetSelection(selection);
-            
-            const packageData = {
-                metadata: {
-                    version: this.computePackageVersion(changesets),
-                    format: 'liquibase',
-                    generatedAt: new Date().toISOString(),
-                    changesetCount: changesets.length,
-                    liquibaseVersion: '4.0+',
-                    securityValidated: true
-                },
-                changelogXml: await this.generateChangelogXml(changesets),
-                properties: this.generateLiquibaseProperties(),
-                deploymentGuide: this.generateDeploymentGuide(changesets),
-                checksum: this.generatePackageChecksum(changesets)
+            // Call new API endpoint for self-contained Liquibase package generation
+            const queryParams = new URLSearchParams({
+                selection: selection
+            }).toString();
+
+            const response = await this.fetchWithCSRF(
+                `/rest/scriptrunner/latest/custom/databaseVersionsPackageLiquibase?${queryParams}`,
+                { method: 'GET' }
+            );
+
+            if (!response.ok) {
+                console.error(`[DatabaseVersionManager] API Error: ${response.status} - ${response.statusText}`);
+                if (response.status === 404) {
+                    console.error('[DatabaseVersionManager] CRITICAL: API endpoint not found - check URL pattern');
+                }
+                throw new Error(`API call failed: ${response.status}`);
+            }
+
+            const packageData = await response.json();
+
+            // Add local security metadata
+            packageData.metadata = {
+                ...packageData.metadata,
+                generatedAt: new Date().toISOString(),
+                securityValidated: true,
+                generatedBy: 'DatabaseVersionManager'
             };
-            
+
             return packageData;
             
         } catch (error) {
@@ -1051,14 +1137,91 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
                 version: 'v0.0.0',
                 format: 'template',
                 generatedAt: new Date().toISOString(),
-                fallbackMode: true
+                fallbackMode: true,
+                changesetCount: 0
             },
+            checksum: 'template-fallback',
             deploymentScript: '-- Template deployment script\n-- Manual configuration required',
             rollbackScript: '-- Template rollback script\n-- Manual configuration required',
             validation: '-- Template validation\n-- Manual configuration required'
         };
     }
     
+    /**
+     * US-088: Phase 2A - Get database version for build manifest
+     * Integrates with ComponentVersionTracker for unified versioning
+     */
+    getBuildMetadata() {
+        try {
+            if (!this.migrationsLoaded || this.migrations.length === 0) {
+                return {
+                    version: 'v0.0.0',
+                    status: 'NOT_LOADED',
+                    lastMigration: 'none',
+                    totalMigrations: 0,
+                    executedMigrations: 0,
+                    errors: ['Migrations not loaded from API']
+                };
+            }
+
+            // Calculate version info from loaded migrations
+            const executedMigrations = this.migrations.filter(m => m.executionType === 'EXECUTED');
+            const latestMigration = executedMigrations
+                .sort((a, b) => (b.orderExecuted || 0) - (a.orderExecuted || 0))[0];
+
+            return {
+                version: latestMigration?.version || 'v1.0.0',
+                status: 'LOADED',
+                lastMigration: latestMigration?.filename || 'unknown',
+                totalMigrations: this.migrations.length,
+                executedMigrations: executedMigrations.length,
+                loadedAt: new Date().toISOString(),
+                statistics: this.migrationStatistics,
+                apiEndpoint: this.apiEndpoint
+            };
+        } catch (error) {
+            console.error('[DatabaseVersionManager] Build metadata generation failed:', error);
+            return {
+                version: 'v0.0.0',
+                status: 'ERROR',
+                error: error.message,
+                totalMigrations: 0,
+                executedMigrations: 0
+            };
+        }
+    }
+
+    /**
+     * US-088: Phase 2A - Register with ComponentVersionTracker for build integration
+     * Called by ComponentOrchestrator during initialization
+     */
+    registerForBuildIntegration() {
+        try {
+            // Register with global version tracking if available
+            if (window.ComponentVersionTracker && typeof window.ComponentVersionTracker.registerComponent === 'function') {
+                window.ComponentVersionTracker.registerComponent('DatabaseVersionManager', {
+                    getVersion: () => this.getBuildMetadata(),
+                    getDatabaseInfo: () => ({
+                        migrations: this.migrations?.length || 0,
+                        executed: this.migrations?.filter(m => m.executionType === 'EXECUTED').length || 0,
+                        apiConnected: this.migrationsLoaded
+                    }),
+                    validateConnection: async () => {
+                        try {
+                            const response = await this.fetchWithCSRF(this.apiEndpoint + '/statistics');
+                            return response.ok;
+                        } catch {
+                            return false;
+                        }
+                    }
+                });
+                console.log('[DatabaseVersionManager] Registered for build integration');
+            }
+        } catch (error) {
+            console.warn('[DatabaseVersionManager] Build integration registration failed:', error);
+        }
+    }
+
     /**
      * US-088-B: Fetch with CSRF protection for API calls
      * Ensures secure API communication following ADR-058 patterns
@@ -1110,10 +1273,14 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     /**
      * US-088-B: Convert API migration format to internal changeset format
      * Maintains backward compatibility with existing UI code
+     * Handles both filename formats from API
      */
     convertApiMigrationToChangeset(migration) {
+        const baseFilename = this.extractBaseFilename(migration.filename || '');
+
         return {
-            fileName: this.sanitizeString(migration.filename || ''),
+            fileName: this.sanitizeString(baseFilename),
+            fullPath: this.sanitizeString(migration.filename || ''), // Keep original for reference
             sequence: migration.sequence || 0,
             category: migration.category || 'GENERAL',
             version: migration.version || 'v0.0.0',
@@ -1128,7 +1295,7 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             checksum: migration.checksum,
             executionType: migration.executionType,
             author: migration.author,
-            displayName: migration.displayName || migration.filename?.replace('.sql', '') || '',
+            displayName: migration.displayName || baseFilename?.replace('.sql', '') || '',
             shortDescription: migration.shortDescription || migration.description || ''
         };
     }
@@ -1211,6 +1378,9 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             // Mark as initialized
             this.initialized = true;
 
+            // US-088: Phase 2A - Register for build integration after successful initialization
+            this.registerForBuildIntegration();
+
             console.log("[DatabaseVersionManager] Initialization complete");
         } catch (error) {
             console.error("[DatabaseVersionManager] Initialization failed:", error);
@@ -1247,6 +1417,163 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     }
 
     /**
+     * Add component-specific styles
+     */
+    addComponentStyles() {
+        if (document.getElementById('umig-dvm-component-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'umig-dvm-component-styles';
+        style.textContent = `
+            .umig-database-version-manager-secure {
+                padding: 20px;
+                background: #f5f5f5;
+                border-radius: 8px;
+            }
+            .umig-dvm-header h2 {
+                margin: 0;
+                color: #333;
+            }
+            .umig-security-badge {
+                padding: 5px 10px;
+                background: #28a745;
+                color: white;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            .umig-dvm-stats {
+                display: flex;
+                gap: 20px;
+                margin: 20px 0;
+            }
+            .umig-stat-card {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                flex: 1;
+                text-align: center;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .umig-stat-value {
+                font-size: 2em;
+                font-weight: bold;
+                color: #007bff;
+            }
+            .umig-stat-label {
+                color: #666;
+                margin-top: 5px;
+            }
+            .umig-package-result {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .umig-package-info {
+                margin: 15px 0;
+            }
+            .umig-info-row {
+                display: flex;
+                padding: 8px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .umig-info-row .umig-label {
+                font-weight: bold;
+                width: 150px;
+                color: #666;
+            }
+            .umig-info-row .umig-value {
+                color: #333;
+            }
+            .umig-script-preview {
+                margin: 20px 0;
+            }
+            .umig-script-preview h4 {
+                margin-bottom: 10px;
+                color: #333;
+            }
+            .umig-code-preview {
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 15px;
+                font-family: monospace;
+                font-size: 12px;
+                overflow-x: auto;
+                max-height: 200px;
+            }
+            .umig-action-buttons {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            .umig-action-buttons button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            .umig-btn-primary {
+                background: #007bff;
+                color: white;
+            }
+            .umig-btn-primary:hover {
+                background: #0056b3;
+            }
+            .umig-btn-secondary {
+                background: #6c757d;
+                color: white;
+            }
+            .umig-btn-secondary:hover {
+                background: #545b62;
+            }
+            .umig-dvm-actions {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .umig-dvm-actions button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s;
+            }
+            .umig-dvm-actions button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            .umig-success-message {
+                padding: 10px;
+                background: #d4edda;
+                color: #155724;
+                border-radius: 4px;
+                border: 1px solid #c3e6cb;
+                animation: umig-fadeIn 0.3s;
+            }
+            .umig-loading {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+            }
+            .umig-error {
+                padding: 10px;
+                background: #f8d7da;
+                color: #721c24;
+                border-radius: 4px;
+                border: 1px solid #f5c6cb;
+            }
+            @keyframes umig-fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    /**
      * Render component UI with XSS protection
      */
     async render() {
@@ -1255,7 +1582,10 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
         if (!this.container) {
             throw new Error("Container not set - initialize() must be called first");
         }
-        
+
+        // Add component styles
+        this.addComponentStyles();
+
         const safeHtml = this.buildSafeUI();
         
         if (window.SecurityUtils?.setSecureHTML) {
@@ -1277,36 +1607,38 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
         const versionCount = this.sanitizeString(String(this.semanticVersionMap.size));
         
         return `
-            <div class="database-version-manager-secure">
-                <div class="dvm-header">
+            <div class="umig-database-version-manager-secure">
+                <div class="umig-dvm-header">
                     <h2>Database Version Manager</h2>
-                    <span class="security-badge">Security: ${this.securityState.initialized ? 'Active' : 'Limited'}</span>
+                    <span class="umig-security-badge">Security: ${this.securityState.initialized ? 'Active' : 'Limited'}</span>
                 </div>
-                
-                <div class="dvm-stats">
-                    <div class="stat-card">
-                        <div class="stat-value">${changesetCount}</div>
-                        <div class="stat-label">Changesets</div>
+
+                <div class="umig-dvm-stats">
+                    <div class="umig-stat-card">
+                        <div class="umig-stat-value">${changesetCount}</div>
+                        <div class="umig-stat-label">Changesets</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${versionCount}</div>
-                        <div class="stat-label">Versions</div>
+                    <div class="umig-stat-card">
+                        <div class="umig-stat-value">${versionCount}</div>
+                        <div class="umig-stat-label">Versions</div>
                     </div>
                 </div>
-                
-                <div class="dvm-actions">
-                    <button data-action="generate-sql" class="btn-primary" ${this.secureMode ? 'disabled' : ''}>
+
+                <div class="umig-dvm-actions">
+                    <button data-action="generate-sql" class="umig-btn-primary" ${this.secureMode ? 'disabled' : ''}>
                         Generate SQL Package
                     </button>
-                    <button data-action="generate-liquibase" class="btn-primary" ${this.secureMode ? 'disabled' : ''}>
+                    <button data-action="generate-liquibase" class="umig-btn-primary" ${this.secureMode ? 'disabled' : ''}>
                         Generate Liquibase Package
                     </button>
-                    <button data-action="show-versions" class="btn-secondary">
+                    <button data-action="show-versions" class="umig-btn-secondary">
                         Show Versions
                     </button>
                 </div>
-                
-                <div class="dvm-results" id="dvm-results"></div>
+
+                <div class="umig-dvm-messages"></div>
+
+                <div class="umig-dvm-results" id="umig-dvm-results"></div>
             </div>
         `;
     }
@@ -1318,17 +1650,24 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
         this.container.addEventListener('click', async (event) => {
             const target = event.target;
             if (target.tagName !== 'BUTTON') return;
-            
+
+            // Check for copy operations first
+            const copyType = target.getAttribute('data-copy');
+            if (copyType) {
+                this.handleCopyOperation(copyType, target);
+                return;
+            }
+
             const action = target.getAttribute('data-action');
             if (!action) return;
-            
+
             // Validate action
             const allowedActions = ['generate-sql', 'generate-liquibase', 'show-versions'];
             if (!allowedActions.includes(action)) {
                 console.warn('[DatabaseVersionManager] Invalid action:', action);
                 return;
             }
-            
+
             try {
                 switch (action) {
                     case 'generate-sql':
@@ -1348,10 +1687,120 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
     }
     
     /**
+     * Handle copy operations for deployment scripts and changelogs
+     */
+    handleCopyOperation(copyType, buttonElement) {
+        let textToCopy = '';
+        let successMessage = '';
+
+        switch (copyType) {
+            case 'deployment':
+                textToCopy = this.lastDeploymentScript || '';
+                successMessage = 'Deployment script copied to clipboard!';
+                break;
+            case 'changelog':
+                textToCopy = this.lastChangelog || '';
+                successMessage = 'Changelog copied to clipboard!';
+                break;
+            case 'rollback':
+                textToCopy = this.lastRollbackScript || '';
+                successMessage = 'Rollback script copied to clipboard!';
+                break;
+            default:
+                console.warn('[DatabaseVersionManager] Unknown copy type:', copyType);
+                return;
+        }
+
+        if (!textToCopy) {
+            this.showError('No content available to copy. Please generate the package first.');
+            return;
+        }
+
+        // Use modern clipboard API with fallback
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    this.showCopySuccess(buttonElement, successMessage);
+                })
+                .catch(err => {
+                    console.error('[DatabaseVersionManager] Clipboard write failed:', err);
+                    this.fallbackCopyToClipboard(textToCopy, buttonElement, successMessage);
+                });
+        } else {
+            this.fallbackCopyToClipboard(textToCopy, buttonElement, successMessage);
+        }
+    }
+
+    /**
+     * Fallback copy method for non-secure contexts
+     */
+    fallbackCopyToClipboard(text, buttonElement, successMessage) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-999999px';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                this.showCopySuccess(buttonElement, successMessage);
+            } else {
+                this.showError('Failed to copy to clipboard.');
+            }
+        } catch (err) {
+            console.error('[DatabaseVersionManager] Fallback copy failed:', err);
+            this.showError('Failed to copy to clipboard.');
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    /**
+     * Show visual feedback for successful copy operation
+     */
+    showCopySuccess(buttonElement, message) {
+        // Store original text
+        const originalText = buttonElement.textContent;
+
+        // Update button text temporarily
+        buttonElement.textContent = '✓ Copied!';
+        buttonElement.style.backgroundColor = '#4CAF50';
+        buttonElement.style.color = 'white';
+
+        // Show notification if available
+        if (this.container.querySelector('.umig-dvm-messages')) {
+            const messageDiv = this.container.querySelector('.umig-dvm-messages');
+            const safeMessage = this.sanitizeString(message);
+            if (window.SecurityUtils?.setSecureHTML) {
+                window.SecurityUtils.setSecureHTML(messageDiv,
+                    `<div class="umig-success-message">${safeMessage}</div>`);
+            } else {
+                messageDiv.innerHTML = `<div class="umig-success-message">${safeMessage}</div>`;
+            }
+
+            // Clear message after 3 seconds
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // Restore button after 2 seconds
+        setTimeout(() => {
+            buttonElement.textContent = originalText;
+            buttonElement.style.backgroundColor = '';
+            buttonElement.style.color = '';
+        }, 2000);
+    }
+
+    /**
      * Handle SQL package generation
      */
     async handleGenerateSQLPackage() {
-        const resultsDiv = document.getElementById('dvm-results');
+        const resultsDiv = document.getElementById('umig-dvm-results');
         if (!resultsDiv) return;
         
         try {
@@ -1359,13 +1808,46 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             
             const sqlPackage = await this.generateSQLPackage('all', 'postgresql');
             
+            // Generate a preview of the deployment script
+            const scriptPreview = sqlPackage.deploymentScript
+                ? sqlPackage.deploymentScript.split('\n').slice(0, 10).join('\n') + '\n...'
+                : 'No deployment script available';
+
             const safeHtml = `
-                <div class="package-result">
-                    <h3>SQL Package Generated</h3>
-                    <p>Version: ${this.sanitizeString(sqlPackage.metadata.version)}</p>
-                    <p>Changesets: ${sqlPackage.metadata.changesetCount}</p>
-                    <p>Checksum: ${this.sanitizeString(sqlPackage.checksum)}</p>
-                    <button data-copy="deployment">Copy Deployment Script</button>
+                <div class="umig-package-result">
+                    <h3>✅ SQL Package Generated Successfully</h3>
+                    <div class="umig-package-info">
+                        <div class="umig-info-row">
+                            <span class="umig-label">Version:</span>
+                            <span class="umig-value">${this.sanitizeString(sqlPackage.metadata.version)}</span>
+                        </div>
+                        <div class="umig-info-row">
+                            <span class="umig-label">Changesets:</span>
+                            <span class="umig-value">${sqlPackage.metadata.changesetCount}</span>
+                        </div>
+                        <div class="umig-info-row">
+                            <span class="umig-label">Format:</span>
+                            <span class="umig-value">PostgreSQL</span>
+                        </div>
+                        <div class="umig-info-row">
+                            <span class="umig-label">Checksum:</span>
+                            <span class="umig-value">${this.sanitizeString(sqlPackage.checksum)}</span>
+                        </div>
+                    </div>
+
+                    <div class="umig-script-preview">
+                        <h4>Deployment Script Preview:</h4>
+                        <pre class="umig-code-preview">${this.sanitizeString(scriptPreview)}</pre>
+                    </div>
+
+                    <div class="umig-action-buttons">
+                        <button data-copy="deployment" class="umig-btn-primary">
+                            📋 Copy Deployment Script
+                        </button>
+                        <button data-copy="rollback" class="umig-btn-secondary" style="display:none">
+                            ↩️ Copy Rollback Script
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -1375,8 +1857,9 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
                 resultsDiv.innerHTML = safeHtml;
             }
             
-            // Store script for copy operation
+            // Store scripts for copy operations
             this.lastDeploymentScript = sqlPackage.deploymentScript;
+            this.lastRollbackScript = sqlPackage.rollbackScript || null;
             
         } catch (error) {
             this.showError(error.message);
@@ -1387,7 +1870,7 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
      * Handle Liquibase package generation
      */
     async handleGenerateLiquibasePackage() {
-        const resultsDiv = document.getElementById('dvm-results');
+        const resultsDiv = document.getElementById('umig-dvm-results');
         if (!resultsDiv) return;
         
         try {
@@ -1396,12 +1879,12 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
             const liquibasePackage = await this.generateLiquibasePackage('all');
             
             const safeHtml = `
-                <div class="package-result">
+                <div class="umig-package-result">
                     <h3>Liquibase Package Generated</h3>
                     <p>Version: ${this.sanitizeString(liquibasePackage.metadata.version)}</p>
                     <p>Changesets: ${liquibasePackage.metadata.changesetCount}</p>
                     <p>Checksum: ${this.sanitizeString(liquibasePackage.checksum)}</p>
-                    <button data-copy="changelog">Copy Changelog</button>
+                    <button data-copy="changelog" class="umig-btn-primary">Copy Changelog</button>
                 </div>
             `;
             
@@ -1423,7 +1906,7 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
      * Handle show versions
      */
     handleShowVersions() {
-        const resultsDiv = document.getElementById('dvm-results');
+        const resultsDiv = document.getElementById('umig-dvm-results');
         if (!resultsDiv) return;
         
         const rows = [];
@@ -1468,11 +1951,11 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
      * Show loading message
      */
     showLoading(message) {
-        const resultsDiv = document.getElementById('dvm-results');
+        const resultsDiv = document.getElementById('umig-dvm-results');
         if (!resultsDiv) return;
         
         const safeMessage = this.sanitizeString(message);
-        const html = `<div class="loading">${safeMessage}</div>`;
+        const html = `<div class="umig-loading">${safeMessage}</div>`;
         
         if (window.SecurityUtils?.setSecureHTML) {
             window.SecurityUtils.setSecureHTML(resultsDiv, html);
@@ -1485,11 +1968,11 @@ class DatabaseVersionManager extends (window.BaseEntityManager || class {}) {
      * Show error message
      */
     showError(message) {
-        const resultsDiv = document.getElementById('dvm-results');
+        const resultsDiv = document.getElementById('umig-dvm-results');
         if (!resultsDiv) return;
         
         const safeMessage = this.sanitizeString(message);
-        const html = `<div class="error">Error: ${safeMessage}</div>`;
+        const html = `<div class="umig-error">Error: ${safeMessage}</div>`;
         
         if (window.SecurityUtils?.setSecureHTML) {
             window.SecurityUtils.setSecureHTML(resultsDiv, html);

@@ -69,7 +69,7 @@ global.window.BaseEntityManager = class BaseEntityManager {
 };
 
 // Load the component
-require('../../src/groovy/umig/web/js/components/DatabaseVersionManager.js');
+require('../../../src/groovy/umig/web/js/components/DatabaseVersionManager.js');
 
 const DatabaseVersionManager = global.window.DatabaseVersionManager;
 
