@@ -248,7 +248,7 @@ All APIs include comprehensive testing:
 
 - US-087 Phases 2-7: Migration hierarchy entities (2 story points)
 - US-089: Real-time collaboration features (38 story points)
-- US-088: Advanced monitoring dashboard (4 story points)
+- US-073: Advanced monitoring dashboard (4 story points)
 - Production deployment preparation
 
 ### API Implementation Maturity

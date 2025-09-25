@@ -1,0 +1,218 @@
+{
+  "version": "1.0.0",
+  "description": "UMIG Build Process Configuration - Phase 1",
+  "updated": "2025-09-25",
+
+  "versioning": {
+    "strategy": "unified-umig",
+    "primarySource": "package.json",
+    "componentTracking": {
+      "database": {
+        "type": "sequential-semantic",
+        "source": "liquibase",
+        "phase1Status": "placeholder"
+      },
+      "api": {
+        "type": "independent",
+        "version": "v2.x",
+        "phase1Status": "static"
+      },
+      "ui": {
+        "type": "aligned",
+        "alignWith": "umig",
+        "phase1Status": "aligned"
+      },
+      "backend": {
+        "type": "aligned",
+        "alignWith": "umig",
+        "phase1Status": "aligned"
+      }
+    }
+  },
+
+  "environments": {
+    "development": {
+      "version_format": "v{version}+dev.{branch}-{timestamp}",
+      "database_option": "liquibase",
+      "include_debug": true,
+      "metadata_level": "full",
+      "health_endpoints": false,
+      "include_tests": true,
+      "compression": "fast",
+      "validation_strictness": "relaxed"
+    },
+    "uat": {
+      "version_format": "v{version}-rc.{candidate}-{timestamp}",
+      "database_option": "liquibase",
+      "include_debug": false,
+      "metadata_level": "full",
+      "health_endpoints": true,
+      "include_tests": false,
+      "compression": "optimal",
+      "validation_strictness": "standard",
+      "compatibility_validation": true
+    },
+    "production": {
+      "version_format": "v{version}-{timestamp}",
+      "database_option": "consolidated",
+      "include_debug": false,
+      "metadata_level": "full",
+      "health_endpoints": true,
+      "include_tests": false,
+      "compression": "best",
+      "validation_strictness": "strict",
+      "compatibility_validation": true,
+      "rollback_validation": true
+    }
+  },
+
+  "source": {
+    "baseDirectory": "../src/groovy/umig",
+    "inclusionPatterns": [
+      "api/**/*.groovy",
+      "macros/**/*.groovy",
+      "repository/**/*.groovy",
+      "utils/**/*.groovy",
+      "web/**/*.js",
+      "web/**/*.css",
+      "web/**/*.html",
+      "web/**/*.json"
+    ],
+    "exclusionPatterns": [
+      "tests/**/*",
+      "**/*.test.groovy",
+      "**/Test*.groovy",
+      "**/*.backup",
+      "**/*.tmp",
+      "**/.DS_Store",
+      "**/Thumbs.db"
+    ],
+    "validation": {
+      "requiredDirectories": ["api", "repository", "utils"],
+      "optionalDirectories": ["web", "macros"],
+      "maxArchiveSize": "50MB",
+      "minCompressionRatio": 50
+    }
+  },
+
+  "metadata": {
+    "build_manifest": {
+      "include_component_matrix": true,
+      "include_security_scan": false,
+      "include_quality_metrics": false,
+      "include_test_coverage": false,
+      "phase1Status": "basic-metadata-only"
+    },
+    "deployment_info": {
+      "include_prerequisites": true,
+      "include_migration_details": false,
+      "include_rollback_info": false,
+      "include_monitoring_config": false,
+      "phase1Status": "placeholder"
+    },
+    "version_compatibility": {
+      "include_upgrade_matrix": false,
+      "include_rollback_matrix": false,
+      "include_deprecation_schedule": false,
+      "phase1Status": "not-implemented"
+    }
+  },
+
+  "build": {
+    "outputDirectory": "./build/artifacts",
+    "tempDirectory": "./build/temp",
+    "maxBuildTime": 300,
+    "maxMemoryUsage": "1GB",
+    "maxTempSpace": "200MB",
+    "parallelProcessing": false,
+    "cleanupOnFailure": true
+  },
+
+  "validation": {
+    "environment": {
+      "minNodeVersion": "v16.0.0",
+      "requireGitRepository": true,
+      "checkUncommittedChanges": true,
+      "validateFilesystemPermissions": true
+    },
+    "output": {
+      "validateArchives": true,
+      "validateMetadata": true,
+      "validateChecksums": false,
+      "crossPlatformValidation": false,
+      "phase1Status": "basic-validation-only"
+    },
+    "performance": {
+      "enabled": false,
+      "maxBuildDuration": 300,
+      "memoryLimits": true,
+      "resourceMonitoring": false,
+      "phase1Status": "disabled"
+    }
+  },
+
+  "healthEndpoints": {
+    "enabled": false,
+    "endpoints": [
+      "/admin/version",
+      "/admin/health",
+      "/admin/components",
+      "/admin/compatibility",
+      "/admin/build-info"
+    ],
+    "responseTimeout": 500,
+    "includeComponentDetails": true,
+    "phase1Status": "not-implemented"
+  },
+
+  "database": {
+    "options": {
+      "liquibase": {
+        "enabled": true,
+        "sourceDirectory": "../local-dev-setup/liquibase/",
+        "changelogMaster": "db.changelog-master.xml",
+        "includeRollback": false,
+        "phase1Status": "not-implemented"
+      },
+      "consolidated": {
+        "enabled": false,
+        "outputFile": "umig-db-full-v{version}.sql",
+        "validateSyntax": false,
+        "phase1Status": "not-implemented"
+      }
+    }
+  },
+
+  "documentation": {
+    "autoGenerate": false,
+    "includeVersionSpecific": false,
+    "templates": {
+      "deploymentGuide": false,
+      "upgradeGuide": false,
+      "rollbackProcedures": false,
+      "releaseNotes": false
+    },
+    "phase1Status": "not-implemented"
+  },
+
+  "phase1": {
+    "description": "Core build infrastructure with BuildOrchestrator and SourcePackager",
+    "implemented": [
+      "BuildOrchestrator skeleton with phase-based workflow",
+      "SourcePackager with file inclusion/exclusion logic",
+      "VersionManager with ADR-066 integration",
+      "BuildValidator with environment checks",
+      "NPM command integration",
+      "Basic configuration management"
+    ],
+    "limitations": [
+      "No database packaging",
+      "No health endpoints",
+      "Basic metadata only",
+      "No cross-platform validation",
+      "No performance monitoring",
+      "No documentation generation"
+    ],
+    "nextPhase": "Phase 2: Database and API versioning (Sprint 7, Week 2)"
+  }
+}

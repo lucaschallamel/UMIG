@@ -36,6 +36,10 @@ import umig.service.StatusService
 /**
  * EmailService - Centralized email notification service for UMIG
  *
+ * ⚠️  DEPRECATED: This service is deprecated as of 2025-09-25.
+ * ⚠️  Please use EnhancedEmailService instead for all new implementations.
+ * ⚠️  This class is maintained for backward compatibility and testing only.
+ *
  * Handles all email notifications for step status changes, instruction completions,
  * and other workflow events. Uses Confluence's native mail API as per ADR-032
  * and logs all notifications to the audit_log_aud table for audit purposes.

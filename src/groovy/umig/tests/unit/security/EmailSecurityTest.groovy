@@ -2,20 +2,20 @@
 
 package umig.tests.unit.security
 
-import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
 import groovy.text.SimpleTemplateEngine
 import java.sql.SQLException
 
 /**
- * EmailSecurityTest - Standalone security test for EmailService
- * 
+ * EmailSecurityTest - Standalone security test for EnhancedEmailService
+ *
  * Tests Phase 1 security implementations:
  * - Template expression validation
  * - Content size limits
  * - Dangerous pattern detection
- * 
+ *
  * Based on US-067 requirements and migrated from ad hoc tests
- * 
+ *
  * @author UMIG Test Framework
  * @since 2025-09-06
  */
@@ -106,7 +106,7 @@ class EmailSecurityTest {
                 // Method is private, use reflection directly
                 def shouldFail = false
                 try {
-                    def method = EmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
+                    def method = EnhancedEmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
                     method.setAccessible(true)
                     method.invoke(null, template)
                     shouldFail = true
@@ -143,7 +143,7 @@ class EmailSecurityTest {
             // Method is private, use reflection directly
             def shouldFail = false
             try {
-                def method = EmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
+                def method = EnhancedEmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
                 method.setAccessible(true)
                 method.invoke(null, variables, largeTemplate)
                 shouldFail = true
@@ -175,7 +175,7 @@ class EmailSecurityTest {
             // Method is private, use reflection directly
             def shouldFail = false
             try {
-                def method = EmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
+                def method = EnhancedEmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
                 method.setAccessible(true)
                 method.invoke(null, variables, template)
                 shouldFail = true
@@ -216,7 +216,7 @@ class EmailSecurityTest {
             try {
                 // Method is private, use reflection directly - convert to String per ADR-031
                 def patternStr = pattern as String
-                def method = EmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
+                def method = EnhancedEmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
                 method.setAccessible(true)
                 method.invoke(null, patternStr)
                 testPassed("Safe pattern allowed")
@@ -250,11 +250,11 @@ class EmailSecurityTest {
         // Warm up - use reflection since methods are private
         10.times {
             try {
-                def validateExpr = EmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
+                def validateExpr = EnhancedEmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
                 validateExpr.setAccessible(true)
                 validateExpr.invoke(null, template)
                 
-                def validateSize = EmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
+                def validateSize = EnhancedEmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
                 validateSize.setAccessible(true)
                 validateSize.invoke(null, variables, template)
             } catch (Exception ex) {
@@ -270,11 +270,11 @@ class EmailSecurityTest {
             def start = System.currentTimeMillis()
             try {
                 // Use reflection since methods are private
-                def validateExpr = EmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
+                def validateExpr = EnhancedEmailService.class.getDeclaredMethod("validateTemplateExpression", String.class)
                 validateExpr.setAccessible(true)
                 validateExpr.invoke(null, template)
                 
-                def validateSize = EmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
+                def validateSize = EnhancedEmailService.class.getDeclaredMethod("validateContentSize", Map.class, String.class)
                 validateSize.setAccessible(true)
                 validateSize.invoke(null, variables, template)
             } catch (Exception ex) {

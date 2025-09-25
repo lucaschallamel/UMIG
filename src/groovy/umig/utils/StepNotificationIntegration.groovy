@@ -5,7 +5,7 @@ import groovy.sql.GroovyRowResult
 import java.time.LocalDateTime
 import java.util.UUID
 import umig.utils.DatabaseUtil
-import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
 import umig.repository.StepRepository
 import umig.dto.StepInstanceDTO
 import umig.service.StepDataTransformationService
@@ -86,32 +86,42 @@ class StepNotificationIntegration {
                     // and the /stepViewApi/email endpoint is in the same system,
                     // we should call it directly rather than making an HTTP request
 
-                    // For now, continue using the existing EmailService method
-                    // The /stepViewApi/email endpoint is available for external systems
-                    // but internal calls should use the direct EmailService approach
-                    EmailService.sendStepViewDirectNotification(
-                        stepData as Map,
-                        newStatusName,
-                        oldStatusName,
-                        userId,
-                        'iterationview',  // Source view
-                        stepData.migrationCode as String,
-                        stepData.iterationCode as String
-                    )
+                    // Use EnhancedEmailService for improved reliability and URL construction
+                    DatabaseUtil.withSql { sql ->
+                        def teams = getTeamsForStepNotification(sql, stepInstanceId)
+                        def cutoverTeam = getCutoverTeam(sql)
 
-                    println "${LOG_PREFIX} Email notification sent successfully (using EmailService)"
+                        EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                            stepData as Map,
+                            teams,
+                            cutoverTeam,
+                            oldStatusName,
+                            newStatusName,
+                            userId,
+                            stepData.migrationCode as String,
+                            stepData.iterationCode as String
+                        )
+                    }
+
+                    println "${LOG_PREFIX} Email notification sent successfully (using EnhancedEmailService)"
                 } catch (Exception emailError) {
                     println "${LOG_PREFIX} Error calling /stepViewApi/email endpoint: ${emailError.message}"
-                    // Fall back to old method if new endpoint fails
-                    EmailService.sendStepViewDirectNotification(
-                        stepData as Map,
-                        newStatusName,
-                        oldStatusName,
-                        userId,
-                        'iterationview',
-                        stepData.migrationCode as String,
-                        stepData.iterationCode as String
-                    )
+                    // Fall back to EnhancedEmailService if new endpoint fails
+                    DatabaseUtil.withSql { sql ->
+                        def teams = getTeamsForStepNotification(sql, stepInstanceId)
+                        def cutoverTeam = getCutoverTeam(sql)
+
+                        EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                            stepData as Map,
+                            teams,
+                            cutoverTeam,
+                            oldStatusName,
+                            newStatusName,
+                            userId,
+                            stepData.migrationCode as String,
+                            stepData.iterationCode as String
+                        )
+                    }
                 }
 
                 return [

@@ -19,13 +19,13 @@
  */
 
 import umig.utils.EnhancedEmailService
-import umig.utils.EmailService
 import umig.utils.DatabaseUtil
 import umig.utils.UrlConstructionService
 import umig.repository.AuditLogRepository
 import java.util.UUID
 import java.util.Date
 import groovy.json.JsonBuilder
+import groovy.transform.Field
 
 println "=" * 80
 println "COMPREHENSIVE ENHANCED EMAIL SERVICE TEST SUITE"
@@ -34,9 +34,9 @@ println "Testing all notification types with actual email sending via MailHog"
 println "Test started: ${new Date()}"
 println ""
 
-def testResults = [:]
-def totalTests = 0
-def passedTests = 0
+@Field Map<String, String> testResults = [:]
+@Field int totalTests = 0
+@Field int passedTests = 0
 
 // ========================================
 // TEST DATA SETUP
@@ -113,7 +113,7 @@ def runTest(String testName, Closure testCode) {
     } catch (Exception e) {
         println "💥 ERROR: ${testName} - ${e.message}"
         e.printStackTrace()
-        testResults[testName] = "ERROR: ${e.message}"
+        testResults[testName] = "ERROR: ${e.message}".toString()
     }
     println ""
 }
@@ -160,7 +160,8 @@ try {
     try {
         def healthStatus = EnhancedEmailService.healthCheck()
         println "Enhanced Email Service Health: ${healthStatus.status}"
-        println "URL Construction: ${healthStatus.urlConstruction?.status ?: 'unknown'}"
+        Map<String, Object> urlConstruction = healthStatus.urlConstruction as Map<String, Object>
+        println "URL Construction: ${urlConstruction?.status ?: 'unknown'}"
         println "Capabilities: ${healthStatus.capabilities}"
     } catch (Exception e) {
         println "⚠️ Health check failed: ${e.message}"
@@ -189,9 +190,9 @@ try {
         def teams = createTestTeams()
         
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            stepInstance,
-            teams,
-            1, // userId
+            stepInstance as Map,
+            teams as List<Map>,
+            1 as Integer, // userId
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -214,9 +215,9 @@ try {
         def cutoverTeam = createCutoverTeam()
         
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            stepInstance,
-            teams,
-            cutoverTeam,
+            stepInstance as Map,
+            teams as List<Map>,
+            cutoverTeam as Map,
             'OPEN',
             'IN_PROGRESS',
             1, // userId
@@ -244,10 +245,10 @@ try {
         def teams = createTestTeams()
         
         EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
-            instruction,
-            stepInstance,
-            teams,
-            1, // userId
+            instruction as Map,
+            stepInstance as Map,
+            teams as List<Map>,
+            1 as Integer, // userId
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -269,9 +270,9 @@ try {
         def cutoverTeam = createCutoverTeam()
         
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            milestoneStep,
-            teams,
-            cutoverTeam,
+            milestoneStep as Map,
+            teams as List<Map>,
+            cutoverTeam as Map,
             'IN_PROGRESS',
             'COMPLETED',
             1, // userId
@@ -297,9 +298,9 @@ try {
         def cutoverTeam = createCutoverTeam()
         
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            controlStep,
-            teams,
-            cutoverTeam,
+            controlStep as Map,
+            teams as List<Map>,
+            cutoverTeam as Map,
             'IN_PROGRESS',
             'BLOCKED',
             1, // userId
@@ -323,9 +324,9 @@ try {
         def teams = createTestTeams()
         
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            urgentStep,
-            teams,
-            1, // userId
+            urgentStep as Map,
+            teams as List<Map>,
+            1 as Integer, // userId
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -347,9 +348,9 @@ try {
         def cutoverTeam = createCutoverTeam()
         
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            escalationStep,
-            teams,
-            cutoverTeam,
+            escalationStep as Map,
+            teams as List<Map>,
+            cutoverTeam as Map,
             'IN_PROGRESS',
             'BLOCKED',
             1, // userId
@@ -373,9 +374,9 @@ try {
         def teams = createTestTeams()
         
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            iterationStep,
-            teams,
-            1, // userId
+            iterationStep as Map,
+            teams as List<Map>,
+            1 as Integer, // userId
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W2' // Different iteration
         )
@@ -400,10 +401,10 @@ try {
         def teams = createTestTeams()
         
         EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
-            validationInstruction,
-            validationStep,
-            teams,
-            1, // userId
+            validationInstruction as Map,
+            validationStep as Map,
+            teams as List<Map>,
+            1 as Integer, // userId
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -425,12 +426,12 @@ try {
         def cutoverTeam = createCutoverTeam()
         
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            systemStep,
-            teams,
-            cutoverTeam,
+            systemStep as Map,
+            teams as List<Map>,
+            cutoverTeam as Map,
             'IN_PROGRESS',
             'COMPLETED',
-            null, // System user (null userId)
+            null as Integer, // System user (null userId)
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -453,9 +454,9 @@ try {
         
         try {
             EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-                invalidStep,
-                teams,
-                1,
+                invalidStep as Map,
+                teams as List<Map>,
+                1 as Integer,
                 'CORE-BANKING-MIG',
                 'PROD-CUTOVER-W1'
             )
@@ -480,9 +481,9 @@ try {
         def emptyTeams = []
         
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            stepInstance,
-            emptyTeams,
-            1,
+            stepInstance as Map,
+            emptyTeams as List<Map>,
+            1 as Integer,
             'CORE-BANKING-MIG',
             'PROD-CUTOVER-W1'
         )
@@ -505,11 +506,11 @@ try {
         
         // Test with null migration/iteration codes
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            stepInstance,
-            teams,
-            1,
-            null, // null migration code
-            null  // null iteration code
+            stepInstance as Map,
+            teams as List<Map>,
+            1 as Integer,
+            null as String, // null migration code
+            null as String  // null iteration code
         )
         
         Thread.sleep(1000)
@@ -566,13 +567,15 @@ try {
     println "Total Tests: ${totalTests}"
     println "Passed Tests: ${passedTests}"
     println "Failed Tests: ${totalTests - passedTests}"
-    println "Success Rate: ${totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0}%"
+    double successRate = totalTests > 0 ? ((double) passedTests / (double) totalTests * 100.0) : 0.0
+    println "Success Rate: ${Math.round(successRate)}%"
     println ""
     
     // Detailed results
     println "📊 DETAILED RESULTS:"
     testResults.each { testName, result ->
-        def status = result == 'PASSED' ? '✅' : (result.startsWith('ERROR') ? '💥' : '❌')
+        String resultStr = result as String
+        def status = resultStr == 'PASSED' ? '✅' : (resultStr.startsWith('ERROR') ? '💥' : '❌')
         println "   ${status} ${testName}: ${result}"
     }
     

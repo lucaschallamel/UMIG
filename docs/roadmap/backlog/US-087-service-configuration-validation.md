@@ -568,7 +568,7 @@ class ConfigurationMonitoringService {
 
 ### Follow-up Dependencies
 
-- **US-088 Performance Monitoring Enhancement**: Leverages health check infrastructure
+- **US-073 Performance Monitoring Enhancement**: Leverages health check infrastructure
 - **Production Deployment**: Uses health checks for deployment validation
 - **Future Service Development**: Establishes patterns for new service validation
 

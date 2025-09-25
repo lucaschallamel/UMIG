@@ -258,7 +258,7 @@ class CacheMetricsService {
 ### Follow-up Dependencies
 
 - **US-086 Security Hardening Phase 2**: Benefits from distributed rate limiting
-- **US-088 Performance Monitoring**: Leverages cache performance metrics
+- **US-073 Performance Monitoring**: Leverages cache performance metrics
 - **Future Scaling**: Enables horizontal scaling of Confluence instances
 
 ## Risk Assessment

@@ -637,7 +637,7 @@ The following user stories were created based on project evolution and identifie
   - Service dependency monitoring and circuit breaker patterns
   - Production readiness verification system
 
-- **US-090: Performance Monitoring Enhancement** (8 points)
+- **US-073: Performance Monitoring Enhancement** (8 points)
   - Granular performance monitoring with method-level tracking
   - Memory pressure detection and alerting for UAT environment
   - Load testing framework integration with automated regression testing

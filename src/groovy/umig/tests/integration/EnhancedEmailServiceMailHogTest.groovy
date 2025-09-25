@@ -1,7 +1,6 @@
 package umig.tests.integration
 
 import umig.utils.EnhancedEmailService
-import umig.utils.EmailService
 import umig.utils.UrlConstructionService
 import umig.utils.DatabaseUtil
 import umig.repository.AuditLogRepository
@@ -49,9 +48,9 @@ def MAILHOG_API_HOST = 'localhost'
 def MAILHOG_API_PORT = 8025
 
 // Test counters
-def testsPassed = 0
-def testsTotal = 0
-def errors = []
+@groovy.transform.Field int testsPassed = 0
+@groovy.transform.Field int testsTotal = 0
+@groovy.transform.Field List<Map<String, String>> errors = []
 
 // Helper method for test execution
 def runTest(String testName, Closure testClosure) {
@@ -64,10 +63,10 @@ def runTest(String testName, Closure testClosure) {
         testsPassed++
         println "✅ PASSED: ${testName}"
     } catch (Exception e) {
-        errors << [test: testName, error: e.message, exception: e]
+        errors << ([test: testName, error: e.message] as Map<String, String>)
         println "❌ FAILED: ${testName}"
         println "   Error: ${e.message}"
-        if (e.printStackTrace) {
+        if (e.metaClass.respondsTo(e, 'printStackTrace')) {
             e.printStackTrace()
         }
     }
@@ -416,9 +415,9 @@ runTest("EnhancedEmailService - Step Status Change Notification with URL") {
     
     try {
         EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-            stepInstance,
-            testTeams,
-            testCutoverTeam,
+            stepInstance as Map<String, Object>,
+            testTeams as List<Map<String, Object>>,
+            testCutoverTeam as Map<String, Object>,
             'OPEN',
             'IN_PROGRESS',
             1, // userId
@@ -460,10 +459,10 @@ runTest("EnhancedEmailService - Step Opened Notification with URL") {
     
     try {
         EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-            stepInstance,
-            testTeams,
+            stepInstance as Map<String, Object>,
+            testTeams as List<Map<String, Object>>,
             1, // userId
-            'ITEST', // migrationCode  
+            'ITEST', // migrationCode
             'run1'   // iterationCode
         )
         
@@ -504,9 +503,9 @@ runTest("EnhancedEmailService - Instruction Completed Notification with URL") {
     
     try {
         EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
-            instruction,
-            stepInstance,
-            testTeams,
+            instruction as Map<String, Object>,
+            stepInstance as Map<String, Object>,
+            testTeams as List<Map<String, Object>>,
             1, // userId
             'ITEST', // migrationCode
             'run1'   // iterationCode
@@ -552,12 +551,14 @@ runTest("Database Verification - Audit Log and Email Template Usage") {
             
             if (entry.aud_details) {
                 try {
-                    def details = new JsonSlurper().parseText(entry.aud_details.toString())
-                    if (details.recipients) {
-                        println "    Recipients: ${details.recipients.join(', ')}"
+                    Map<String, Object> details = new JsonSlurper().parseText(entry.aud_details.toString()) as Map<String, Object>
+                    List<String> recipients = details.get('recipients') as List<String>
+                    if (recipients) {
+                        println "    Recipients: ${recipients.join(', ')}"
                     }
-                    if (details.notification_type) {
-                        println "    Type: ${details.notification_type}"
+                    String notificationType = details.get('notification_type') as String
+                    if (notificationType) {
+                        println "    Type: ${notificationType}"
                     }
                 } catch (Exception e) {
                     println "    Details: ${entry.aud_details}"
@@ -594,20 +595,23 @@ runTest("MailHog API Verification - Check Received Emails") {
         def mailhogApiUrl = "http://${MAILHOG_API_HOST}:${MAILHOG_API_PORT}/api/v2/messages"
         
         // Simple HTTP GET to MailHog API
-        def connection = new URL(mailhogApiUrl).openConnection()
-        connection.setRequestMethod('GET')
-        connection.setConnectTimeout(5000) // 5 second timeout
-        connection.setReadTimeout(5000)
-        
-        def responseCode = connection.getResponseCode()
+        URLConnection connection = new URL(mailhogApiUrl).openConnection()
+        HttpURLConnection httpConnection = (HttpURLConnection) connection
+        httpConnection.setRequestMethod('GET')
+        httpConnection.setConnectTimeout(5000) // 5 second timeout
+        httpConnection.setReadTimeout(5000)
+
+        def responseCode = httpConnection.getResponseCode()
         
         if (responseCode == 200) {
-            def responseText = connection.getInputStream().getText()
-            def json = new JsonSlurper().parseText(responseText)
+            def responseText = httpConnection.getInputStream().getText()
+            Map<String, Object> json = new JsonSlurper().parseText(responseText) as Map<String, Object>
             
-            def totalMessages = json.total ?: 0
-            def recentMessages = json.items?.findAll { message ->
-                def messageTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss", message.Created?.substring(0, 19))
+            def totalMessages = json.get('total') ?: 0
+            List<Map<String, Object>> items = json.get('items') as List<Map<String, Object>>
+            def recentMessages = items?.findAll { Map<String, Object> message ->
+                String created = message.get('Created') as String
+                def messageTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss", created?.substring(0, 19))
                 def fiveMinutesAgo = new Date(System.currentTimeMillis() - 5 * 60 * 1000)
                 return messageTime.after(fiveMinutesAgo)
             } ?: []
@@ -619,7 +623,10 @@ runTest("MailHog API Verification - Check Received Emails") {
             if (recentMessages.size() > 0) {
                 println "  Recent email subjects:"
                 recentMessages.take(5).each { message ->
-                    println "    - ${message.Content?.Headers?.Subject?.get(0)}"
+                    Map<String, Object> content = message.get('Content') as Map<String, Object>
+                    Map<String, Object> headers = content?.get('Headers') as Map<String, Object>
+                    List<String> subjects = headers?.get('Subject') as List<String>
+                    println "    - ${subjects?.get(0)}"
                 }
             }
             
@@ -692,13 +699,13 @@ println "📊 Test Results Summary:"
 println "  - Tests Executed: ${testsTotal}"
 println "  - Tests Passed: ${testsPassed}"
 println "  - Tests Failed: ${testsTotal - testsPassed}"
-println "  - Success Rate: ${testsPassed}/${testsTotal} (${String.format('%.1f', (testsPassed / testsTotal) * 100)}%)"
+println "  - Success Rate: ${testsPassed}/${testsTotal} (${String.format('%.1f', ((double)testsPassed / (double)testsTotal) * 100.0)}%)"
 println ""
 
 if (errors.size() > 0) {
     println "❌ Failed Tests:"
-    errors.each { error ->
-        println "  - ${error.test}: ${error.error}"
+    errors.each { Map<String, String> error ->
+        println "  - ${error.get('test')}: ${error.get('error')}"
     }
     println ""
 }
@@ -744,7 +751,7 @@ return [
     testsTotal: testsTotal,
     testsPassed: testsPassed,
     testsFailed: testsTotal - testsPassed,
-    successRate: (testsPassed / testsTotal) * 100,
+    successRate: ((double)testsPassed / (double)testsTotal) * 100.0,
     errors: errors,
     summary: "Enhanced Email Service integration test completed with ${testsPassed}/${testsTotal} tests passing"
 ]

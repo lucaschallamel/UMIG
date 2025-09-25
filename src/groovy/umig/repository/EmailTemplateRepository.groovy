@@ -30,12 +30,83 @@ class EmailTemplateRepository {
                 ORDER BY updated_at DESC
                 LIMIT 1
             """, [templateType])
-            
+
             return template ? (template as Map) : null
-            
+
         } catch (Exception e) {
             println "EmailTemplateRepository: Error finding template by type ${templateType} - ${e.message}"
+
+            // US-058: Return fallback templates when database table doesn't exist
+            if (e.message?.contains("does not exist") || e.message?.contains("email_templates_emt")) {
+                println "EmailTemplateRepository: Using fallback template for ${templateType}"
+                return getFallbackTemplate(templateType)
+            }
+
             throw e
+        }
+    }
+
+    /**
+     * Get fallback template for development/testing when database table doesn't exist
+     * US-058: Ensures emails can be sent even without database templates
+     */
+    private static Map getFallbackTemplate(String templateType) {
+        switch (templateType) {
+            case 'STEP_STATUS_CHANGED':
+                return [
+                    emt_type: 'STEP_STATUS_CHANGED',
+                    emt_name: 'Fallback Step Status Changed',
+                    emt_subject: '[UMIG] Step Status Changed: \${stepInstance?.sti_name ?: "Unknown Step"}',
+                    emt_body_html: '''<html>
+<body>
+    <h2>Step Status Changed</h2>
+    <p><strong>Step:</strong> \${stepInstance?.sti_name ?: "Unknown Step"}</p>
+    <p><strong>Status:</strong> \${oldStatus ?: "Unknown"} → \${newStatus ?: "Unknown"}</p>
+    <p><strong>Changed By:</strong> \${changedBy ?: "System"}</p>
+    <p><strong>Changed At:</strong> \${changedAt ?: "Now"}</p>
+    <p>This is an automated notification from UMIG.</p>
+</body>
+</html>''',
+                    emt_is_active: true
+                ]
+
+            case 'STEP_OPENED':
+                return [
+                    emt_type: 'STEP_OPENED',
+                    emt_name: 'Fallback Step Opened',
+                    emt_subject: '[UMIG] Step Opened: \${stepInstance?.sti_name ?: "Unknown Step"}',
+                    emt_body_html: '''<html>
+<body>
+    <h2>Step Opened</h2>
+    <p><strong>Step:</strong> \${stepInstance?.sti_name ?: "Unknown Step"}</p>
+    <p><strong>Opened By:</strong> \${openedBy ?: "System"}</p>
+    <p><strong>Opened At:</strong> \${openedAt ?: "Now"}</p>
+    <p>This is an automated notification from UMIG.</p>
+</body>
+</html>''',
+                    emt_is_active: true
+                ]
+
+            case 'INSTRUCTION_COMPLETED':
+                return [
+                    emt_type: 'INSTRUCTION_COMPLETED',
+                    emt_name: 'Fallback Instruction Completed',
+                    emt_subject: '[UMIG] Instruction Completed',
+                    emt_body_html: '''<html>
+<body>
+    <h2>Instruction Completed</h2>
+    <p><strong>Instruction:</strong> \${instruction?.ini_name ?: "Unknown Instruction"}</p>
+    <p><strong>Step:</strong> \${stepInstance?.sti_name ?: "Unknown Step"}</p>
+    <p><strong>Completed By:</strong> \${completedBy ?: "System"}</p>
+    <p><strong>Completed At:</strong> \${completedAt ?: "Now"}</p>
+    <p>This is an automated notification from UMIG.</p>
+</body>
+</html>''',
+                    emt_is_active: true
+                ]
+
+            default:
+                return null
         }
     }
     
