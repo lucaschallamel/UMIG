@@ -1,3 +1,8 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:027_email_templates_with_urls_v1:
+--comment: Update email templates with dynamic URL support and enhanced styling for step notifications
+
 -- Email Template Updates for Dynamic URL Support
 -- This script updates existing email templates to support clickable stepView URLs
 -- Author: UMIG Project Team

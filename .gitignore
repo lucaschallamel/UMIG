@@ -27,7 +27,9 @@ local-dev-setup/.jest-cache-memory/
 *.war
 *.ear
 target/
-build/
+# Build directories (exclude common build output directories, but not our build scripts)
+/build/
+**/target/build/
 .gradle/
 *.log
 
@@ -42,7 +44,9 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-[Bb]uild/
+# Visual Studio build directories (but not our Node.js build scripts)
+**/[Bb]uild/
+!local-dev-setup/scripts/build/
 msbuild.log
 msbuild.err
 msbuild.wrn

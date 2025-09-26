@@ -157,6 +157,12 @@ console.log('[UMIG] Admin GUI loading...');
                             <li><a href="#" class="nav-item" data-section="migrationTypes" data-entity="migrationTypes">
                                 <span class="item-icon">📋</span> Migration Types
                             </a></li>
+                            <li><a href="#" class="nav-item" data-section="databaseVersionManager" data-entity="databaseVersionManager">
+                                <span class="item-icon">🗄️</span> Database Version Manager
+                            </a></li>
+                            <li><a href="#" class="nav-item" data-section="componentVersionTracker" data-entity="componentVersionTracker">
+                                <span class="item-icon">🔍</span> Component Version Tracker
+                            </a></li>
                         </ul>
                     </div>
 
@@ -443,6 +449,10 @@ console.log('[UMIG] Admin GUI loading...');
 <script src="${webResourcesPath}/js/components/FilterComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/PaginationComponent.js?v=${jsVersion}"></script>
 <script src="${webResourcesPath}/js/components/WelcomeComponent.js?v=${jsVersion}"></script>
+
+<!-- US-088 Phase 2 Components -->
+<script src="${webResourcesPath}/js/components/DatabaseVersionManager.js?v=${jsVersion}"></script>
+<script src="${webResourcesPath}/js/components/ComponentVersionTracker.js?v=${jsVersion}"></script>
 
 <!-- Status provider (needs SecurityUtils) -->
 <script src="${webResourcesPath}/js/utils/StatusProvider.js?v=${jsVersion}"></script>

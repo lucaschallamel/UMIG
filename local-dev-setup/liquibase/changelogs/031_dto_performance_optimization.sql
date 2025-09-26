@@ -1,5 +1,8 @@
 --liquibase formatted sql
 
+--changeset lucas.challamel:031_dto_performance_optimization_v1:
+--comment: DTO performance optimization with specialized indexes for hierarchical queries and aggregation subqueries
+
 -- ================================================================================
 -- DTO Performance Optimization Migration
 -- US-056-C: DTO-based endpoint performance optimization for buildDTOBaseQuery()
@@ -21,7 +24,7 @@
 -- Created: 2025-09-18
 -- ================================================================================
 
---changeset lucaschallamel:dto-primary-filtering-indexes runInTransaction:false
+--changeset lucas.challamel:031_dto-primary-filtering-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Primary filtering indexes for buildDTOBaseQuery()
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'steps_instance_sti' AND indexname = 'idx_dto_sti_status_phi';
@@ -39,7 +42,7 @@ COMMENT ON INDEX idx_dto_sti_status_phi IS 'US-056-C DTO: Primary filtering inde
 
 --rollback DROP INDEX IF EXISTS idx_dto_sti_status_phi;
 
---changeset lucaschallamel:dto-hierarchical-navigation-indexes runInTransaction:false
+--changeset lucas.challamel:031_dto-hierarchical-navigation-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Hierarchical navigation indexes for entity relationships
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'phases_instance_phi' AND indexname = 'idx_dto_phi_hierarchy';
@@ -67,7 +70,7 @@ COMMENT ON INDEX idx_dto_pli_context IS 'US-056-C DTO: Context lookup index for 
 --rollback DROP INDEX IF EXISTS idx_dto_sqi_plan_navigation;
 --rollback DROP INDEX IF EXISTS idx_dto_pli_context;
 
---changeset lucaschallamel:dto-lookup-optimization-indexes runInTransaction:false
+--changeset lucas.challamel:031_dto-lookup-optimization-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Lookup optimization indexes for common queries
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'migrations_mig' AND indexname = 'idx_dto_mig_name_lookup';
@@ -95,7 +98,7 @@ COMMENT ON INDEX idx_dto_stm_hierarchy IS 'US-056-C DTO: Step master hierarchy o
 --rollback DROP INDEX IF EXISTS idx_dto_team_assignment;
 --rollback DROP INDEX IF EXISTS idx_dto_stm_hierarchy;
 
---changeset lucaschallamel:dto-aggregation-subquery-indexes runInTransaction:false
+--changeset lucas.challamel:031_dto-aggregation-subquery-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Aggregation subquery optimization indexes
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'instructions_instance_ini' AND indexname = 'idx_dto_instructions_count';
@@ -122,7 +125,7 @@ COMMENT ON INDEX idx_dto_comments_aggregation IS 'US-056-C DTO: Aggregation opti
 --rollback DROP INDEX IF EXISTS idx_dto_instructions_count;
 --rollback DROP INDEX IF EXISTS idx_dto_comments_aggregation;
 
---changeset lucaschallamel:dto-covering-indexes runInTransaction:false
+--changeset lucas.challamel:031_dto-covering-indexes runInTransaction:false
 --comment: US-056-C DTO Performance: Covering indexes for read-heavy operations
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'steps_instance_sti' AND indexname = 'idx_dto_sti_covering';
@@ -150,7 +153,7 @@ COMMENT ON INDEX idx_dto_status_steps_covering IS 'US-056-C DTO: Covering index 
 --rollback DROP INDEX IF EXISTS idx_dto_sti_covering;
 --rollback DROP INDEX IF EXISTS idx_dto_status_steps_covering;
 
---changeset lucaschallamel:dto-statistics-update
+--changeset lucas.challamel:031_dto-statistics-update
 --comment: US-056-C DTO Performance: Update table statistics for query planner optimization
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM pg_tables WHERE tablename = 'steps_instance_sti';

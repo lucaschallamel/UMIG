@@ -517,7 +517,6 @@ if (typeof BaseComponent === "undefined") {
      */
     clearContainer() {
       if (this.container) {
-        // Remove all children safely
         while (this.container.firstChild) {
           this.container.removeChild(this.container.firstChild);
         }

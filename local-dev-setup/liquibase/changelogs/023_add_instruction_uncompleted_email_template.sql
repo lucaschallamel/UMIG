@@ -1,3 +1,8 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:023_add_instruction_uncompleted_email_template_v1:
+--comment: Add dedicated email template for instruction uncompleted action with enhanced notification styling and impact warnings
+
 -- =========================================
 -- ADD INSTRUCTION_UNCOMPLETED EMAIL TEMPLATE
 -- =========================================

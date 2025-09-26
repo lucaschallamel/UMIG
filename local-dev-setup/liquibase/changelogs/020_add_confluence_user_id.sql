@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset system:020_add_confluence_user_id
+--changeset lucas.challamel:020_add_confluence_user_id
 -- Add usr_confluence_user_id column to users_usr table for integration test compatibility
 
 -- Add the column if it doesn't exist

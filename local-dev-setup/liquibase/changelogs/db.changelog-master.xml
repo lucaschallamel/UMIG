@@ -36,6 +36,7 @@
     <include file="029_create_migration_types_mit.sql" relativeToChangelogFile="true"/>
     <include file="030_entity_performance_optimization.sql" relativeToChangelogFile="true"/>
     <include file="031_dto_performance_optimization.sql" relativeToChangelogFile="true"/>
+    <include file="032_bulk_operation_email_templates.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

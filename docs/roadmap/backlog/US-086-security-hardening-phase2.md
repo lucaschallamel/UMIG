@@ -428,7 +428,7 @@ class SecurityMetricsDashboard {
 ### Parallel Work Opportunities
 
 - **US-085 Distributed Rate Limiting**: Security audit logging complements rate limiting
-- **US-088 Performance Monitoring**: Security metrics integrate with performance dashboard
+- **US-073 Performance Monitoring**: Security metrics integrate with performance dashboard
 - **Future Security Stories**: Establishes foundation for advanced security features
 
 ## Risk Assessment

@@ -1,8 +1,8 @@
-# US-088: Performance Monitoring Enhancement
+# US-073: Performance Monitoring Enhancement
 
 ## Story Metadata
 
-**Story ID**: US-088  
+**Story ID**: US-073  
 **Epic**: Performance Optimization & Monitoring Excellence  
 **Sprint**: Sprint 8 (January 2025)  
 **Priority**: P2 (MEDIUM - Performance optimization and monitoring)  
@@ -86,7 +86,7 @@ This story establishes production-grade performance monitoring and testing capab
 
 ## Acceptance Criteria
 
-### AC-088.1: Granular Performance Monitoring
+### AC-073.1: Granular Performance Monitoring
 
 **Given** the system processes various types of requests  
 **When** requests are executed at different system levels  
@@ -180,7 +180,7 @@ class GranularPerformanceMonitor {
 }
 ```
 
-### AC-088.2: Load Testing Framework Integration
+### AC-073.2: Load Testing Framework Integration
 
 **Given** the system needs performance validation under load  
 **When** automated load tests execute  
@@ -338,7 +338,7 @@ class PerformanceRegressionDetector {
 }
 ```
 
-### AC-088.3: Performance Profiling Under Realistic Load
+### AC-073.3: Performance Profiling Under Realistic Load
 
 **Given** the system needs detailed performance analysis  
 **When** profiling is executed under realistic load conditions  
@@ -449,7 +449,7 @@ class PerformanceProfilingService {
 }
 ```
 
-### AC-088.4: Memory Pressure Detection Enhancements
+### AC-073.4: Memory Pressure Detection Enhancements
 
 **Given** the system operates under varying memory conditions  
 **When** memory usage patterns change or pressure increases  

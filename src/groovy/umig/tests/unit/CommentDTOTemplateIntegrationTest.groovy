@@ -18,7 +18,7 @@ import java.util.Date
 // Import actual project classes instead of creating mocks
 import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
-import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
 
 // ========================================
 // TEST EXECUTION
@@ -162,7 +162,7 @@ Map<String, Object> legacyComment = [
 
 List<Object> mixedComments = [modernComment, legacyComment]
 
-def mixedResult = EmailService.processCommentsForTemplate(mixedComments)
+def mixedResult = EnhancedEmailService.processCommentsForTemplate(mixedComments)
 
 assertNotNull(mixedResult, "Mixed result should not be null")
 assertEquals(2, mixedResult.size(), "Should process 2 mixed comments")
@@ -185,10 +185,10 @@ assertTrue(processedLegacy.is_priority, "Legacy comment should be priority (prio
 println "\n📝 Test 5: Edge cases with EmailService"
 println "-" * 50
 
-def nullResult = EmailService.processCommentsForTemplate(null)
+def nullResult = EnhancedEmailService.processCommentsForTemplate(null)
 assertEquals([], nullResult, "Null input should return empty list")
 
-def emptyResult = EmailService.processCommentsForTemplate([])
+def emptyResult = EnhancedEmailService.processCommentsForTemplate([])
 assertEquals([], emptyResult, "Empty list should return empty list")
 
 // Test 6: Date formatting validation

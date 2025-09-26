@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset LucasChallamel:009_create_stg_import_tables author:Franck Desmeuzes
+-- changeset lucas.challamel:009_create_stg_import_tables author:Franck Desmeuzes
 -- comment: Création du type ENUM et des tables de staging pour l'import
 
 CREATE TYPE stg_step_type AS ENUM ('IGO', 'CHK', 'DUM', 'TRT');

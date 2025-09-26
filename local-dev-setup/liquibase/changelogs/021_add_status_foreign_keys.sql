@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset lucas:021_add_status_foreign_keys
+--changeset lucas.challamel:021_add_status_foreign_keys
 --comment: REDUNDANT MIGRATION - Status field constraints already created in migration 019
 
 -- =============================================================================

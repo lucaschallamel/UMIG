@@ -21,14 +21,84 @@
  * - Security violation detection and generic error responses
  */
 
+// Phase 3 Code Quality - Replace magic numbers with named constants
+const ORCHESTRATOR_CONSTANTS = {
+  // Configuration defaults
+  DEFAULT_MAX_QUEUE_SIZE: 100,
+  DEFAULT_STATE_HISTORY_SIZE: 10,
+
+  // Rate limiting
+  RATE_LIMIT_WINDOW_SIZE_MS: 60000, // 1 minute
+  MAX_EVENTS_PER_MINUTE_PER_COMPONENT: 1000,
+  MAX_STATE_UPDATES_PER_MINUTE_PER_PATH: 100,
+  MAX_API_CALLS_PER_MINUTE_PER_ENDPOINT: 60,
+  MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL: 5000,
+  MAX_TOTAL_API_CALLS_PER_MINUTE_GLOBAL: 300,
+  SUSPENSION_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  // State management
+  STATE_LOCK_TIMEOUT_MS: 5000, // 5 seconds
+  STATE_LOCK_MAX_WAIT_MS: 100,
+  STALE_OPERATION_THRESHOLD_MS: 30000, // 30 seconds
+
+  // Session timeout
+  DEFAULT_SESSION_TIMEOUT_MS: 30 * 60 * 1000, // 30 minutes
+  SESSION_WARNING_DURATION_MS: 5 * 60 * 1000, // 5 minutes before timeout
+  SESSION_ACTIVITY_CHECK_MIN_INTERVAL_MS: 5000, // 5 seconds minimum between resets
+  SESSION_COUNTDOWN_UPDATE_INTERVAL_MS: 1000, // 1 second
+  SESSION_LOGOUT_DELAY_MS: 3000, // 3 second delay to show message
+
+  // Debug and monitoring
+  DEBUG_EVENT_HISTORY_LIMIT: 10,
+  PERFORMANCE_SLOW_THRESHOLD_MS: 500,
+  PERFORMANCE_MODERATE_THRESHOLD_MS: 150,
+
+  // Security limits
+  MAX_EVENT_NAME_LENGTH: 100,
+  MAX_FUNCTION_ARGS: 10,
+  MAX_SOURCE_LENGTH: 50,
+
+  // Memory management
+  MAX_EVENT_HISTORY: 1000,
+  MAX_STATE_HISTORY: 100,
+  MAX_ERROR_LOG: 500,
+  MAX_COMPONENTS: 50,
+  MAX_SUBSCRIPTIONS: 1000,
+
+  // Sanitization
+  SANITIZE_MAX_DEPTH: 3,
+  SANITIZE_MAX_ARRAY_LENGTH_DEV: 10,
+  SANITIZE_MAX_ARRAY_LENGTH_PROD: 5,
+  SANITIZE_MAX_STRING_LENGTH_DEV: 1000,
+  SANITIZE_MAX_STRING_LENGTH_PROD: 200,
+  SANITIZE_ERROR_LOG_LIMIT: 10,
+  SANITIZE_ERROR_LOG_LAST_ERRORS: 5,
+
+  // UUID generation
+  UUID_VERSION_BITS: 0x40, // Version 4
+  UUID_VARIANT_BITS: 0x80, // Variant 10
+  UUID_VERSION_MASK: 0x0f,
+  UUID_VARIANT_MASK: 0x3f,
+
+  // Entropy
+  MIN_ENTROPY_THRESHOLD: 0.8,
+
+  // Network
+  LOCALHOST_IP: "127.0.0.1",
+
+  // UI Z-index layers
+  MODAL_BACKDROP_Z_INDEX: 10000,
+  MODAL_CONTENT_Z_INDEX: 10001,
+};
+
 class ComponentOrchestrator {
   constructor(config = {}) {
     // Configuration
     this.config = {
       debug: false,
-      maxQueueSize: 100,
+      maxQueueSize: ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE,
       enableReplay: true,
-      stateHistory: 10,
+      stateHistory: ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE,
       performanceMonitoring: true,
       errorIsolation: true,
       container: null, // Explicitly initialize container
@@ -64,16 +134,27 @@ class ComponentOrchestrator {
     };
 
     // Security: DoS protection and rate limiting
+    // Phase 1 Security Enhancement - Enhanced global rate limiting configuration
     this.rateLimiting = {
       eventCounts: new Map(), // componentId -> count
       stateUpdateCounts: new Map(), // path -> count
+      apiCallCounts: new Map(), // API endpoint -> count
+      globalEventCount: 0, // Track total events for faster global checks
       lastResetTime: Date.now(),
-      windowSize: 60000, // 1 minute window
-      maxEventsPerMinute: 1000, // Per component
-      maxStateUpdatesPerMinute: 100, // Per path
-      maxTotalEventsPerMinute: 5000, // Global limit
+      windowSize: ORCHESTRATOR_CONSTANTS.RATE_LIMIT_WINDOW_SIZE_MS, // 1 minute window
+      maxEventsPerMinute:
+        ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT, // Per component
+      maxStateUpdatesPerMinute:
+        ORCHESTRATOR_CONSTANTS.MAX_STATE_UPDATES_PER_MINUTE_PER_PATH, // Per path
+      maxApiCallsPerMinute:
+        ORCHESTRATOR_CONSTANTS.MAX_API_CALLS_PER_MINUTE_PER_ENDPOINT, // Per API endpoint
+      maxTotalEventsPerMinute:
+        ORCHESTRATOR_CONSTANTS.MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL, // Global limit - all components
+      maxTotalApiCallsPerMinute:
+        ORCHESTRATOR_CONSTANTS.MAX_TOTAL_API_CALLS_PER_MINUTE_GLOBAL, // Global limit - all API calls
       suspendedComponents: new Set(),
       suspensionTimestamps: new Map(), // Iterable for cleanup operations
+      suspensionDuration: ORCHESTRATOR_CONSTANTS.SUSPENSION_DURATION_MS, // 5 minute suspension
     };
 
     // Memory-efficient component metadata cache using WeakMap
@@ -83,7 +164,7 @@ class ComponentOrchestrator {
     this.stateLock = {
       locked: false,
       queue: [],
-      lockTimeout: 5000, // 5 second timeout
+      lockTimeout: ORCHESTRATOR_CONSTANTS.STATE_LOCK_TIMEOUT_MS, // 5 second timeout
     };
 
     // Error tracking
@@ -100,8 +181,12 @@ class ComponentOrchestrator {
     // Session timeout management
     this.sessionTimeout = {
       enabled: config.sessionTimeout !== false, // Default enabled
-      timeoutDuration: config.sessionTimeoutDuration || 30 * 60 * 1000, // 30 minutes
-      warningDuration: config.sessionWarningDuration || 5 * 60 * 1000, // 5 minutes before timeout
+      timeoutDuration:
+        config.sessionTimeoutDuration ||
+        ORCHESTRATOR_CONSTANTS.DEFAULT_SESSION_TIMEOUT_MS, // 30 minutes
+      warningDuration:
+        config.sessionWarningDuration ||
+        ORCHESTRATOR_CONSTANTS.SESSION_WARNING_DURATION_MS, // 5 minutes before timeout
       lastActivityTime: Date.now(),
       timeoutTimer: null,
       warningTimer: null,
@@ -148,7 +233,7 @@ class ComponentOrchestrator {
       if (
         typeof window !== "undefined" &&
         (window.location?.hostname === "localhost" ||
-          window.location?.hostname === "127.0.0.1" ||
+          window.location?.hostname === ORCHESTRATOR_CONSTANTS.LOCALHOST_IP ||
           window.location?.hostname?.endsWith(".local"))
       ) {
         // Security: Create restricted debug interface instead of full exposure
@@ -161,7 +246,10 @@ class ComponentOrchestrator {
 
           // Limited diagnostic methods
           listComponents: () => Array.from(this.components.keys()),
-          getEventHistory: () => this.eventHistory.slice(-10), // Last 10 events only
+          getEventHistory: () =>
+            this.eventHistory.slice(
+              -ORCHESTRATOR_CONSTANTS.DEBUG_EVENT_HISTORY_LIMIT,
+            ), // Last 10 events only
 
           // Security: No access to sensitive methods like setState, emit, etc.
           _warning: "DEBUG MODE: Limited interface for development only",
@@ -629,7 +717,7 @@ class ComponentOrchestrator {
       name: eventName,
       data: sanitizedData, // Use sanitized data
       timestamp: Date.now(),
-      source: source.substring(0, 50), // Limit source length
+      source: source.substring(0, ORCHESTRATOR_CONSTANTS.MAX_SOURCE_LENGTH), // Limit source length
       priority: options.priority || "normal",
     };
 
@@ -811,7 +899,7 @@ class ComponentOrchestrator {
     if (options.sync !== false) {
       // Try to execute synchronously with timeout
       const startTime = Date.now();
-      const maxWait = 100; // 100ms max wait
+      const maxWait = ORCHESTRATOR_CONSTANTS.STATE_LOCK_MAX_WAIT_MS; // 100ms max wait
 
       while (this.stateLock.locked && Date.now() - startTime < maxWait) {
         // Busy wait for a short time
@@ -873,7 +961,10 @@ class ComponentOrchestrator {
 
     try {
       // Check for stale operations (older than 30 seconds)
-      if (Date.now() - operation.timestamp > 30000) {
+      if (
+        Date.now() - operation.timestamp >
+        ORCHESTRATOR_CONSTANTS.STALE_OPERATION_THRESHOLD_MS
+      ) {
         throw new Error(
           this.sanitizeErrorMessage(
             "State update timeout: operation expired",
@@ -1082,8 +1173,10 @@ class ComponentOrchestrator {
     }
 
     // Security: Limit number of arguments to prevent payload injection
-    if (args.length > 10) {
-      throw new Error("Security violation: Too many arguments (max 10)");
+    if (args.length > ORCHESTRATOR_CONSTANTS.MAX_FUNCTION_ARGS) {
+      throw new Error(
+        `Security violation: Too many arguments (max ${ORCHESTRATOR_CONSTANTS.MAX_FUNCTION_ARGS})`,
+      );
     }
 
     // Security: Validate arguments are not functions (prevent code injection)
@@ -1204,7 +1297,10 @@ class ComponentOrchestrator {
   /**
    * Replay events from history
    */
-  replayEvents(filter = null, limit = 10) {
+  replayEvents(
+    filter = null,
+    limit = ORCHESTRATOR_CONSTANTS.DEBUG_EVENT_HISTORY_LIMIT,
+  ) {
     let events = [...this.eventHistory];
 
     if (filter) {
@@ -1338,10 +1434,10 @@ class ComponentOrchestrator {
     }
 
     // Security: Prevent excessively long event names
-    if (eventName.length > 100) {
+    if (eventName.length > ORCHESTRATOR_CONSTANTS.MAX_EVENT_NAME_LENGTH) {
       throw new Error(
         this.sanitizeErrorMessage(
-          "Security violation: Event name too long (max 100 characters)",
+          `Security violation: Event name too long (max ${ORCHESTRATOR_CONSTANTS.MAX_EVENT_NAME_LENGTH} characters)`,
           "security",
         ),
       );
@@ -1365,7 +1461,7 @@ class ComponentOrchestrator {
     // Check if component is suspended and handle suspension timeout
     if (this.rateLimiting.suspendedComponents.has(source)) {
       const suspension = this.rateLimiting.suspensionTimestamps?.get(source);
-      const suspensionDuration = 5 * 60 * 1000; // 5 minutes
+      const suspensionDuration = ORCHESTRATOR_CONSTANTS.SUSPENSION_DURATION_MS; // 5 minutes
 
       if (suspension && now - suspension > suspensionDuration) {
         // Unsuspend component after timeout
@@ -1395,11 +1491,11 @@ class ComponentOrchestrator {
         );
       }
 
-      // Check global event limit
-      const totalEvents = Array.from(
-        this.rateLimiting.eventCounts.values(),
-      ).reduce((sum, count) => sum + count, 0);
-      if (totalEvents >= this.rateLimiting.maxTotalEventsPerMinute) {
+      // Check global event limit (Phase 1 Enhancement - efficient global tracking)
+      if (
+        this.rateLimiting.globalEventCount >=
+        this.rateLimiting.maxTotalEventsPerMinute
+      ) {
         throw new Error(
           this.sanitizeErrorMessage(
             `Security violation: Global event rate limit exceeded (${this.rateLimiting.maxTotalEventsPerMinute}/min)`,
@@ -1409,6 +1505,7 @@ class ComponentOrchestrator {
       }
 
       this.rateLimiting.eventCounts.set(source, eventCount + 1);
+      this.rateLimiting.globalEventCount++;
     } else if (type === "state") {
       // Check state update limit per path
       const stateCount = this.rateLimiting.stateUpdateCounts.get(source) || 0;
@@ -1454,6 +1551,8 @@ class ComponentOrchestrator {
   resetRateLimitingCounters(now) {
     this.rateLimiting.eventCounts.clear();
     this.rateLimiting.stateUpdateCounts.clear();
+    this.rateLimiting.apiCallCounts?.clear(); // Phase 1 Enhancement
+    this.rateLimiting.globalEventCount = 0; // Phase 1 Enhancement - reset global counter
     this.rateLimiting.lastResetTime = now;
 
     // Clean up expired suspensions
@@ -1462,7 +1561,8 @@ class ComponentOrchestrator {
       typeof this.rateLimiting.suspensionTimestamps.entries === "function"
     ) {
       try {
-        const suspensionDuration = 5 * 60 * 1000; // 5 minutes
+        const suspensionDuration =
+          ORCHESTRATOR_CONSTANTS.SUSPENSION_DURATION_MS; // 5 minutes
         const expiredSuspensions = [];
 
         for (const [source, timestamp] of this.rateLimiting
@@ -1492,12 +1592,12 @@ class ComponentOrchestrator {
    */
   checkMemoryLimits() {
     const limits = {
-      maxEventHistory: 1000,
-      maxStateHistory: 100,
-      maxErrorLog: 500,
-      maxEventQueue: 100,
-      maxComponents: 50,
-      maxSubscriptions: 1000,
+      maxEventHistory: ORCHESTRATOR_CONSTANTS.MAX_EVENT_HISTORY,
+      maxStateHistory: ORCHESTRATOR_CONSTANTS.MAX_STATE_HISTORY,
+      maxErrorLog: ORCHESTRATOR_CONSTANTS.MAX_ERROR_LOG,
+      maxEventQueue: ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE,
+      maxComponents: ORCHESTRATOR_CONSTANTS.MAX_COMPONENTS,
+      maxSubscriptions: ORCHESTRATOR_CONSTANTS.MAX_SUBSCRIPTIONS,
     };
 
     // Check event history size
@@ -1995,13 +2095,19 @@ class ComponentOrchestrator {
           for (const entry of list.getEntries()) {
             // Only warn on tasks that are significantly long (500ms+)
             // to reduce noise while still catching real performance issues
-            if (entry.duration > 500) {
+            if (
+              entry.duration >
+              ORCHESTRATOR_CONSTANTS.PERFORMANCE_SLOW_THRESHOLD_MS
+            ) {
               this.logWarning(`Long task detected: ${entry.duration}ms`, {
                 startTime: entry.startTime,
                 name: entry.name,
                 duration: entry.duration,
               });
-            } else if (entry.duration > 150) {
+            } else if (
+              entry.duration >
+              ORCHESTRATOR_CONSTANTS.PERFORMANCE_MODERATE_THRESHOLD_MS
+            ) {
               // Log moderate tasks at debug level for investigation
               this.logDebug(`Moderate task detected: ${entry.duration}ms`, {
                 startTime: entry.startTime,
@@ -2064,8 +2170,12 @@ class ComponentOrchestrator {
       crypto.getRandomValues(array);
 
       // Set version (4) and variant bits according to RFC 4122
-      array[6] = (array[6] & 0x0f) | 0x40; // Version 4
-      array[8] = (array[8] & 0x3f) | 0x80; // Variant 10
+      array[6] =
+        (array[6] & ORCHESTRATOR_CONSTANTS.UUID_VERSION_MASK) |
+        ORCHESTRATOR_CONSTANTS.UUID_VERSION_BITS; // Version 4
+      array[8] =
+        (array[8] & ORCHESTRATOR_CONSTANTS.UUID_VARIANT_MASK) |
+        ORCHESTRATOR_CONSTANTS.UUID_VARIANT_BITS; // Variant 10
 
       const hex = Array.from(array, (byte) =>
         byte.toString(16).padStart(2, "0"),
@@ -2094,7 +2204,7 @@ class ComponentOrchestrator {
     const unique = new Set(values);
     const entropy = unique.size / values.length;
 
-    if (entropy < 0.8) {
+    if (entropy < ORCHESTRATOR_CONSTANTS.MIN_ENTROPY_THRESHOLD) {
       throw new Error(
         "Security violation: Insufficient entropy in random generation",
       );
@@ -2156,7 +2266,7 @@ class ComponentOrchestrator {
       const hostname = window.location?.hostname;
       const isDev =
         hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
+        hostname === ORCHESTRATOR_CONSTANTS.LOCALHOST_IP ||
         hostname?.endsWith(".local") ||
         hostname?.includes("dev") ||
         hostname?.includes("test");
@@ -2309,7 +2419,11 @@ class ComponentOrchestrator {
    * Sanitize data before logging to remove sensitive information
    * Handles objects, arrays, and primitive values
    */
-  sanitizeLogData(data, maxDepth = 3, currentDepth = 0) {
+  sanitizeLogData(
+    data,
+    maxDepth = ORCHESTRATOR_CONSTANTS.SANITIZE_MAX_DEPTH,
+    currentDepth = 0,
+  ) {
     if (currentDepth >= maxDepth) {
       return "[MAX_DEPTH_EXCEEDED]";
     }
@@ -2328,7 +2442,9 @@ class ComponentOrchestrator {
 
     if (Array.isArray(data)) {
       // Limit array length in logs
-      const maxArrayLength = this.environment.isDevelopment ? 10 : 5;
+      const maxArrayLength = this.environment.isDevelopment
+        ? ORCHESTRATOR_CONSTANTS.SANITIZE_MAX_ARRAY_LENGTH_DEV
+        : ORCHESTRATOR_CONSTANTS.SANITIZE_MAX_ARRAY_LENGTH_PROD;
       const sanitizedArray = data
         .slice(0, maxArrayLength)
         .map((item) => this.sanitizeLogData(item, maxDepth, currentDepth + 1));
@@ -2451,7 +2567,9 @@ class ComponentOrchestrator {
     sanitized = sanitized.replace(/on\w+\s*=/gi, "[EVENT_BLOCKED]=");
 
     // Truncate very long strings
-    const maxLength = this.environment.isDevelopment ? 1000 : 200;
+    const maxLength = this.environment.isDevelopment
+      ? ORCHESTRATOR_CONSTANTS.SANITIZE_MAX_STRING_LENGTH_DEV
+      : ORCHESTRATOR_CONSTANTS.SANITIZE_MAX_STRING_LENGTH_PROD;
     if (sanitized.length > maxLength) {
       sanitized = sanitized.substring(0, maxLength) + "[...TRUNCATED]";
     }
@@ -2566,11 +2684,13 @@ class ComponentOrchestrator {
         ...baseInfo,
         failedComponentsCount: this.failedComponents.size,
         errorLogCount: this.errorLog.length,
-        lastErrors: this.errorLog.slice(-5).map((error) => ({
-          timestamp: error.timestamp,
-          type: error.type,
-          error: this.sanitizeErrorMessage(error.error, error.type),
-        })),
+        lastErrors: this.errorLog
+          .slice(-ORCHESTRATOR_CONSTANTS.SANITIZE_ERROR_LOG_LAST_ERRORS)
+          .map((error) => ({
+            timestamp: error.timestamp,
+            type: error.type,
+            error: this.sanitizeErrorMessage(error.error, error.type),
+          })),
         rateLimitingStatus: {
           suspendedComponents: this.rateLimiting.suspendedComponents.size,
           lastResetTime: this.rateLimiting.lastResetTime,
@@ -2585,7 +2705,9 @@ class ComponentOrchestrator {
    * Get sanitized error log for debugging
    * Returns error history with sensitive data removed
    */
-  getSanitizedErrorLog(limit = 10) {
+  getSanitizedErrorLog(
+    limit = ORCHESTRATOR_CONSTANTS.SANITIZE_ERROR_LOG_LIMIT,
+  ) {
     const recentErrors = this.errorLog.slice(-limit);
 
     return recentErrors.map((error) => ({
@@ -2644,7 +2766,10 @@ class ComponentOrchestrator {
     const timeSinceLastActivity = now - this.sessionTimeout.lastActivityTime;
 
     // Only reset if enough time has passed to avoid excessive timer resets
-    if (timeSinceLastActivity > 5000) {
+    if (
+      timeSinceLastActivity >
+      ORCHESTRATOR_CONSTANTS.SESSION_ACTIVITY_CHECK_MIN_INTERVAL_MS
+    ) {
       // 5 seconds minimum between resets
       this.sessionTimeout.lastActivityTime = now;
       this.resetSessionTimeout();
@@ -2694,7 +2819,10 @@ class ComponentOrchestrator {
     }
 
     this.sessionTimeout.warningShown = true;
-    const remainingTime = Math.ceil(this.sessionTimeout.warningDuration / 1000);
+    const remainingTime = Math.ceil(
+      this.sessionTimeout.warningDuration /
+        ORCHESTRATOR_CONSTANTS.SESSION_COUNTDOWN_UPDATE_INTERVAL_MS,
+    );
 
     // Emit warning event for components to handle
     this.emitInternal("session:warning", {
@@ -2829,7 +2957,7 @@ class ComponentOrchestrator {
       if (timeLeft <= 0 || !this.sessionTimeout.warningShown) {
         clearInterval(countdownInterval);
       }
-    }, 1000);
+    }, ORCHESTRATOR_CONSTANTS.SESSION_COUNTDOWN_UPDATE_INTERVAL_MS);
 
     // Store interval for cleanup
     dialog._countdownInterval = countdownInterval;
@@ -2851,7 +2979,7 @@ class ComponentOrchestrator {
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 10000;
+        z-index: ${ORCHESTRATOR_CONSTANTS.MODAL_BACKDROP_Z_INDEX};
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3040,7 +3168,7 @@ class ComponentOrchestrator {
           window.location.reload();
         }
       }
-    }, 3000); // 3 second delay to show message
+    }, ORCHESTRATOR_CONSTANTS.SESSION_LOGOUT_DELAY_MS); // 3 second delay to show message
   }
 
   /**
@@ -3064,7 +3192,7 @@ class ComponentOrchestrator {
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      z-index: 10001;
+      z-index: ${ORCHESTRATOR_CONSTANTS.MODAL_CONTENT_Z_INDEX};
       text-align: center;
       max-width: 400px;
       margin: 20px;

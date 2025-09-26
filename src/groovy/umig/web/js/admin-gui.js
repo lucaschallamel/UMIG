@@ -101,6 +101,18 @@ window.adminGui = {
 
   // Helper method to get a specific entity configuration
   getEntity: function (entityName) {
+    // FIXED: Special handling for specialized components that are not traditional entities
+    const specializedComponents = [
+      "databaseVersionManager",
+      "componentVersionTracker",
+    ];
+
+    if (specializedComponents.includes(entityName)) {
+      // These are component-based entities, not EntityConfig entities
+      // Return null without warning since they're handled by specialized component logic
+      return null;
+    }
+
     if (
       window.EntityConfig &&
       typeof window.EntityConfig.getEntity === "function"
@@ -345,6 +357,20 @@ window.adminGui = {
 
   // Centralized UI utility to eliminate DOM manipulation duplication
   uiUtils: {
+    // Ensure DOM element has required methods for batch.js compatibility
+    ensureDOMCompatibility: function (element) {
+      if (
+        element &&
+        !element.getElementsByClassName &&
+        element.nodeType === Node.ELEMENT_NODE
+      ) {
+        element.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
+        };
+      }
+      return element;
+    },
+
     // Safely get element by ID with error handling
     getElement: function (id, required = false) {
       try {
@@ -466,10 +492,19 @@ window.adminGui = {
               </div>
             </div>`;
 
-        // Create modal element
+        // Create modal element with batch.js compatibility
         const modalElement = document.createElement("div");
         modalElement.innerHTML = modalHTML;
-        document.body.appendChild(modalElement.firstElementChild);
+        const modalNode = modalElement.firstElementChild;
+
+        // Ensure DOM compatibility for batch.js MutationObserver
+        if (modalNode && !modalNode.getElementsByClassName) {
+          modalNode.getElementsByClassName = function (className) {
+            return this.querySelectorAll("." + className);
+          };
+        }
+
+        document.body.appendChild(modalNode);
 
         // Add close event listeners if closable
         if (closable) {
@@ -547,7 +582,16 @@ window.adminGui = {
 
         const notificationElement = document.createElement("div");
         notificationElement.innerHTML = notificationHTML;
-        document.body.appendChild(notificationElement.firstElementChild);
+        const notificationNode = notificationElement.firstElementChild;
+
+        // Ensure DOM compatibility for batch.js MutationObserver
+        if (notificationNode && !notificationNode.getElementsByClassName) {
+          notificationNode.getElementsByClassName = function (className) {
+            return this.querySelectorAll("." + className);
+          };
+        }
+
+        document.body.appendChild(notificationNode);
 
         // Auto-remove after duration
         if (duration > 0) {
@@ -594,7 +638,16 @@ window.adminGui = {
         } else {
           const spinnerElement = document.createElement("div");
           spinnerElement.innerHTML = spinnerHTML;
-          container.appendChild(spinnerElement.firstElementChild);
+          const spinnerNode = spinnerElement.firstElementChild;
+
+          // Ensure DOM compatibility for batch.js MutationObserver
+          if (spinnerNode && !spinnerNode.getElementsByClassName) {
+            spinnerNode.getElementsByClassName = function (className) {
+              return this.querySelectorAll("." + className);
+            };
+          }
+
+          container.appendChild(spinnerNode);
         }
 
         return this.getElement(spinnerId);
@@ -1375,6 +1428,26 @@ window.adminGui = {
         );
       }
 
+      // Load US-088 Phase 2 Components
+      // DatabaseVersionManager
+      try {
+        this.loadDatabaseVersionManagerEntityManager();
+        console.log("[US-088] DatabaseVersionManager loaded");
+      } catch (error) {
+        console.error("[US-088] Failed to load DatabaseVersionManager:", error);
+      }
+
+      // ComponentVersionTracker
+      try {
+        this.loadComponentVersionTrackerEntityManager();
+        console.log("[US-088] ComponentVersionTracker loaded");
+      } catch (error) {
+        console.error(
+          "[US-088] Failed to load ComponentVersionTracker:",
+          error,
+        );
+      }
+
       console.log("[US-087] EntityManager loading completed");
     } catch (error) {
       console.error("[US-087] Critical EntityManager loading failure:", error);
@@ -1699,6 +1772,64 @@ window.adminGui = {
         "[US-087] Failed to load IterationTypesEntityManager:",
         error,
       );
+      throw error;
+    }
+  },
+
+  // Load DatabaseVersionManager (US-088 Phase 2)
+  loadDatabaseVersionManagerEntityManager: function () {
+    console.log("[US-088] Loading DatabaseVersionManager...");
+
+    if (!window.DatabaseVersionManager) {
+      console.warn("[US-088] DatabaseVersionManager not available");
+      return;
+    }
+
+    try {
+      const startTime = performance.now();
+
+      this.componentManagers.databaseVersionManager =
+        new window.DatabaseVersionManager("mainContent", {
+          apiBase: this.api.baseUrl,
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+      const loadTime = performance.now() - startTime;
+      console.log(
+        `[US-088] DatabaseVersionManager loaded in ${loadTime.toFixed(2)}ms`,
+      );
+    } catch (error) {
+      console.error("[US-088] Failed to load DatabaseVersionManager:", error);
+      throw error;
+    }
+  },
+
+  // Load ComponentVersionTracker (US-088 Phase 2)
+  loadComponentVersionTrackerEntityManager: function () {
+    console.log("[US-088] Loading ComponentVersionTracker...");
+
+    if (!window.ComponentVersionTracker) {
+      console.warn("[US-088] ComponentVersionTracker not available");
+      return;
+    }
+
+    try {
+      const startTime = performance.now();
+
+      this.componentManagers.componentVersionTracker =
+        new window.ComponentVersionTracker("mainContent", {
+          apiBase: this.api.baseUrl,
+          orchestrator: window.ComponentOrchestrator,
+          performanceMonitor: this.performanceMonitor,
+        });
+
+      const loadTime = performance.now() - startTime;
+      console.log(
+        `[US-088] ComponentVersionTracker loaded in ${loadTime.toFixed(2)}ms`,
+      );
+    } catch (error) {
+      console.error("[US-088] Failed to load ComponentVersionTracker:", error);
       throw error;
     }
   },
@@ -2289,6 +2420,8 @@ window.adminGui = {
           "migrations",
           "plans",
           "iterations",
+          "databaseVersionManager",
+          "componentVersionTracker",
         ];
       } else if (userCode.startsWith("M") || userCode === "MGR") {
         // Manager-like trigrams get admin role
@@ -2762,6 +2895,8 @@ window.adminGui = {
                   <ul class="aui-nav">
                     <li class="nav-item" data-section="users"><a href="#" onclick="adminGui.navigateToSection('users')">Users</a></li>
                     <li class="nav-item" data-section="teams"><a href="#" onclick="adminGui.navigateToSection('teams')">Teams</a></li>
+                    <li class="nav-item" data-section="databaseVersionManager"><a href="#" onclick="adminGui.navigateToSection('databaseVersionManager')">Database Version Manager</a></li>
+                    <li class="nav-item" data-section="componentVersionTracker"><a href="#" onclick="adminGui.navigateToSection('componentVersionTracker')">Component Version Tracker</a></li>
                   </ul>
                 </div>
 
@@ -2799,6 +2934,14 @@ window.adminGui = {
       // Create and append the main structure
       const mainContainer = document.createElement("div");
       mainContainer.innerHTML = mainHTML;
+
+      // Ensure DOM compatibility for batch.js MutationObserver
+      if (mainContainer && !mainContainer.getElementsByClassName) {
+        mainContainer.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
+        };
+      }
+
       document.body.appendChild(mainContainer);
 
       // Create the edit modal structure
@@ -2864,6 +3007,14 @@ window.adminGui = {
       const modalContainer = document.createElement("div");
       modalContainer.innerHTML = modalHTML;
       const modalElement = modalContainer.firstElementChild;
+
+      // Ensure DOM compatibility for batch.js MutationObserver
+      if (modalElement && !modalElement.getElementsByClassName) {
+        modalElement.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
+        };
+      }
+
       document.body.appendChild(modalElement);
 
       // Force DOM processing with immediate verification
@@ -3017,7 +3168,12 @@ window.adminGui = {
         activeNavItem.classList.add("active");
         console.log(`[UMIG] Active menu item set: ${activeSection}`);
       } else {
-        console.warn(`[UMIG] No nav item found for section: ${activeSection}`);
+        // Only warn for non-welcome sections (welcome is the default landing page without nav item)
+        if (activeSection !== "welcome") {
+          console.warn(
+            `[UMIG] No nav item found for section: ${activeSection}`,
+          );
+        }
       }
     } catch (error) {
       console.error("[UMIG] Failed to update active menu items:", error);
@@ -3047,7 +3203,7 @@ window.adminGui = {
         const navItems = document.querySelectorAll(".nav-item");
         if (navItems) {
           navItems.forEach((item) => {
-            if (item && item.classList) {
+            if (item && item.classList && item.nodeType === Node.ELEMENT_NODE) {
               item.classList.remove("active");
             }
           });
@@ -3110,6 +3266,8 @@ window.adminGui = {
             "labels",
             "migrationTypes",
             "iterationTypes",
+            "databaseVersionManager",
+            "componentVersionTracker",
           ];
 
           if (refreshBtn) {
@@ -3202,6 +3360,20 @@ window.adminGui = {
         `[UMIG DEBUG] Loading Welcome component for entity: ${entity}`,
       );
       this.loadWelcomeComponent();
+      this.isLoadingSection = false; // Reset loading flag
+      return;
+    }
+
+    // US-088 Phase 2: Special handling for build process components
+    // These are specialized components, not entity managers
+    const specializedComponents = [
+      "databaseVersionManager",
+      "componentVersionTracker",
+    ];
+
+    if (specializedComponents.includes(entity)) {
+      console.log(`[US-088] Loading specialized component: ${entity}`);
+      await this.loadSpecializedComponent(entity);
       this.isLoadingSection = false; // Reset loading flag
       return;
     }
@@ -3739,6 +3911,152 @@ window.adminGui = {
     }
   },
 
+  // Load specialized components (US-088 Phase 2)
+  async loadSpecializedComponent(componentName) {
+    console.log(`[US-088] Loading specialized component: ${componentName}`);
+
+    try {
+      // Show loading state
+      this.showLoadingSpinner();
+
+      // Get the content container
+      const contentArea = document.getElementById("mainContent");
+      if (!contentArea) {
+        throw new Error("Main content area not found");
+      }
+
+      // Clear existing content and create container
+      if (
+        window.SecurityUtils &&
+        typeof window.SecurityUtils.safeSetInnerHTML === "function"
+      ) {
+        window.SecurityUtils.safeSetInnerHTML(
+          contentArea,
+          `<div id="${componentName}Container" class="umig-specialized-component-container"></div>`,
+          { allowedTags: ["div"], allowedAttributes: { div: ["id", "class"] } },
+        );
+      } else {
+        contentArea.innerHTML = `<div id="${componentName}Container" class="umig-specialized-component-container"></div>`;
+      }
+
+      const container = document.getElementById(`${componentName}Container`);
+      if (!container) {
+        throw new Error(`Failed to create container for ${componentName}`);
+      }
+
+      // Map component names to classes
+      const componentClassMap = {
+        databaseVersionManager: "DatabaseVersionManager",
+        componentVersionTracker: "ComponentVersionTracker",
+      };
+
+      const className = componentClassMap[componentName];
+      if (!className || !window[className]) {
+        throw new Error(`Component class ${className} not found`);
+      }
+
+      // Check if component is already instantiated
+      if (!this.componentManagers[componentName]) {
+        console.log(`[US-088] Creating new instance of ${className}`);
+
+        // Create the component instance
+        this.componentManagers[componentName] = new window[className](
+          container.id,
+          {
+            apiBase: this.api.baseUrl,
+            debug: true,
+            performanceMonitoring: true,
+            errorBoundary: true,
+            accessibility: true,
+          },
+        );
+      }
+
+      const component = this.componentManagers[componentName];
+
+      // Initialize if needed
+      if (!component.isInitialized) {
+        console.log(`[US-088] Initializing ${componentName}`);
+        await component.initialize();
+        component.isInitialized = true;
+      }
+
+      // Mount the component
+      if (!component.isMounted) {
+        console.log(`[US-088] Mounting ${componentName}`);
+        await component.mount();
+        component.isMounted = true;
+      }
+
+      // Render the component
+      console.log(`[US-088] Rendering ${componentName}`);
+      await component.render();
+
+      // Add header with title and description
+      const header = document.createElement("div");
+      header.className = "umig-component-header";
+
+      // Ensure DOM compatibility for batch.js MutationObserver
+      if (header && !header.getElementsByClassName) {
+        header.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
+        };
+      }
+
+      const titles = {
+        databaseVersionManager: "Database Version Manager",
+        componentVersionTracker: "Component Version Tracker",
+      };
+
+      const descriptions = {
+        databaseVersionManager:
+          "Manage database versions, analyze Liquibase changesets, and generate deployment packages",
+        componentVersionTracker:
+          "Track component versions across API, UI, Backend, and Database layers",
+      };
+
+      if (
+        window.SecurityUtils &&
+        typeof window.SecurityUtils.safeSetInnerHTML === "function"
+      ) {
+        window.SecurityUtils.safeSetInnerHTML(
+          header,
+          `
+          <h2>${titles[componentName] || componentName}</h2>
+          <p class="umig-component-description">${descriptions[componentName] || ""}</p>
+          `,
+          {
+            allowedTags: ["h2", "p"],
+            allowedAttributes: { p: ["class"] },
+          },
+        );
+      } else {
+        header.innerHTML = `
+          <h2>${titles[componentName] || componentName}</h2>
+          <p class="umig-component-description">${descriptions[componentName] || ""}</p>
+        `;
+      }
+
+      // Insert header before the component content
+      container.insertBefore(header, container.firstChild);
+
+      // Hide loading state
+      this.hideLoadingSpinner();
+
+      console.log(`[US-088] Successfully loaded ${componentName}`);
+    } catch (error) {
+      console.error(`[US-088] Failed to load ${componentName}:`, error);
+
+      // Hide loading state
+      this.hideLoadingSpinner();
+
+      // Show error message
+      this.showError(
+        `Failed to load ${componentName}: ${error.message}. Please check the browser console for details.`,
+      );
+    }
+  },
+
   // Setup event listeners for EntityManager (US-087)
   setupEntityManagerEventListeners(entity, manager) {
     // TD-005 Phase 2: Support both direct event methods and orchestrator-based events
@@ -4203,6 +4521,13 @@ window.adminGui = {
 
     // Add checkbox column for row selection
     const checkboxTh = document.createElement("th");
+
+    // Ensure DOM compatibility for batch.js MutationObserver
+    if (checkboxTh && !checkboxTh.getElementsByClassName) {
+      checkboxTh.getElementsByClassName = function (className) {
+        return this.querySelectorAll("." + className);
+      };
+    }
     // Secure alternative to innerHTML for checkbox
     if (
       window.SecurityUtils &&
@@ -4233,6 +4558,14 @@ window.adminGui = {
         label: columnKey,
       };
       const th = document.createElement("th");
+
+      // Ensure DOM compatibility for batch.js MutationObserver
+      if (th && !th.getElementsByClassName) {
+        th.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
+        };
+      }
+
       th.textContent = field.label;
       th.setAttribute("data-field", columnKey);
 
@@ -4257,6 +4590,14 @@ window.adminGui = {
 
     // Add actions column
     const actionsTh = document.createElement("th");
+
+    // Ensure DOM compatibility for batch.js MutationObserver
+    if (actionsTh && !actionsTh.getElementsByClassName) {
+      actionsTh.getElementsByClassName = function (className) {
+        return this.querySelectorAll("." + className);
+      };
+    }
+
     actionsTh.textContent = "Actions";
     actionsTh.style.width = "120px";
     headerRow.appendChild(actionsTh);

@@ -8,7 +8,7 @@ import umig.repository.UserRepository
 import umig.repository.AuditLogRepository
 import umig.service.UserService
 import umig.utils.DatabaseUtil
-import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
 import groovy.json.JsonSlurper
 
 import javax.servlet.http.HttpServletRequest
@@ -118,7 +118,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
 
         // Log performance warning if data retrieval exceeds target
         if (dataRetrievalTime > 200) {
-            log.warn("US-049 Performance Warning: Step data retrieval exceeded 200ms target: ${dataRetrievalTime}ms for step ${stepInstanceId}")
+            println "US-049 Performance Warning: Step data retrieval exceeded 200ms target: ${dataRetrievalTime}ms for step ${stepInstanceId}"
         }
 
         // Get current user context for audit logging and email context
@@ -176,13 +176,30 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def oldStatus = (((requestBody as Map).oldStatus as String) ?: "unknown") as String
                     def newStatus = (((requestBody as Map).newStatus as String) ?: ((stepData as Map).status as String)) as String
                     def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
-                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
-                    def migrationCode = ((stepData as Map).migrationName as String)
-                    def iterationCode = ((stepData as Map).iterationName as String)
 
-                    EmailService.sendStepStatusChangedNotificationWithUrl(
-                        stepData as Map,
-                        teams,
+                    // US-058 Enhancement: Support direct recipient email for testing/development
+                    def recipientEmail = ((requestBody as Map).recipientEmail as String)
+                    if (recipientEmail && teams.isEmpty()) {
+                        // Create a synthetic team with the provided email for testing
+                        teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
+                    }
+
+                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
+                    // Extract migration and iteration names from stepSummary
+                    def stepSummary = (stepData as Map).stepSummary as Map
+                    def migrationCode = stepSummary?.MigrationName as String
+                    def iterationCode = stepSummary?.IterationName as String
+
+                    // Create a simplified step instance structure for EnhancedEmailService
+                    def stepInstanceForEmail = [
+                        sti_id: stepSummary?.sti_id,
+                        sti_name: stepSummary?.Name,
+                        // Add other fields that EnhancedEmailService might need
+                    ]
+
+                    EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                        stepInstanceForEmail,
+                        teams as List<Map>,
                         cutoverTeam,
                         oldStatus,
                         newStatus,
@@ -197,13 +214,19 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     // Use existing sendInstructionCompletedNotificationWithUrl method (ADR-031: explicit type casting)
                     def instruction = (((requestBody as Map).instruction as Map) ?: [:]) as Map
                     def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+
+                    // US-058 Enhancement: Support direct recipient email for testing/development
+                    def recipientEmail = ((requestBody as Map).recipientEmail as String)
+                    if (recipientEmail && teams.isEmpty()) {
+                        teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
+                    }
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    EmailService.sendInstructionCompletedNotificationWithUrl(
+                    EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
                         instruction,
                         stepData as Map,
-                        teams,
+                        teams as List<Map>,
                         ((currentUser as Map)?.usr_id as Integer),
                         migrationCode,
                         iterationCode
@@ -214,12 +237,18 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                 case 'stepAssignment':
                     // Use sendStepOpenedNotificationWithUrl as it handles team assignments (ADR-031: explicit type casting)
                     def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+
+                    // US-058 Enhancement: Support direct recipient email for testing/development
+                    def recipientEmail = ((requestBody as Map).recipientEmail as String)
+                    if (recipientEmail && teams.isEmpty()) {
+                        teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
+                    }
                     def migrationCode = ((stepData as Map).migrationName as String)
                     def iterationCode = ((stepData as Map).iterationName as String)
 
-                    EmailService.sendStepOpenedNotificationWithUrl(
+                    EnhancedEmailService.sendStepOpenedNotificationWithUrl(
                         stepData as Map,
-                        teams,
+                        teams as List<Map>,
                         ((currentUser as Map)?.usr_id as Integer),
                         migrationCode,
                         iterationCode
@@ -233,12 +262,20 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     def newStatus = "escalated"
                     def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
                     def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
-                    def migrationCode = ((stepData as Map).migrationName as String)
-                    def iterationCode = ((stepData as Map).iterationName as String)
+                    // Extract migration and iteration names from stepSummary
+                    def stepSummary = (stepData as Map).stepSummary as Map
+                    def migrationCode = stepSummary?.MigrationName as String
+                    def iterationCode = stepSummary?.IterationName as String
 
-                    EmailService.sendStepStatusChangedNotificationWithUrl(
-                        stepData as Map,
-                        teams,
+                    // Create a simplified step instance structure for EnhancedEmailService
+                    def stepInstanceForEmail = [
+                        sti_id: stepSummary?.sti_id,
+                        sti_name: stepSummary?.Name,
+                    ]
+
+                    EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                        stepInstanceForEmail,
+                        teams as List<Map>,
                         cutoverTeam,
                         oldStatus,
                         newStatus,
@@ -253,7 +290,8 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     throw new IllegalArgumentException("Unsupported notification type: ${notificationType}")
             }
         } catch (Exception emailException) {
-            log.error("US-049 Email Service Error: Failed to send ${notificationType} notification for step ${stepInstanceId}", emailException)
+            println "US-049 Email Service Error: Failed to send ${notificationType} notification for step ${stepInstanceId}: ${emailException.message}"
+            emailException.printStackTrace()
 
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(new JsonBuilder([
@@ -269,7 +307,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
 
         // Log performance warning if email processing exceeds target
         if (emailProcessingTime > 500) {
-            log.warn("US-049 Performance Warning: Email processing exceeded 500ms target: ${emailProcessingTime}ms for step ${stepInstanceId}")
+            println "US-049 Performance Warning: Email processing exceeded 500ms target: ${emailProcessingTime}ms for step ${stepInstanceId}"
         }
 
         // Audit logging for email notification using existing method
@@ -295,7 +333,7 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                 )
             }
         } catch (Exception auditException) {
-            log.warn("US-049 Audit Warning: Failed to log email notification audit trail for step ${stepInstanceId}", auditException)
+            println "US-049 Audit Warning: Failed to log email notification audit trail for step ${stepInstanceId}: ${auditException.message}"
             // Continue processing - audit failure should not block email success
         }
 
@@ -327,12 +365,13 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
         ]
 
         // Log successful completion
-        log.info("US-049 Success: Email notification sent successfully. Type: ${notificationType}, Step: ${stepInstanceId}, Total Time: ${totalTime}ms")
+        println "US-049 Success: Email notification sent successfully. Type: ${notificationType}, Step: ${stepInstanceId}, Total Time: ${totalTime}ms"
 
         return Response.ok(new JsonBuilder(response).toString()).build()
 
     } catch (Exception e) {
-        log.error("US-049 Critical Error: Unexpected failure in stepViewApi/email endpoint", e)
+        println "US-049 Critical Error: Unexpected failure in stepViewApi/email endpoint: ${e.message}"
+        e.printStackTrace()
 
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder([

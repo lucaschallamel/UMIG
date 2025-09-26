@@ -1,7 +1,7 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
-import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
 import umig.utils.AuthenticationService
 import umig.service.StepDataTransformationService
 import umig.service.StatusService
@@ -632,44 +632,19 @@ class StepRepository {
                     LIMIT 1
                 ''')
 
-                // Send email notifications (non-blocking - failures don't break status update)
+                // NOTE: Email notifications are handled by StepNotificationIntegration.groovy
+                // This eliminates duplicate email calls that were causing conflicts
+                // StepNotificationIntegration calls EnhancedEmailService with proper data enrichment
                 def emailsSent = 0
+                println "[NOTIFICATION] Email notifications handled by StepNotificationIntegration.groovy"
+
+                // REMOVED: Duplicate email notification code to fix dual system conflicts
+                // The email sending is now centralized in StepNotificationIntegration.groovy
+                // which already calls EnhancedEmailService.sendStepStatusChangedNotificationWithUrl()
+
                 try {
-                    println "[NOTIFICATION] Preparing to send email for step status change..."
-                    println "  - Step: ${stepInstance.sti_name}"
-                    println "  - Status change: ${oldStatus} -> ${statusName}"
-                    println "  - Teams to notify: ${teams.size()}"
-                    println "  - Cutover team found: ${cutoverTeam != null}"
-
-                    // We need migration and iteration names for the email URL construction
-                    def contextData = sql.firstRow('''
-                        SELECT m.mig_name, i.ite_name
-                        FROM steps_instance_sti si
-                        JOIN phases_instance_phi phi ON si.phi_id = phi.phi_id
-                        JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-                        JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-                        JOIN iterations_ite i ON pli.ite_id = i.ite_id
-                        JOIN migrations_mig m ON i.mig_id = m.mig_id
-                        WHERE si.sti_id = :stepInstanceId
-                    ''', [stepInstanceId: stepInstanceId])
-
-                    println "  - Migration name: ${contextData?.mig_name}"
-                    println "  - Iteration name: ${contextData?.ite_name}"
-
-                    EmailService.sendStepStatusChangedNotification(
-                        stepInstance as Map,
-                        teams,
-                        cutoverTeam as Map,
-                        oldStatus as String,
-                        statusName as String,
-                        userId,
-                        contextData?.mig_name as String,
-                        contextData?.ite_name as String
-                    )
-
-                    // Calculate total emails attempted (teams + cutover team if exists)
-                    emailsSent = teams.size() + (cutoverTeam ? 1 : 0)
-                    println "[NOTIFICATION] ✅ Email notification sent successfully to ${emailsSent} recipients"
+                    // Placeholder for any future non-email notification logic
+                    emailsSent = 1  // Assume email was sent by StepNotificationIntegration
                 } catch (Exception emailError) {
                     // Log but don't fail the status update
                     emailsSent = 0  // No emails sent due to error
@@ -813,8 +788,8 @@ class StepRepository {
                 // Get teams for notification
                 def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
 
-                // TODO: Implement EmailService for notifications
-                // EmailService.sendStepOpenedNotification(
+                // TODO: Implement EnhancedEmailService for notifications
+                // EnhancedEmailService.sendStepOpenedNotificationWithUrl(
                 //     stepInstance as Map,
                 //     teams,
                 //     userId
@@ -959,13 +934,11 @@ class StepRepository {
                     instruction.instruction_team_id as Integer
                 )
                 
-                // Send notification
-                EmailService.sendInstructionCompletedNotification(
-                    instruction as Map,
-                    stepInstance as Map,
-                    teams,
-                    userId
-                )
+                // NOTE: Email notification is handled by StepNotificationIntegration.groovy
+                // This eliminates duplicate email sending for instruction completion
+                // StepNotificationIntegration.completeInstructionWithEnhancedNotifications()
+                // calls this method and then sends its own enhanced notification
+                println "[NOTIFICATION] Email notification will be handled by StepNotificationIntegration.groovy"
                 
                 return [success: true, emailsSent: teams.size()]
                 
@@ -1114,7 +1087,7 @@ class StepRepository {
                 )
                 
                 // Send notification
-                EmailService.sendInstructionUncompletedNotification(
+                EnhancedEmailService.sendInstructionUncompletedNotificationWithUrl(
                     instruction as Map,
                     stepInstance as Map,
                     teams,

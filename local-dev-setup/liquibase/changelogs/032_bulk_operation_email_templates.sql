@@ -1,3 +1,8 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:032_bulk_operation_email_templates_v1:
+--comment: Add bulk operation and iteration event email templates with enhanced styling and contextual notifications
+
 -- Bulk Operation Email Templates for US-058 Phase 2A
 -- Enhanced email templates for IterationView/StepView bulk operations and iteration events
 -- Author: UMIG Project Team
