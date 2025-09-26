@@ -44,8 +44,14 @@ async function main() {
   // Global timeout to prevent infinite hangs (5 minutes for complete build)
   const globalTimeout = setTimeout(() => {
     console.error(chalk.red("❌ Build process timed out after 5 minutes"));
-    console.error(chalk.red("This suggests a hang in database operations or file system access"));
-    console.error(chalk.yellow("💡 Try running with --verbose to identify the hang point"));
+    console.error(
+      chalk.red(
+        "This suggests a hang in database operations or file system access",
+      ),
+    );
+    console.error(
+      chalk.yellow("💡 Try running with --verbose to identify the hang point"),
+    );
     process.exit(1);
   }, 300000); // 5 minutes
 
@@ -70,7 +76,9 @@ async function main() {
 
     // Execute Phase 1 build process
     console.log(chalk.blue("📦 Starting Phase 1 build process..."));
-    console.log(chalk.gray("⏱️  Global timeout: 5 minutes to prevent infinite hangs"));
+    console.log(
+      chalk.gray("⏱️  Global timeout: 5 minutes to prevent infinite hangs"),
+    );
     await orchestrator.executeBuild();
 
     clearTimeout(globalTimeout);

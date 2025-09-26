@@ -38,9 +38,11 @@ Replace the hardcoded migration tracking with a dynamic system that queries Liqu
 ## Acceptance Criteria
 
 ### AC1: Backend Database Integration
+
 **GIVEN** the Liquibase `databasechangelog` table contains migration records
 **WHEN** the DatabaseVersionRepository queries for migration information
 **THEN** it should return complete migration data including:
+
 - Migration filename
 - Execution timestamp
 - Checksum validation
@@ -62,6 +64,7 @@ def getAllMigrations() {
 ```
 
 ### AC2: REST API Endpoint Creation
+
 **GIVEN** a new database versions API endpoint
 **WHEN** called with proper authentication
 **THEN** it should return JSON array of all migrations from Liquibase table
@@ -76,9 +79,11 @@ databaseVersions(httpMethod: "GET", groups: ["confluence-users"]) { request, bin
 ```
 
 ### AC3: Frontend Component Refactoring
+
 **GIVEN** the DatabaseVersionManager.js component
 **WHEN** it initializes
 **THEN** it should:
+
 - Remove all hardcoded `knownChangesets` arrays
 - Make API call to `/rest/scriptrunner/latest/custom/databaseVersions`
 - Dynamically populate migration data from API response
@@ -87,58 +92,70 @@ databaseVersions(httpMethod: "GET", groups: ["confluence-users"]) { request, bin
 ```javascript
 // Expected DatabaseVersionManager.js pattern (following ADR-057)
 class DatabaseVersionManager extends BaseComponent {
-    async initialize() {
-        try {
-            const response = await fetch('/rest/scriptrunner/latest/custom/databaseVersions');
-            this.migrations = await response.json();
-            this.render();
-        } catch (error) {
-            console.error('Failed to load database versions:', error);
-        }
+  async initialize() {
+    try {
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/databaseVersions",
+      );
+      this.migrations = await response.json();
+      this.render();
+    } catch (error) {
+      console.error("Failed to load database versions:", error);
     }
+  }
 }
 ```
 
 ### AC4: Migration File Alignment
+
 **GIVEN** the `db.changelog-master.xml` file
 **WHEN** compared against filesystem migration files
 **THEN** it should:
+
 - Include all 34 SQL files from `liquibase/changelogs/`
 - Add missing entry for `030_bulk_operation_email_templates.sql`
 - Maintain proper chronological ordering
 - Use consistent naming conventions
 
 ### AC5: Liquibase Integration Validation
+
 **GIVEN** the updated system
 **WHEN** new migrations are added via standard Liquibase process
 **THEN** they should:
+
 - Automatically appear in DatabaseVersionManager UI
 - Not require any manual code updates
 - Maintain proper version ordering
 - Include all Liquibase metadata
 
 ### AC6: Error Handling and Fallback
+
 **GIVEN** potential database connectivity issues
 **WHEN** the Liquibase table is unavailable
 **THEN** the system should:
+
 - Display appropriate error messages
 - Log detailed error information for debugging
 - Not crash the admin interface
 - Provide graceful degradation
 
 ### AC7: Testing Coverage
+
 **GIVEN** the refactored components
 **WHEN** running the test suite
 **THEN** it should achieve:
+
 - Backend unit tests for DatabaseVersionRepository (≥90% coverage)
 - Frontend component tests for API integration (≥85% coverage)
 - Integration tests validating end-to-end functionality
 - Mock data tests for error scenarios
 
 ### AC8: Self-Contained SQL Package Generation
+
 **GIVEN** a request for complete SQL deployment package
 **WHEN** the system generates migration scripts
 **THEN** it should:
+
 - Include full SQL content inline (not just \i references)
 - Embed actual migration content for each changeset
 - Add transaction boundaries for each migration
@@ -172,9 +189,11 @@ COMMIT;
 ```
 
 ### AC9: Database Schema Dump Generation
+
 **GIVEN** a need for complete current schema state
 **WHEN** generating schema dump
 **THEN** it should:
+
 - Query PostgreSQL information_schema for complete DDL
 - Include tables, indexes, constraints, functions, views, sequences
 - Generate executable DDL for schema recreation
@@ -213,9 +232,11 @@ def generateSchemaDump() {
 ```
 
 ### AC10: Incremental Migration Scripts
+
 **GIVEN** version range requirements (from version X to version Y)
 **WHEN** generating incremental migration scripts
 **THEN** it should:
+
 - Support generating upgrade scripts between specific versions
 - Support generating rollback scripts for version downgrades
 - Include only necessary migrations for the specified upgrade path
@@ -230,15 +251,18 @@ def validateMigrationPath(String fromVersion, String toVersion)
 ```
 
 ### AC11: Enhanced Package Options UI
+
 **GIVEN** the DatabaseVersionManager.js component
 **WHEN** accessing package generation functionality
 **THEN** it should provide four distinct options:
+
 1. **Migration Bundle**: Self-contained SQL with all migrations embedded
 2. **Current Schema**: Complete schema dump from live database
 3. **Incremental Script**: Migrations between specified versions
 4. **Rollback Script**: Downgrade scripts with safety checks
 
 Each option should include:
+
 - Clear descriptions of use cases and intended audience
 - Preview capability for generated content
 - Download functionality with appropriate file naming
@@ -248,8 +272,8 @@ Each option should include:
 ```javascript
 // Expected UI enhancement in DatabaseVersionManager.js
 class DatabaseVersionManager extends BaseComponent {
-    renderPackageOptions() {
-        return `
+  renderPackageOptions() {
+    return `
             <div class="package-generation-section">
                 <h3>Package Generation Options</h3>
                 <div class="package-option" data-type="migration-bundle">
@@ -284,7 +308,7 @@ class DatabaseVersionManager extends BaseComponent {
                 </div>
             </div>
         `;
-    }
+  }
 }
 ```
 
@@ -295,6 +319,7 @@ class DatabaseVersionManager extends BaseComponent {
 ### Backend Components
 
 **DatabaseVersionRepository.groovy** (NEW)
+
 ```groovy
 package umig.repository
 
@@ -315,6 +340,7 @@ class DatabaseVersionRepository {
 ```
 
 **DatabaseVersionsApi.groovy** (NEW)
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 // Implementation as per AC2 with enhanced endpoints (AC8-AC10)
@@ -346,6 +372,7 @@ databaseVersions-migration-incremental(httpMethod: "POST", groups: ["confluence-
 ### Frontend Components
 
 **DatabaseVersionManager.js** (REFACTORED)
+
 - Remove hardcoded arrays (lines ~15-50)
 - Add API integration methods
 - Maintain existing render() and UI methods
@@ -361,6 +388,7 @@ databaseVersions-migration-incremental(httpMethod: "POST", groups: ["confluence-
 ### Database Alignment
 
 **db.changelog-master.xml** updates:
+
 - Add missing `<include file="030_bulk_operation_email_templates.sql" relativeToChangelogFile="true"/>`
 - Verify all 34 migrations are included
 - Maintain chronological order
@@ -370,6 +398,7 @@ databaseVersions-migration-incremental(httpMethod: "POST", groups: ["confluence-
 ## Testing Strategy
 
 ### Backend Testing
+
 ```bash
 # New Groovy tests
 npm run test:groovy:unit -- DatabaseVersionRepository
@@ -389,6 +418,7 @@ npm run test:groovy:integration -- DatabaseVersionsApiPackageEndpoints
 ```
 
 ### Frontend Testing
+
 ```bash
 # Component API integration tests
 npm run test:js:components -- --testPathPattern='DatabaseVersionManager'
@@ -411,6 +441,7 @@ npm run test:js:components -- --testPathPattern='DatabaseVersionManagerPackageGe
 ```
 
 ### Integration Testing
+
 ```bash
 # End-to-end validation
 npm run test:all:integration
@@ -434,21 +465,25 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## All Acceptance Criteria Status: ✅ PASSED
 
 ### AC1: Backend Database Integration ✅ COMPLETE
+
 - DatabaseVersionRepository queries Liquibase `databasechangelog` table
 - Returns complete migration data (filename, timestamp, checksum, author, ID)
 - Uses proper `DatabaseUtil.withSql` pattern
 
 ### AC2: REST API Endpoint Creation ✅ COMPLETE
+
 - `/databaseVersionsPackageSQL` and `/databaseVersionsPackageLiquibase` endpoints operational
 - Proper authentication with `groups: ["confluence-users"]`
 - Returns JSON packages with self-contained executable SQL
 
 ### AC3: Frontend Component Refactoring ✅ COMPLETE
+
 - DatabaseVersionManager.js removes hardcoded arrays
 - API integration with `/databaseVersionsPackageSQL` endpoint
 - Maintains existing UI functionality, adds package generation features
 
 ### AC4-AC11: Enhanced Package Generation ✅ COMPLETE
+
 - Self-contained SQL package generation with embedded migration content
 - Transaction boundaries and comprehensive error handling
 - Security features (filename sanitization, path traversal protection)
@@ -459,12 +494,15 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Risk Mitigation
 
 ### High Risk: Database Connectivity Failures
+
 **Mitigation**: Implement robust error handling with fallback messaging and detailed logging
 
 ### Medium Risk: Migration File Synchronization
+
 **Mitigation**: Validate all filesystem migrations are in master XML before deployment
 
 ### Low Risk: UI Performance Impact
+
 **Mitigation**: Cache API results appropriately and implement loading states
 
 ---
@@ -472,11 +510,13 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Dependencies and Constraints
 
 **Dependencies**:
+
 - US-087 Phase 2 completion (current sprint work)
 - Liquibase changelog table populated with all historical migrations
 - ComponentOrchestrator security framework (from US-082)
 
 **Constraints**:
+
 - Must maintain backward compatibility with existing admin GUI
 - Cannot modify existing Liquibase migration files
 - Must follow schema-first development principle (ADR-059)
@@ -506,38 +546,45 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Implementation Timeline
 
 ### Phase 1: Database Layer (2-3 days)
+
 - Create DatabaseVersionRepository with Liquibase queries
 - Implement robust error handling and connection management
 - Unit test repository with MockSql following TD-001 patterns
 
 ### Phase 2: API Layer (1-2 days)
+
 - Implement DatabaseVersionsApi REST endpoint
 - Add proper authentication and authorization (ADR-042)
 - Integration testing with real database connectivity
 
 ### Phase 3: Frontend Integration (2-3 days)
+
 - Refactor DatabaseVersionManager.js to remove hardcoded arrays
 - Implement API integration with caching and retry logic
 - Maintain existing UI/UX while adding dynamic data loading
 
 ### Phase 4: Migration Alignment (1 day)
+
 - Update db.changelog-master.xml with missing migration
 - Validate all 34 migrations are properly referenced
 - Test Liquibase deployment process
 
 ### Phase 5: Enhanced Package Generation (2-3 days)
+
 - Implement self-contained SQL package generation (AC8)
 - Build database schema dump functionality (AC9)
 - Create incremental migration script generation (AC10)
 - Add comprehensive error handling and validation
 
 ### Phase 6: Enhanced UI Development (2-3 days)
+
 - Implement four-option package generation UI (AC11)
 - Add preview functionality and progress indicators
 - Implement download functionality with proper file naming
 - Add validation warnings for destructive operations
 
 ### Phase 7: Testing & Validation (2-3 days)
+
 - Component testing with Jest (frontend)
 - Integration testing across all layers
 - Performance testing and optimization
@@ -573,18 +620,21 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Completion Summary
 
 ### ✅ Backend Implementation COMPLETE
+
 - **DatabaseVersionRepository.groovy** - `generateSelfContainedSqlPackage()` method implemented
 - **DatabaseVersionsApi.groovy** - `databaseVersionsPackageSQL` and `databaseVersionsPackageLiquibase` endpoints operational
 - **Self-contained package generation** - Transforms PostgreSQL \i includes to embedded executable SQL
 - **Security implementation** - Filename sanitization, path traversal protection, authentication compliance
 
 ### ✅ Frontend Implementation COMPLETE
+
 - **DatabaseVersionManager.js** - Enhanced with `generateSQLPackage()` and `generateLiquibasePackage()` methods
 - **API integration** - Proper endpoint URLs implemented (after critical URL fix)
 - **Error handling** - Robust error handling and fallback template functionality
 - **UI functionality** - Package results display (version, changesets, checksum, script preview)
 
 ### ✅ Critical Issue Resolution
+
 - **Root Cause**: API endpoint URL mismatch between frontend and backend
 - **Issue**: Frontend calling `/databaseVersions/packageSQL` but endpoints are `/databaseVersionsPackageSQL`
 - **Resolution**: Updated frontend to use correct ScriptRunner endpoint registration pattern
@@ -592,6 +642,7 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 - **Result**: Functionality fully operational in UI with user-confirmed working package generation
 
 ### ✅ Achievement Validated
+
 - **Package transformation**: Successfully converts unusable PostgreSQL reference scripts to self-contained executable packages
 - **User confirmation**: User validated functionality working correctly with displayed results in UI
 - **Architecture compliance**: Follows all UMIG patterns (ADR-031, ADR-042, ADR-043, ADR-057, ADR-058)
@@ -599,6 +650,7 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Story Points Achievement
 
 **Total Points**: 13 story points ✅ COMPLETE
+
 - Backend implementation: 5 points ✅
 - Frontend integration: 4 points ✅
 - Package generation logic: 3 points ✅
@@ -607,12 +659,14 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Lessons Learned
 
 ### ADR-061: ScriptRunner Endpoint Registration Pattern
+
 **Problem**: Frontend-backend endpoint URL mismatch causing 404 errors
 **Learning**: ScriptRunner uses function name as endpoint path (`databaseVersionsPackageSQL` not `/databaseVersions/packageSQL`)
 **Resolution**: Always verify endpoint accessibility during development, document actual vs expected patterns
 **Prevention**: Include API endpoint testing in integration test suite
 
 ### Technical Debt Prevention
+
 - Integration testing prevents frontend-backend mismatches
 - Manual API verification should precede frontend implementation
 - ScriptRunner-specific patterns must be understood before development
@@ -621,6 +675,7 @@ npm run test:js:e2e -- --testNamePattern='database.version.manager'
 ## Next Phase Transition
 
 **Transition to US-088-C**: Enhanced Database Version Manager Capabilities
+
 - **Scope differentiation**: US-088-B provides basic package generation, US-088-C adds advanced features
 - **Foundation**: US-088-C builds on US-088-B success with full database dumps, delta generation, advanced options
 - **Sprint 7 integration**: US-088-C (8 points) fits within remaining Sprint 7 capacity (45 points available)

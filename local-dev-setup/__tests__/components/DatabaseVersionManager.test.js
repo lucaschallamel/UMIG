@@ -6,9 +6,10 @@
  */
 
 // Setup test environment
-const { JSDOM } = require('jsdom');
+const { JSDOM } = require("jsdom");
 
-const dom = new JSDOM(`
+const dom = new JSDOM(
+  `
   <!DOCTYPE html>
   <html>
     <head>
@@ -18,11 +19,13 @@ const dom = new JSDOM(`
       <div id="mainContent"></div>
     </body>
   </html>
-`, {
-  url: 'http://localhost:8090',
-  pretendToBeVisual: true,
-  resources: "usable"
-});
+`,
+  {
+    url: "http://localhost:8090",
+    pretendToBeVisual: true,
+    resources: "usable",
+  },
+);
 
 global.window = dom.window;
 global.document = dom.window.document;
@@ -34,7 +37,7 @@ global.window.SecurityUtils = {
   sanitizeText: jest.fn((text) => text),
   setSecureHTML: jest.fn((element, html) => {
     element.innerHTML = html;
-  })
+  }),
 };
 
 // Mock ComponentOrchestrator
@@ -56,7 +59,7 @@ global.window.BaseEntityManager = class BaseEntityManager {
       ...this._getDefaultConfig(),
       ...config,
     };
-    this.entityType = config.entityType || 'test';
+    this.entityType = config.entityType || "test";
     this.id = `entity-manager-${this.entityType}-${Date.now()}`;
     this.state = {
       current: "uninitialized",
@@ -73,15 +76,15 @@ global.window.BaseEntityManager = class BaseEntityManager {
 
   _getDefaultConfig() {
     return {
-      entityType: 'test',
+      entityType: "test",
       security: {
         requireAuth: true,
         csrfProtection: true,
         xssProtection: true,
         rateLimiting: true,
         inputValidation: true,
-        contentSecurityPolicy: true
-      }
+        contentSecurityPolicy: true,
+      },
     };
   }
 
@@ -95,13 +98,13 @@ global.window.BaseEntityManager = class BaseEntityManager {
 };
 
 // Load DatabaseVersionManager
-require('../../../src/groovy/umig/web/js/components/DatabaseVersionManager.js');
+require("../../../src/groovy/umig/web/js/components/DatabaseVersionManager.js");
 
-describe('DatabaseVersionManager Initialization Fix', () => {
+describe("DatabaseVersionManager Initialization Fix", () => {
   let container;
 
   beforeEach(() => {
-    container = document.getElementById('mainContent');
+    container = document.getElementById("mainContent");
     jest.clearAllMocks();
 
     // Clear any existing timeouts
@@ -112,15 +115,15 @@ describe('DatabaseVersionManager Initialization Fix', () => {
   afterEach(() => {
     jest.useRealTimers();
     if (container) {
-      container.innerHTML = '';
+      container.innerHTML = "";
     }
   });
 
-  test('should create DatabaseVersionManager without config initialization error', () => {
+  test("should create DatabaseVersionManager without config initialization error", () => {
     expect(() => {
       const manager = new window.DatabaseVersionManager("mainContent", {
-        apiBase: '/rest/api',
-        orchestrator: window.ComponentOrchestrator
+        apiBase: "/rest/api",
+        orchestrator: window.ComponentOrchestrator,
       });
 
       // Verify the manager was created successfully
@@ -130,10 +133,10 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     }).not.toThrow();
   });
 
-  test('should have config properly initialized after constructor', () => {
+  test("should have config properly initialized after constructor", () => {
     const manager = new window.DatabaseVersionManager("mainContent", {
-      apiBase: '/rest/api',
-      orchestrator: window.ComponentOrchestrator
+      apiBase: "/rest/api",
+      orchestrator: window.ComponentOrchestrator,
     });
 
     // Config should be available immediately after constructor
@@ -142,14 +145,14 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     expect(manager.config.security.csrfProtection).toBe(true);
   });
 
-  test('should defer async initialization to prevent config race condition', () => {
+  test("should defer async initialization to prevent config race condition", () => {
     const manager = new window.DatabaseVersionManager("mainContent", {
-      apiBase: '/rest/api',
-      orchestrator: window.ComponentOrchestrator
+      apiBase: "/rest/api",
+      orchestrator: window.ComponentOrchestrator,
     });
 
     // Spy on initializeAsync method
-    const initializeAsyncSpy = jest.spyOn(manager, 'initializeAsync');
+    const initializeAsyncSpy = jest.spyOn(manager, "initializeAsync");
 
     // Fast-forward past the setTimeout(0) delay
     jest.runAllTimers();
@@ -158,10 +161,10 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     expect(initializeAsyncSpy).toHaveBeenCalled();
   });
 
-  test('should handle legacy BaseComponent instantiation pattern', () => {
+  test("should handle legacy BaseComponent instantiation pattern", () => {
     expect(() => {
       const manager = new window.DatabaseVersionManager("mainContent", {
-        apiBase: '/rest/api'
+        apiBase: "/rest/api",
       });
 
       expect(manager.config.containerId).toBe("mainContent");
@@ -169,12 +172,12 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     }).not.toThrow();
   });
 
-  test('should handle new BaseEntityManager instantiation pattern', () => {
+  test("should handle new BaseEntityManager instantiation pattern", () => {
     expect(() => {
       const manager = new window.DatabaseVersionManager({
         containerId: "testContainer",
-        apiBase: '/rest/api',
-        orchestrator: window.ComponentOrchestrator
+        apiBase: "/rest/api",
+        orchestrator: window.ComponentOrchestrator,
       });
 
       expect(manager.config).toBeDefined();
@@ -182,9 +185,9 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     }).not.toThrow();
   });
 
-  test('should have security state properly initialized', () => {
+  test("should have security state properly initialized", () => {
     const manager = new window.DatabaseVersionManager("mainContent", {
-      apiBase: '/rest/api'
+      apiBase: "/rest/api",
     });
 
     expect(manager.securityState).toBeDefined();
@@ -193,9 +196,9 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     expect(manager.securityState.initializationErrors).toEqual([]);
   });
 
-  test('should have error boundary configured', () => {
+  test("should have error boundary configured", () => {
     const manager = new window.DatabaseVersionManager("mainContent", {
-      apiBase: '/rest/api'
+      apiBase: "/rest/api",
     });
 
     expect(manager.errorBoundary).toBeDefined();
@@ -204,13 +207,13 @@ describe('DatabaseVersionManager Initialization Fix', () => {
     expect(manager.errorBoundary.gracefulDegradation).toBe(true);
   });
 
-  test('should have rate limiter configured', () => {
+  test("should have rate limiter configured", () => {
     const manager = new window.DatabaseVersionManager("mainContent", {
-      apiBase: '/rest/api'
+      apiBase: "/rest/api",
     });
 
     expect(manager.rateLimiter).toBeDefined();
     expect(manager.rateLimiter.maxCallsPerMinute).toBe(30);
-    expect(manager.rateLimiter.trustedOperations).toContain('initialize');
+    expect(manager.rateLimiter.trustedOperations).toContain("initialize");
   });
 });

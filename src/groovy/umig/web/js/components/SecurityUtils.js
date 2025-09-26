@@ -998,11 +998,15 @@ if (typeof SecurityUtils === "undefined") {
         // SOLUTION: Add getElementsByClassName method to all child elements that don't have it.
         const ensureChildCompatibility = (parentEl) => {
           if (parentEl && parentEl.children) {
-            Array.from(parentEl.children).forEach(child => {
+            Array.from(parentEl.children).forEach((child) => {
               // Add getElementsByClassName if missing
-              if (child && !child.getElementsByClassName && child.nodeType === Node.ELEMENT_NODE) {
-                child.getElementsByClassName = function(className) {
-                  return this.querySelectorAll('.' + className);
+              if (
+                child &&
+                !child.getElementsByClassName &&
+                child.nodeType === Node.ELEMENT_NODE
+              ) {
+                child.getElementsByClassName = function (className) {
+                  return this.querySelectorAll("." + className);
                 };
               }
               // Recursively process children

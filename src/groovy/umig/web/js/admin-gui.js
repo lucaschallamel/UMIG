@@ -104,7 +104,7 @@ window.adminGui = {
     // FIXED: Special handling for specialized components that are not traditional entities
     const specializedComponents = [
       "databaseVersionManager",
-      "componentVersionTracker"
+      "componentVersionTracker",
     ];
 
     if (specializedComponents.includes(entityName)) {
@@ -358,10 +358,14 @@ window.adminGui = {
   // Centralized UI utility to eliminate DOM manipulation duplication
   uiUtils: {
     // Ensure DOM element has required methods for batch.js compatibility
-    ensureDOMCompatibility: function(element) {
-      if (element && !element.getElementsByClassName && element.nodeType === Node.ELEMENT_NODE) {
-        element.getElementsByClassName = function(className) {
-          return this.querySelectorAll('.' + className);
+    ensureDOMCompatibility: function (element) {
+      if (
+        element &&
+        !element.getElementsByClassName &&
+        element.nodeType === Node.ELEMENT_NODE
+      ) {
+        element.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
         };
       }
       return element;
@@ -495,8 +499,8 @@ window.adminGui = {
 
         // Ensure DOM compatibility for batch.js MutationObserver
         if (modalNode && !modalNode.getElementsByClassName) {
-          modalNode.getElementsByClassName = function(className) {
-            return this.querySelectorAll('.' + className);
+          modalNode.getElementsByClassName = function (className) {
+            return this.querySelectorAll("." + className);
           };
         }
 
@@ -582,8 +586,8 @@ window.adminGui = {
 
         // Ensure DOM compatibility for batch.js MutationObserver
         if (notificationNode && !notificationNode.getElementsByClassName) {
-          notificationNode.getElementsByClassName = function(className) {
-            return this.querySelectorAll('.' + className);
+          notificationNode.getElementsByClassName = function (className) {
+            return this.querySelectorAll("." + className);
           };
         }
 
@@ -638,8 +642,8 @@ window.adminGui = {
 
           // Ensure DOM compatibility for batch.js MutationObserver
           if (spinnerNode && !spinnerNode.getElementsByClassName) {
-            spinnerNode.getElementsByClassName = function(className) {
-              return this.querySelectorAll('.' + className);
+            spinnerNode.getElementsByClassName = function (className) {
+              return this.querySelectorAll("." + className);
             };
           }
 
@@ -1430,10 +1434,7 @@ window.adminGui = {
         this.loadDatabaseVersionManagerEntityManager();
         console.log("[US-088] DatabaseVersionManager loaded");
       } catch (error) {
-        console.error(
-          "[US-088] Failed to load DatabaseVersionManager:",
-          error,
-        );
+        console.error("[US-088] Failed to load DatabaseVersionManager:", error);
       }
 
       // ComponentVersionTracker
@@ -1799,10 +1800,7 @@ window.adminGui = {
         `[US-088] DatabaseVersionManager loaded in ${loadTime.toFixed(2)}ms`,
       );
     } catch (error) {
-      console.error(
-        "[US-088] Failed to load DatabaseVersionManager:",
-        error,
-      );
+      console.error("[US-088] Failed to load DatabaseVersionManager:", error);
       throw error;
     }
   },
@@ -1831,10 +1829,7 @@ window.adminGui = {
         `[US-088] ComponentVersionTracker loaded in ${loadTime.toFixed(2)}ms`,
       );
     } catch (error) {
-      console.error(
-        "[US-088] Failed to load ComponentVersionTracker:",
-        error,
-      );
+      console.error("[US-088] Failed to load ComponentVersionTracker:", error);
       throw error;
     }
   },
@@ -2942,8 +2937,8 @@ window.adminGui = {
 
       // Ensure DOM compatibility for batch.js MutationObserver
       if (mainContainer && !mainContainer.getElementsByClassName) {
-        mainContainer.getElementsByClassName = function(className) {
-          return this.querySelectorAll('.' + className);
+        mainContainer.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
         };
       }
 
@@ -3015,8 +3010,8 @@ window.adminGui = {
 
       // Ensure DOM compatibility for batch.js MutationObserver
       if (modalElement && !modalElement.getElementsByClassName) {
-        modalElement.getElementsByClassName = function(className) {
-          return this.querySelectorAll('.' + className);
+        modalElement.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
         };
       }
 
@@ -3174,8 +3169,10 @@ window.adminGui = {
         console.log(`[UMIG] Active menu item set: ${activeSection}`);
       } else {
         // Only warn for non-welcome sections (welcome is the default landing page without nav item)
-        if (activeSection !== 'welcome') {
-          console.warn(`[UMIG] No nav item found for section: ${activeSection}`);
+        if (activeSection !== "welcome") {
+          console.warn(
+            `[UMIG] No nav item found for section: ${activeSection}`,
+          );
         }
       }
     } catch (error) {
@@ -3929,11 +3926,14 @@ window.adminGui = {
       }
 
       // Clear existing content and create container
-      if (window.SecurityUtils && typeof window.SecurityUtils.safeSetInnerHTML === "function") {
+      if (
+        window.SecurityUtils &&
+        typeof window.SecurityUtils.safeSetInnerHTML === "function"
+      ) {
         window.SecurityUtils.safeSetInnerHTML(
           contentArea,
           `<div id="${componentName}Container" class="umig-specialized-component-container"></div>`,
-          { allowedTags: ["div"], allowedAttributes: { div: ["id", "class"] } }
+          { allowedTags: ["div"], allowedAttributes: { div: ["id", "class"] } },
         );
       } else {
         contentArea.innerHTML = `<div id="${componentName}Container" class="umig-specialized-component-container"></div>`;
@@ -3947,7 +3947,7 @@ window.adminGui = {
       // Map component names to classes
       const componentClassMap = {
         databaseVersionManager: "DatabaseVersionManager",
-        componentVersionTracker: "ComponentVersionTracker"
+        componentVersionTracker: "ComponentVersionTracker",
       };
 
       const className = componentClassMap[componentName];
@@ -3960,13 +3960,16 @@ window.adminGui = {
         console.log(`[US-088] Creating new instance of ${className}`);
 
         // Create the component instance
-        this.componentManagers[componentName] = new window[className](container.id, {
-          apiBase: this.api.baseUrl,
-          debug: true,
-          performanceMonitoring: true,
-          errorBoundary: true,
-          accessibility: true
-        });
+        this.componentManagers[componentName] = new window[className](
+          container.id,
+          {
+            apiBase: this.api.baseUrl,
+            debug: true,
+            performanceMonitoring: true,
+            errorBoundary: true,
+            accessibility: true,
+          },
+        );
       }
 
       const component = this.componentManagers[componentName];
@@ -3995,22 +3998,27 @@ window.adminGui = {
 
       // Ensure DOM compatibility for batch.js MutationObserver
       if (header && !header.getElementsByClassName) {
-        header.getElementsByClassName = function(className) {
-          return this.querySelectorAll('.' + className);
+        header.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
         };
       }
 
       const titles = {
         databaseVersionManager: "Database Version Manager",
-        componentVersionTracker: "Component Version Tracker"
+        componentVersionTracker: "Component Version Tracker",
       };
 
       const descriptions = {
-        databaseVersionManager: "Manage database versions, analyze Liquibase changesets, and generate deployment packages",
-        componentVersionTracker: "Track component versions across API, UI, Backend, and Database layers"
+        databaseVersionManager:
+          "Manage database versions, analyze Liquibase changesets, and generate deployment packages",
+        componentVersionTracker:
+          "Track component versions across API, UI, Backend, and Database layers",
       };
 
-      if (window.SecurityUtils && typeof window.SecurityUtils.safeSetInnerHTML === "function") {
+      if (
+        window.SecurityUtils &&
+        typeof window.SecurityUtils.safeSetInnerHTML === "function"
+      ) {
         window.SecurityUtils.safeSetInnerHTML(
           header,
           `
@@ -4019,8 +4027,8 @@ window.adminGui = {
           `,
           {
             allowedTags: ["h2", "p"],
-            allowedAttributes: { p: ["class"] }
-          }
+            allowedAttributes: { p: ["class"] },
+          },
         );
       } else {
         header.innerHTML = `
@@ -4036,7 +4044,6 @@ window.adminGui = {
       this.hideLoadingSpinner();
 
       console.log(`[US-088] Successfully loaded ${componentName}`);
-
     } catch (error) {
       console.error(`[US-088] Failed to load ${componentName}:`, error);
 
@@ -4045,7 +4052,7 @@ window.adminGui = {
 
       // Show error message
       this.showError(
-        `Failed to load ${componentName}: ${error.message}. Please check the browser console for details.`
+        `Failed to load ${componentName}: ${error.message}. Please check the browser console for details.`,
       );
     }
   },
@@ -4517,8 +4524,8 @@ window.adminGui = {
 
     // Ensure DOM compatibility for batch.js MutationObserver
     if (checkboxTh && !checkboxTh.getElementsByClassName) {
-      checkboxTh.getElementsByClassName = function(className) {
-        return this.querySelectorAll('.' + className);
+      checkboxTh.getElementsByClassName = function (className) {
+        return this.querySelectorAll("." + className);
       };
     }
     // Secure alternative to innerHTML for checkbox
@@ -4554,8 +4561,8 @@ window.adminGui = {
 
       // Ensure DOM compatibility for batch.js MutationObserver
       if (th && !th.getElementsByClassName) {
-        th.getElementsByClassName = function(className) {
-          return this.querySelectorAll('.' + className);
+        th.getElementsByClassName = function (className) {
+          return this.querySelectorAll("." + className);
         };
       }
 
@@ -4586,8 +4593,8 @@ window.adminGui = {
 
     // Ensure DOM compatibility for batch.js MutationObserver
     if (actionsTh && !actionsTh.getElementsByClassName) {
-      actionsTh.getElementsByClassName = function(className) {
-        return this.querySelectorAll('.' + className);
+      actionsTh.getElementsByClassName = function (className) {
+        return this.querySelectorAll("." + className);
       };
     }
 

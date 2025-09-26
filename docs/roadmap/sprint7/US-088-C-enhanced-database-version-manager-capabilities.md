@@ -18,6 +18,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### Current State (Post US-088-B)
 
 **SUCCESSFULLY COMPLETED**:
+
 - ✅ Basic SQL package generation restored (self-contained executable packages)
 - ✅ Liquibase package generation functional
 - ✅ Database Version Manager UI component operational
@@ -26,6 +27,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 - ✅ Liquibase integration as single source of truth
 
 **IDENTIFIED MISSING SCOPE**:
+
 - ❌ Full database SQL dump (complete schema + data export)
 - ❌ Migration delta generation between selected versions
 - ❌ Enhanced package options and advanced filtering
@@ -35,17 +37,20 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### Technical Foundation Available
 
 **Database Version Manager Component**: `src/groovy/umig/web/js/components/DatabaseVersionManager.js`
+
 - Current methods: `generateSQLPackage()`, `generateLiquibasePackage()`
 - Enterprise security patterns (8.5/10 rating)
 - Full ComponentOrchestrator integration
 - Advanced error handling and validation
 
 **Backend Infrastructure**: `src/groovy/umig/api/v2/DatabaseVersionsApi.groovy`
+
 - Existing endpoints operational
 - Authentication: `groups: ["confluence-users"]`
 - Type safety compliance (ADR-043)
 
 **Repository Layer**: `src/groovy/umig/repository/DatabaseVersionRepository.groovy`
+
 - Liquibase `databasechangelog` table integration
 - Self-contained package generation proven patterns
 
@@ -88,6 +93,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 **So that** I can deploy the entire database schema and data to new environments
 
 **Acceptance Criteria**:
+
 - AC-088-C-01.1: New "Full Database Dump" option in Database Version Manager UI
 - AC-088-C-01.2: Backend endpoint `/databaseVersions/fullDump` generates complete database export
 - AC-088-C-01.3: Generated package includes complete schema (tables, indexes, constraints, sequences)
@@ -103,6 +109,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 **So that** I can perform efficient incremental deployments
 
 **Acceptance Criteria**:
+
 - AC-088-C-02.1: Version selection UI with "From Version" and "To Version" dropdowns
 - AC-088-C-02.2: Backend logic to identify migrations between specified versions
 - AC-088-C-02.3: Generated delta package contains only migrations in the specified range
@@ -118,6 +125,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 **So that** I can create customized deployment packages for different scenarios
 
 **Acceptance Criteria**:
+
 - AC-088-C-03.1: "Advanced Options" panel in Database Version Manager UI
 - AC-088-C-03.2: Include/exclude specific migrations via checkbox interface
 - AC-088-C-03.3: Multiple output format options (PostgreSQL, Generic SQL, Compressed)
@@ -133,6 +141,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### TR-088-C-01: Architecture Compliance
 
 **Requirement**: All enhancements must follow established UMIG architectural patterns
+
 - **ADR-043**: Explicit type casting for all parameters
 - **ADR-042**: Authentication with `groups: ["confluence-users"]`
 - **ADR-031**: DatabaseUtil.withSql pattern compliance
@@ -142,6 +151,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### TR-088-C-02: Component Extension Pattern
 
 **Requirement**: Extend existing DatabaseVersionManager component (no new components)
+
 - Maintain existing `generateSQLPackage()` and `generateLiquibasePackage()` methods
 - Add new methods: `generateFullDatabaseDump()`, `generateDeltaPackage()`, `generateAdvancedPackage()`
 - Preserve backward compatibility with existing functionality
@@ -150,6 +160,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### TR-088-C-03: Backend API Extension
 
 **Requirement**: Extend DatabaseVersionsApi with new endpoints
+
 - `/databaseVersions/fullDump` - Complete database export
 - `/databaseVersions/delta` - Version-to-version delta generation
 - `/databaseVersions/advanced` - Advanced package options
@@ -159,6 +170,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### TR-088-C-04: Performance Requirements
 
 **Requirement**: Large database handling with acceptable performance
+
 - Support databases up to 5GB with progress indicators
 - Use streaming for large result sets
 - Implement background processing for long-running exports
@@ -172,6 +184,7 @@ Extend the Database Version Manager component with missing enhanced capabilities
 ### Phase 1: Full Database Dump (3 points)
 
 **Frontend Component Enhancement** (`DatabaseVersionManager.js`):
+
 ```javascript
 // New method for full database dump
 async generateFullDatabaseDump(options = {}) {
@@ -201,6 +214,7 @@ async generateFullDatabaseDump(options = {}) {
 ```
 
 **Backend Repository Enhancement** (`DatabaseVersionRepository.groovy`):
+
 ```groovy
 /**
  * Generate complete database dump with schema and data
@@ -246,6 +260,7 @@ private List<String> generateDataDump(Sql sql, Map options) {
 ```
 
 **Backend API Enhancement** (`DatabaseVersionsApi.groovy`):
+
 ```groovy
 /**
  * POST /databaseVersions/fullDump - Generate complete database dump
@@ -288,6 +303,7 @@ databaseVersionsFullDump(httpMethod: "POST", groups: ["confluence-users"]) { Mul
 ### Phase 2: Delta Generation (3 points)
 
 **Delta Generation Logic**:
+
 ```groovy
 String generateDeltaPackage(String fromVersion, String toVersion) {
     DatabaseUtil.withSql { sql ->
@@ -315,6 +331,7 @@ String generateDeltaPackage(String fromVersion, String toVersion) {
 ### Phase 3: Advanced Options (2 points)
 
 **Advanced UI Panel**:
+
 ```javascript
 renderAdvancedOptionsPanel() {
     return `
@@ -354,23 +371,25 @@ renderAdvancedOptionsPanel() {
 ### Unit Testing
 
 **Frontend Component Tests** (`DatabaseVersionManager.advanced.test.js`):
+
 ```javascript
-describe('DatabaseVersionManager Advanced Features', () => {
-    test('generateFullDatabaseDump handles large databases', async () => {
-        // Test progress indicators and memory management
-    });
+describe("DatabaseVersionManager Advanced Features", () => {
+  test("generateFullDatabaseDump handles large databases", async () => {
+    // Test progress indicators and memory management
+  });
 
-    test('generateDeltaPackage validates version selection', async () => {
-        // Test version validation and delta logic
-    });
+  test("generateDeltaPackage validates version selection", async () => {
+    // Test version validation and delta logic
+  });
 
-    test('advanced options panel maintains state', async () => {
-        // Test UI state management and persistence
-    });
+  test("advanced options panel maintains state", async () => {
+    // Test UI state management and persistence
+  });
 });
 ```
 
 **Backend Repository Tests** (`DatabaseVersionRepositoryAdvancedTest.groovy`):
+
 ```groovy
 class DatabaseVersionRepositoryAdvancedTest {
     void testGenerateFullDatabaseDump() {
@@ -390,6 +409,7 @@ class DatabaseVersionRepositoryAdvancedTest {
 ### Integration Testing
 
 **API Integration Tests** (`DatabaseVersionsApiAdvancedTest.groovy`):
+
 - Test full dump endpoint with various options
 - Test delta generation with edge cases
 - Test advanced options endpoint functionality
@@ -398,6 +418,7 @@ class DatabaseVersionRepositoryAdvancedTest {
 ### Performance Testing
 
 **Database Performance Tests**:
+
 - Test full dump generation with 1GB+ database
 - Test memory usage during large exports
 - Test streaming performance for data dumps
@@ -410,16 +431,19 @@ class DatabaseVersionRepositoryAdvancedTest {
 ### Security Requirements
 
 **SEC-088-C-01**: Full database dumps may contain sensitive data
+
 - Implement access control validation
 - Add audit logging for dump generation
 - Consider data masking options for non-production environments
 
 **SEC-088-C-02**: Delta packages reveal database structure evolution
+
 - Validate user permissions for delta generation
 - Log all delta generation activities
 - Prevent information disclosure through error messages
 
 **SEC-088-C-03**: Advanced options increase attack surface
+
 - Validate all input parameters with whitelist approach
 - Prevent directory traversal in file operations
 - Implement rate limiting for resource-intensive operations
@@ -446,16 +470,19 @@ private void validateDumpPermissions(String operation) {
 ### Performance Requirements
 
 **PERF-088-C-01**: Large database handling
+
 - Support databases up to 5GB
 - Memory usage <512MB during export
 - Progress indicators for operations >30 seconds
 
 **PERF-088-C-02**: Efficient data export
+
 - Use PostgreSQL COPY statements for bulk data
 - Implement streaming for large result sets
 - Compress output when beneficial
 
 **PERF-088-C-03**: UI responsiveness
+
 - Background processing for long operations
 - Cancelable operations
 - Real-time progress feedback
@@ -486,27 +513,30 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 
 ### Risk Analysis
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| **Large database performance issues** | Medium | High | Implement streaming and progress indicators |
-| **Memory exhaustion during full dumps** | Medium | High | Use chunked processing and memory monitoring |
-| **Complex delta logic edge cases** | Low | Medium | Comprehensive testing of version scenarios |
-| **Security vulnerabilities in data export** | Low | High | Thorough security review and access controls |
-| **UI complexity from advanced options** | Medium | Low | Progressive disclosure and user testing |
+| Risk                                        | Probability | Impact | Mitigation                                   |
+| ------------------------------------------- | ----------- | ------ | -------------------------------------------- |
+| **Large database performance issues**       | Medium      | High   | Implement streaming and progress indicators  |
+| **Memory exhaustion during full dumps**     | Medium      | High   | Use chunked processing and memory monitoring |
+| **Complex delta logic edge cases**          | Low         | Medium | Comprehensive testing of version scenarios   |
+| **Security vulnerabilities in data export** | Low         | High   | Thorough security review and access controls |
+| **UI complexity from advanced options**     | Medium      | Low    | Progressive disclosure and user testing      |
 
 ### Mitigation Strategies
 
 **Risk 1: Performance Issues**
+
 - Implement background processing with job queuing
 - Add operation cancellation capability
 - Use database-specific optimization (PostgreSQL COPY)
 
 **Risk 2: Security Concerns**
+
 - Implement comprehensive access control validation
 - Add audit logging for all export operations
 - Consider data masking for sensitive environments
 
 **Risk 3: Complexity Management**
+
 - Maintain backward compatibility with existing functionality
 - Use progressive disclosure for advanced options
 - Comprehensive testing across database sizes
@@ -518,16 +548,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Deployment Phases
 
 **Phase 1: Backend Infrastructure**
+
 - Deploy repository enhancements
 - Deploy new API endpoints
 - Validate with existing functionality
 
 **Phase 2: Frontend Component Updates**
+
 - Deploy component enhancements
 - Enable feature flags for new functionality
 - Validate UI integration
 
 **Phase 3: Full Feature Activation**
+
 - Enable all new features
 - Monitor performance and usage
 - Gather user feedback
@@ -535,11 +568,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Rollback Plan
 
 **Component Level Rollback**:
+
 - Feature flags allow disabling new functionality
 - Existing package generation remains operational
 - Database changes are additive (no schema modifications)
 
 **Error Recovery**:
+
 - Graceful degradation for unsupported operations
 - Clear error messaging for failed operations
 - Automatic fallback to basic package generation
@@ -551,16 +586,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Functional Success Criteria
 
 **FSC-088-C-01**: Full database dump functionality
+
 - Generate complete database export packages
 - Support databases up to 5GB with acceptable performance
 - Maintain self-contained executable architecture
 
 **FSC-088-C-02**: Delta package generation
+
 - Generate version-to-version change packages
 - Validate migration dependencies and ordering
 - Provide clear delta package documentation
 
 **FSC-088-C-03**: Advanced options functionality
+
 - Flexible package customization options
 - Save/load configuration profiles
 - Multiple output format support
@@ -568,16 +606,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Technical Success Criteria
 
 **TSC-088-C-01**: Performance targets
+
 - Full dump generation: <5 minutes for 1GB database
 - Memory usage: <512MB during operations
 - UI responsiveness: Progress updates every 2 seconds
 
 **TSC-088-C-02**: Security standards
+
 - Enterprise security rating maintained (≥8.5/10)
 - Comprehensive access control validation
 - Complete audit logging implementation
 
 **TSC-088-C-03**: Quality standards
+
 - Zero regression in existing functionality
 - Comprehensive test coverage (≥85%)
 - Complete documentation and user guides
@@ -585,11 +626,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Business Success Criteria
 
 **BSC-088-C-01**: User satisfaction
+
 - Deployment teams can generate required packages
 - 50% reduction in manual database export tasks
 - Positive feedback from UAT deployment scenarios
 
 **BSC-088-C-02**: Operational efficiency
+
 - Support for diverse deployment scenarios
 - Reduced deployment package preparation time
 - Enhanced disaster recovery capabilities
@@ -601,16 +644,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Technical Dependencies
 
 **DEP-088-C-01**: US-088-B completion ✅
+
 - Database Version Manager component operational
 - Basic package generation functionality restored
 - Liquibase integration as single source of truth
 
 **DEP-088-C-02**: PostgreSQL database access
+
 - Read permissions for schema inspection
 - Access to system catalog tables
 - COPY statement execution permissions
 
 **DEP-088-C-03**: Component architecture patterns ✅
+
 - ComponentOrchestrator integration available
 - SecurityUtils global access established
 - Enterprise security patterns implemented
@@ -618,11 +664,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Infrastructure Dependencies
 
 **DEP-088-C-04**: Development environment
+
 - PostgreSQL 14 with sample data available
 - ScriptRunner 9.21.0 environment functional
 - Admin GUI component loading operational
 
 **DEP-088-C-05**: Testing infrastructure ✅
+
 - Jest testing framework configured
 - Groovy self-contained test patterns established
 - Component testing utilities available
@@ -641,11 +689,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Sprint Dependencies
 
 **Completed Foundations** ✅:
+
 - US-088-B: Enhanced Package Generation complete
 - TD-013 Phases 1-3A: Groovy test coverage established
 - Component architecture: Proven patterns available
 
 **Parallel Work**:
+
 - US-087: Admin GUI Phase 2 migration (no conflicts)
 - US-074: Admin Types Management (independent)
 - Remaining technical debt items (no conflicts)
@@ -664,21 +714,25 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Sprint 7 Implementation Schedule
 
 **Days 1-2**: Analysis and design
+
 - Review existing implementation patterns
 - Design enhanced UI components
 - Plan backend API extensions
 
 **Days 3-5**: Core implementation
+
 - Implement full database dump functionality
 - Develop delta generation logic
 - Create advanced options UI panel
 
 **Days 6-7**: Integration and testing
+
 - Integrate with existing component architecture
 - Comprehensive testing across scenarios
 - Performance validation with large databases
 
 **Day 8**: Final validation and documentation
+
 - User acceptance testing
 - Documentation completion
 - Sprint review preparation
@@ -686,16 +740,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Resource Allocation
 
 **Frontend Development**: 3 points
+
 - DatabaseVersionManager component enhancements
 - Advanced options UI implementation
 - Integration with existing functionality
 
 **Backend Development**: 4 points
+
 - Repository method implementations
 - API endpoint development
 - Security and performance optimization
 
 **Testing & Validation**: 1 point
+
 - Comprehensive test suite development
 - Performance testing and validation
 - User acceptance testing support
@@ -737,11 +794,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### User Documentation
 
 **DOC-088-C-01**: Enhanced Database Version Manager Guide
+
 - Updated user interface documentation
 - Step-by-step guides for new features
 - Best practices for different deployment scenarios
 
 **DOC-088-C-02**: Package Generation Reference
+
 - Complete feature comparison (basic vs enhanced)
 - Performance guidelines for large databases
 - Troubleshooting guide for common issues
@@ -749,11 +808,13 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Technical Documentation
 
 **DOC-088-C-03**: API Documentation Updates
+
 - New endpoint specifications
 - Request/response examples
 - Security and authentication requirements
 
 **DOC-088-C-04**: Architecture Documentation
+
 - Component architecture changes
 - Database schema requirements
 - Performance optimization techniques
@@ -765,16 +826,19 @@ private void streamDataDump(Sql sql, OutputStream outputStream, Map options) {
 ### Potential Sprint 8 Enhancements
 
 **ENH-088-C-01**: Automated scheduling
+
 - Scheduled database dump generation
 - Email notification for completed packages
 - Integration with deployment pipelines
 
 **ENH-088-C-02**: Multi-environment support
+
 - Cross-environment migration packages
 - Environment-specific configuration
 - Automated environment synchronization
 
 **ENH-088-C-03**: Advanced analytics
+
 - Package generation usage statistics
 - Database growth trend analysis
 - Migration impact assessment
@@ -788,6 +852,7 @@ US-088-C builds upon the successful completion of US-088-B to deliver the missin
 The implementation leverages established UMIG patterns, maintains backward compatibility, and delivers enterprise-grade functionality within Sprint 7's remaining capacity. This story completes the Database Version Manager feature set and provides the foundation for sophisticated deployment automation capabilities.
 
 **Next Steps**:
+
 1. Stakeholder review and approval of requirements
 2. Technical design review with architecture team
 3. Implementation planning and resource allocation

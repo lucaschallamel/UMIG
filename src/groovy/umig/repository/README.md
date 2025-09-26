@@ -173,12 +173,15 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 - Robust existence checks for all operations
 - Clear, actionable error messages
 
-### Production-Ready Patterns (ADR-047)
+### Production-Ready Patterns (ADR-047 + US-088)
 
 - Connection pooling through DatabaseUtil.withSql
-- Transaction management for bulk operations
-- Performance optimization for large datasets
+- Transaction management for bulk operations with Liquibase integration
+- Performance optimization for large datasets with 84% deployment size reduction
 - Proper resource cleanup and error handling
+- **US-088-B Integration**: Database Version Manager with self-contained package support
+- Liquibase changelog patterns for repository schema management
+- ADR-061 ScriptRunner endpoint pattern integration
 
 ### Comment System (StepsApi Enhancement)
 
@@ -192,4 +195,7 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 - [ADR-010](../../docs/adr/ADR-010-Database-Connection-Pooling.md) - Database connection pooling
 - [ADR-023](../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md) - API patterns
 - [ADR-047](../../../../docs/adr/ADR-047-postgresql-patterns.md) - PostgreSQL production-ready patterns
+- **NEW**: [ADR-061](../../../../docs/adr/ADR-061-ScriptRunner-endpoint-pattern-discovery.md) - ScriptRunner endpoint patterns
+- [US-088 Documentation](../../../../docs/roadmap/sprint7/US-088.md) - Database Version Manager with Liquibase
 - [Testing Guidelines](../tests/README.md) - Repository testing patterns
+- [Sprint 7 Status](../../../../docs/roadmap/sprint7/) - 224% completion rate achievements

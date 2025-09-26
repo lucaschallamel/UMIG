@@ -5,6 +5,7 @@
 **Problem**: Applied critical URL fixes to DatabaseVersionManager.js but user reports "I don't see any change happening at all"
 
 **Fixed URLs Applied**:
+
 - `/packages/sql` → `/packageSQL` ✅
 - `/packages/liquibase` → `/packageLiquibase` ✅
 - Added comprehensive error logging ✅
@@ -27,8 +28,9 @@
 ### Step 2: Run Comprehensive Analysis
 
 In the browser console, run:
+
 ```javascript
-debugDatabaseVersionManager()
+debugDatabaseVersionManager();
 ```
 
 This will perform complete analysis and provide immediate insights.
@@ -38,6 +40,7 @@ This will perform complete analysis and provide immediate insights.
 Look for these key indicators in the debug output:
 
 #### 🔍 Component Loading Status
+
 ```
 📦 COMPONENT STATUS:
   ✅/❌ Status: LOADED/FAILED
@@ -46,6 +49,7 @@ Look for these key indicators in the debug output:
 ```
 
 #### 🌐 API Endpoint Status
+
 ```
 🌐 API ENDPOINTS:
   ✅/❌ main: 200/404
@@ -54,6 +58,7 @@ Look for these key indicators in the debug output:
 ```
 
 #### 🚨 Critical Issues
+
 ```
 🚨 CRITICAL ISSUES:
   1. [Specific issue found]
@@ -65,31 +70,38 @@ Look for these key indicators in the debug output:
 ## 🎯 MOST LIKELY CAUSES & SOLUTIONS
 
 ### Issue 1: JavaScript File Not Loading (80% of cases)
+
 **Symptoms**: `❌ DatabaseVersionManager class not found`
 
 **Solutions**:
+
 1. **Hard Refresh**: `Ctrl+Shift+R` (Windows) / `Cmd+Shift+R` (Mac)
 2. **Clear Browser Cache**: Dev Tools → Application → Storage → Clear Site Data
 3. **ScriptRunner Cache**: Confluence Admin → ScriptRunner → Clear Cache
 
 **Verification**:
+
 ```javascript
 // Run in console:
-typeof window.DatabaseVersionManager === 'function'  // Should return true
+typeof window.DatabaseVersionManager === "function"; // Should return true
 ```
 
 ### Issue 2: ScriptRunner Cache (15% of cases)
+
 **Symptoms**: Old version of file is cached in ScriptRunner
 
 **Solutions**:
+
 1. **Confluence Admin** → **ScriptRunner** → **Script Console**
 2. **Clear Cache** button
 3. **Restart Confluence** if persistent
 
 ### Issue 3: API Endpoints Not Registered (5% of cases)
+
 **Symptoms**: `❌ packageSQL: 404`, `❌ packageLiquibase: 404`
 
 **Solutions**:
+
 1. Check **ScriptRunner REST Endpoints** in admin
 2. Verify `DatabaseVersionsApi.groovy` compiled without errors
 3. Check ScriptRunner logs for Groovy compilation errors
@@ -99,21 +111,27 @@ typeof window.DatabaseVersionManager === 'function'  // Should return true
 ## 🧪 INDIVIDUAL TEST FUNCTIONS
 
 ### Test Component Loading
+
 ```javascript
-testComponentInstantiation()
+testComponentInstantiation();
 ```
+
 **Expected**: `✅ Test instance created successfully`
 
 ### Test API Endpoints
+
 ```javascript
-testApiEndpoints()
+testApiEndpoints();
 ```
+
 **Expected**: All endpoints return `✅ 200 OK`
 
 ### Check Cache Status
+
 ```javascript
-checkScriptRunnerCache()
+checkScriptRunnerCache();
 ```
+
 **Expected**: Scripts loaded, no cache warnings
 
 ---
@@ -121,36 +139,41 @@ checkScriptRunnerCache()
 ## 🔧 STEP-BY-STEP VERIFICATION
 
 ### Verification 1: File Loading
+
 ```javascript
 // Check if class exists
-window.DatabaseVersionManager
+window.DatabaseVersionManager;
 
 // Check if file is loaded
-document.querySelector('script[src*="DatabaseVersionManager"]')
+document.querySelector('script[src*="DatabaseVersionManager"]');
 
 // Check script content
-Array.from(document.querySelectorAll('script')).find(s =>
-  s.innerHTML.includes('generateSQLPackage')
-)
+Array.from(document.querySelectorAll("script")).find((s) =>
+  s.innerHTML.includes("generateSQLPackage"),
+);
 ```
 
 ### Verification 2: URL Fixes Applied
+
 ```javascript
 // Create test instance and check URLs
-const test = new window.DatabaseVersionManager({temporaryInstance: true});
+const test = new window.DatabaseVersionManager({ temporaryInstance: true });
 // Check the fetchWithCSRF calls in generateSQLPackage method
-test.toString().includes('packageSQL')  // Should be true
-test.toString().includes('packageLiquibase')  // Should be true
+test.toString().includes("packageSQL"); // Should be true
+test.toString().includes("packageLiquibase"); // Should be true
 ```
 
 ### Verification 3: API Endpoint Response
+
 ```javascript
 // Test the fixed URLs directly
-fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageSQL')
-  .then(r => console.log('packageSQL:', r.status))
+fetch("/rest/scriptrunner/latest/custom/databaseVersions/packageSQL").then(
+  (r) => console.log("packageSQL:", r.status),
+);
 
-fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
-  .then(r => console.log('packageLiquibase:', r.status))
+fetch(
+  "/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase",
+).then((r) => console.log("packageLiquibase:", r.status));
 ```
 
 ---
@@ -158,6 +181,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ## 📊 NETWORK TAB ANALYSIS
 
 ### What to Check in Network Tab:
+
 1. **JavaScript Loading**:
    - Look for `DatabaseVersionManager.js` requests
    - Verify status is `200 OK`, not `304 Not Modified` (cache)
@@ -180,12 +204,14 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 **Try these in order until issue resolves:**
 
 ### ☐ Level 1: Browser Cache (30 seconds)
+
 ```bash
 1. Hard refresh: Ctrl+Shift+R (Windows) / Cmd+Shift+R (Mac)
 2. Check if changes appear
 ```
 
 ### ☐ Level 2: Clear Browser Cache (2 minutes)
+
 ```bash
 1. F12 → Application tab → Storage → Clear Site Data (localhost:8090)
 2. Refresh page
@@ -193,6 +219,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ```
 
 ### ☐ Level 3: ScriptRunner Cache (5 minutes)
+
 ```bash
 1. Confluence Admin → ScriptRunner → Script Console → Clear Cache
 2. Wait 30 seconds
@@ -201,6 +228,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ```
 
 ### ☐ Level 4: Component Registration (3 minutes)
+
 ```bash
 1. Check ScriptRunner REST Endpoints for DatabaseVersionsApi entries
 2. Verify all endpoints exist: databaseVersions, databaseVersionsPackageSQL, etc.
@@ -208,6 +236,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ```
 
 ### ☐ Level 5: Full Restart (10 minutes)
+
 ```bash
 1. From local-dev-setup/: npm stop
 2. Wait 30 seconds
@@ -221,6 +250,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ## 📋 EXPECTED DEBUG RESULTS
 
 ### ✅ HEALTHY STATE:
+
 ```
 📦 COMPONENT STATUS:
   ✅ Status: LOADED
@@ -239,29 +269,35 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ### ❌ PROBLEM STATES:
 
 #### JavaScript Not Loading:
+
 ```
 📦 COMPONENT STATUS:
   ❌ Status: FAILED
   📋 Class exists: false
 ```
+
 **→ Solution**: Clear browser/ScriptRunner cache
 
 #### API Endpoints Missing:
+
 ```
 🌐 API ENDPOINTS:
   ✅ main: 200
   ❌ packageSQL: 404
   ❌ packageLiquibase: 404
 ```
+
 **→ Solution**: Check ScriptRunner endpoint registration
 
 #### Component Broken:
+
 ```
 📦 COMPONENT STATUS:
   ✅ Status: FAILED
   📋 Class exists: true
   🏗️ Instance creation: false
 ```
+
 **→ Solution**: Check console for constructor errors
 
 ---
@@ -269,36 +305,44 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageLiquibase')
 ## 🔍 ADVANCED DEBUGGING
 
 ### Manual Component Test:
+
 ```javascript
 // Test in browser console:
-const container = document.createElement('div');
-container.id = 'test-dvm-container';
+const container = document.createElement("div");
+container.id = "test-dvm-container";
 document.body.appendChild(container);
 
-const dvm = new window.DatabaseVersionManager('test-dvm-container');
-dvm.initialize().then(() => {
-  console.log('✅ Component initialized');
-  return dvm.render();
-}).then(() => {
-  console.log('✅ Component rendered');
-}).catch(error => {
-  console.error('❌ Component test failed:', error);
-});
+const dvm = new window.DatabaseVersionManager("test-dvm-container");
+dvm
+  .initialize()
+  .then(() => {
+    console.log("✅ Component initialized");
+    return dvm.render();
+  })
+  .then(() => {
+    console.log("✅ Component rendered");
+  })
+  .catch((error) => {
+    console.error("❌ Component test failed:", error);
+  });
 ```
 
 ### API Call Test:
+
 ```javascript
 // Test the exact API calls the component makes:
-fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageSQL?selection=all&format=postgresql')
-  .then(response => {
-    console.log('Response:', response.status, response.statusText);
+fetch(
+  "/rest/scriptrunner/latest/custom/databaseVersions/packageSQL?selection=all&format=postgresql",
+)
+  .then((response) => {
+    console.log("Response:", response.status, response.statusText);
     return response.json();
   })
-  .then(data => {
-    console.log('✅ packageSQL working, keys:', Object.keys(data));
+  .then((data) => {
+    console.log("✅ packageSQL working, keys:", Object.keys(data));
   })
-  .catch(error => {
-    console.error('❌ packageSQL failed:', error);
+  .catch((error) => {
+    console.error("❌ packageSQL failed:", error);
   });
 ```
 
@@ -307,12 +351,14 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageSQL?selection=al
 ## 📞 ESCALATION CRITERIA
 
 **Escalate to system-level debugging if:**
+
 1. All cache clearing attempts fail
 2. Debug script shows all components healthy but UI still doesn't work
 3. API endpoints return 200 but with error responses
 4. Confluence logs show persistent errors
 
 **Next steps would involve:**
+
 - Confluence application log analysis
 - ScriptRunner internal state inspection
 - Database connectivity verification
@@ -323,6 +369,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageSQL?selection=al
 ## 🎯 SUCCESS CRITERIA
 
 **Changes are working when you see:**
+
 1. ✅ `debugDatabaseVersionManager()` shows all green status
 2. ✅ Component loads and renders without errors
 3. ✅ "Generate SQL Package" button works and shows results
@@ -330,6 +377,7 @@ fetch('/rest/scriptrunner/latest/custom/databaseVersions/packageSQL?selection=al
 5. ✅ No 404 errors in browser console
 
 **The user should be able to:**
+
 - Click "Generate SQL Package" and see package results
 - Click "Generate Liquibase Package" and see XML output
 - Copy deployment scripts using the copy buttons

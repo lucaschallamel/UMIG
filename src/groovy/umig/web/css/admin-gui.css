@@ -1682,7 +1682,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .dvm-header {
@@ -1727,7 +1728,9 @@
   border-radius: var(--radius-md);
   padding: 25px;
   text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
@@ -1900,7 +1903,7 @@
   background: var(--bg-secondary);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
-  font-family: 'Monaco', 'Consolas', monospace;
+  font-family: "Monaco", "Consolas", monospace;
   font-size: 12px;
 }
 
@@ -1926,19 +1929,58 @@
   letter-spacing: 0.5px;
 }
 
-.category-badge.baseline { background: #8b5cf6; color: white; }
-.category-badge.email_templates { background: #06b6d4; color: white; }
-.category-badge.status_management { background: #f59e0b; color: white; }
-.category-badge.performance { background: #10b981; color: white; }
-.category-badge.import_staging { background: #6366f1; color: white; }
-.category-badge.audit_compliance { background: #8b5cf6; color: white; }
-.category-badge.configuration { background: #6b7280; color: white; }
-.category-badge.enhancement { background: #3b82f6; color: white; }
-.category-badge.security { background: #dc2626; color: white; }
-.category-badge.schema_addition { background: #059669; color: white; }
-.category-badge.table_creation { background: #0891b2; color: white; }
-.category-badge.dto_optimization { background: #7c3aed; color: white; }
-.category-badge.general { background: #6b7280; color: white; }
+.category-badge.baseline {
+  background: #8b5cf6;
+  color: white;
+}
+.category-badge.email_templates {
+  background: #06b6d4;
+  color: white;
+}
+.category-badge.status_management {
+  background: #f59e0b;
+  color: white;
+}
+.category-badge.performance {
+  background: #10b981;
+  color: white;
+}
+.category-badge.import_staging {
+  background: #6366f1;
+  color: white;
+}
+.category-badge.audit_compliance {
+  background: #8b5cf6;
+  color: white;
+}
+.category-badge.configuration {
+  background: #6b7280;
+  color: white;
+}
+.category-badge.enhancement {
+  background: #3b82f6;
+  color: white;
+}
+.category-badge.security {
+  background: #dc2626;
+  color: white;
+}
+.category-badge.schema_addition {
+  background: #059669;
+  color: white;
+}
+.category-badge.table_creation {
+  background: #0891b2;
+  color: white;
+}
+.category-badge.dto_optimization {
+  background: #7c3aed;
+  color: white;
+}
+.category-badge.general {
+  background: #6b7280;
+  color: white;
+}
 
 /* Dependency Analysis */
 .dependency-analysis {
@@ -2213,7 +2255,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 12px;
-  font-family: 'Monaco', 'Consolas', monospace;
+  font-family: "Monaco", "Consolas", monospace;
   font-size: 12px;
   overflow-x: auto;
   max-height: 200px;

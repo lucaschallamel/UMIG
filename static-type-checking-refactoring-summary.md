@@ -14,12 +14,15 @@ The issue was that `@CompileStatic(TypeCheckingMode.SKIP)` at the class level wa
 ## Solution Approach
 
 ### 1. Removed Ineffective Annotation
+
 - Removed `@CompileStatic(TypeCheckingMode.SKIP)` from class level
 - Removed unnecessary `groovy.transform.TypeCheckingMode` import
 - Updated class documentation to reflect new approach
 
 ### 2. Applied Targeted Dynamic Compilation
+
 Added `@CompileDynamic` annotation to specific test methods with type checking issues:
+
 - `"should send step status change notification with constructed URL"`
 - `"should handle step opening with enhanced notifications"`
 - `"should complete instruction with enhanced notifications"`
@@ -28,6 +31,7 @@ Added `@CompileDynamic` annotation to specific test methods with type checking i
 ### 3. Improved Type Safety Patterns
 
 **Before** (problematic):
+
 ```groovy
 Integer emailsSent = resultMap.get('emailsSent') as Integer
 emailsSent >= 0  // Type checking error
@@ -37,6 +41,7 @@ emailsSentCount2.intValue() >= 0  // Dynamic method resolution error
 ```
 
 **After** (safe):
+
 ```groovy
 Object emailsSentObj = resultMap.get('emailsSent')
 emailsSentObj != null
@@ -55,6 +60,7 @@ emailsSent != null && emailsSent.compareTo(0) >= 0  // Safe comparison
 ## Alignment with Project Philosophy
 
 This solution follows UMIG's "strategic dynamic areas" philosophy mentioned in the codebase:
+
 - **Static typing where it works well** (most methods remain without annotations)
 - **Dynamic typing where needed** (only problematic test methods get `@CompileDynamic`)
 - **Self-contained test architecture** (embedded dependencies, zero external frameworks)
@@ -71,6 +77,7 @@ This solution follows UMIG's "strategic dynamic areas" philosophy mentioned in t
 ## Testing Status
 
 The refactoring maintains all existing test functionality while resolving static type checking errors. The solution is:
+
 - **Compatible** with Spock specification framework
 - **Maintainable** through targeted annotations
 - **Safe** through explicit null checking and type handling

@@ -381,16 +381,18 @@ npm run test:groovy:api            # Groovy API layer tests
 npm run test:groovy:integration    # API integration tests
 ```
 
-### Enhanced Testing Features
+### Enhanced Testing Features (US-088 Integration)
 
-All APIs support comprehensive testing with foundation service integration:
+All APIs support comprehensive testing with foundation service integration and build process validation:
 
 - **Unit Tests**: Individual API functionality + foundation service mocking
-- **Integration Tests**: Foundation service integration + SQL query validation
+- **Integration Tests**: Foundation service integration + SQL query validation + ADR-061 pattern compliance
 - **Security Tests**: 8-phase security control validation per endpoint
 - **Performance Tests**: Caching efficiency and response time validation
-- **ScriptRunner Compatibility**: Enhanced compatibility testing with security layer
-- **95%+ Test Coverage**: Foundation service integration coverage requirement
+- **ScriptRunner Compatibility**: Enhanced compatibility testing with security layer + ADR-061 endpoint patterns
+- **Build Process Testing**: US-088 4-phase build orchestration validation
+- **Database Version Testing**: US-088-B Liquibase integration testing with self-contained packages
+- **95%+ Test Coverage**: Foundation service integration coverage requirement + deployment optimisation validation
 
 ### API Security Testing Matrix
 
@@ -470,6 +472,9 @@ All APIs support comprehensive testing with foundation service integration:
 - [ADR-043: Dual Authentication Context Management](../../../../docs/adr/ADR-043-dual-authentication-context-management.md)
 - [ADR-044: Mandatory Endpoint Registration Patterns](../../../../docs/adr/ADR-044-endpoint-registration-patterns.md)
 - [ADR-047: PostgreSQL Production-Ready Patterns](../../../../docs/adr/ADR-047-postgresql-patterns.md)
+- **NEW**: [ADR-061: ScriptRunner Endpoint Pattern Discovery](../../../../docs/adr/ADR-061-ScriptRunner-endpoint-pattern-discovery.md) - Revolutionary endpoint patterns
+- [US-088 Documentation](../../../../docs/roadmap/sprint7/US-088.md) - 4-phase build orchestration complete
+- [US-088-B Database Version Manager](../../../../docs/roadmap/sprint7/US-088-B.md) - Self-contained packages with 84% deployment reduction
 - [Repository Pattern Guidelines](../repository/README.md)
 - [API Workflow Guide](../../.clinerules/workflows/api-work.md)
 - [Testing Guidelines](../tests/README.md)

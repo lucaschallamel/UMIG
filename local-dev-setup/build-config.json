@@ -57,9 +57,7 @@
           "docs/deployment/**/*.html",
           "docs/deployment/**/*.pdf"
         ],
-        "exclusionPatterns": [
-          "docs/deployment/**/*.tmp"
-        ]
+        "exclusionPatterns": ["docs/deployment/**/*.tmp"]
       }
     },
     "globalExclusionPatterns": [
