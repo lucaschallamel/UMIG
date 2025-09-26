@@ -308,7 +308,7 @@ class UMIGVersion {
 
 ## References
 
-- [UMIG Versioning Strategy v1.0](../roadmap/sprint7/UMIG-Versioning-Strategy-v1.0.md) - Complete strategy document
+- [UMIG Comprehensive Versioning Strategy](../operations/versioning/comprehensive-versioning-strategy.md) - Complete strategy document
 - [US-088 Implementation](../roadmap/sprint7/US-088-build-process-deployment-packaging.md) - Sprint implementation plan
 - [Build Artifact Specifications](../roadmap/sprint7/US-088-Build-Artifact-Specifications.md) - Detailed artifact requirements
 - [Operational Monitoring Strategy](../roadmap/sprint7/US-088-Operational-Monitoring-Strategy.md) - Version tracking implementation

@@ -24,6 +24,7 @@ import SourcePackager from "./SourcePackager.js";
 import VersionManager from "./VersionManager.js";
 import BuildValidator from "./BuildValidator.js";
 import MetadataGenerator from "./MetadataGenerator.js";
+import { loadConfig } from "../utils/envConfigLoader.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,10 +77,9 @@ export class BuildOrchestrator {
     if (this.initialized) return;
 
     try {
-      // Load build configuration
+      // Load build configuration with environment variable substitution
       const configPath = path.resolve(__dirname, "../../build-config.json");
-      const configContent = await fs.readFile(configPath, "utf8");
-      this.config = JSON.parse(configContent);
+      this.config = loadConfig(configPath);
 
       // Get environment-specific configuration
       const envConfig = this.config.environments[this.options.environment];

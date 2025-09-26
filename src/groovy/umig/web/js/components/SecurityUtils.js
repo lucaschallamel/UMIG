@@ -17,6 +17,61 @@
  * @version 2.0.0 (Production Security Implementation)
  */
 
+// Phase 3 Code Quality - Replace magic numbers with named constants
+const SECURITY_CONSTANTS = {
+  // CSRF Token
+  CSRF_TOKEN_LENGTH: 32,
+  CSRF_TOKEN_ROTATION_INTERVAL_MS: 15 * 60 * 1000, // 15 minutes
+  CSRF_TOKEN_EXPIRY_MS: 30 * 60 * 1000, // 30 minutes
+
+  // Rate Limiting
+  RATE_LIMIT_WINDOW_MS: 60000, // 1 minute
+  RATE_LIMIT_DEFAULT_MAX_REQUESTS: 10,
+
+  // Validation
+  MAX_EMAIL_LENGTH: 254,
+  MAX_STRING_LENGTH_DEFAULT: 1000,
+  MAX_STRING_LENGTH_SHORT: 100,
+  MAX_STRING_LENGTH_LONG: 5000,
+  MAX_STRING_LENGTH_CONTENT: 10000,
+  MIN_PASSWORD_LENGTH: 8,
+
+  // Phone number
+  MIN_PHONE_DIGITS: 1,
+  MAX_PHONE_DIGITS: 14,
+
+  // Hex colors
+  HEX_COLOR_LENGTH_SHORT: 3,
+  HEX_COLOR_LENGTH_FULL: 6,
+
+  // UUID
+  UUID_SEGMENT_LENGTHS: [8, 4, 4, 4, 12],
+  UUID_VERSION_4_PREFIX: "4",
+  UUID_VARIANT_CHARS: ["8", "9", "a", "b"],
+  UUID_VERSION_BITS: 0x40,
+  UUID_VARIANT_BITS: 0x80,
+  UUID_VERSION_MASK: 0x0f,
+  UUID_VARIANT_MASK: 0x3f,
+
+  // Audit Log
+  MAX_AUDIT_LOG_ENTRIES: 100,
+
+  // Sanitization
+  SANITIZE_MAX_DEPTH: 10,
+  SANITIZE_MAX_STRING_LENGTH: 10000,
+
+  // Cryptography
+  SECURE_TOKEN_DEFAULT_LENGTH: 32,
+  NONCE_DEFAULT_LENGTH: 16,
+  UUID_RANDOM_BYTES: 16,
+
+  // Numeric limits
+  MAX_INTEGER_VALUE: Number.MAX_SAFE_INTEGER,
+
+  // Timeouts
+  FALLBACK_TOKEN_TIMESTAMP_PRECISION: 36,
+};
+
 // Prevent duplicate declarations in case script loads multiple times
 if (typeof SecurityUtils === "undefined") {
   class SecurityUtils {
@@ -25,7 +80,7 @@ if (typeof SecurityUtils === "undefined") {
       this.csrfTokens = {
         current: null,
         previous: null,
-        rotationInterval: 15 * 60 * 1000, // 15 minutes
+        rotationInterval: SECURITY_CONSTANTS.CSRF_TOKEN_ROTATION_INTERVAL_MS, // 15 minutes
         rotationTimer: null,
       };
 
@@ -34,8 +89,8 @@ if (typeof SecurityUtils === "undefined") {
 
       // Rate limiting configuration
       this.rateLimitConfig = {
-        windowMs: 60000, // 1 minute window
-        maxRequests: 10, // Max requests per window
+        windowMs: SECURITY_CONSTANTS.RATE_LIMIT_WINDOW_MS, // 1 minute window
+        maxRequests: SECURITY_CONSTANTS.RATE_LIMIT_DEFAULT_MAX_REQUESTS, // Max requests per window
       };
 
       // Validation patterns
@@ -299,7 +354,7 @@ if (typeof SecurityUtils === "undefined") {
      */
     generateCSRFToken() {
       try {
-        const array = new Uint8Array(32);
+        const array = new Uint8Array(SECURITY_CONSTANTS.CSRF_TOKEN_LENGTH);
         crypto.getRandomValues(array);
         const token = btoa(String.fromCharCode(...array))
           .replace(/\+/g, "-")
@@ -334,11 +389,34 @@ if (typeof SecurityUtils === "undefined") {
     }
 
     /**
+     * Get CSRF token from cookie
+     * Phase 1 Security Enhancement - Cookie retrieval
+     */
+    getCSRFTokenFromCookie() {
+      if (typeof document === "undefined") return null;
+
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split("=");
+        if (name === "XSRF-TOKEN") {
+          return value;
+        }
+      }
+      return null;
+    }
+
+    /**
      * Validate CSRF token (double-submit pattern)
+     * Phase 1 Security Enhancement - Added expiration check
      */
     validateCSRFToken(token, cookieToken = null) {
       if (!token) {
         return { valid: false, reason: "No token provided" };
+      }
+
+      // Check token expiration
+      if (this.tokenExpiry && Date.now() > this.tokenExpiry) {
+        return { valid: false, reason: "Token expired" };
       }
 
       // Check against current and previous tokens (for rotation tolerance)
@@ -363,12 +441,23 @@ if (typeof SecurityUtils === "undefined") {
     }
 
     /**
-     * Set CSRF token cookie
+     * Set CSRF token cookie with enhanced security
+     * Phase 1 Security Enhancement - Improved cookie handling
      */
     setCSRFTokenCookie(token) {
       if (typeof document !== "undefined") {
+        // Enhanced security settings for CSRF cookie
         const secure = location.protocol === "https:" ? "; Secure" : "";
-        document.cookie = `XSRF-TOKEN=${token}; Path=/; SameSite=Strict${secure}; HttpOnly=false`;
+        const expires = new Date(
+          Date.now() + SECURITY_CONSTANTS.CSRF_TOKEN_EXPIRY_MS,
+        ).toUTCString(); // 30 minutes
+
+        // Note: HttpOnly can't be set from JavaScript - requires server-side setting
+        // Using SameSite=Strict for CSRF protection
+        document.cookie = `XSRF-TOKEN=${token}; Path=/; SameSite=Strict${secure}; Expires=${expires}`;
+
+        // Store token expiration for validation
+        this.tokenExpiry = Date.now() + SECURITY_CONSTANTS.CSRF_TOKEN_EXPIRY_MS;
       }
     }
 
@@ -533,7 +622,11 @@ if (typeof SecurityUtils === "undefined") {
     /**
      * Check rate limit for a given key
      */
-    checkRateLimit(key, limit = 10, window = 60000) {
+    checkRateLimit(
+      key,
+      limit = SECURITY_CONSTANTS.RATE_LIMIT_DEFAULT_MAX_REQUESTS,
+      window = SECURITY_CONSTANTS.RATE_LIMIT_WINDOW_MS,
+    ) {
       const now = Date.now();
 
       if (!this.rateLimits.has(key)) {
@@ -588,7 +681,9 @@ if (typeof SecurityUtils === "undefined") {
     /**
      * Generate cryptographically secure random token
      */
-    static generateSecureToken(length = 32) {
+    static generateSecureToken(
+      length = SECURITY_CONSTANTS.SECURE_TOKEN_DEFAULT_LENGTH,
+    ) {
       try {
         const array = new Uint8Array(length);
         crypto.getRandomValues(array);
@@ -611,12 +706,16 @@ if (typeof SecurityUtils === "undefined") {
      */
     static generateUUID() {
       try {
-        const array = new Uint8Array(16);
+        const array = new Uint8Array(SECURITY_CONSTANTS.UUID_RANDOM_BYTES);
         crypto.getRandomValues(array);
 
         // Set version (4) and variant bits
-        array[6] = (array[6] & 0x0f) | 0x40;
-        array[8] = (array[8] & 0x3f) | 0x80;
+        array[6] =
+          (array[6] & SECURITY_CONSTANTS.UUID_VERSION_MASK) |
+          SECURITY_CONSTANTS.UUID_VERSION_BITS;
+        array[8] =
+          (array[8] & SECURITY_CONSTANTS.UUID_VARIANT_MASK) |
+          SECURITY_CONSTANTS.UUID_VARIANT_BITS;
 
         const hex = Array.from(array, (byte) =>
           byte.toString(16).padStart(2, "0"),
@@ -644,7 +743,7 @@ if (typeof SecurityUtils === "undefined") {
      * @param {number} length - Length of the nonce (default: 16)
      * @returns {string} Secure nonce
      */
-    static generateNonce(length = 16) {
+    static generateNonce(length = SECURITY_CONSTANTS.NONCE_DEFAULT_LENGTH) {
       return SecurityUtils.generateSecureToken(length);
     }
 
@@ -760,7 +859,7 @@ if (typeof SecurityUtils === "undefined") {
           switch (config.type) {
             case "email":
               sanitized[field] = SecurityUtils.sanitizeXSS(value, {
-                maxLength: 254,
+                maxLength: SECURITY_CONSTANTS.MAX_EMAIL_LENGTH,
               });
               break;
             case "password":
@@ -831,7 +930,10 @@ if (typeof SecurityUtils === "undefined") {
     static sanitizationPatterns = {
       userInput: {
         type: "safeString",
-        sanitizeOptions: { maxLength: 1000, trimWhitespace: true },
+        sanitizeOptions: {
+          maxLength: SECURITY_CONSTANTS.MAX_STRING_LENGTH_DEFAULT,
+          trimWhitespace: true,
+        },
       },
       email: {
         type: "email",
@@ -843,12 +945,17 @@ if (typeof SecurityUtils === "undefined") {
       },
       name: {
         type: "safeString",
-        sanitizeOptions: { maxLength: 100, allowHTML: false },
+        sanitizeOptions: {
+          maxLength: SECURITY_CONSTANTS.MAX_STRING_LENGTH_SHORT,
+          allowHTML: false,
+        },
       },
       description: {
         type: "html",
         allowHTML: false,
-        sanitizeOptions: { maxLength: 5000 },
+        sanitizeOptions: {
+          maxLength: SECURITY_CONSTANTS.MAX_STRING_LENGTH_LONG,
+        },
       },
       url: {
         type: "url",
@@ -888,7 +995,7 @@ if (typeof SecurityUtils === "undefined") {
         allowHTML: false,
         encodeEntities: false, // textContent handles this automatically
         trimWhitespace: true,
-        maxLength: 10000,
+        maxLength: SECURITY_CONSTANTS.MAX_STRING_LENGTH_CONTENT,
         ...options,
       });
 
@@ -936,7 +1043,7 @@ if (typeof SecurityUtils === "undefined") {
       const config = {
         allowedTags: ["div", "span", "p", "br", "strong", "em", "i", "b"],
         allowedAttributes: {},
-        maxLength: 10000,
+        maxLength: SECURITY_CONSTANTS.MAX_STRING_LENGTH_CONTENT,
         ...options,
       };
 
@@ -1095,8 +1202,8 @@ if (typeof SecurityUtils === "undefined") {
         sanitizeStrings: true,
         allowEmpty: true,
         recursiveValidation: true,
-        maxDepth: 10,
-        maxStringLength: 10000,
+        maxDepth: SECURITY_CONSTANTS.SANITIZE_MAX_DEPTH,
+        maxStringLength: SECURITY_CONSTANTS.SANITIZE_MAX_STRING_LENGTH,
         ...options,
       };
 
@@ -1490,8 +1597,11 @@ if (typeof SecurityUtils === "undefined") {
         auditLog.push(logEntry);
 
         // Keep only last 100 entries
-        if (auditLog.length > 100) {
-          auditLog.splice(0, auditLog.length - 100);
+        if (auditLog.length > SECURITY_CONSTANTS.MAX_AUDIT_LOG_ENTRIES) {
+          auditLog.splice(
+            0,
+            auditLog.length - SECURITY_CONSTANTS.MAX_AUDIT_LOG_ENTRIES,
+          );
         }
 
         sessionStorage.setItem("umig-security-audit", JSON.stringify(auditLog));

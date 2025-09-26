@@ -157,10 +157,11 @@
     "sourceDirectory": "../liquibase/changelogs",
     "masterFile": "db.changelog-master.xml",
     "connection": {
-      "host": "localhost",
-      "port": 5432,
-      "database": "umig_app_db",
-      "username": "umig_app_usr"
+      "host": "${DB_HOST:localhost}",
+      "port": "${DB_PORT:5432}",
+      "database": "${DB_NAME:umig_app_db}",
+      "username": "${DB_USER:umig_app_usr}",
+      "password": "${DB_PASSWORD:}"
     },
     "schemaDump": {
       "enabled": true,

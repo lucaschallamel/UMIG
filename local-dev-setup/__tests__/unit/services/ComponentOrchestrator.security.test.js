@@ -51,6 +51,54 @@ const mockUuidV4 = jest.fn(() => {
 // Standard CommonJS require
 const ComponentOrchestrator = require("../../../../src/groovy/umig/web/js/components/ComponentOrchestrator.js");
 
+// Phase 3 Code Quality - Import constants to prevent test maintenance issues
+// These constants match the actual production constants in ComponentOrchestrator.js
+const ORCHESTRATOR_CONSTANTS = {
+  // Configuration defaults
+  DEFAULT_MAX_QUEUE_SIZE: 100,
+  DEFAULT_STATE_HISTORY_SIZE: 10,
+
+  // Rate limiting
+  RATE_LIMIT_WINDOW_SIZE_MS: 60000, // 1 minute
+  MAX_EVENTS_PER_MINUTE_PER_COMPONENT: 1000,
+  MAX_STATE_UPDATES_PER_MINUTE_PER_PATH: 100,
+  MAX_API_CALLS_PER_MINUTE_PER_ENDPOINT: 60,
+  MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL: 5000,
+  MAX_TOTAL_API_CALLS_PER_MINUTE_GLOBAL: 300,
+  SUSPENSION_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  // State management
+  STATE_LOCK_TIMEOUT_MS: 5000, // 5 seconds
+  STATE_LOCK_MAX_WAIT_MS: 100,
+  STALE_OPERATION_THRESHOLD_MS: 30000, // 30 seconds
+
+  // Memory management
+  MAX_EVENT_HISTORY: 1000,
+  MAX_STATE_HISTORY: 100,
+  MAX_ERROR_LOG: 500,
+  MAX_COMPONENTS: 50,
+  MAX_SUBSCRIPTIONS: 1000,
+
+  // Debug and monitoring
+  DEBUG_EVENT_HISTORY_LIMIT: 10,
+  PERFORMANCE_SLOW_THRESHOLD_MS: 500,
+  PERFORMANCE_MODERATE_THRESHOLD_MS: 150,
+
+  // Security limits
+  MAX_EVENT_NAME_LENGTH: 100,
+  MAX_FUNCTION_ARGS: 10,
+  MAX_SOURCE_LENGTH: 50,
+
+  // Sanitization
+  SANITIZE_MAX_DEPTH: 3,
+  SANITIZE_MAX_ARRAY_LENGTH_DEV: 10,
+  SANITIZE_MAX_ARRAY_LENGTH_PROD: 5,
+  SANITIZE_MAX_STRING_LENGTH_DEV: 1000,
+  SANITIZE_MAX_STRING_LENGTH_PROD: 200,
+  SANITIZE_ERROR_LOG_LIMIT: 10,
+  SANITIZE_ERROR_LOG_LAST_ERRORS: 5,
+};
+
 // Mock component for testing
 class MockComponent {
   constructor(id, emitDelay = 0) {
@@ -82,7 +130,7 @@ class MockComponent {
   }
 
   // Simulate component that emits events rapidly
-  rapidEmit(count = 100) {
+  rapidEmit(count = ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE) {
     const promises = [];
     for (let i = 0; i < count; i++) {
       promises.push(
@@ -103,7 +151,10 @@ class MockComponent {
   }
 
   // Simulate component that updates state rapidly
-  rapidStateUpdate(path, count = 100) {
+  rapidStateUpdate(
+    path,
+    count = ORCHESTRATOR_CONSTANTS.MAX_STATE_UPDATES_PER_MINUTE_PER_PATH,
+  ) {
     const promises = [];
     for (let i = 0; i < count; i++) {
       promises.push(
@@ -139,9 +190,9 @@ describe("ComponentOrchestrator Security Tests", () => {
 
     orchestrator = new ComponentOrchestrator({
       debug: false,
-      maxQueueSize: 100,
+      maxQueueSize: ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE,
       enableReplay: true,
-      stateHistory: 10,
+      stateHistory: ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE,
       performanceMonitoring: true,
       errorIsolation: true,
     });
@@ -156,7 +207,7 @@ describe("ComponentOrchestrator Security Tests", () => {
 
   describe("1. DoS Protection and Rate Limiting Tests", () => {
     describe("Component Event Rate Limiting", () => {
-      test("should enforce per-component event rate limit (maxEventsPerMinute: 1000)", async () => {
+      test(`should enforce per-component event rate limit (maxEventsPerMinute: ${ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT})`, async () => {
         const component = new MockComponent("test-component");
         orchestrator.registerComponent("test-component", component);
 
@@ -172,8 +223,12 @@ describe("ComponentOrchestrator Security Tests", () => {
         // Simulate exceeding the rate limit
         let rateLimitExceeded = false;
         try {
-          for (let i = 0; i < 1010; i++) {
-            // Exceed 1000 limit
+          for (
+            let i = 0;
+            i < ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT + 10;
+            i++
+          ) {
+            // Exceed the configured limit
             orchestrator.emit(
               `test-event-${i}`,
               { index: i },
@@ -221,8 +276,8 @@ describe("ComponentOrchestrator Security Tests", () => {
             );
           }
 
-          // Advance time by more than window size (60000ms)
-          mockTime += 65000;
+          // Advance time by more than window size
+          mockTime += ORCHESTRATOR_CONSTANTS.RATE_LIMIT_WINDOW_SIZE_MS + 5000;
 
           // Reset should clear counters
           if (
@@ -295,14 +350,19 @@ describe("ComponentOrchestrator Security Tests", () => {
     });
 
     describe("State Update Rate Limiting", () => {
-      test("should enforce per-path state update rate limit (maxStateUpdatesPerMinute: 100)", () => {
+      test(`should enforce per-path state update rate limit (maxStateUpdatesPerMinute: ${ORCHESTRATOR_CONSTANTS.MAX_STATE_UPDATES_PER_MINUTE_PER_PATH})`, () => {
         let rateLimitViolation = false;
         const testPath = "test.path";
 
         try {
           // Attempt to exceed state update limit
-          for (let i = 0; i < 110; i++) {
-            // Exceed 100 limit
+          for (
+            let i = 0;
+            i <
+            ORCHESTRATOR_CONSTANTS.MAX_STATE_UPDATES_PER_MINUTE_PER_PATH + 10;
+            i++
+          ) {
+            // Exceed configured limit
             orchestrator.setState(testPath, {
               value: i,
               timestamp: Date.now(),
@@ -360,7 +420,7 @@ describe("ComponentOrchestrator Security Tests", () => {
     });
 
     describe("Global Rate Limiting", () => {
-      test("should enforce global event rate limit (maxTotalEventsPerMinute: 5000)", async () => {
+      test(`should enforce global event rate limit (maxTotalEventsPerMinute: ${ORCHESTRATOR_CONSTANTS.MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL})`, async () => {
         // Create multiple components to test global limit
         const components = [];
         for (let i = 0; i < 10; i++) {
@@ -372,9 +432,13 @@ describe("ComponentOrchestrator Security Tests", () => {
         let globalLimitExceeded = false;
         try {
           // Each component emits events to reach global limit
+          const eventsPerComponent =
+            Math.floor(
+              ORCHESTRATOR_CONSTANTS.MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL / 10,
+            ) + 20;
           for (let i = 0; i < 10; i++) {
-            for (let j = 0; j < 520; j++) {
-              // 10 * 520 = 5200 > 5000
+            for (let j = 0; j < eventsPerComponent; j++) {
+              // Total events exceed global limit
               orchestrator.emit(
                 `global-event-${i}-${j}`,
                 { comp: i, event: j },
@@ -404,15 +468,21 @@ describe("ComponentOrchestrator Security Tests", () => {
     });
 
     describe("Memory Exhaustion Protection", () => {
-      test("should enforce maxEventHistory limit (1000)", () => {
+      test(`should enforce maxEventHistory limit (${ORCHESTRATOR_CONSTANTS.MAX_EVENT_HISTORY})`, () => {
         // Fill event history beyond limit
-        for (let i = 0; i < 1200; i++) {
+        for (
+          let i = 0;
+          i < ORCHESTRATOR_CONSTANTS.MAX_EVENT_HISTORY + 200;
+          i++
+        ) {
           orchestrator.emit(`history-test-${i}`, { index: i });
         }
 
         // Should not exceed maxEventHistory
         const historySize = orchestrator.eventHistory.length;
-        expect(historySize).toBeLessThanOrEqual(1000);
+        expect(historySize).toBeLessThanOrEqual(
+          ORCHESTRATOR_CONSTANTS.MAX_EVENT_HISTORY,
+        );
         expect(historySize).toBeGreaterThan(0); // Should have some events
       });
 
@@ -446,9 +516,15 @@ describe("ComponentOrchestrator Security Tests", () => {
         orchestrator.checkMemoryLimits();
 
         // After checking limits, structures should be within bounds
-        expect(orchestrator.eventHistory.length).toBeLessThanOrEqual(1000);
-        expect(orchestrator.stateHistory.length).toBeLessThanOrEqual(100);
-        expect(orchestrator.eventQueue.length).toBeLessThanOrEqual(100);
+        expect(orchestrator.eventHistory.length).toBeLessThanOrEqual(
+          ORCHESTRATOR_CONSTANTS.MAX_EVENT_HISTORY,
+        );
+        expect(orchestrator.stateHistory.length).toBeLessThanOrEqual(
+          ORCHESTRATOR_CONSTANTS.MAX_STATE_HISTORY,
+        );
+        expect(orchestrator.eventQueue.length).toBeLessThanOrEqual(
+          ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE,
+        );
 
         if (orchestrator.errorLog) {
           expect(orchestrator.errorLog.length).toBeLessThanOrEqual(500);
@@ -461,7 +537,11 @@ describe("ComponentOrchestrator Security Tests", () => {
         const startTime = performance.now();
 
         // Perform many rate limit checks
-        for (let i = 0; i < 1000; i++) {
+        for (
+          let i = 0;
+          i < ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT;
+          i++
+        ) {
           try {
             orchestrator.emit(
               `perf-test-${i}`,
@@ -474,7 +554,9 @@ describe("ComponentOrchestrator Security Tests", () => {
         }
 
         const duration = performance.now() - startTime;
-        expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+        expect(duration).toBeLessThan(
+          ORCHESTRATOR_CONSTANTS.STATE_LOCK_TIMEOUT_MS,
+        ); // Should complete within timeout
       });
     });
   });
@@ -532,7 +614,8 @@ describe("ComponentOrchestrator Security Tests", () => {
       test("should maintain state consistency under high concurrent load", async () => {
         const basePath = "load.test";
         const workerCount = 20;
-        const updatesPerWorker = 10;
+        const updatesPerWorker =
+          ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE;
 
         // Initialize state
         orchestrator.setState(basePath, {
@@ -620,7 +703,9 @@ describe("ComponentOrchestrator Security Tests", () => {
           // Simulate atomic transaction
           const currentState = orchestrator.getState(path);
           const newState = {
-            value: currentState.value + 10,
+            value:
+              currentState.value +
+              ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE,
             version: currentState.version + 1,
             timestamp: Date.now(),
           };
@@ -632,7 +717,9 @@ describe("ComponentOrchestrator Security Tests", () => {
 
           // Verify atomic update
           if (
-            resultState.value !== currentState.value + 10 ||
+            resultState.value !==
+              currentState.value +
+                ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE ||
             resultState.version !== currentState.version + 1
           ) {
             atomicViolation = true;
@@ -662,7 +749,8 @@ describe("ComponentOrchestrator Security Tests", () => {
 
         // Simulate multiple processes trying to modify the same resource
         const concurrentModifications = [];
-        const modificationCount = 10;
+        const modificationCount =
+          ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE;
 
         for (let i = 0; i < modificationCount; i++) {
           concurrentModifications.push(
@@ -720,7 +808,7 @@ describe("ComponentOrchestrator Security Tests", () => {
         });
 
         let deadlockDetected = false;
-        const timeout = 5000; // 5 second timeout for deadlock detection
+        const timeout = ORCHESTRATOR_CONSTANTS.STATE_LOCK_TIMEOUT_MS; // timeout for deadlock detection
 
         try {
           // Simulate two processes that might create deadlock
@@ -872,7 +960,11 @@ describe("ComponentOrchestrator Security Tests", () => {
         const eventIds = [];
         const subscriptionIds = [];
 
-        for (let i = 0; i < 1000; i++) {
+        for (
+          let i = 0;
+          i < ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT;
+          i++
+        ) {
           eventIds.push(orchestrator.generateEventId());
           subscriptionIds.push(orchestrator.generateSubscriptionId());
         }
@@ -911,13 +1003,14 @@ describe("ComponentOrchestrator Security Tests", () => {
       });
 
       test("should ensure ID uniqueness under high generation load", async () => {
-        const idCount = 10000;
+        const idCount =
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT * 10;
         const eventIds = new Set();
         const subscriptionIds = new Set();
 
         // Generate IDs concurrently to stress test uniqueness
         const generators = [];
-        const batchSize = 100;
+        const batchSize = ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE;
 
         for (let batch = 0; batch < idCount / batchSize; batch++) {
           generators.push(
@@ -942,7 +1035,8 @@ describe("ComponentOrchestrator Security Tests", () => {
 
       test("should detect ID collision vulnerabilities", () => {
         // Test for collision resistance
-        const iterations = 100000;
+        const iterations =
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT * 100;
         const ids = new Set();
         let collisions = 0;
 
@@ -961,7 +1055,9 @@ describe("ComponentOrchestrator Security Tests", () => {
 
         // Even with good randomness, some collisions are theoretically possible but should be extremely rare
         expect(collisionRate).toBeLessThan(0.0001); // Less than 0.01% collision rate
-        expect(collisions).toBeLessThan(10); // Absolute collision limit
+        expect(collisions).toBeLessThan(
+          ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE,
+        ); // Absolute collision limit
       });
     });
 
@@ -1038,7 +1134,8 @@ describe("ComponentOrchestrator Security Tests", () => {
 
     describe("ID Entropy Analysis", () => {
       test("should have sufficient entropy in generated IDs", () => {
-        const sampleSize = 1000;
+        const sampleSize =
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT;
         const ids = [];
 
         for (let i = 0; i < sampleSize; i++) {
@@ -1080,7 +1177,8 @@ describe("ComponentOrchestrator Security Tests", () => {
 
       test("should resist timing attacks on ID generation", () => {
         const timings = [];
-        const iterations = 1000;
+        const iterations =
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT;
 
         // Measure ID generation timing
         for (let i = 0; i < iterations; i++) {
@@ -1113,7 +1211,8 @@ describe("ComponentOrchestrator Security Tests", () => {
       });
 
       test("should prevent ID prediction through statistical analysis", () => {
-        const samples = 5000;
+        const samples =
+          ORCHESTRATOR_CONSTANTS.MAX_TOTAL_EVENTS_PER_MINUTE_GLOBAL;
         const eventIds = [];
 
         for (let i = 0; i < samples; i++) {
@@ -1163,7 +1262,8 @@ describe("ComponentOrchestrator Security Tests", () => {
 
     describe("Performance Impact of Secure ID Generation", () => {
       test("should maintain acceptable performance with secure ID generation", () => {
-        const iterations = 10000;
+        const iterations =
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT * 10;
         const startTime = performance.now();
 
         // Generate many IDs to test performance impact
@@ -1181,8 +1281,12 @@ describe("ComponentOrchestrator Security Tests", () => {
         );
 
         // Should maintain reasonable performance even with secure generation
-        expect(idsPerSecond).toBeGreaterThan(1000); // At least 1000 IDs per second
-        expect(duration).toBeLessThan(10000); // Complete within 10 seconds
+        expect(idsPerSecond).toBeGreaterThan(
+          ORCHESTRATOR_CONSTANTS.MAX_EVENTS_PER_MINUTE_PER_COMPONENT,
+        ); // At least required throughput
+        expect(duration).toBeLessThan(
+          ORCHESTRATOR_CONSTANTS.STATE_LOCK_TIMEOUT_MS * 2,
+        ); // Complete within reasonable time
       });
     });
   });
@@ -1202,7 +1306,7 @@ describe("ComponentOrchestrator Security Tests", () => {
 
       // Test combined security under load
       const operations = [];
-      const operationCount = 100;
+      const operationCount = ORCHESTRATOR_CONSTANTS.DEFAULT_MAX_QUEUE_SIZE;
 
       for (let i = 0; i < operationCount; i++) {
         operations.push(
@@ -1224,11 +1328,14 @@ describe("ComponentOrchestrator Security Tests", () => {
                 );
 
                 // State updates (race conditions + rate limiting)
-                orchestrator.setState(`load.test.${i % 10}`, {
-                  value: i,
-                  component: componentId,
-                  timestamp: Date.now(),
-                });
+                orchestrator.setState(
+                  `load.test.${i % ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE}`,
+                  {
+                    value: i,
+                    component: componentId,
+                    timestamp: Date.now(),
+                  },
+                );
 
                 // ID generation (secure randomness)
                 const eventId = orchestrator.generateEventId();
@@ -1360,7 +1467,10 @@ function detectTimingAttackVulnerability(operations, timings) {
   const timesByInput = {};
 
   operations.forEach((op, index) => {
-    const inputHash = JSON.stringify(op).substring(0, 10);
+    const inputHash = JSON.stringify(op).substring(
+      0,
+      ORCHESTRATOR_CONSTANTS.DEFAULT_STATE_HISTORY_SIZE,
+    );
     if (!timesByInput[inputHash]) {
       timesByInput[inputHash] = [];
     }

@@ -13,6 +13,7 @@ This directory contains comprehensive operational procedures for UMIG versioning
 
 | Document                                                                      | Purpose                             | Primary Users                      |
 | ----------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------- |
+| **[Comprehensive Versioning Strategy](comprehensive-versioning-strategy.md)** | Complete versioning strategy guide  | All Teams, Architecture Review     |
 | **[Version Management Procedures](version-management-procedures.md)**         | Daily version management workflows  | Development Team, Release Manager  |
 | **[Build Artifact Specifications](build-artifact-specifications.md)**         | Artifact creation and management    | DevOps Team, CI/CD Engineers       |
 | **[Deployment Tracking Guide](deployment-tracking-guide.md)**                 | Environment monitoring and tracking | Operations Team, DevOps Team       |
@@ -23,6 +24,7 @@ This directory contains comprehensive operational procedures for UMIG versioning
 ### Architectural Foundation
 
 - **[ADR-066 - UMIG Comprehensive Versioning Strategy](../../architecture/adr/ADR-066-UMIG-Comprehensive-Versioning-Strategy.md)**: Complete architectural decision record
+- **[Comprehensive Versioning Strategy](comprehensive-versioning-strategy.md)**: Complete versioning strategy implementation guide
 - **[US-088 Implementation](../../roadmap/sprint7/US-088-build-process-deployment-packaging.md)**: Sprint implementation plan
 
 ### Version Structure
