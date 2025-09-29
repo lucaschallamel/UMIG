@@ -1,25 +1,17 @@
 # Test Utilities
 
-This folder contains utility scripts that support testing activities and development workflows.
+**Purpose**: Utility scripts supporting testing activities and development workflows with infrastructure configuration
 
-## Utilities Included
+## Key Components
 
-- **grab-postgres-jdbc.groovy** - Downloads and configures PostgreSQL JDBC driver for testing
-
-## Purpose
-
-These utilities provide:
-
-- Development environment setup support
-- Testing infrastructure configuration
-- Database connectivity utilities
-- Reusable testing components
+- **grab-postgres-jdbc.groovy** - PostgreSQL JDBC driver download and configuration for testing
+- **Development environment setup** - Testing infrastructure configuration support
+- **Database connectivity utilities** - Connection setup and validation tools
+- **Reusable testing components** - Common testing functionality and shared utilities
 
 ## Usage
 
-Run these utilities to:
-
-- Set up testing dependencies
-- Configure database connections
-- Prepare development environments
-- Support other test suites with required components
+- **Testing dependencies** - Set up and configure required testing infrastructure
+- **Database connections** - Configure and validate database connectivity for test suites
+- **Environment preparation** - Prepare development environments for testing activities
+- **Test suite support** - Provide required components and utilities for other test categories

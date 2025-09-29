@@ -1,57 +1,34 @@
-# Web Assets for Macros (UMIG) - Enterprise-Grade Architecture
+# UMIG Web Assets
 
-This folder contains all JavaScript and CSS assets used by UMIG macros, enhanced with **revolutionary foundation service layer architecture**.
+**Purpose**: JavaScript and CSS assets for UMIG macros with enterprise-grade component architecture
 
-**Status**: ENTERPRISE-GRADE with 8.5/10 security rating  
-**Foundation Layer**: 11,735 lines of enterprise infrastructure  
-**Security**: 95+ XSS patterns blocked, 78% risk reduction achieved  
-**Testing**: 345/345 JavaScript tests passing (100% success rate)
+## Directory Structure
 
-## Revolutionary Architecture Structure
+- `js/` - JavaScript files for macro frontend
+  - `services/` - Foundation service layer (8,535 lines)
+  - `components/` - Component orchestration layer (3,200 lines)
+  - Admin GUI modules and macro-specific files
+- `css/` - Stylesheet files for macro styling
 
-### 🏭 Foundation Service Layer (11,735 lines)
+## Key Components
 
-**Enterprise-Grade Infrastructure** implemented in Sprint 6:
+- **ComponentOrchestrator.js** (2,891 lines) - 8-phase security controls and lifecycle management
+- **SecurityService.js** (1,847 lines) - Enterprise security with 95+ XSS patterns blocked
+- **ApiService.js** (1,653 lines) - Enhanced API layer with 70% cache hit rate
+- **Admin GUI Modules** - Entity management with security validation
 
-- `js/services/`: **Foundation service layer** (8,535 lines total)
-  - `ApiService.js` (1,653 lines): Enhanced API layer with 70% cache hit rate + batch operations
-  - `SecurityService.js` (1,847 lines): **Enterprise security** with 95+ XSS patterns blocked
-  - `AuthenticationService.js` (1,264 lines): Advanced authentication with role validation
-  - `FeatureFlagService.js` (1,156 lines): Dynamic feature management + A/B testing
-  - `NotificationService.js` (1,089 lines): Real-time notifications + email integration
-  - `AdminGuiService.js` (1,726 lines): Service orchestration + lifecycle management
+## Architecture Features
 
-### 🎼 Component Orchestration Layer (3,200 lines)
+- **Security Rating**: 8.5/10 enterprise-grade with 78% risk reduction
+- **Testing**: 345/345 JavaScript tests passing (100% success rate)
+- **Performance**: <5% security overhead with real-time monitoring
+- **Component Lifecycle**: Complete management from initialization to destruction
 
-**Revolutionary Component Management**:
+## Asset Integration
 
-- `js/components/`: **Component orchestration** (3,200 lines total)
-  - `ComponentOrchestrator.js` (2,891 lines): **8-phase security controls** + lifecycle management
-  - `SecurityUtils.js` (1,109 lines): Advanced security utilities + validation functions
-
-### 📱 Enhanced Application Layer
-
-- `js/`: **Enhanced macro frontend** JavaScript files with foundation integration
-  - **Admin GUI Modules** (enhanced with foundation services):
-    - `AdminGuiController.js`: Orchestration with ComponentOrchestrator integration
-    - `EntityConfig.js`: Entity configurations with SecurityService validation
-    - `AdminGuiState.js`: State management with NotificationService integration
-    - `ApiClient.js`: Enhanced by ApiService caching layer (30% performance boost)
-    - `AuthenticationManager.js`: Enhanced by AuthenticationService foundation
-    - `TableManager.js`: Table rendering with FeatureFlagService toggles
-    - `ModalManager.js`: Modal dialogs with SecurityService validation
-    - `UiUtils.js`: Enhanced utilities with SecurityUtils integration
-  - **Macro-specific files** (foundation enhanced):
-    - `admin-gui.js`: Main entry point with foundation service initialization
-    - `iteration-view.js`: Enhanced with NotificationService real-time updates
-    - `step-view.js`: Enhanced with SecurityService + AuthenticationService (890 lines)
-    - `hello-world.js`: Example with foundation service integration patterns
-    - `umig-ip-macro.js`: Implementation plan with FeatureFlagService integration
-- `css/`: All macro frontend CSS files
-  - `admin-gui.css`: Comprehensive styles for admin interface
-  - `iteration-view.css`: Iteration view styles
-  - `umig-ip-macro.css`: Implementation plan macro styles
-  - `hello-world.css`: Example/test styles
+- Assets served via ScriptRunner's static resource servlet
+- Modular loading order for dependency management
+- Foundation service integration for all macros
 
 ## 🎼 ComponentOrchestrator.js - Revolutionary Component Lifecycle Management
 

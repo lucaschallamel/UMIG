@@ -1,10 +1,12 @@
 # UMIG Technology Architecture
 
-**Version:** 1.3  
-**Date:** September 09, 2025  
-**Status:** PostgreSQL Platform Aligned  
-**TOGAF Phase:** Phase D - Technology Architecture  
+**Version:** 1.4
+**Date:** September 29, 2025
+**Status:** PostgreSQL Platform Aligned + Sprint 8 Cross-Reference Integration
+**TOGAF Phase:** Phase D - Technology Architecture
 **Part of:** UMIG Enterprise Architecture
+
+**Sprint 8 Integration**: Cross-references updated for security architecture enhancement (ADRs 67-70, 8.6/10 security rating) and Data Dictionary (v1.0) technical specifications
 
 ## Executive Summary
 
@@ -576,11 +578,17 @@ Detailed PostgreSQL configuration and optimization guide.
 - ArchiMate 3.1 Specification
 - PostgreSQL 14 Administration Guide
 - Atlassian Confluence Administration Guide
+- **UMIG Data Dictionary (v1.0)** - Complete technical data specifications and governance framework
+- **UMIG Security Architecture (v2.2)** - Sprint 8 enhanced security with technology integration patterns
 
 **Architecture Decision Records (ADRs)**:
 
 - ADR-042: Authentication Context Management (4-level fallback)
 - ADR-043: Type Safety Enforcement (explicit casting)
+- **ADR-067**: Session Security Enhancement - Multi-session detection with device fingerprinting
+- **ADR-068**: SecurityUtils Enhancement - Adaptive rate limiting with Redis coordination
+- **ADR-069**: Component Security Boundary Enforcement - Namespace isolation and state protection
+- **ADR-070**: Component Lifecycle Security - Comprehensive audit framework with multi-standard compliance
 - ADR-046: DoS Protection via ImportQueue Configuration
 - ADR-048: URL Security & Sanitization
 - ADR-039: Secure Error Handling

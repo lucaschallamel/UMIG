@@ -1,10 +1,12 @@
 # UMIG Business Architecture
 
-**Version:** 1.0  
-**Date:** August 28, 2025  
-**Status:** Initial Draft  
-**TOGAF Phase:** Phase B - Business Architecture  
+**Version:** 1.1
+**Date:** September 29, 2025
+**Status:** Updated - Sprint 8 Cross-Reference Integration
+**TOGAF Phase:** Phase B - Business Architecture
 **Part of:** UMIG Enterprise Architecture
+
+**Sprint 8 Integration**: Cross-references updated for security architecture enhancement (ADRs 67-70, 8.6/10 security rating) and Data Dictionary (v1.0) integration
 
 ## Executive Summary
 
@@ -522,13 +524,17 @@ Audit Flow:
 - UMIG Technical Architecture Documentation
 - UMIG Data Architecture Documentation
 - UMIG Application Architecture Documentation
+- **UMIG Data Dictionary (v1.0)** - Complete data element definitions and governance framework
+- **UMIG Security Architecture (v2.2)** - Sprint 8 enhanced security with 8.6/10 rating
+- **ADRs 67-70** - Sprint 8 Security Architecture Enhancement: session management, rate limiting, component isolation, audit framework
 - Industry Best Practices for IT Service Management (ITIL v4)
 
 ### C. Revision History
 
-| Version | Date       | Author            | Description                            |
-| ------- | ---------- | ----------------- | -------------------------------------- |
-| 1.2     | 2025-08-28 | Architecture Team | Initial business architecture document |
+| Version | Date       | Author            | Description                                                                    |
+| ------- | ---------- | ----------------- | ------------------------------------------------------------------------------ |
+| 1.0     | 2025-08-28 | Architecture Team | Initial business architecture document                                         |
+| 1.1     | 2025-09-29 | Architecture Team | Sprint 8 cross-reference integration: security enhancement and Data Dictionary |
 
 ---
 

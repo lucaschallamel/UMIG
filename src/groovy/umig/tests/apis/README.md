@@ -1,34 +1,28 @@
 # API Tests
 
-This folder contains tests that validate API endpoints, responses, and functionality across the UMIG system.
+**Purpose**: Comprehensive validation of REST API endpoints, responses, and functionality across UMIG system components
 
-## Tests Included
+## Key Components
 
-- **MigrationApiIntegrationTest.groovy** - Integration tests for migration API endpoints
-- **PlansApiUnitTest.groovy** - Unit tests for plans API functionality
-- **PlansApiUnitTestSimple.groovy** - Simplified plans API unit tests
-- **stepViewApiUnitTest.groovy** - Unit tests for step view API
-- **checkUserEndpoint.groovy** - Validates user endpoint functionality
-- **validate-phases-api.groovy** - API validation tests for phases endpoints
-- **validate-sequences-api.groovy** - API validation tests for sequences endpoints
+- **MigrationApiIntegrationTest.groovy** - Migration API endpoint integration tests
+- **PlansApiUnitTest.groovy** - Unit tests for plans API functionality with simplified variants
+- **stepViewApiUnitTest.groovy** - Step view API validation and unit testing
+- **checkUserEndpoint.groovy** - User endpoint functionality validation
+- **API validation scripts** - Phases and sequences endpoint validation tests
 
-## Purpose
+## Test Coverage
 
-These tests ensure that:
+- **Endpoint validation** - API responses with expected data formats and HTTP status codes
+- **Contract maintenance** - API version compatibility and interface stability
+- **Authentication testing** - User authentication and authorization functionality
+- **Response format validation** - Data model changes and API response consistency
 
-- API endpoints respond correctly with expected data formats
-- HTTP status codes are appropriate for different scenarios
-- API contracts are maintained across versions
-- User authentication and authorization work properly
+## Usage Patterns
 
-## Usage
-
-Run these tests to validate API functionality after changes to:
-
-- REST endpoint implementations
-- API response formats
-- Authentication/authorization logic
-- Data model changes affecting API responses
+- **CustomEndpointDelegate pattern** - All REST endpoints using @BaseScript annotation
+- **DatabaseUtil.withSql** - Safe database access with connection lifecycle management
+- **Static type checking** - Explicit casting with 'as' keyword for IDE compatibility
+- **Path parameter handling** - getAdditionalPath method for URL segment extraction
 
 ---
 

@@ -1,33 +1,40 @@
 # UMIG Utility Classes
 
-This directory contains core utility classes that provide foundational services for database access, authentication, email, security, and common operations across the UMIG application.
+**Purpose**: Core utility classes providing foundational services for database access, authentication, email, security, and common operations across UMIG application
 
-## 🏗️ Core Infrastructure Utilities
+## Key Components
 
-### Database Utilities
+- **DatabaseUtil.groovy** - MANDATORY centralized database connection management with ScriptRunner integration
+- **AuthenticationService.groovy** - Core authentication logic with ADR-042 dual authentication context
+- **EnhancedEmailService.groovy** - Advanced email service with mobile optimization and US-039 integration
+- **SecurityUtils (ErrorSanitizer, RateLimitManager)** - Security infrastructure with injection prevention
+- **UrlConstructionService.groovy** - Environment-aware URL construction following ADR-048
 
-**DatabaseUtil.groovy**
+## Database Utilities
 
-- **Purpose**: Centralized database connection management with ScriptRunner integration
-- **Pattern**: Connection pooling with automatic test/production mode detection
-- **Features**: ScriptRunner connection pool integration, test environment fallback, resource management
-- **Usage**: **MANDATORY** - All database access must use `DatabaseUtil.withSql` pattern
-- **Integration**: Used by all repositories, ensures consistent connection handling
+- **DatabaseUtil pattern** - Connection pooling with test/production mode detection (MANDATORY usage)
+- **DatabaseFieldDebugUtil** - Field mapping validation, query debugging, performance analysis
+- **Integration requirement** - All repositories must use DatabaseUtil.withSql pattern
 
-```groovy
-import umig.utils.DatabaseUtil
+## Security & Authentication
 
-DatabaseUtil.withSql { sql ->
-    return sql.firstRow('SELECT * FROM table_name WHERE id = ?', [id])
-}
-```
+- **AuthenticationService** - User context retrieval, role validation, session management
+- **RBACUtil** - Role-Based Access Control with permission validation
+- **RateLimiter/RateLimitManager** - Request rate limiting and abuse prevention
+- **ErrorSanitizer** - SQL injection prevention and sensitive data hiding
 
-**DatabaseFieldDebugUtil.groovy**
+## Email & Communication
 
-- **Purpose**: Database debugging and field inspection utilities
-- **Features**: Field mapping validation, query debugging, performance analysis
-- **Usage**: Development and troubleshooting database queries and mappings
-- **Integration**: Used during development for database schema validation
+- **EmailService/EnhancedEmailService** - Template rendering, SMTP integration, mobile optimization
+- **StepNotificationIntegration** - Step-specific email templates and status-based notifications
+- **Mobile-responsive templates** - Enhanced formatting with US-039 mobile optimization
+
+## Architecture Compliance
+
+- **ADR alignment** - ADR-010 (connection pooling), ADR-031 (type safety), ADR-042 (authentication), ADR-048 (URL construction)
+- **Security standards** - Input validation, output encoding, error sanitization, access control
+- **Performance optimization** - Caching, connection pooling, resource management, lazy loading
+- **US-088 integration** - Build orchestration support with 84% deployment size reduction
 
 ### Authentication & Security Utilities
 

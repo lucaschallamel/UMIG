@@ -1,12 +1,8 @@
 # JavaScript Testing Framework
 
-## Overview
-
-Jest-based testing framework for UMIG JavaScript components, entities, and integration tests. Contains test files, configuration, and utilities for comprehensive front-end testing.
+Purpose: Jest-based testing for UMIG JavaScript components and APIs
 
 ## Test Categories
-
-### JavaScript Tests
 
 - **Unit Tests**: Component and utility unit tests
 - **Integration Tests**: API and database integration tests
@@ -14,10 +10,9 @@ Jest-based testing framework for UMIG JavaScript components, entities, and integ
 - **Component Tests**: UI component behavior tests
 - **Security Tests**: XSS, CSRF, and penetration tests
 
-### Running Tests
+## Commands
 
 ```bash
-# JavaScript test commands
 npm run test:js:unit         # Unit tests
 npm run test:js:integration  # Integration tests
 npm run test:js:e2e          # End-to-end tests
@@ -25,38 +20,32 @@ npm run test:js:components   # Component tests
 npm run test:js:security     # Security tests
 ```
 
-## Directory Structure
+## Structure
 
-```
-__tests__/
-├── README.md                  # This file
-├── setup.js                  # Global test setup
-├── jest.config.js            # Base Jest configuration files
-├── __fixes__/                # Test infrastructure fixes
-├── unit/                     # Unit tests for components and utilities
-├── integration/              # Integration tests for API and database
-├── e2e/                      # End-to-end user workflow tests
-├── security/                 # Security testing (XSS, CSRF, etc.)
-├── performance/              # Performance benchmarks
-├── components/               # Component behavior tests
-└── fixtures/                 # Test data and mock fixtures
-```
+- **unit/** - Component and utility unit tests
+- **integration/** - API and database integration tests
+- **e2e/** - End-to-end user workflow tests
+- **security/** - Security testing (XSS, CSRF, etc.)
+- **performance/** - Performance benchmarks
+- **components/** - Component behavior tests
+- **fixtures/** - Test data and mock fixtures
+- \***\*fixes**/\*\* - Test infrastructure fixes
 
 ## Configuration Files
 
-- **jest.config.js**: Base Jest configuration
-- **jest.config.integration.js**: Integration test settings (uses jsdom)
-- **jest.config.components.js**: Component test configuration
-- **jest.config.security.js**: Security test settings
-- **setup.js**: Global test environment setup
+- **jest.config.js** - Base Jest configuration
+- **jest.config.integration.js** - Integration test settings (jsdom)
+- **jest.config.components.js** - Component test configuration
+- **jest.config.security.js** - Security test settings
+- **setup.js** - Global test environment setup
 
-## Writing New Tests
+## Writing Tests
 
-1. Place tests in appropriate subdirectory based on test type
-2. Follow naming convention: `ComponentName.test.js`
-3. Use Jest testing patterns and assertions
+1. Place tests in appropriate subdirectory
+2. Use naming convention: `ComponentName.test.js`
+3. Follow Jest patterns and assertions
 4. Include setup and teardown as needed
-5. Mock external dependencies appropriately
+5. Mock external dependencies
 
 ## Dependencies
 

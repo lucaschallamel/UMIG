@@ -986,33 +986,48 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     // PUT /steps/{stepInstanceId}/status - individual step status update
     if (pathParts.size() == 2 && pathParts[1] == 'status') {
         try {
+            println "🚀🚀🚀 [StepsApi] ================== PUT /steps/{stepInstanceId}/status STARTED =================="
             def stepInstanceId = pathParts[0]
             def stepInstanceUuid = UUID.fromString(stepInstanceId as String)
-            
+
+            println "🚀 [StepsApi] Step Instance ID: ${stepInstanceId}"
+            println "🚀 [StepsApi] Step Instance UUID: ${stepInstanceUuid}"
+
             // Validate request body
             if (!body) {
+                println "🚀 [StepsApi] ❌ ERROR: No request body provided"
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Request body is required"]).toString())
                     .build()
             }
-            
+
+            println "🚀 [StepsApi] Request body received: ${body}"
+
             // Parse request body with type safety
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def statusId = requestData.statusId as Integer
+
+            println "🚀 [StepsApi] Parsed request data: ${requestData}"
+            println "🚀 [StepsApi] Status ID: ${statusId}"
             
             // Simple authentication pattern like TeamsApi/UsersApi
             Integer userId = requestData.userId ? (requestData.userId as Integer) : null
-            
+            println "🚀 [StepsApi] User ID: ${userId}"
+
             // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
             // Use script-level statusRepository instance
             if (!statusId && requestData.status) {
+                println "🚀 [StepsApi] No statusId provided, checking legacy status field: ${requestData.status}"
                 // Convert status name to ID using database lookup for backward compatibility
                 def statusName = (requestData.status as String).toUpperCase()
                 def statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step')
-                
+                println "🚀 [StepsApi] Status lookup result: ${statusRecord}"
+
                 if (statusRecord) {
                     statusId = (statusRecord as Map).id as Integer
+                    println "🚀 [StepsApi] Converted status '${statusName}' to ID: ${statusId}"
                 } else {
+                    println "🚀 [StepsApi] ❌ ERROR: Unknown status name: ${statusName}"
                     def availableStatuses = statusRepository.findStatusesByType('Step')
                     def statusNames = availableStatuses.collect { Map it -> it.name }.join(', ')
                     return Response.status(Response.Status.BAD_REQUEST)
@@ -1050,10 +1065,47 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Update step status and send enhanced notifications with URLs
             // Use StepNotificationIntegration for enhanced email functionality
-            def integrationResult = StepNotificationIntegration.updateStepStatusWithEnhancedNotifications(stepInstanceUuid, statusId, userId)
-            def result = integrationResult as Map
-            
-            if ((result.success as Boolean)) {
+            println "🚀 [StepsApi] ================== CALLING STEP NOTIFICATION INTEGRATION =================="
+            println "🚀 [StepsApi] CALLING StepNotificationIntegration.updateStepStatusWithEnhancedNotifications"
+            println "🚀 [StepsApi] Parameters:"
+            println "🚀 [StepsApi]   stepInstanceUuid = ${stepInstanceUuid} (${stepInstanceUuid?.getClass()?.name})"
+            println "🚀 [StepsApi]   statusId = ${statusId} (${statusId?.getClass()?.name})"
+            println "🚀 [StepsApi]   userId = ${userId} (${userId?.getClass()?.name})"
+
+            // Declare result variable outside try block so it's accessible throughout method
+            def result = null
+
+            try {
+                def integrationResult = StepNotificationIntegration.updateStepStatusWithEnhancedNotifications(stepInstanceUuid, statusId, userId)
+                result = integrationResult as Map
+
+                println "🚀 [StepsApi] ================== INTEGRATION RESULT RECEIVED =================="
+                println "🚀 [StepsApi] Integration result received: ${result}"
+                println "🚀 [StepsApi] Result type: ${result?.getClass()?.name}"
+                println "🚀 [StepsApi] Result keys: ${result?.keySet()}"
+
+                if (result) {
+                    println "🚀 [StepsApi] Success: ${result.success}"
+                    println "🚀 [StepsApi] EmailsSent: ${result.emailsSent}"
+                    println "🚀 [StepsApi] Message: ${result.message}"
+                    println "🚀 [StepsApi] Enhanced notification: ${result.enhancedNotification}"
+                    if (result.error) {
+                        println "🚀 [StepsApi] ❌ ERROR from integration: ${result.error}"
+                    }
+                } else {
+                    println "🚀 [StepsApi] ❌ ERROR: Integration returned null result"
+                }
+            } catch (Exception integrationEx) {
+                println "🚀 [StepsApi] ❌ FATAL ERROR calling StepNotificationIntegration: ${integrationEx.message}"
+                integrationEx.printStackTrace()
+                throw integrationEx
+            }
+
+            // Check if result is not null and handle success/failure appropriately
+            if (result && (result.success as Boolean)) {
+                println "🚀 [StepsApi] ================== SUCCESS RESPONSE =================="
+                println "🚀 [StepsApi] SUCCESS - Returning successful response"
+                println "🚀 [StepsApi] EmailsSent: ${result.emailsSent}, EnhancedNotification: ${result.enhancedNotification}"
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: result.message ?: "Step status updated successfully",
@@ -1066,8 +1118,12 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     contextMissing: result.contextMissing ?: false
                 ]).toString()).build()
             } else {
+                println "🚀 [StepsApi] ================== FAILURE RESPONSE =================="
+                println "🚀 [StepsApi] ❌ FAILURE - Integration failed"
+                def errorMessage = result?.error ?: 'Failed to update step status'
+                println "🚀 [StepsApi] Error: ${errorMessage}"
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: (result.error ?: "Failed to update step status") as String]).toString())
+                    .entity(new JsonBuilder([error: errorMessage as String]).toString())
                     .build()
             }
             

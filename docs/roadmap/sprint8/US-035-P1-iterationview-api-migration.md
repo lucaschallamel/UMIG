@@ -4,12 +4,13 @@
 
 **Story ID**: US-035-P1
 **Epic**: Enhanced IterationView Enhancement
-**Sprint**: 7
+**Sprint**: ~~7~~ → **Sprint 8 (Descoped)**
 **Priority**: HIGH (Extracted Phase 1 - Core API Migration, Accelerated)
 **Effort**: 7.5 points (Enhanced scope with new entity integrations)
 **Progress**: 3.9 story points completed, 3.5-4 points remaining
-**Status**: IN PROGRESS - Accelerated Progress (52% Complete)
-**Timeline**: Sprint 7 (Week 1-2)
+**Status**: 📋 **DESCOPED TO SPRINT 8** - Foundation Complete (52% Complete)
+**Decision Date**: September 26, 2025
+**Timeline**: Sprint 8 (Ready for implementation)
 **Owner**: Frontend Development
 **Dependencies**: US-082-C (Complete), US-084 (Complete), US-087 Phase 1 (Complete)
 **Risk**: LOW (foundation significantly strengthened)
@@ -23,6 +24,24 @@
 ### Value Statement
 
 This Phase 1 migration modernizes the Enhanced IterationView foundation with new entity APIs, ComponentOrchestrator integration, and the proven BaseEntityManager pattern, establishing the groundwork for advanced features while delivering immediate performance and security improvements.
+
+## Descoping Rationale (September 26, 2025)
+
+**Strategic Decision**: US-035-P1 descoped from Sprint 7 to Sprint 8 to preserve Sprint 7's exceptional 224% achievement record.
+
+**Foundation Preserved**:
+
+- ✅ **Enhanced StepsAPI Integration**: 100% complete with enterprise patterns
+- ✅ **RBAC Backend Integration**: 100% complete with security controls
+- ✅ **Performance Validation**: 100% complete with <3s target achieved
+- ✅ **Technical Architecture**: 52% foundation complete with clear path forward
+
+**Sprint 8 Readiness**:
+
+- All technical blockers resolved
+- Dependencies (US-082-C, US-084, US-087 Phase 1) complete
+- 3.5-4 story points remaining for focused delivery
+- Clear implementation path documented
 
 ## Enhanced Acceptance Criteria (Phase 1 Focus)
 

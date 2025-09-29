@@ -1,14 +1,18 @@
 # UMIG Data Architecture
 
-**Version:** 1.4  
-**Date:** September 9, 2025  
-**Status:** Phase 1 Enhanced + US-034 Data Import Architecture COMPLETE (Sprint 6)  
-**TOGAF Phase:** Phase C - Data Architecture  
+**Version:** 1.5
+**Date:** September 29, 2025
+**Status:** Phase 1 Enhanced + US-034 Data Import Architecture COMPLETE (Sprint 6) + Sprint 8 Cross-Reference Integration
+**TOGAF Phase:** Phase C - Data Architecture
 **Part of:** UMIG Enterprise Architecture
+
+**Sprint 8 Integration**: Cross-references updated for security architecture enhancement (ADRs 67-70, 8.6/10 security rating) and comprehensive Data Dictionary (v1.0) alignment
 
 ## Executive Summary
 
 This document defines the Data Architecture for the Unified Migration Implementation Guide (UMIG) system, encompassing data structures, management policies, governance frameworks, and quality assurance mechanisms. The architecture supports complex migration planning and execution through a hierarchical data model with comprehensive audit trails and real-time status tracking.
+
+**Data Dictionary Integration**: This architecture is fully aligned with the comprehensive UMIG Data Dictionary (v1.0), providing complete data element definitions, relationships, and governance frameworks for all 55+ tables and 800+ attributes.
 
 ## 1. Data Architecture Vision & Principles
 
@@ -1499,7 +1503,10 @@ Comprehensive field-level documentation in `/docs/architecture/UMIG - TOGAF Phas
 - Oracle 19c Migration Best Practices
 - Liquibase Database Change Management
 - UMIG Business Architecture Document
+- **UMIG Data Dictionary (v1.0)** - Complete data element definitions and governance framework
+- **UMIG Security Architecture (v2.2)** - Sprint 8 enhanced security with data protection patterns
 - ADR-031: Groovy Type Safety and Filtering Patterns
+- **ADRs 67-70**: Sprint 8 Security Architecture Enhancement with data security components
 
 ### D. Integration Checkpoints
 

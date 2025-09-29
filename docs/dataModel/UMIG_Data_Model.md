@@ -7,8 +7,8 @@ This document provides the pure schema specification for the Unified Migration (
 - **Data Architecture**: [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
 - **Data Operations**: [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
 
-**Document Status**: ✅ Production Ready | **Last Updated**: December 2025 | **Version**: 2.3 - Types Management Enhanced  
-**Consolidated Sources**: umig_app_db.sql (Primary), System Configuration Schema, Instructions Schema Documentation, Database Migrations 001-029
+**Document Status**: ✅ Production Ready | **Last Updated**: December 2025 | **Version**: 2.4 - Status Normalization Enhanced
+**Consolidated Sources**: umig_app_db.sql (Primary), System Configuration Schema, Instructions Schema Documentation, Database Migrations 001-029, TD-003 Status Normalization
 
 **Related Documentation**:
 
@@ -103,7 +103,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **mig_name** (VARCHAR): Migration name
 - **mig_description** (TEXT): Description
 - **mig_type** (VARCHAR(50), NOT NULL): Migration type classification (References migration_types_mit.mit_code)
-- **mig_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Migration'
+- **mig_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Migration' (TD-003 normalization)
 - **mig_start_date**, **mig_end_date**, **mig_business_cutover_date** (DATE): Key dates
 
 **Migration Types Integration**: The mig_type field references the dynamic migration_types_mit table implemented in Migration 029, providing centralized type management with visual differentiation and administrative control.
@@ -115,7 +115,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
 - **itt_code** (VARCHAR, FK → iteration_types_itt): Iteration type
 - **ite_name**, **ite_description** (VARCHAR, TEXT)
-- **ite_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Iteration'
+- **ite_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Iteration' (TD-003 normalization)
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
 
 ### 3.3. Teams (`teams_tms`)
@@ -448,7 +448,7 @@ DatabaseUtil.withSql { Sql sql ->
 - **plm_id** (UUID, PK)
 - **tms_id** (INT, FK → teams_tms): Owning team
 - **plm_name**, **plm_description** (VARCHAR, TEXT)
-- **plm_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
+- **plm_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Plan' (TD-003 normalization)
 
 ### 5.2. Sequences (`sequences_master_sqm`)
 
@@ -477,7 +477,7 @@ DatabaseUtil.withSql { Sql sql ->
 - **stm_description** (TEXT): Step description
 - **stm_duration_minutes** (INTEGER): Expected duration
 - **stm_id_predecessor** (UUID, FK → steps_master_stm, nullable)
-- **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced enr_id_target)
+- **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced deprecated enr_id_target field for consistency)
 
 ### 5.5. Controls (`controls_master_ctm`)
 
@@ -558,7 +558,7 @@ CREATE TABLE instructions_master_inm (
 - **plm_id** (UUID, FK → plans_master_plm)
 - **ite_id** (UUID, FK → iterations_ite)
 - **pli_name** (VARCHAR)
-- **pli_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
+- **pli_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Plan' (TD-003 normalization)
 - **usr_id_owner** (INT, FK → users_usr): Plan instance owner
 
 ### 6.2. Sequence Instance (`sequences_instance_sqi`)
@@ -566,7 +566,7 @@ CREATE TABLE instructions_master_inm (
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
-- **sqi_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Sequence'
+- **sqi_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Sequence' (TD-003 normalization)
 - **sqi_name** (VARCHAR): Override name for the sequence instance - Added in migration 010
 - **sqi_description** (TEXT): Override description for the sequence instance - Added in migration 010
 - **sqi_order** (INTEGER): Override order for the sequence instance - Added in migration 010
@@ -577,7 +577,7 @@ CREATE TABLE instructions_master_inm (
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
-- **phi_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Phase'
+- **phi_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Phase' (TD-003 normalization)
 - **phi_order** (INTEGER): Override order for the phase instance - Added in migration 010
 - **phi_name** (VARCHAR): Override name for the phase instance - Added in migration 010
 - **phi_description** (TEXT): Override description for the phase instance - Added in migration 010
@@ -590,7 +590,7 @@ CREATE TABLE instructions_master_inm (
 - **stm_id** (UUID, FK → steps_master_stm)
 - **sti_start_time** (TIMESTAMPTZ): Step execution start timestamp
 - **sti_end_time** (TIMESTAMPTZ): Step execution end timestamp
-- **sti_status** (INTEGER, FK → status_sts.sts_id): Execution status from status_sts where sts_type='Step' - Refactored in migration 015
+- **sti_status** (INTEGER, FK → status_sts.sts_id): Execution status from centralized status_sts table where sts_type='Step' (TD-003 status normalization, migration 015)
 - **sti_name** (VARCHAR): Override name for the step instance - Added in migration 010
 - **sti_description** (TEXT): Override description for the step instance - Added in migration 010
 - **sti_duration_minutes** (INTEGER): Override duration for the step instance - Added in migration 010
@@ -599,7 +599,7 @@ CREATE TABLE instructions_master_inm (
 - **Removed fields in migration 015:**
   - ~~usr_id_owner~~ (Owner is at master level only)
   - ~~usr_id_assignee~~ (Assignee is at master level only)
-  - ~~enr_id_target~~ (Replaced with proper enr_id field)
+  - ~~enr_id_target~~ (Deprecated field replaced with standardized enr_id for consistent foreign key naming)
 
 ### 6.5. Instruction Instance (`instructions_instance_ini`)
 
@@ -662,7 +662,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **ctm_id** (UUID, FK → controls_master_ctm)
-- **cti_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Control'
+- **cti_status** (INTEGER, FK → status_sts.sts_id): Status from centralized status_sts table where sts_type='Control' (TD-003 normalization)
 - **cti_order** (INTEGER): Override order for the control instance
 - **cti_name** (VARCHAR): Override name for the control instance
 - **cti_description** (TEXT): Override description for the control instance
@@ -771,8 +771,9 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **created_at** (TIMESTAMPTZ, DEFAULT CURRENT_TIMESTAMP)
 - **created_by** (VARCHAR(255))
 - **Unique:** (sts_name, sts_type)
-- **Purpose:** Centralizes all status values with color coding for UI consistency - Added in migration 015
-- **Pre-populated values:** 31 statuses across 7 entity types
+- **Purpose:** Centralizes all status values with color coding for UI consistency (TD-003 status normalization, migration 015)
+- **Pre-populated values:** 31 statuses across 7 entity types with complete hardcoded value elimination
+- **Integration:** StatusService provides 5-minute caching and dynamic status management
 
 ### 8.2. Environment Roles (`environment_roles_enr`)
 
@@ -789,7 +790,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ### 8.4. Iteration Types (`iteration_types_itt`)
 
-**Enhanced in Migration 028**: Comprehensive management capabilities with visual differentiation and ordering support.
+**Enhanced in Migration 028**: Comprehensive management capabilities with visual differentiation, ordering support, and complete CRUD operations via Admin GUI.
 
 - **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
 - **itt_name** (VARCHAR): Display name
@@ -826,7 +827,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ### 8.5. Migration Types (`migration_types_mit`)
 
-**Added in Migration 029**: Centralized migration type management system supporting US-042 dynamic CRUD operations.
+**Added in Migration 029**: Centralized migration type management system supporting US-042 dynamic CRUD operations with complete Admin GUI integration and visual differentiation.
 
 - **mit_id** (SERIAL, PK): Auto-incrementing primary key
 - **mit_code** (VARCHAR(20), UNIQUE, NOT NULL): Migration type code (e.g., INFRASTRUCTURE, APPLICATION, DATABASE)
@@ -1252,6 +1253,7 @@ For query patterns, performance optimization, and implementation guidance, see:
 
 - **Data Architecture**: [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
 - **Data Operations**: [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
+- **Best Practices**: [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md) - Implementation patterns, field naming consistency, and TD-003 status normalization guidelines
 
 ---
 

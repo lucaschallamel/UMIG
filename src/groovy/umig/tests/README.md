@@ -1,108 +1,29 @@
 # UMIG Testing Framework
 
-This directory contains the complete testing framework for the UMIG project, featuring **revolutionary self-contained architecture** with **100% test success rate (31/31 Groovy tests passing)** and **35% compilation performance improvement**.
+**Purpose**: Complete testing framework with self-contained architecture achieving 100% test success rate (31/31 Groovy, 345/345 JavaScript)
 
-## 🚀 Quick Start
+## Key Components
 
-### Revolutionary Technology-Prefixed Test Commands (TD-001/TD-002)
+- **technology-prefixed commands** (test:groovy, test:js) - Clear separation between test technologies
+- **self-contained Groovy tests** - 35% compilation performance improvement, zero external dependencies
+- **component architecture testing** - 95%+ coverage across entity managers with security testing (28 scenarios)
+- **NPM-based runners** - Cross-platform execution, parallel optimization, enhanced error handling
+- **BaseTestRunner foundation** - Unified framework for specialized test execution patterns
 
-**NEW: Self-Contained Groovy Testing (31/31 tests passing - 100% success rate)**
+## Test Structure
 
-```bash
-# Technology-Prefixed Commands (Revolutionary TD-001/TD-002)
-npm run test:groovy                 # All Groovy tests (31/31 passing, 35% performance improvement)
-npm run test:groovy:unit            # Groovy unit tests only
-npm run test:groovy:integration     # Groovy integration tests
-npm run test:groovy:performance     # Groovy performance validation
+- `unit/` - Spock framework unit tests with mocked dependencies
+- `integration/` - Live database integration tests with comprehensive validation standards
+- `apis/` - API-specific test suites with authentication and security validation
+- `validation/` - Quality gates and database performance validation scripts
+- `utilities/`, `diagnostics/`, `environment/` - Specialized testing tools and environments
 
-# JavaScript Testing (Sprint 7 - Component Architecture)
-npm run test:js:unit                # JavaScript unit tests
-npm run test:js:integration         # JavaScript integration tests
-npm run test:js:e2e                 # JavaScript E2E tests
-npm run test:js:quick               # Quick test suite (~158 tests)
-npm run test:js:components          # Component unit tests (95%+ coverage)
-npm run test:js:security            # Component security tests (28 scenarios)
-npm run test:js:security:pentest    # Penetration testing (21 attack vectors)
+## Critical Standards
 
-# Legacy Core Test Execution (Backward Compatibility Maintained)
-npm run test:all                    # All tests (unit + integration + UAT)
-npm run test:all:comprehensive      # Complete test suite (unit + integration + e2e + components + security)
-npm run test:all:unit               # All unit tests (JS + Groovy + Components)
-npm run test:all:quick              # Quick validation across technologies
-npm run test:unit                   # Groovy unit tests (redirects to test:groovy)
-npm run test:integration            # All integration tests
-npm run test:integration:auth       # Authenticated integration tests
-npm run test:uat                    # UAT validation suite
-
-# User Story Shortcuts
-npm run test:us022                  # US-022 Integration Test Expansion
-npm run test:us028                  # US-028 Enhanced IterationView + UAT
-npm run test:us056                  # US-056 Service Layer Standardization
-npm run test:us037                  # US-037 Integration Testing Framework
-npm run test:us087                  # US-087 Admin GUI Component Migration
-
-# Feature-Specific
-npm run test:iterationview          # Enhanced IterationView tests
-npm run test:unit -- --pattern api # Unit tests filtered by pattern
-npm run test:uat -- --quick         # Quick UAT validation
-```
-
-### Revolutionary Technical Debt Completion (TD-001/TD-002 - September 9, 2025)
-
-**Historic Achievement**: Complete elimination of technical debt through self-contained Groovy architecture
-
-- **100% Test Success Rate**: All 31 Groovy tests passing with zero failures
-- **35% Compilation Performance Improvement**: Revolutionary architecture optimization
-- **Self-Contained Design**: Eliminated external dependencies and compilation bottlenecks
-- **Production Deployment Ready**: All technical blockers completely resolved
-- **Smart Environment Detection**: Automatic Docker/Podman detection with seamless fallback
-
-### Legacy Shell Scripts → NPM Migration (Completed August 18, 2025)
-
-**Previous Migration**: All shell scripts replaced with JavaScript NPM runners
-
-| Legacy Shell Script                   | New NPM Command                 | Status      |
-| ------------------------------------- | ------------------------------- | ----------- |
-| `run-unit-tests.sh`                   | `npm run test:unit`             | ✅ Replaced |
-| `run-integration-tests.sh`            | `npm run test:integration`      | ✅ Replaced |
-| `run-authenticated-tests.sh`          | `npm run test:integration:auth` | ✅ Replaced |
-| `run-all-integration-tests.sh`        | `npm run test:integration:core` | ✅ Replaced |
-| `run-uat-validation.sh`               | `npm run test:uat`              | ✅ Replaced |
-| `run-enhanced-iterationview-tests.sh` | `npm run test:iterationview`    | ✅ Replaced |
-
-## 🏗️ Test Runner Architecture
-
-The NPM-based testing framework uses specialized JavaScript runners built on a common foundation:
-
-### BaseTestRunner Foundation
-
-- **Location**: `scripts/test-runners/BaseTestRunner.js`
-- **Features**: Cross-platform process execution, colored output, error handling, result aggregation
-- **Dependencies**: `execa` (process execution), `chalk` (colored output)
-
-### Specialized Test Runners
-
-**IntegrationTestRunner**: Authentication, database connectivity, sequential execution for data integrity
-**UnitTestRunner**: Parallel execution (4x faster), pattern/category filtering, development-optimized
-**UATValidationRunner**: End-to-end validation, browser test integration, comprehensive reporting
-**BaseIntegrationTest**: Framework foundation for standardized integration testing (US-037)
-
-### Revolutionary Self-Contained Architecture Improvements (TD-001/TD-002)
-
-- ✅ **100% Test Success Rate**: Perfect reliability with 31/31 Groovy tests passing
-- ✅ **35% Performance Improvement**: Revolutionary compilation optimization through self-contained design
-- ✅ **Zero Technical Debt**: Complete elimination of external dependencies and compilation bottlenecks
-- ✅ **Production Deployment Ready**: All technical blockers resolved for confident deployment
-- ✅ **Smart Environment Detection**: Automatic Docker/Podman detection with seamless fallback
-- ✅ **Technology-Prefixed Commands**: Clear separation eliminating developer confusion
-
-### Previous Migration Improvements (August 2025)
-
-- ✅ **Cross-Platform Compatibility**: Works on Windows, macOS, Linux (eliminated bash dependency)
-- ✅ **Enhanced Error Handling**: Structured error reporting with severity levels and detailed summaries
-- ✅ **Better Performance**: Parallel unit test execution, optimized sequential integration tests
-- ✅ **Improved Developer Experience**: Consistent command syntax, better debugging, simplified setup
-- ✅ **NPM Integration**: Leverages existing Node.js infrastructure and established dependencies
+- **Groovy 3.0.15 compatibility** - Required for ScriptRunner production environment
+- **Technology-prefixed commands** - Use npm run test:groovy, test:js for clear separation
+- **Self-contained architecture** - All dependencies embedded, eliminates compilation bottlenecks
+- **100% test success rate** - Revolutionary TD-001/TD-002 technical debt elimination complete
 
 ## 🎯 MANDATORY Testing Standards
 
