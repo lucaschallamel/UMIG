@@ -1,74 +1,35 @@
 # Confluence 9.2.7 Upgrade Validation Test Suite
 
-Comprehensive validation tests for the UMIG Confluence upgrade from 8.5.6 to 9.2.7.
+**Purpose**: Comprehensive validation tests for UMIG Confluence upgrade from 8.5.6 to 9.2.7 with critical component functionality verification
 
-## Overview
+## Key Components
 
-This test suite validates that all critical components are functioning correctly before and after the Confluence upgrade. The tests are designed to be fast, reliable, and provide clear pass/fail indicators.
+- **test-container-health.sh** - Container status, health checks, network connectivity, port accessibility verification
+- **test-database-connectivity.sh** - PostgreSQL connections, schema validation, connection pooling, Liquibase version verification
+- **test-api-endpoints.sh** - REST API endpoints, response format validation, performance testing, Confluence 9.2.7 features
+- **test-scriptrunner.sh** - ScriptRunner installation, version compatibility, UMIG endpoints registration, security context
+- **run-all-tests.sh** - Master test runner with comprehensive reporting, markdown generation, single test execution
 
-## Test Files
+## Validation Coverage
 
-### 1. `test-container-health.sh`
+- **Container infrastructure** - Running status, health validation, network connectivity, resource monitoring
+- **Database connectivity** - PostgreSQL server, Confluence/UMIG databases, connection performance, schema integrity
+- **API functionality** - Confluence REST API, ScriptRunner endpoints, UMIG core APIs, performance validation
+- **ScriptRunner integration** - Plugin installation, version compatibility, script compilation, database access
+- **Upgrade compatibility** - Pre/post-upgrade validation, regression detection, feature verification
 
-**Purpose:** Verify container status and health  
-**Coverage:**
+## Usage Patterns
 
-- Container running status
-- Health check validation
-- Network connectivity between containers
-- Port accessibility
-- Volume mount verification
-- Resource usage monitoring
+- **Pre-upgrade validation** - ./run-all-tests.sh before Confluence upgrade
+- **Post-upgrade verification** - Same test suite after upgrade completion
+- **Specific component testing** - ./run-all-tests.sh --test [component-name]
+- **Troubleshooting** - Individual test execution with verbose output for issue diagnosis
 
-### 2. `test-database-connectivity.sh`
+## Test Environment Requirements
 
-**Purpose:** Test PostgreSQL connections  
-**Coverage:**
-
-- PostgreSQL server connectivity
-- Confluence database connection and schema
-- UMIG application database connection and tables
-- Internal container-to-database connectivity
-- Connection pooling and performance
-- Liquibase schema version validation
-
-### 3. `test-api-endpoints.sh`
-
-**Purpose:** Validate REST API endpoints  
-**Coverage:**
-
-- Confluence base connectivity
-- Confluence REST API v1 endpoints
-- ScriptRunner custom endpoint base
-- UMIG core API endpoints (steps, teams, users, etc.)
-- API response format validation
-- API performance testing
-- Confluence 9.2.7 specific features
-
-### 4. `test-scriptrunner.sh`
-
-**Purpose:** Check ScriptRunner installation and functionality  
-**Coverage:**
-
-- ScriptRunner plugin installation
-- Version compatibility with Confluence 9.2.7
-- Custom script roots configuration
-- UMIG endpoints registration
-- Groovy script compilation
-- Database access from scripts
-- Security context validation
-
-### 5. `run-all-tests.sh`
-
-**Purpose:** Master test runner with comprehensive reporting  
-**Features:**
-
-- Executes all tests in optimal order
-- Pre-flight environment checks
-- Detailed logging and reporting
-- Markdown report generation
-- Single test execution option
-- Comprehensive summary with recommendations
+- **Running containers** - umig_confluence, umig_postgres, umig_mailhog
+- **Port accessibility** - 8090 (Confluence), 5432 (PostgreSQL), 8025/1025 (MailHog)
+- **Service availability** - Confluence, UMIG APIs, PostgreSQL databases
 
 ## Usage
 

@@ -44,26 +44,52 @@ class StepNotificationIntegration {
      */
     static Map updateStepStatusWithEnhancedNotifications(UUID stepInstanceId, Integer newStatusId, Integer userId = null) {
         try {
+            println "${LOG_PREFIX} ================== START updateStepStatusWithEnhancedNotifications =================="
+            println "${LOG_PREFIX} Input parameters:"
+            println "${LOG_PREFIX}   stepInstanceId: ${stepInstanceId}"
+            println "${LOG_PREFIX}   newStatusId: ${newStatusId}"
+            println "${LOG_PREFIX}   userId: ${userId}"
             // First, perform the standard status update
+            println "${LOG_PREFIX} STEP 1: Calling stepRepository.updateStepInstanceStatusWithNotification"
             def stepRepository = new StepRepository()
             def updateResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceId, newStatusId, userId)
 
+            println "${LOG_PREFIX} Repository update result: ${updateResult}"
+
             if (!(updateResult.success as Boolean)) {
+                println "${LOG_PREFIX} ❌ Repository update failed: ${updateResult.error}"
                 return updateResult // Return the original error
             }
 
+            println "${LOG_PREFIX} ✅ Repository update successful"
+
             // Build comprehensive DTO with all email notification data - ensure stepInstanceId is properly typed as UUID (ADR-031)
+            println "${LOG_PREFIX} STEP 2: Building email notification DTO"
             UUID stepUuid = stepInstanceId instanceof UUID ? stepInstanceId : UUID.fromString(stepInstanceId.toString())
             def stepData = buildEmailNotificationDTO(stepUuid)
+
+            println "${LOG_PREFIX} DTO build result - stepData is null: ${stepData == null}"
+            if (stepData) {
+                println "${LOG_PREFIX} DTO contains keys: ${stepData.keySet()}"
+                println "${LOG_PREFIX} Migration code: ${stepData.migrationCode}"
+                println "${LOG_PREFIX} Iteration code: ${stepData.iterationCode}"
+            }
 
             if (stepData) {
                 // Get old and new status names for notification
                 def oldStatusName = updateResult.oldStatus as String
                 def newStatusName = updateResult.newStatus as String
 
+                println "${LOG_PREFIX} STEP 3: Preparing email notification"
+                println "${LOG_PREFIX} Old status: ${oldStatusName}, New status: ${newStatusName}"
+
                 // NEW: Use the US-049 Phase 1 /stepViewApi/email endpoint for email notifications
                 // This replaces the old EmailService.sendStepViewDirectNotification approach
+                // Declare emailResult at higher scope for access in both try and catch blocks
+                def emailResult = null
+
                 try {
+                    println "${LOG_PREFIX} STEP 3A: Attempting primary email sending via EnhancedEmailService"
                     // Call the new stepViewApi/email endpoint (US-049 Phase 1)
                     def emailEndpoint = '/rest/scriptrunner/latest/custom/stepViewApi/email'
                     def emailPayload = [
@@ -88,10 +114,21 @@ class StepNotificationIntegration {
 
                     // Use EnhancedEmailService for improved reliability and URL construction
                     DatabaseUtil.withSql { sql ->
+                        println "${LOG_PREFIX} Getting teams for notification"
                         def teams = getTeamsForStepNotification(sql, stepInstanceId)
                         def cutoverTeam = getCutoverTeam(sql)
 
-                        EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                        println "${LOG_PREFIX} Found ${teams?.size() ?: 0} teams and cutover team: ${cutoverTeam?.tms_name}"
+
+                        println "${LOG_PREFIX} CALLING EnhancedEmailService.sendStepStatusChangedNotificationWithUrl"
+                        println "${LOG_PREFIX} Parameters:"
+                        println "${LOG_PREFIX}   stepData: ${stepData ? 'present' : 'null'}"
+                        println "${LOG_PREFIX}   teams: ${teams?.size() ?: 0} teams"
+                        println "${LOG_PREFIX}   cutoverTeam: ${cutoverTeam ? 'present' : 'null'}"
+                        println "${LOG_PREFIX}   migrationCode: ${stepData.migrationCode}"
+                        println "${LOG_PREFIX}   iterationCode: ${stepData.iterationCode}"
+
+                        emailResult = EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
                             stepData as Map,
                             teams,
                             cutoverTeam,
@@ -101,17 +138,28 @@ class StepNotificationIntegration {
                             stepData.migrationCode as String,
                             stepData.iterationCode as String
                         )
+
+                        println "${LOG_PREFIX} 🚨🚨🚨 EnhancedEmailService returned: ${emailResult}"
+                        println "${LOG_PREFIX} 🚨 Return value class: ${emailResult?.getClass()?.name}"
+                        println "${LOG_PREFIX} 🚨 Return value details: ${emailResult}"
+                        if (emailResult instanceof Map) {
+                            println "${LOG_PREFIX} 🚨 emailResult.success: ${emailResult.success}"
+                            println "${LOG_PREFIX} 🚨 emailResult.emailsSent: ${emailResult.emailsSent}"
+                            println "${LOG_PREFIX} 🚨 emailResult.message: ${emailResult.message}"
+                        }
                     }
 
-                    println "${LOG_PREFIX} Email notification sent successfully (using EnhancedEmailService)"
+                    println "${LOG_PREFIX} ✅ Primary email sending completed successfully"
                 } catch (Exception emailError) {
-                    println "${LOG_PREFIX} Error calling /stepViewApi/email endpoint: ${emailError.message}"
+                    println "${LOG_PREFIX} ❌ ERROR in primary email sending: ${emailError.message}"
+                    emailError.printStackTrace()
                     // Fall back to EnhancedEmailService if new endpoint fails
+                    emailResult = null
                     DatabaseUtil.withSql { sql ->
                         def teams = getTeamsForStepNotification(sql, stepInstanceId)
                         def cutoverTeam = getCutoverTeam(sql)
 
-                        EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+                        emailResult = EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
                             stepData as Map,
                             teams,
                             cutoverTeam,
@@ -124,13 +172,27 @@ class StepNotificationIntegration {
                     }
                 }
 
+                // Use actual email result instead of hardcoded values
+                println "${LOG_PREFIX} STEP 4: Processing email results"
+                println "${LOG_PREFIX} 🚨🚨🚨 emailResult received: ${emailResult}"
+                println "${LOG_PREFIX} 🚨 emailResult type: ${emailResult?.getClass()?.name}"
+
+                def actualEmailsSent = emailResult?.emailsSent ?: 0
+                def emailSuccess = emailResult?.success ?: false
+                def emailMessage = emailResult?.message ?: "Email status unknown"
+
+                println "${LOG_PREFIX} Email processing results:"
+                println "${LOG_PREFIX}   actualEmailsSent: ${actualEmailsSent}"
+                println "${LOG_PREFIX}   emailSuccess: ${emailSuccess}"
+                println "${LOG_PREFIX}   emailMessage: ${emailMessage}"
+
                 return [
                     success: true,
-                    message: "Step status updated with enhanced notifications using DTO",
+                    message: "Step status updated with enhanced notifications using DTO - ${emailMessage}",
                     stepInstanceId: stepInstanceId,
                     statusId: newStatusId,
-                    emailsSent: 1,  // One enhanced email sent
-                    enhancedNotification: true,
+                    emailsSent: actualEmailsSent,
+                    enhancedNotification: emailSuccess,
                     migrationCode: stepData.migrationCode,
                     iterationCode: stepData.iterationCode,
                     dtoUsed: true,

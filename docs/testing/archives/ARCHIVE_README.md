@@ -48,9 +48,21 @@ This directory contains obsolete testing documentation files that have been supe
 
 ### 7. AUDIT_LOGGING_FIX_VERIFICATION.md
 
-**Archived Reason**: Audit logging verification completed and integrated  
-**Superseded By**: Integrated security testing in TD-002.md  
+**Archived Reason**: Audit logging verification completed and integrated
+**Superseded By**: Integrated security testing in TD-002.md
 **Context**: Specific fix verification now part of comprehensive framework
+
+### 8. TEST_REORGANIZATION_SUMMARY.md
+
+**Archived Reason**: Test reorganization completed and documented
+**Superseded By**: Modern **tests**/ directory structure
+**Context**: Documents the transition to current testing organization
+
+### 9. TEST_SUITE_GENERATOR_REPORT_2025-09-26.md
+
+**Archived Reason**: Phase 3 code quality improvements report completed
+**Superseded By**: Ongoing test improvements in Sprint 7 documentation
+**Context**: Documented achieving 77.5% test pass rates and JavaScript mock improvements after magic number replacements
 
 ## Revolutionary Achievements Context
 

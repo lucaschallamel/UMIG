@@ -389,6 +389,72 @@ npm run test:all           # Complete validation including type checking
 - **Share Solutions**: Update troubleshooting checklist based on experience
 - **Validate Continuously**: Include type checking in all quality gates
 
+## Test Framework Specific Patterns
+
+### Spock Framework and Static Type Checking
+
+**Special Consideration**: Spock test specifications have unique interactions with Groovy's static compiler, especially in `then:` assertion blocks where type optimization occurs.
+
+#### Class-Level vs Method-Level Annotations
+
+**Problem**: `@CompileStatic(TypeCheckingMode.SKIP)` at the class level may not effectively bypass Spock's interaction with Groovy's static compiler.
+
+**❌ INEFFECTIVE Pattern:**
+
+```groovy
+@CompileStatic(TypeCheckingMode.SKIP)  // Doesn't always work with Spock
+class MyIntegrationTest extends Specification {
+    def "test method"() {
+        then:
+        someValue >= 0  // Still causes type checking errors
+    }
+}
+```
+
+**✅ EFFECTIVE Pattern:**
+
+```groovy
+class MyIntegrationTest extends Specification {
+    @CompileDynamic  // Target specific methods only
+    def "test method with type checking issues"() {
+        then:
+        someValue >= 0  // Works correctly
+    }
+
+    // Other methods remain statically typed
+    def "test method without issues"() {
+        // No annotation needed if type checking passes
+    }
+}
+```
+
+#### Safe Comparison Patterns in Test Assertions
+
+**❌ PROBLEMATIC in Spock `then:` blocks:**
+
+```groovy
+Integer emailsSent = resultMap.get('emailsSent') as Integer
+emailsSent >= 0  // Type checking error
+emailsSent.intValue() >= 0  // Dynamic method resolution error
+```
+
+**✅ SAFE Pattern for Spock assertions:**
+
+```groovy
+Object emailsSentObj = resultMap.get('emailsSent')
+emailsSentObj != null
+Integer emailsSent = emailsSentObj as Integer
+emailsSent != null && emailsSent.compareTo(0) >= 0  // Use compareTo() for safe comparison
+```
+
+**Key Principles for Test Type Safety**:
+
+- Apply `@CompileDynamic` at method level, not class level
+- Use `compareTo()` instead of direct comparison operators in assertions
+- Separate object extraction from type casting
+- Add explicit null checks before type operations
+- Avoid `.intValue()` and similar methods that cause dynamic resolution issues
+
 ## Conclusion
 
 ScriptRunner Groovy type checking is not a limitation - it's a powerful quality assurance tool that requires specific coding patterns. The key insights are:
@@ -398,6 +464,7 @@ ScriptRunner Groovy type checking is not a limitation - it's a powerful quality 
 3. **Object property access** requires proper typing
 4. **Method signatures** must match calling patterns exactly
 5. **File naming and parameter injection styles** are NOT the issue
+6. **Test frameworks** (like Spock) require special handling with method-level `@CompileDynamic` annotations
 
 By following these patterns, all ScriptRunner Groovy files can achieve 100% type checking compliance, resulting in more robust, maintainable, and production-ready code.
 
@@ -409,7 +476,9 @@ By following these patterns, all ScriptRunner Groovy files can achieve 100% type
 - [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Complete testing framework
 - [Solution Architecture](../solution-architecture.md) - System design and standards
 
-**Files Successfully Fixed** (August 21, 2025):
+**Files Successfully Fixed**:
+
+_August 21, 2025 - Production Code:_
 
 - InstructionsApi.groovy - Direct field initialization instead of destructuring
 - SequencesApi.groovy - Parameter name consistency (status vs statusId)
@@ -417,5 +486,9 @@ By following these patterns, all ScriptRunner Groovy files can achieve 100% type
 - ApiPatternValidator.groovy - List operations and string concatenation
 - StepsApi.groovy - Object property access typing
 - StepViewApi.groovy - Closure typing and destructuring elimination
+
+_September 29, 2025 - Test Code:_
+
+- EnhancedEmailNotificationIntegrationTest.groovy - Method-level `@CompileDynamic` for Spock assertions
 
 **Result**: 100% type checking compliance achieved across all ScriptRunner files.

@@ -66,48 +66,67 @@ class EnhancedEmailService {
     /**
      * Send notification when a USER changes step-level status with dynamic URL construction
      * Recipients: Assigned TEAM + IMPACTED TEAMS + IT CUTOVER TEAM
+     * @return Map with success status and email count
      */
-    static void sendStepStatusChangedNotificationWithUrl(Map stepInstance, List<Map> teams, Map cutoverTeam, 
+    static Map sendStepStatusChangedNotificationWithUrl(Map stepInstance, List<Map> teams, Map cutoverTeam,
                                                         String oldStatus, String newStatus, Integer userId = null,
                                                         String migrationCode = null, String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+        println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
+        println "🔧 [EnhancedEmailService] Input parameters:"
+        println "🔧 [EnhancedEmailService]   stepInstance: ${stepInstance ? 'present' : 'null'}"
+        println "🔧 [EnhancedEmailService]   stepInstance.sti_name: ${stepInstance?.sti_name}"
+        println "🔧 [EnhancedEmailService]   teams: ${teams?.size() ?: 0} teams"
+        println "🔧 [EnhancedEmailService]   cutoverTeam: ${cutoverTeam ? cutoverTeam.tms_name : 'null'}"
+        println "🔧 [EnhancedEmailService]   oldStatus: ${oldStatus}"
+        println "🔧 [EnhancedEmailService]   newStatus: ${newStatus}"
+        println "🔧 [EnhancedEmailService]   migrationCode: ${migrationCode}"
+        println "🔧 [EnhancedEmailService]   iterationCode: ${iterationCode}"
+
+        // CRITICAL FIX: Return the result from DatabaseUtil.withSql
+        return DatabaseUtil.withSql { sql ->
             try {
-                // Debug logging
-                println "EnhancedEmailService.sendStepStatusChangedNotificationWithUrl called:"
-                println "  - Step: ${stepInstance?.sti_name}"
-                println "  - Old Status: ${oldStatus}"
-                println "  - New Status: ${newStatus}"
-                println "  - Teams count: ${teams?.size()}"
-                println "  - Migration Code: ${migrationCode}"
-                println "  - Iteration Code: ${iterationCode}"
+                // Debug logging - now enhanced
+                println "🔧 [EnhancedEmailService] STEP 1: Processing teams and recipients"
+                println "🔧 [EnhancedEmailService]   Input teams: ${teams?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService]   Input cutover team: ${cutoverTeam ? 'present' : 'null'}"
                 
                 // Include cutover team in recipients
+                println "🔧 [EnhancedEmailService] STEP 1A: Building complete team list"
                 def allTeams = new ArrayList(teams)
                 if (cutoverTeam) {
                     allTeams.add(cutoverTeam)
+                    println "🔧 [EnhancedEmailService] Added cutover team: ${cutoverTeam.tms_name}"
                 }
+                println "🔧 [EnhancedEmailService] Total teams: ${allTeams.size()}"
+
+                println "🔧 [EnhancedEmailService] STEP 1B: Extracting email addresses"
                 def recipients = extractTeamEmails(allTeams)
-                
-                println "  - Recipients extracted: ${recipients}"
+
+                println "🔧 [EnhancedEmailService] Recipients extracted: ${recipients}"
+                println "🔧 [EnhancedEmailService] Recipient count: ${recipients?.size() ?: 0}"
                 
                 if (!recipients) {
-                    println "EnhancedEmailService: No recipients found for step status change ${stepInstance.sti_name}"
-                    return
+                    println "🔧 [EnhancedEmailService] ❌ ERROR: No recipients found for step status change ${stepInstance.sti_name}"
+                    println "🔧 [EnhancedEmailService] ❌ Returning failure result"
+                    return [success: false, emailsSent: 0, message: "No recipients found"]
                 }
                 
                 // Get email template
+                println "🔧 [EnhancedEmailService] STEP 2: Getting email template"
                 def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
                 if (!template) {
-                    println "EnhancedEmailService: No active template found for STEP_STATUS_CHANGED"
+                    println "🔧 [EnhancedEmailService] ⚠️ WARNING: No active template found for STEP_STATUS_CHANGED - using fallback"
                     // For now, bypass database template requirement for testing
                     def testSubject = "[UMIG] Step Status Changed: ${stepInstance.sti_name}" as String
                     def testBody = "<html><body><h2>Step Status Changed</h2><p>Step: ${stepInstance.sti_name}</p><p>Status: ${oldStatus} to ${newStatus}</p></body></html>" as String
 
                     // Send directly without template processing
+                    println "🔧 [EnhancedEmailService] STEP 2A: Using fallback template - sending directly"
                     def fallbackRecipients = extractTeamEmails(allTeams)
                     if (fallbackRecipients) {
+                        println "🔧 [EnhancedEmailService] Fallback recipients: ${fallbackRecipients}"
                         def sent = sendEmailViaMailHog(fallbackRecipients, testSubject, testBody)
-                        println "EnhancedEmailService: Direct email sent (bypassing templates): ${sent}"
+                        println "🔧 [EnhancedEmailService] Direct email sent (bypassing templates): ${sent}"
                         if (sent) {
                             // Note: This fallback path doesn't use a template, so we pass null for templateId
                             AuditLogRepository.logEmailSent(
@@ -123,14 +142,22 @@ class EnhancedEmailService {
                                     body_preview: testBody.take(500)
                                 ]
                             )
+                            return [success: true, emailsSent: fallbackRecipients.size(), message: "Email sent using fallback (no template)"]
+                        } else {
+                            return [success: false, emailsSent: 0, message: "Email sending failed (fallback mode)"]
                         }
                     }
-                    return
+                    return [success: false, emailsSent: 0, message: "No template found and no fallback recipients"]
                 }
-                
+
+                println "🔧 [EnhancedEmailService] STEP 3: Template found - processing with URL construction"
                 // Construct step view URL if migration and iteration codes are provided
                 def stepViewUrl = null
                 if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    println "🔧 [EnhancedEmailService] STEP 3A: Constructing step view URL"
+                    println "🔧 [EnhancedEmailService]   migrationCode: ${migrationCode}"
+                    println "🔧 [EnhancedEmailService]   iterationCode: ${iterationCode}"
+                    println "🔧 [EnhancedEmailService]   stepInstance.sti_id: ${stepInstance.sti_id}"
                     try {
                         def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
                             stepInstance.sti_id : 
@@ -162,6 +189,7 @@ class EnhancedEmailService {
                     changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     changedBy: getUsernameById(sql, userId),
                     stepViewUrl: stepViewUrl,
+                    contextualStepUrl: stepViewUrl, // Fix: Add missing contextualStepUrl for template compatibility
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
@@ -169,23 +197,37 @@ class EnhancedEmailService {
                     isDirectChange: true,    // Template compatibility - indicates direct user action
                     isBulkOperation: false,  // Template compatibility - single step operation
                     operationType: 'STEP_STATUS_CHANGED', // Fix: Add missing operationType variable
+                    changeContext: "Status changed from ${oldStatus} to ${newStatus} by ${getUsernameById(sql, userId)}", // Add missing changeContext variable
                     // Template-specific variables (must be top-level for template access)
                     // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
                     recentComments: processCommentsForTemplate(stepInstance?.recentComments),
                     impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
-                
+
+                println "🔧 [EnhancedEmailService] STEP 4: Processing email template"
+                println "🔧 [EnhancedEmailService] Template variables prepared: ${variables.keySet()}"
+                println "🔧 [EnhancedEmailService] Has stepViewUrl: ${variables.hasStepViewUrl}"
+
                 // Process template
                 def processedSubject = processTemplate(template.emt_subject as String, variables)
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
-                
+
+                println "🔧 [EnhancedEmailService] Template processing completed"
+                println "🔧 [EnhancedEmailService] Processed subject: ${processedSubject}"
+
                 // Send email
-                println "  - About to send email with subject: ${processedSubject}"
+                println "🔧 [EnhancedEmailService] STEP 5: Sending email"
+                println "🔧 [EnhancedEmailService] Subject: ${processedSubject}"
+                println "🔧 [EnhancedEmailService] Recipients: ${recipients}"
+                println "🔧 [EnhancedEmailService] Body length: ${processedBody?.length()} characters"
                 def emailSent = sendEmail(recipients, processedSubject, processedBody)
-                println "  - Email sent result: ${emailSent}"
-                
+
+                println "🔧 [EnhancedEmailService] ✅ Email sent result: ${emailSent}"
+
                 // Log the notification
+                println "🔧 [EnhancedEmailService] STEP 6: Processing results and audit logging"
                 if (emailSent) {
+                    println "🔧 [EnhancedEmailService] ✅ Email sent successfully - logging audit trail"
                     AuditLogRepository.logEmailSent(
                         sql,
                         userId,
@@ -203,7 +245,7 @@ class EnhancedEmailService {
                             iteration_code: iterationCode
                         ]
                     )
-                    
+
                     // Also log the status change itself
                     AuditLogRepository.logStepStatusChange(
                         sql,
@@ -212,6 +254,10 @@ class EnhancedEmailService {
                         oldStatus,
                         newStatus
                     )
+
+                    return [success: true, emailsSent: recipients.size(), message: "Step status change notification sent successfully"]
+                } else {
+                    return [success: false, emailsSent: 0, message: "Email sending failed"]
                 }
                 
             } catch (Exception e) {
@@ -222,7 +268,7 @@ class EnhancedEmailService {
                     migrationCode: migrationCode,
                     iterationCode: iterationCode
                 ])
-                
+
                 // Log the failure
                 DatabaseUtil.withSql { errorSql ->
                     // Rebuild allTeams list for error logging
@@ -239,8 +285,10 @@ class EnhancedEmailService {
                         e.message
                     )
                 }
+
+                return [success: false, emailsSent: 0, message: "Exception during email processing: ${e.message}"]
             }
-        }
+        } // End of DatabaseUtil.withSql - result will be returned from this block
     }
     
     /**
@@ -292,6 +340,7 @@ class EnhancedEmailService {
                 def variables = [
                     stepInstance: stepInstance,
                     stepViewUrl: stepViewUrl,
+                    contextualStepUrl: stepViewUrl, // Fix: Add missing contextualStepUrl for template compatibility
                     hasStepViewUrl: stepViewUrl != null,
                     openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     openedBy: getUsernameById(sql, userId),
@@ -354,24 +403,25 @@ class EnhancedEmailService {
     /**
      * Send notification when a USER completes an instruction with dynamic URL construction
      * Recipients: Assigned TEAM + IMPACTED TEAMS
+     * @return Map with success status and email count
      */
-    static void sendInstructionCompletedNotificationWithUrl(Map instruction, Map stepInstance, List<Map> teams, 
-                                                           Integer userId = null, String migrationCode = null, 
+    static Map sendInstructionCompletedNotificationWithUrl(Map instruction, Map stepInstance, List<Map> teams,
+                                                           Integer userId = null, String migrationCode = null,
                                                            String iterationCode = null) {
         DatabaseUtil.withSql { sql ->
             try {
                 def recipients = extractTeamEmails(teams)
-                
+
                 if (!recipients) {
                     println "EnhancedEmailService: No recipients found for instruction ${instruction.ini_name}"
-                    return
+                    return [success: false, emailsSent: 0, message: "No recipients found for instruction completion"]
                 }
-                
+
                 // Get email template
                 def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
                 if (!template) {
                     println "EnhancedEmailService: No active template found for INSTRUCTION_COMPLETED"
-                    return
+                    return [success: false, emailsSent: 0, message: "No template found for INSTRUCTION_COMPLETED"]
                 }
                 
                 // Construct step view URL if migration and iteration codes are provided
@@ -399,6 +449,7 @@ class EnhancedEmailService {
                     completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     completedBy: getUsernameById(sql, userId),
                     stepViewUrl: stepViewUrl,
+                    contextualStepUrl: stepViewUrl, // Fix: Add missing contextualStepUrl for template compatibility
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
@@ -417,7 +468,7 @@ class EnhancedEmailService {
                 
                 // Send email
                 def emailSent = sendEmail(recipients, processedSubject, processedBody)
-                
+
                 // Log the notification
                 if (emailSent) {
                     AuditLogRepository.logEmailSent(
@@ -436,6 +487,10 @@ class EnhancedEmailService {
                             iteration_code: iterationCode
                         ]
                     )
+
+                    return [success: true, emailsSent: recipients.size(), message: "Instruction completion notification sent successfully"]
+                } else {
+                    return [success: false, emailsSent: 0, message: "Email sending failed for instruction completion"]
                 }
                 
             } catch (Exception e) {
@@ -443,7 +498,7 @@ class EnhancedEmailService {
                     instructionId: instruction.ini_id,
                     stepId: stepInstance.sti_id
                 ])
-                
+
                 // Log the failure
                 DatabaseUtil.withSql { errorSql ->
                     AuditLogRepository.logEmailFailed(
@@ -455,6 +510,8 @@ class EnhancedEmailService {
                         e.message
                     )
                 }
+
+                return [success: false, emailsSent: 0, message: "Exception during instruction completion email processing: ${e.message}"]
             }
         }
     }
@@ -469,28 +526,33 @@ class EnhancedEmailService {
      */
     private static boolean sendEmail(List<String> recipients, String subject, String body) {
         try {
-            println "DEBUG EnhancedEmailService.sendEmail called:"
-            println "  - Raw recipients: ${recipients}"
+            println "🚨🚨🚨 [CRITICAL DEBUG] EnhancedEmailService.sendEmail called:"
+            println "🚨 [CRITICAL DEBUG]   - Raw recipients: ${recipients}"
+            println "🚨 [CRITICAL DEBUG]   - Raw recipients size: ${recipients?.size()}"
+            println "🚨 [CRITICAL DEBUG]   - Raw recipients class: ${recipients?.getClass()?.name}"
 
             // Remove any null or empty email addresses
             def validRecipients = recipients.findAll { it && it.trim() }
-            println "  - Valid recipients: ${validRecipients}"
-            println "  - Subject: ${subject}"
-            println "  - Body length: ${body?.length()} characters"
+            println "🚨 [CRITICAL DEBUG]   - Valid recipients: ${validRecipients}"
+            println "🚨 [CRITICAL DEBUG]   - Valid recipients size: ${validRecipients?.size()}"
+            println "🚨 [CRITICAL DEBUG]   - Subject: ${subject}"
+            println "🚨 [CRITICAL DEBUG]   - Body length: ${body?.length()} characters"
 
             if (!validRecipients) {
-                println "EnhancedEmailService: No valid recipients found, skipping email send"
+                println "🚨 [CRITICAL DEBUG] ❌❌❌ No valid recipients found, skipping email send"
                 return false
             }
 
-            println "  - About to call sendEmailViaMailHog..."
+            println "🚨 [CRITICAL DEBUG]   - About to call sendEmailViaMailHog..."
             // For development environment, use MailHog directly
             def result = sendEmailViaMailHog(validRecipients, subject, body)
-            println "  - sendEmailViaMailHog returned: ${result}"
+            println "🚨 [CRITICAL DEBUG]   - sendEmailViaMailHog returned: ${result}"
+            println "🚨🚨🚨 [CRITICAL DEBUG] EnhancedEmailService.sendEmail RETURNING: ${result}"
             return result
 
         } catch (Exception e) {
-            println "EnhancedEmailService: ERROR in sendEmail: ${e.message}"
+            println "🚨 [CRITICAL DEBUG] ❌❌❌ ERROR in sendEmail: ${e.message}"
+            println "🚨 [CRITICAL DEBUG] Exception class: ${e.getClass().name}"
             e.printStackTrace()
             return false
         }
@@ -501,52 +563,92 @@ class EnhancedEmailService {
      */
     private static boolean sendEmailViaMailHog(List<String> recipients, String subject, String body) {
         try {
-            println "DEBUG EnhancedEmailService: Sending via MailHog (development mode)"
-            println "  - Recipients to process: ${recipients}"
-            println "  - Subject: ${subject}"
+            println "🚨 [CRITICAL DEBUG] EnhancedEmailService.sendEmailViaMailHog() - ENTRY POINT"
+            println "🚨 [CRITICAL DEBUG] MailHog sending starting (development mode)"
+            println "🚨 [CRITICAL DEBUG] Recipients to process: ${recipients}"
+            println "🚨 [CRITICAL DEBUG] Recipients count: ${recipients?.size()}"
+            println "🚨 [CRITICAL DEBUG] Subject: ${subject}"
+            println "🚨 [CRITICAL DEBUG] Body preview: ${body?.take(200)}..."
 
             // MailHog SMTP configuration
             Properties props = new Properties()
-            props.put("mail.smtp.host", "localhost")
+            props.put("mail.smtp.host", "umig_mailhog")
             props.put("mail.smtp.port", "1025")
             props.put("mail.smtp.auth", "false")
             props.put("mail.smtp.starttls.enable", "false")
             props.put("mail.smtp.connectiontimeout", "5000")
             props.put("mail.smtp.timeout", "5000")
 
-            println "  - SMTP properties configured for localhost:1025"
+            println "🚨 [CRITICAL DEBUG] SMTP properties configured for umig_mailhog:1025"
+            println "🚨 [CRITICAL DEBUG] SMTP host: umig_mailhog"
+            println "🚨 [CRITICAL DEBUG] SMTP port: 1025"
+            println "🚨 [CRITICAL DEBUG] SMTP auth: false"
 
             // Create session
+            println "🚨 [CRITICAL DEBUG] About to create JavaMail session..."
             Session session = Session.getInstance(props)
-            println "  - Mail session created"
+            println "🚨 [CRITICAL DEBUG] ✅ JavaMail session created successfully"
+            println "🚨 [CRITICAL DEBUG] Session properties: ${session.getProperties()}"
 
             // Send to each recipient
             boolean allSent = true
+            println "🚨 [CRITICAL DEBUG] Starting to process ${recipients.size()} recipients"
             recipients.each { recipient ->
                 try {
-                    println "  - Processing recipient: ${recipient}"
+                    println "🚨 [CRITICAL DEBUG] === Processing recipient: ${recipient} ==="
+                    println "🚨 [CRITICAL DEBUG] Creating MimeMessage..."
                     MimeMessage message = new MimeMessage(session)
-                    message.setFrom(new InternetAddress(DEFAULT_FROM_ADDRESS))
-                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
-                    message.setSubject(subject, "UTF-8")
-                    message.setContent(body, "text/html; charset=utf-8")
-                    message.setSentDate(new Date())
+                    println "🚨 [CRITICAL DEBUG] ✅ MimeMessage created"
 
-                    println "  - Message prepared, sending via Transport..."
+                    println "🚨 [CRITICAL DEBUG] Setting FROM address: ${DEFAULT_FROM_ADDRESS}"
+                    message.setFrom(new InternetAddress(DEFAULT_FROM_ADDRESS))
+                    println "🚨 [CRITICAL DEBUG] ✅ FROM address set"
+
+                    println "🚨 [CRITICAL DEBUG] Setting TO address: ${recipient}"
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
+                    println "🚨 [CRITICAL DEBUG] ✅ TO address set"
+
+                    println "🚨 [CRITICAL DEBUG] Setting subject: ${subject}"
+                    message.setSubject(subject, "UTF-8")
+                    println "🚨 [CRITICAL DEBUG] ✅ Subject set"
+
+                    println "🚨 [CRITICAL DEBUG] Setting content (${body?.length()} chars)"
+                    message.setContent(body, "text/html; charset=utf-8")
+                    println "🚨 [CRITICAL DEBUG] ✅ Content set"
+
+                    println "🚨 [CRITICAL DEBUG] Setting sent date"
+                    message.setSentDate(new Date())
+                    println "🚨 [CRITICAL DEBUG] ✅ Sent date set"
+
+                    println "🚨 [CRITICAL DEBUG] === ABOUT TO SEND MESSAGE VIA Transport.send() ==="
+                    println "🚨 [CRITICAL DEBUG] Message details:"
+                    println "🚨 [CRITICAL DEBUG]   - From: ${message.getFrom()}"
+                    println "🚨 [CRITICAL DEBUG]   - To: ${message.getAllRecipients()}"
+                    println "🚨 [CRITICAL DEBUG]   - Subject: ${message.getSubject()}"
+
                     Transport.send(message)
-                    println "  - ✅ Email sent successfully to ${recipient}"
+                    println "🚨 [CRITICAL DEBUG] ✅✅✅ Transport.send() COMPLETED SUCCESSFULLY for ${recipient}"
                 } catch (Exception e) {
-                    println "  - ❌ Failed to send email to ${recipient}: ${e.message}"
+                    println "🚨 [CRITICAL DEBUG] ❌❌❌ FAILED to send email to ${recipient}"
+                    println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
+                    println "🚨 [CRITICAL DEBUG] Exception message: ${e.message}"
+                    println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
+                    println "🚨 [CRITICAL DEBUG] Full stack trace:"
                     e.printStackTrace()
                     allSent = false
                 }
             }
 
-            println "  - All emails processed. Success: ${allSent}"
+            println "🚨 [CRITICAL DEBUG] === EMAIL PROCESSING COMPLETED ==="
+            println "🚨 [CRITICAL DEBUG] All emails processed. Overall success: ${allSent}"
+            println "🚨 [CRITICAL DEBUG] Returning result: ${allSent}"
             return allSent
 
         } catch (Exception e) {
-            println "DEBUG EnhancedEmailService: ❌ MailHog sending failed: ${e.message}"
+            println "🚨 [CRITICAL DEBUG] ❌❌❌ FATAL ERROR in sendEmailViaMailHog: ${e.message}"
+            println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
+            println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
+            println "🚨 [CRITICAL DEBUG] Full stack trace:"
             e.printStackTrace()
             return false
         }
@@ -1110,7 +1212,9 @@ class EnhancedEmailService {
                     migrationCode: migrationCode ?: '',
                     iterationCode: iterationCode ?: '',
                     stepViewUrl: stepViewUrl ?: '',
+                    contextualStepUrl: stepViewUrl ?: '', // Fix: Add missing contextualStepUrl for template compatibility
                     hasUrl: stepViewUrl ? true : false,
+                    hasStepViewUrl: stepViewUrl ? true : false, // Fix: Add missing hasStepViewUrl for template compatibility
                     isBulkOperation: false,  // Template compatibility - single step operation
                     operationType: 'INSTRUCTION_UNCOMPLETED' // Fix: Add missing operationType variable
                 ]

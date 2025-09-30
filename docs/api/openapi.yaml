@@ -1,12 +1,12 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.11.0
+  version: 2.12.0
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   description:
-    "\n    **Version 2.11.0 - September 16, 2025:**\n    **Complete Relationship API Integration:** Added comprehensive TeamsRelationshipApi and UsersRelationshipApi endpoints.\n    **New Features:** Team relationship management (/teams/{teamId}/environments, /teams/{teamId}/applications, /teams/{teamId}/labels, /teams/{teamId}/summary),\n    User relationship management (/users/{userId}/teams, /users/{userId}/environments, /users/{userId}/applications, /users/{userId}/summary).\n    **Enterprise Capabilities:** Full association management, comprehensive relationship summaries, enterprise-grade security,\n    and complete RBAC integration. **Documentation Coverage:** Achieved 100% API documentation coverage across entire UMIG ecosystem.\n    **Quality Standard:** All endpoints meet 9.4/10 enterprise documentation quality standard with comprehensive error handling,\n    security features, and performance optimizations.\n\n    **Version 2.10.0 - January 13, 2025:**\n    **Enterprise Security & Rate Limiting Enhancement:** Complete\
+    "\n    **Version 2.12.0 - September 29, 2025:**\n    **System Administration & Dashboard Enhancement:** Added comprehensive system administration APIs and real-time dashboard capabilities.\n    **New APIs:** AdminVersionApi (system version info, health monitoring, component status, validation), DashboardApi (real-time metrics with caching, health checks, summary data),\n    DatabaseVersionsApi (Liquibase management, deployment packages, database health), RolesApi (role-based access control with hierarchy and permissions).\n    **Enterprise Features:** Complete system monitoring, automated deployment packaging, role hierarchy management, cached metrics for performance,\n    and comprehensive health validation across all system components. **Security Integration:** Full RBAC implementation with role hierarchy,\n    enterprise-grade monitoring, and automated system validation. **Performance Optimization:** Intelligent caching for dashboard metrics,\n    optimized health checks, and streamlined deployment workflows.\n\n    **Version 2.11.0 - September 16, 2025:**\n    **Complete Relationship API Integration:** Added comprehensive TeamsRelationshipApi and UsersRelationshipApi endpoints.\n    **New Features:** Team relationship management (/teams/{teamId}/environments, /teams/{teamId}/applications, /teams/{teamId}/labels, /teams/{teamId}/summary),\n    User relationship management (/users/{userId}/teams, /users/{userId}/environments, /users/{userId}/applications, /users/{userId}/summary).\n    **Enterprise Capabilities:** Full association management, comprehensive relationship summaries, enterprise-grade security,\n    and complete RBAC integration. **Documentation Coverage:** Achieved 100% API documentation coverage across entire UMIG ecosystem.\n    **Quality Standard:** All endpoints meet 9.4/10 enterprise documentation quality standard with comprehensive error handling,\n    security features, and performance optimizations.\n\n    **Version 2.10.0 - January 13, 2025:**\n    **Enterprise Security & Rate Limiting Enhancement:** Complete\
     \ OpenAPI specification synchronization with enhanced API documentation.\n    **Security Features:** Added comprehensive\
     \ rate limiting responses (HTTP 429), enterprise security headers (X-Frame-Options, X-XSS-Protection, CSP),\n    and RBAC\
     \ integration documentation. **Error Handling:** Enhanced error schemas with SQL state mappings (23503\u2192400, 23505\u2192\
@@ -125,6 +125,14 @@ tags:
     description: Operations for managing team relationships and association management with environments, applications, and labels.
   - name: UserRelationships
     description: Operations for managing user relationships and association management with teams, environments, and applications.
+  - name: AdminVersion
+    description: Operations for system version information, health monitoring, component status, and system validation.
+  - name: Dashboard
+    description: Operations for real-time dashboard metrics, health checks, and aggregated summary data with intelligent caching.
+  - name: DatabaseVersions
+    description: Operations for Liquibase database version management, deployment packages, and database health monitoring.
+  - name: Roles
+    description: Operations for role-based access control with hierarchy management and permission administration.
 paths:
   /iterationsList:
     get:
@@ -874,7 +882,7 @@ paths:
       tags:
         - Migrations
         - Dashboard
-      operationId: getDashboardSummary
+      operationId: getMigrationDashboardSummary
       responses:
         "200":
           description: Dashboard summary with totals and status distribution
@@ -930,7 +938,7 @@ paths:
       tags:
         - Migrations
         - Dashboard
-      operationId: getDashboardMetrics
+      operationId: getMigrationDashboardMetrics
       parameters:
         - name: period
           in: query
@@ -9858,6 +9866,767 @@ paths:
           description: User not found
         "500":
           description: Internal server error
+  /admin-version:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get system version information
+      description: |
+        Retrieve comprehensive system version information including UMIG version, database schema version,
+        and component status. Provides essential system metadata for monitoring and debugging.
+      tags:
+        - AdminVersion
+      operationId: getAdminVersion
+      responses:
+        "200":
+          description: System version information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminVersionInfo"
+              examples:
+                basic:
+                  summary: Basic version information
+                  value:
+                    umigVersion: "2.12.0"
+                    databaseVersion: "2.11.5"
+                    schemaVersion: "20250929.001"
+                    buildTimestamp: "2025-09-29T10:30:00Z"
+                    environment: "development"
+                    status: "HEALTHY"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /admin-version/health:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Perform comprehensive system health check
+      description: |
+        Execute a comprehensive health check across all system components including database connectivity,
+        ScriptRunner status, and external service availability. Returns detailed health status for monitoring.
+      tags:
+        - AdminVersion
+      operationId: getSystemHealth
+      responses:
+        "200":
+          description: System health check completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemHealthStatus"
+              examples:
+                healthy:
+                  summary: All systems healthy
+                  value:
+                    overall: "HEALTHY"
+                    database: "HEALTHY"
+                    scriptrunner: "HEALTHY"
+                    confluence: "HEALTHY"
+                    checks:
+                      - component: "PostgreSQL"
+                        status: "HEALTHY"
+                        responseTime: 25
+                      - component: "ScriptRunner"
+                        status: "HEALTHY"
+                        responseTime: 45
+                degraded:
+                  summary: System with degraded performance
+                  value:
+                    overall: "DEGRADED"
+                    database: "HEALTHY"
+                    scriptrunner: "DEGRADED"
+                    confluence: "HEALTHY"
+                    checks:
+                      - component: "PostgreSQL"
+                        status: "HEALTHY"
+                        responseTime: 25
+                      - component: "ScriptRunner"
+                        status: "DEGRADED"
+                        responseTime: 850
+                        message: "High response time detected"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /admin-version/components:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get detailed component status information
+      description: |
+        Retrieve detailed status information for all system components including version numbers,
+        configuration details, and operational metrics. Useful for detailed system diagnostics.
+      tags:
+        - AdminVersion
+      operationId: getComponentStatus
+      responses:
+        "200":
+          description: Component status information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComponentStatusInfo"
+              examples:
+                detailed:
+                  summary: Detailed component information
+                  value:
+                    components:
+                      - name: "UMIG Core"
+                        version: "2.12.0"
+                        status: "ACTIVE"
+                        uptime: 3600000
+                        details:
+                          apiEndpoints: 27
+                          activeConnections: 15
+                      - name: "PostgreSQL"
+                        version: "14.9"
+                        status: "ACTIVE"
+                        uptime: 86400000
+                        details:
+                          activeConnections: 8
+                          poolSize: 20
+                          databaseSize: "250MB"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /admin-version/validate:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Perform comprehensive system validation
+      description: |
+        Execute comprehensive system validation including database schema integrity,
+        configuration consistency, and API endpoint availability. Returns validation results.
+      tags:
+        - AdminVersion
+      operationId: validateSystem
+      responses:
+        "200":
+          description: System validation completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemValidationResult"
+              examples:
+                valid:
+                  summary: All validations passed
+                  value:
+                    overall: "VALID"
+                    validations:
+                      - category: "Database Schema"
+                        status: "VALID"
+                        checks: 15
+                        passed: 15
+                      - category: "API Endpoints"
+                        status: "VALID"
+                        checks: 27
+                        passed: 27
+                      - category: "Configuration"
+                        status: "VALID"
+                        checks: 8
+                        passed: 8
+                issues:
+                  summary: Validation with issues
+                  value:
+                    overall: "ISSUES"
+                    validations:
+                      - category: "Database Schema"
+                        status: "VALID"
+                        checks: 15
+                        passed: 15
+                      - category: "API Endpoints"
+                        status: "ISSUES"
+                        checks: 27
+                        passed: 25
+                        issues:
+                          - endpoint: "/test-endpoint"
+                            issue: "Response time exceeds threshold"
+                      - category: "Configuration"
+                        status: "VALID"
+                        checks: 8
+                        passed: 8
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /dashboard/metrics:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get real-time dashboard metrics
+      description: |
+        Retrieve real-time dashboard metrics with intelligent caching for optimal performance.
+        Provides comprehensive system statistics including migrations, steps, and resource utilization.
+      tags:
+        - Dashboard
+      operationId: getDashboardMetrics
+      parameters:
+        - name: refresh
+          in: query
+          description: Force refresh of cached metrics (optional)
+          schema:
+            type: boolean
+            default: false
+        - name: period
+          in: query
+          description: Time period for metrics aggregation
+          schema:
+            type: string
+            enum:
+              - 1h
+              - 24h
+              - 7d
+              - 30d
+            default: 24h
+      responses:
+        "200":
+          description: Dashboard metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardMetrics"
+              examples:
+                complete:
+                  summary: Complete dashboard metrics
+                  value:
+                    period: "24h"
+                    timestamp: "2025-09-29T15:30:00Z"
+                    cached: true
+                    cacheAge: 300
+                    metrics:
+                      migrations:
+                        total: 25
+                        active: 8
+                        completed: 15
+                        failed: 2
+                      steps:
+                        total: 1443
+                        pending: 150
+                        inProgress: 45
+                        completed: 1200
+                        failed: 48
+                      performance:
+                        avgResponseTime: 125
+                        peakConcurrency: 15
+                        errorRate: 0.032
+                      resources:
+                        cpuUsage: 45.2
+                        memoryUsage: 67.8
+                        diskUsage: 23.5
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /dashboard/health:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get dashboard component health status
+      description: |
+        Retrieve health status specifically for dashboard components including data sources,
+        caching systems, and metric collection services.
+      tags:
+        - Dashboard
+      operationId: getDashboardHealth
+      responses:
+        "200":
+          description: Dashboard health status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardHealthStatus"
+              examples:
+                healthy:
+                  summary: All dashboard components healthy
+                  value:
+                    overall: "HEALTHY"
+                    components:
+                      dataCollection: "HEALTHY"
+                      cacheSystem: "HEALTHY"
+                      metricsAggregation: "HEALTHY"
+                    details:
+                      - component: "Metrics Cache"
+                        status: "HEALTHY"
+                        lastUpdate: "2025-09-29T15:25:00Z"
+                        hitRate: 0.95
+                      - component: "Data Collection"
+                        status: "HEALTHY"
+                        lastRun: "2025-09-29T15:30:00Z"
+                        duration: 250
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /dashboard/summary:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get aggregated dashboard summary data
+      description: |
+        Retrieve high-level aggregated summary data for dashboard overview including
+        key performance indicators and system status summaries.
+      tags:
+        - Dashboard
+      operationId: getDashboardSummary
+      responses:
+        "200":
+          description: Dashboard summary data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+              examples:
+                summary:
+                  summary: Complete dashboard summary
+                  value:
+                    systemStatus: "OPERATIONAL"
+                    totalMigrations: 25
+                    activeMigrations: 8
+                    totalSteps: 1443
+                    criticalAlerts: 0
+                    warningAlerts: 2
+                    systemHealth: "GOOD"
+                    performanceScore: 94.5
+                    lastUpdated: "2025-09-29T15:30:00Z"
+                    trends:
+                      migrationsCompleted24h: 3
+                      stepsCompleted24h: 245
+                      errorRate24h: 0.028
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: List all database versions
+      description: |
+        Retrieve comprehensive list of all Liquibase database versions including schema versions,
+        changeset information, and deployment history with detailed metadata.
+      tags:
+        - DatabaseVersions
+      operationId: listDatabaseVersions
+      parameters:
+        - name: includeDetails
+          in: query
+          description: Include detailed changeset information
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Database versions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatabaseVersionsList"
+              examples:
+                basic:
+                  summary: Basic version list
+                  value:
+                    versions:
+                      - version: "2.11.5"
+                        deployedAt: "2025-09-16T10:30:00Z"
+                        changesets: 25
+                        status: "DEPLOYED"
+                      - version: "2.11.4"
+                        deployedAt: "2025-09-10T14:15:00Z"
+                        changesets: 23
+                        status: "DEPLOYED"
+                detailed:
+                  summary: Detailed version information
+                  value:
+                    versions:
+                      - version: "2.11.5"
+                        deployedAt: "2025-09-16T10:30:00Z"
+                        changesets: 25
+                        status: "DEPLOYED"
+                        details:
+                          author: "UMIG System"
+                          description: "Sprint 7 schema updates"
+                          changesetDetails:
+                            - id: "20250916.001"
+                              author: "system"
+                              description: "Add roles table"
+                            - id: "20250916.002"
+                              author: "system"
+                              description: "Update permissions schema"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions/health:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get database health check status
+      description: |
+        Perform comprehensive database health check including connectivity, schema integrity,
+        and Liquibase status verification.
+      tags:
+        - DatabaseVersions
+      operationId: getDatabaseHealth
+      responses:
+        "200":
+          description: Database health check completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatabaseHealthStatus"
+              examples:
+                healthy:
+                  summary: Database fully healthy
+                  value:
+                    overall: "HEALTHY"
+                    connectivity: "HEALTHY"
+                    schemaIntegrity: "HEALTHY"
+                    liquibaseStatus: "HEALTHY"
+                    details:
+                      connectionPool:
+                        active: 8
+                        idle: 12
+                        max: 20
+                      schemaValidation:
+                        tablesChecked: 45
+                        constraintsValidated: 127
+                        indexesVerified: 89
+                      liquibase:
+                        lastDeployment: "2025-09-16T10:30:00Z"
+                        pendingChangesets: 0
+                        locksActive: 0
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions/validate:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Validate database schema and Liquibase status
+      description: |
+        Perform comprehensive validation of database schema integrity and Liquibase deployment status
+        including changeset verification and constraint validation.
+      tags:
+        - DatabaseVersions
+      operationId: validateDatabase
+      responses:
+        "200":
+          description: Database validation completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatabaseValidationResult"
+              examples:
+                valid:
+                  summary: All validations passed
+                  value:
+                    overall: "VALID"
+                    validations:
+                      - category: "Schema Integrity"
+                        status: "VALID"
+                        checks: 45
+                        passed: 45
+                      - category: "Liquibase Status"
+                        status: "VALID"
+                        checks: 12
+                        passed: 12
+                      - category: "Data Constraints"
+                        status: "VALID"
+                        checks: 127
+                        passed: 127
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions/package:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Generate database deployment package
+      description: |
+        Generate a comprehensive deployment package containing Liquibase changesets,
+        schema scripts, and deployment documentation for database version management.
+      tags:
+        - DatabaseVersions
+      operationId: generateDeploymentPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeploymentPackageRequest"
+            examples:
+              basic:
+                summary: Basic package generation
+                value:
+                  targetVersion: "2.12.0"
+                  includeRollback: true
+                  environment: "production"
+                  description: "Production deployment package for v2.12.0"
+      responses:
+        "201":
+          description: Deployment package generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentPackageResponse"
+              examples:
+                created:
+                  summary: Package created successfully
+                  value:
+                    packageId: "pkg-20250929-001"
+                    targetVersion: "2.12.0"
+                    status: "GENERATED"
+                    createdAt: "2025-09-29T15:30:00Z"
+                    downloadUrl: "/database-versions/package/pkg-20250929-001/download"
+                    contents:
+                      changesets: 15
+                      rollbackScripts: 15
+                      documentation: "deployment-guide.md"
+                    expiresAt: "2025-10-06T15:30:00Z"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions/package/{packageId}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get deployment package details
+      description: |
+        Retrieve detailed information about a specific deployment package including
+        contents, status, and download availability.
+      tags:
+        - DatabaseVersions
+      operationId: getDeploymentPackage
+      parameters:
+        - name: packageId
+          in: path
+          required: true
+          description: Unique identifier of the deployment package
+          schema:
+            type: string
+            pattern: "^pkg-[0-9]{8}-[0-9]{3}$"
+            example: "pkg-20250929-001"
+      responses:
+        "200":
+          description: Package details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentPackageDetails"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceUsers: []
+      summary: Delete deployment package
+      description: |
+        Delete a deployment package and clean up associated resources including
+        generated files and temporary artifacts.
+      tags:
+        - DatabaseVersions
+      operationId: deleteDeploymentPackage
+      parameters:
+        - name: packageId
+          in: path
+          required: true
+          description: Unique identifier of the deployment package
+          schema:
+            type: string
+            pattern: "^pkg-[0-9]{8}-[0-9]{3}$"
+            example: "pkg-20250929-001"
+      responses:
+        "204":
+          description: Package deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /database-versions/package/{packageId}/download:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Download deployment package
+      description: |
+        Download the deployment package as a compressed archive containing all
+        necessary files for database deployment including changesets and documentation.
+      tags:
+        - DatabaseVersions
+      operationId: downloadDeploymentPackage
+      parameters:
+        - name: packageId
+          in: path
+          required: true
+          description: Unique identifier of the deployment package
+          schema:
+            type: string
+            pattern: "^pkg-[0-9]{8}-[0-9]{3}$"
+            example: "pkg-20250929-001"
+      responses:
+        "200":
+          description: Package download ready
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: "attachment; filename=umig-deployment-pkg-20250929-001.zip"
+            Content-Length:
+              schema:
+                type: integer
+                example: 2048576
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /roles:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: List all roles with hierarchy and permissions
+      description: |
+        Retrieve comprehensive list of all roles in the system including role hierarchy,
+        permission mappings, and detailed access control information for RBAC management.
+      tags:
+        - Roles
+      operationId: listRoles
+      parameters:
+        - name: includeHierarchy
+          in: query
+          description: Include role hierarchy and parent-child relationships
+          schema:
+            type: boolean
+            default: true
+        - name: includePermissions
+          in: query
+          description: Include detailed permission mappings for each role
+          schema:
+            type: boolean
+            default: true
+        - name: roleType
+          in: query
+          description: Filter by role type
+          schema:
+            type: string
+            enum:
+              - SYSTEM
+              - FUNCTIONAL
+              - ADMINISTRATIVE
+              - CUSTOM
+        - name: active
+          in: query
+          description: Filter by role active status
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesList"
+              examples:
+                complete:
+                  summary: Complete roles with hierarchy and permissions
+                  value:
+                    roles:
+                      - id: "role-admin"
+                        name: "System Administrator"
+                        type: "SYSTEM"
+                        level: 1
+                        active: true
+                        description: "Full system access and administration"
+                        hierarchy:
+                          parent: null
+                          children:
+                            - "role-migration-admin"
+                            - "role-user-admin"
+                        permissions:
+                          - resource: "system"
+                            actions: ["READ", "WRITE", "DELETE", "ADMIN"]
+                          - resource: "migrations"
+                            actions: ["READ", "WRITE", "DELETE", "EXECUTE"]
+                          - resource: "users"
+                            actions: ["READ", "WRITE", "DELETE", "MANAGE"]
+                      - id: "role-migration-admin"
+                        name: "Migration Administrator"
+                        type: "FUNCTIONAL"
+                        level: 2
+                        active: true
+                        description: "Full migration management access"
+                        hierarchy:
+                          parent: "role-admin"
+                          children:
+                            - "role-migration-operator"
+                        permissions:
+                          - resource: "migrations"
+                            actions: ["READ", "WRITE", "DELETE", "EXECUTE"]
+                          - resource: "steps"
+                            actions: ["READ", "WRITE", "EXECUTE"]
+                          - resource: "plans"
+                            actions: ["READ", "WRITE", "DELETE"]
+                      - id: "role-migration-operator"
+                        name: "Migration Operator"
+                        type: "FUNCTIONAL"
+                        level: 3
+                        active: true
+                        description: "Execute migrations and manage steps"
+                        hierarchy:
+                          parent: "role-migration-admin"
+                          children: []
+                        permissions:
+                          - resource: "migrations"
+                            actions: ["READ", "EXECUTE"]
+                          - resource: "steps"
+                            actions: ["READ", "WRITE", "EXECUTE"]
+                          - resource: "plans"
+                            actions: ["READ"]
+                basic:
+                  summary: Basic roles without detailed information
+                  value:
+                    roles:
+                      - id: "role-admin"
+                        name: "System Administrator"
+                        type: "SYSTEM"
+                        level: 1
+                        active: true
+                      - id: "role-migration-admin"
+                        name: "Migration Administrator"
+                        type: "FUNCTIONAL"
+                        level: 2
+                        active: true
+                      - id: "role-user"
+                        name: "Standard User"
+                        type: "SYSTEM"
+                        level: 4
+                        active: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimit"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   schemas:
@@ -10253,48 +11022,6 @@ components:
           type: string
         direction:
           type: string
-    DashboardSummary:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            totalMigrations:
-              type: integer
-            byStatus:
-              type: object
-              additionalProperties:
-                type: integer
-            upcomingDeadlines:
-              type: array
-              items:
-                type: object
-                properties:
-                  mig_id:
-                    type: string
-                    format: uuid
-                  mig_name:
-                    type: string
-                  mig_end_date:
-                    type: string
-                    format: date
-                  daysRemaining:
-                    type: integer
-            recentUpdates:
-              type: array
-              items:
-                type: object
-                properties:
-                  mig_id:
-                    type: string
-                    format: uuid
-                  mig_name:
-                    type: string
-                  updated_at:
-                    type: string
-                    format: date-time
-                  action:
-                    type: string
     DashboardProgress:
       type: object
       properties:
@@ -10348,29 +11075,6 @@ components:
                 current:
                   type: string
                   format: date
-    DashboardMetrics:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            period:
-              type: string
-            migrationId:
-              type: string
-              format: uuid
-            message:
-              type: string
-            completionRate:
-              type: number
-            avgDuration:
-              type: number
-            statusDistribution:
-              type: object
-            trends:
-              type: array
-              items:
-                type: object
     BulkStatusUpdateRequest:
       type: object
       required:
@@ -15325,6 +16029,741 @@ components:
         - userId
         - username
         - groups
+    AdminVersionInfo:
+      type: object
+      description: System version and status information
+      properties:
+        umigVersion:
+          type: string
+          description: Current UMIG application version
+          example: "2.12.0"
+        databaseVersion:
+          type: string
+          description: Current database schema version
+          example: "2.11.5"
+        schemaVersion:
+          type: string
+          description: Liquibase schema version identifier
+          example: "20250929.001"
+        buildTimestamp:
+          type: string
+          format: date-time
+          description: Application build timestamp
+          example: "2025-09-29T10:30:00Z"
+        environment:
+          type: string
+          description: Current deployment environment
+          example: "development"
+        status:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Overall system status
+      required:
+        - umigVersion
+        - databaseVersion
+        - environment
+        - status
+    SystemHealthStatus:
+      type: object
+      description: Comprehensive system health status
+      properties:
+        overall:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Overall system health status
+        database:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Database connectivity and performance status
+        scriptrunner:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: ScriptRunner service status
+        confluence:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Confluence platform status
+        checks:
+          type: array
+          description: Detailed health check results for each component
+          items:
+            type: object
+            properties:
+              component:
+                type: string
+                description: Component name
+              status:
+                type: string
+                enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+                description: Component health status
+              responseTime:
+                type: integer
+                description: Component response time in milliseconds
+              message:
+                type: string
+                description: Additional status information
+            required:
+              - component
+              - status
+      required:
+        - overall
+        - database
+        - scriptrunner
+        - confluence
+    ComponentStatusInfo:
+      type: object
+      description: Detailed component status information
+      properties:
+        components:
+          type: array
+          description: List of system components with detailed status
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Component name
+              version:
+                type: string
+                description: Component version
+              status:
+                type: string
+                enum: ["ACTIVE", "INACTIVE", "ERROR"]
+                description: Component operational status
+              uptime:
+                type: integer
+                format: int64
+                description: Component uptime in milliseconds
+              details:
+                type: object
+                description: Component-specific details and metrics
+                additionalProperties: true
+            required:
+              - name
+              - version
+              - status
+      required:
+        - components
+    SystemValidationResult:
+      type: object
+      description: Comprehensive system validation results
+      properties:
+        overall:
+          type: string
+          enum: ["VALID", "ISSUES", "INVALID"]
+          description: Overall validation status
+        validations:
+          type: array
+          description: Detailed validation results by category
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                description: Validation category name
+              status:
+                type: string
+                enum: ["VALID", "ISSUES", "INVALID"]
+                description: Category validation status
+              checks:
+                type: integer
+                description: Total number of checks performed
+              passed:
+                type: integer
+                description: Number of checks that passed
+              issues:
+                type: array
+                description: List of validation issues (if any)
+                items:
+                  type: object
+                  properties:
+                    endpoint:
+                      type: string
+                      description: Affected endpoint or component
+                    issue:
+                      type: string
+                      description: Description of the issue
+                  required:
+                    - issue
+            required:
+              - category
+              - status
+              - checks
+              - passed
+      required:
+        - overall
+        - validations
+    DashboardMetrics:
+      type: object
+      description: Real-time dashboard metrics with caching information
+      properties:
+        period:
+          type: string
+          description: Time period for metrics aggregation
+          example: "24h"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when metrics were collected
+        cached:
+          type: boolean
+          description: Whether metrics are from cache
+        cacheAge:
+          type: integer
+          description: Age of cached data in seconds
+        metrics:
+          type: object
+          description: Categorized system metrics
+          properties:
+            migrations:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number of migrations
+                active:
+                  type: integer
+                  description: Number of active migrations
+                completed:
+                  type: integer
+                  description: Number of completed migrations
+                failed:
+                  type: integer
+                  description: Number of failed migrations
+            steps:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number of steps
+                pending:
+                  type: integer
+                  description: Number of pending steps
+                inProgress:
+                  type: integer
+                  description: Number of steps in progress
+                completed:
+                  type: integer
+                  description: Number of completed steps
+                failed:
+                  type: integer
+                  description: Number of failed steps
+            performance:
+              type: object
+              properties:
+                avgResponseTime:
+                  type: number
+                  description: Average API response time in milliseconds
+                peakConcurrency:
+                  type: integer
+                  description: Peak concurrent operations
+                errorRate:
+                  type: number
+                  description: Error rate as a decimal (0.0 to 1.0)
+            resources:
+              type: object
+              properties:
+                cpuUsage:
+                  type: number
+                  description: CPU usage percentage
+                memoryUsage:
+                  type: number
+                  description: Memory usage percentage
+                diskUsage:
+                  type: number
+                  description: Disk usage percentage
+      required:
+        - period
+        - timestamp
+        - cached
+        - metrics
+    DashboardHealthStatus:
+      type: object
+      description: Health status for dashboard components
+      properties:
+        overall:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Overall dashboard health status
+        components:
+          type: object
+          description: Status of individual dashboard components
+          properties:
+            dataCollection:
+              type: string
+              enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+            cacheSystem:
+              type: string
+              enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+            metricsAggregation:
+              type: string
+              enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+        details:
+          type: array
+          description: Detailed component information
+          items:
+            type: object
+            properties:
+              component:
+                type: string
+                description: Component name
+              status:
+                type: string
+                enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+              lastUpdate:
+                type: string
+                format: date-time
+                description: Last update timestamp
+              lastRun:
+                type: string
+                format: date-time
+                description: Last run timestamp
+              duration:
+                type: integer
+                description: Last operation duration in milliseconds
+              hitRate:
+                type: number
+                description: Cache hit rate (0.0 to 1.0)
+            required:
+              - component
+              - status
+      required:
+        - overall
+        - components
+    DashboardSummary:
+      type: object
+      description: High-level dashboard summary data
+      properties:
+        systemStatus:
+          type: string
+          enum: ["OPERATIONAL", "DEGRADED", "MAINTENANCE", "OFFLINE"]
+          description: Overall system operational status
+        totalMigrations:
+          type: integer
+          description: Total number of migrations in system
+        activeMigrations:
+          type: integer
+          description: Number of currently active migrations
+        totalSteps:
+          type: integer
+          description: Total number of steps across all migrations
+        criticalAlerts:
+          type: integer
+          description: Number of critical alerts
+        warningAlerts:
+          type: integer
+          description: Number of warning alerts
+        systemHealth:
+          type: string
+          enum: ["EXCELLENT", "GOOD", "FAIR", "POOR"]
+          description: Overall system health rating
+        performanceScore:
+          type: number
+          description: Performance score (0-100)
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        trends:
+          type: object
+          description: 24-hour trend information
+          properties:
+            migrationsCompleted24h:
+              type: integer
+              description: Migrations completed in last 24 hours
+            stepsCompleted24h:
+              type: integer
+              description: Steps completed in last 24 hours
+            errorRate24h:
+              type: number
+              description: Error rate in last 24 hours
+      required:
+        - systemStatus
+        - totalMigrations
+        - activeMigrations
+        - totalSteps
+        - systemHealth
+        - performanceScore
+        - lastUpdated
+    DatabaseVersionsList:
+      type: object
+      description: List of database versions with metadata
+      properties:
+        versions:
+          type: array
+          description: Array of database versions
+          items:
+            type: object
+            properties:
+              version:
+                type: string
+                description: Database version identifier
+              deployedAt:
+                type: string
+                format: date-time
+                description: Deployment timestamp
+              changesets:
+                type: integer
+                description: Number of changesets in this version
+              status:
+                type: string
+                enum: ["DEPLOYED", "PENDING", "FAILED", "ROLLED_BACK"]
+                description: Deployment status
+              details:
+                type: object
+                description: Additional version details (when includeDetails=true)
+                properties:
+                  author:
+                    type: string
+                    description: Version author
+                  description:
+                    type: string
+                    description: Version description
+                  changesetDetails:
+                    type: array
+                    description: Detailed changeset information
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Changeset ID
+                        author:
+                          type: string
+                          description: Changeset author
+                        description:
+                          type: string
+                          description: Changeset description
+            required:
+              - version
+              - deployedAt
+              - changesets
+              - status
+      required:
+        - versions
+    DatabaseHealthStatus:
+      type: object
+      description: Database health check status
+      properties:
+        overall:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Overall database health
+        connectivity:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Database connectivity status
+        schemaIntegrity:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Schema integrity status
+        liquibaseStatus:
+          type: string
+          enum: ["HEALTHY", "DEGRADED", "UNHEALTHY"]
+          description: Liquibase service status
+        details:
+          type: object
+          description: Detailed health information
+          properties:
+            connectionPool:
+              type: object
+              properties:
+                active:
+                  type: integer
+                  description: Active connections
+                idle:
+                  type: integer
+                  description: Idle connections
+                max:
+                  type: integer
+                  description: Maximum connections
+            schemaValidation:
+              type: object
+              properties:
+                tablesChecked:
+                  type: integer
+                  description: Number of tables validated
+                constraintsValidated:
+                  type: integer
+                  description: Number of constraints validated
+                indexesVerified:
+                  type: integer
+                  description: Number of indexes verified
+            liquibase:
+              type: object
+              properties:
+                lastDeployment:
+                  type: string
+                  format: date-time
+                  description: Last deployment timestamp
+                pendingChangesets:
+                  type: integer
+                  description: Number of pending changesets
+                locksActive:
+                  type: integer
+                  description: Number of active Liquibase locks
+      required:
+        - overall
+        - connectivity
+        - schemaIntegrity
+        - liquibaseStatus
+    DatabaseValidationResult:
+      type: object
+      description: Database validation results
+      properties:
+        overall:
+          type: string
+          enum: ["VALID", "ISSUES", "INVALID"]
+          description: Overall validation status
+        validations:
+          type: array
+          description: Detailed validation results
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                description: Validation category
+              status:
+                type: string
+                enum: ["VALID", "ISSUES", "INVALID"]
+                description: Category validation status
+              checks:
+                type: integer
+                description: Total checks performed
+              passed:
+                type: integer
+                description: Checks that passed
+            required:
+              - category
+              - status
+              - checks
+              - passed
+      required:
+        - overall
+        - validations
+    DeploymentPackageRequest:
+      type: object
+      description: Request to generate deployment package
+      properties:
+        targetVersion:
+          type: string
+          description: Target version for deployment
+          example: "2.12.0"
+        includeRollback:
+          type: boolean
+          description: Include rollback scripts
+          default: true
+        environment:
+          type: string
+          description: Target deployment environment
+          enum: ["development", "staging", "production"]
+        description:
+          type: string
+          description: Package description
+          maxLength: 500
+      required:
+        - targetVersion
+        - environment
+    DeploymentPackageResponse:
+      type: object
+      description: Generated deployment package information
+      properties:
+        packageId:
+          type: string
+          description: Unique package identifier
+          pattern: "^pkg-[0-9]{8}-[0-9]{3}$"
+        targetVersion:
+          type: string
+          description: Target version for this package
+        status:
+          type: string
+          enum: ["GENERATED", "PROCESSING", "READY", "EXPIRED", "ERROR"]
+          description: Package generation status
+        createdAt:
+          type: string
+          format: date-time
+          description: Package creation timestamp
+        downloadUrl:
+          type: string
+          description: Download URL for the package
+        contents:
+          type: object
+          description: Package contents summary
+          properties:
+            changesets:
+              type: integer
+              description: Number of changesets included
+            rollbackScripts:
+              type: integer
+              description: Number of rollback scripts
+            documentation:
+              type: string
+              description: Documentation file name
+        expiresAt:
+          type: string
+          format: date-time
+          description: Package expiration timestamp
+      required:
+        - packageId
+        - targetVersion
+        - status
+        - createdAt
+        - downloadUrl
+    DeploymentPackageDetails:
+      type: object
+      description: Detailed deployment package information
+      properties:
+        packageId:
+          type: string
+          description: Package identifier
+        targetVersion:
+          type: string
+          description: Target version
+        status:
+          type: string
+          enum: ["GENERATED", "PROCESSING", "READY", "EXPIRED", "ERROR"]
+          description: Package status
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration timestamp
+        size:
+          type: integer
+          description: Package size in bytes
+        contents:
+          type: object
+          description: Detailed package contents
+          properties:
+            changesets:
+              type: array
+              description: List of included changesets
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Changeset ID
+                  file:
+                    type: string
+                    description: Changeset file name
+                  author:
+                    type: string
+                    description: Changeset author
+            rollbackScripts:
+              type: array
+              description: List of rollback scripts
+              items:
+                type: object
+                properties:
+                  changesetId:
+                    type: string
+                    description: Associated changeset ID
+                  file:
+                    type: string
+                    description: Rollback script file name
+            documentation:
+              type: array
+              description: Documentation files
+              items:
+                type: object
+                properties:
+                  file:
+                    type: string
+                    description: Documentation file name
+                  type:
+                    type: string
+                    description: Documentation type
+      required:
+        - packageId
+        - targetVersion
+        - status
+        - createdAt
+        - size
+    RolesList:
+      type: object
+      description: List of roles with optional hierarchy and permissions
+      properties:
+        roles:
+          type: array
+          description: Array of system roles
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique role identifier
+                example: "role-admin"
+              name:
+                type: string
+                description: Human-readable role name
+                example: "System Administrator"
+              type:
+                type: string
+                enum: ["SYSTEM", "FUNCTIONAL", "ADMINISTRATIVE", "CUSTOM"]
+                description: Role type classification
+              level:
+                type: integer
+                description: Role hierarchy level (1=highest)
+                minimum: 1
+              active:
+                type: boolean
+                description: Whether role is currently active
+              description:
+                type: string
+                description: Role description and purpose
+              hierarchy:
+                type: object
+                description: Role hierarchy information (when includeHierarchy=true)
+                properties:
+                  parent:
+                    type: string
+                    nullable: true
+                    description: Parent role ID (null for top-level roles)
+                  children:
+                    type: array
+                    description: Child role IDs
+                    items:
+                      type: string
+              permissions:
+                type: array
+                description: Role permissions (when includePermissions=true)
+                items:
+                  type: object
+                  properties:
+                    resource:
+                      type: string
+                      description: Resource name
+                      example: "migrations"
+                    actions:
+                      type: array
+                      description: Allowed actions on the resource
+                      items:
+                        type: string
+                        enum:
+                          [
+                            "READ",
+                            "WRITE",
+                            "DELETE",
+                            "EXECUTE",
+                            "ADMIN",
+                            "MANAGE",
+                          ]
+                  required:
+                    - resource
+                    - actions
+            required:
+              - id
+              - name
+              - type
+              - level
+              - active
+      required:
+        - roles
   responses:
     Unauthorized:
       description: Authentication required - Confluence Basic Auth

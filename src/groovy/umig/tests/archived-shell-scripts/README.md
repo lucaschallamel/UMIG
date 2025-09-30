@@ -1,25 +1,35 @@
 # Archived Shell Scripts - UMIG Testing Framework
 
-**Status**: DEPRECATED as of August 18, 2025  
-**Migration Deadline**: August 28, 2025 (Sprint 6)  
-**Reason**: Migrated to JavaScript NPM runners for better cross-platform compatibility and maintainability
+**Purpose**: Historical archive of deprecated shell scripts migrated to JavaScript NPM runners with 100% functional equivalence
 
-## Migration Summary
+## Migration Status
 
-These 8 shell scripts have been successfully migrated to JavaScript NPM runners with **100% functional equivalence**. All scripts in this folder are deprecated and maintained here for historical reference only.
+- **Status**: DEPRECATED (August 18, 2025)
+- **Migration complete**: 8 shell scripts → JavaScript NPM runners
+- **Cross-platform compatibility**: Windows, macOS, Linux support
+- **Maintainability improvement**: Centralized JavaScript test runners with shared utilities
 
-## Shell Script → NPM Command Migration Map
+## Migration Benefits
 
-| Deprecated Shell Script                 | NPM Replacement Command         | Description                                   |
-| --------------------------------------- | ------------------------------- | --------------------------------------------- |
-| `run-unit-tests.sh`                     | `npm run test:unit`             | Unit tests for repositories and core logic    |
-| `run-integration-tests.sh`              | `npm run test:integration`      | Core integration tests for all APIs           |
-| `run-authenticated-tests.sh`            | `npm run test:integration:auth` | Integration tests with authentication support |
-| `run-all-integration-tests.sh`          | `npm run test:integration:core` | Comprehensive integration test suite          |
-| `run-uat-validation.sh`                 | `npm run test:uat`              | User acceptance testing validation            |
-| `run-enhanced-iterationview-tests.sh`   | `npm run test:iterationview`    | IterationView UI component tests              |
-| `run-integration-tests-in-container.sh` | `npm run test:integration`      | Container support built into NPM runner       |
-| `run-tests-via-scriptrunner.sh`         | `npm run test:integration`      | ScriptRunner support built into NPM runner    |
+- **100% functional equivalence** - All original test cases and functionality preserved
+- **Enhanced developer experience** - Simple npm run commands with automatic dependency management
+- **CI/CD integration** - Standard NPM test commands compatible with all CI/CD systems
+- **Error handling improvement** - Enhanced error reporting and logging capabilities
+
+## NPM Replacement Commands
+
+- **npm run test:unit** - Unit tests (replaces run-unit-tests.sh)
+- **npm run test:integration** - Integration tests (replaces run-integration-tests.sh)
+- **npm run test:integration:auth** - Authenticated tests (replaces run-authenticated-tests.sh)
+- **npm run test:uat** - UAT validation (replaces run-uat-validation.sh)
+- **npm run test:iterationview** - IterationView tests (replaces run-enhanced-iterationview-tests.sh)
+
+## Historical Context
+
+- **Original purpose**: Automated testing capabilities for Groovy/ScriptRunner environment
+- **Technical implementation**: Bash scripting with SDKMAN integration and XML parser settings
+- **Key features preserved**: SDKMAN integration, PostgreSQL JDBC handling, comprehensive test reporting
+- **Archive value**: Documentation of original approaches and emergency rollback reference
 
 ## Benefits of NPM Migration
 

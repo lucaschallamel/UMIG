@@ -1,23 +1,24 @@
 # Environment Validation Tests
 
-This folder contains tests that validate environment-specific configurations and associations within the UMIG system.
+**Purpose**: Environment-specific configuration validation and association testing within the UMIG system for deployment readiness
 
-## Tests Included
+## Key Components
 
-- **checkCutoverProdEnvironments.groovy** - Validates production cutover environment configurations
-- **checkEnvironmentAssociations.groovy** - Tests environment associations and relationships
-- **checkLabelAssociations.groovy** - Validates label associations with environments
-- **compareEnvironmentAssignments.groovy** - Compares environment assignments across different contexts
+- **checkCutoverProdEnvironments.groovy** - Production cutover environment configuration validation
+- **checkEnvironmentAssociations.groovy** - Environment associations and relationship testing
+- **checkLabelAssociations.groovy** - Label associations with environments validation
+- **compareEnvironmentAssignments.groovy** - Environment assignment comparison across contexts
 
-## Purpose
+## Validation Areas
 
-These tests ensure that:
-
-- Environment configurations are correct and consistent
-- Environment associations are properly maintained
-- Production cutover environments are configured correctly
-- Label associations are accurate and complete
+- **Environment configurations** - Correctness and consistency validation
+- **Environment associations** - Proper maintenance and relationship integrity
+- **Production cutover environments** - Correct configuration for production deployments
+- **Label associations** - Accuracy and completeness of environment labeling
 
 ## Usage
 
-Run these tests to validate environment-related functionality before deployments or when investigating environment-specific issues.
+- **Pre-deployment validation** - Environment-related functionality verification before deployments
+- **Issue investigation** - Environment-specific problem diagnosis and resolution
+- **Configuration verification** - Environment setup and association correctness
+- **Production readiness** - Cutover environment preparation and validation

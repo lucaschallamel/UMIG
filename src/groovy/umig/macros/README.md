@@ -1,35 +1,37 @@
 # Macro Scripts (UMIG)
 
-This folder contains all ScriptRunner UI macro scripts for UMIG.
+**Purpose**: ScriptRunner UI macro scripts for UMIG with container rendering, asset loading, and versioned deployment
+
+## Key Components
+
+- **v1/adminGuiMacro.groovy** - Unified admin interface with CRUD operations, role-based access, pagination
+- **v1/iterationViewMacro.groovy** - Primary runsheet interface with hierarchical filtering, real-time collaboration
+- **v1/stepViewMacro.groovy** - Standalone step view with URL parameters and role-based controls
+- **Asset management** - JS/CSS reference via script/link tags (no inline assets)
+- **Versioning structure** - v1/ subfolders for breaking changes and parallel development
 
 ## Responsibilities
 
-- **Render only the container `<div>` for the UI component.**
-- **Load the required JS and CSS assets** (do not inline large assets; reference via `<script>`/`<link>` tags).
-- **No business logic or data fetching**—all dynamic behavior must be in the frontend JS.
-- **Naming:** One macro file per UI component, named after the feature/view it renders (e.g., `iterationViewMacro.groovy`).
-- **Versioning:** Use subfolders like `v1/` for breaking changes or parallel development.
+- **Container rendering** - Render only container div for UI components
+- **Asset loading** - Load required JS/CSS assets via script/link tags
+- **No business logic** - All dynamic behavior in frontend JS
+- **Naming convention** - One macro per UI component, feature-based naming
+- **Version control** - Subfolder versioning for breaking changes
 
-## Current Macros
+## Macro Features
 
-### v1/adminGuiMacro.groovy
+- **adminGuiMacro** - Users, teams, environments, applications, labels management
+- **iterationViewMacro** - Cutover events, status tracking, real-time collaboration
+- **stepViewMacro** - Individual step embedding, instruction tracking, comment management
+- **Asset optimization** - US-088 build process integration with 84% size reduction
+- **Performance enhancement** - ComponentOrchestrator integration with ADR-061 patterns
 
-- **Purpose**: Unified admin interface for managing users, teams, environments, applications, labels
-- **Features**: Full CRUD operations, role-based access, pagination, search, modal management
-- **Assets**: `admin-gui/` JS modules, `admin-gui.css`
+## Integration
 
-### v1/iterationViewMacro.groovy
-
-- **Purpose**: Primary runsheet interface for cutover events
-- **Features**: Hierarchical filtering, real-time collaboration, status tracking, comments
-- **Assets**: `iteration-view.js`, `iteration-view.css`
-
-### v1/stepViewMacro.groovy ✅ New (July 2025)
-
-- **Purpose**: Standalone step view for embedding individual steps in Confluence pages
-- **URL Parameters**: `?mig=migrationName&ite=iterationName&stepid=XXX-nnn`
-- **Features**: Role-based controls, instruction tracking, comment management, status updates
-- **Assets**: `step-view.js`, `iteration-view.css` (shared)
+- **Build process** - US-088 4-phase orchestration with self-contained deployment
+- **Database compatibility** - US-088-B Liquibase schema integration
+- **Security alignment** - ADR-061 ScriptRunner endpoint patterns
+- **Component architecture** - ComponentOrchestrator integration for lifecycle management
 
 ## Example
 

@@ -1,23 +1,35 @@
 # UMIG Integration Tests
 
-## Overview
+**Purpose**: Enterprise-grade integration testing framework with comprehensive validation standards and BaseIntegrationTest compliance for production-ready UMIG systems
 
-This directory contains integration tests for the UMIG (Unified Migration Implementation Guide) REST API endpoints. These tests validate the complete functionality of the system against a live PostgreSQL database and running Confluence/ScriptRunner instance.
+## Key Components
 
-### Test Framework
+- **BaseIntegrationTest Standard (US-037)** - Universal integration test infrastructure with standardized lifecycle
+- **Comprehensive Validation Standards** - Framework compliance, performance standards, coverage requirements
+- **API Test Suites** - Instructions, Sequences, Plans APIs with complete CRUD operations
+- **Data Import Testing** - US-034 reference implementation with 100% BaseIntegrationTest compliance
+- **Performance Monitoring** - Response time validation (<500ms API, <2s complex queries)
 
-- **Language**: Groovy 3.0.15 (ScriptRunner 8 compatible)
-- **Database**: PostgreSQL with JDBC driver 42.7.3
-- **Authentication**: HTTP Basic Auth with environment-based credentials
-- **Pattern**: ADR-036 compliant (Pure Groovy, zero external dependencies where possible)
+## Framework Compliance
 
-### Coverage Status
+- **BaseIntegrationTest adoption** - 95%+ compliance target across all integration test suites
+- **Authentication integration** - UserService with ADR-042 fallback hierarchy
+- **Database management** - Transaction handling, connection pooling, cleanup automation
+- **Error handling** - SQL state mapping (23503→400, 23505→409) with actionable messages
+- **Performance standards** - API response times, resource utilization, concurrent testing
 
-- ✅ **Authentication**: Secure credential management implemented
-- ✅ **Cross-API Workflows**: Multi-endpoint integration validated
-- ✅ **Bulk Operations**: Mass data operations tested
-- ✅ **XML Parser Conflicts**: Resolved with JDK parser configuration
-- ✅ **403 Forbidden Errors**: Eliminated with proper authentication
+## Test Structure
+
+- **Complete hierarchy creation** - Migration → Iteration → Plan → Sequence → Phase → Step → Instruction
+- **Reverse order cleanup** - Foreign key constraint safe data cleanup
+- **Technology-prefixed commands** - npm run test:groovy:integration, test:js:integration
+- **Reference implementation** - US-034 Data Import Strategy as gold standard example
+
+## Validation Standards
+
+- **Essential reference** - INTEGRATION_TEST_VALIDATION_STANDARDS.md - Comprehensive 200+ line validation framework
+- **Quality gates** - 95%+ test success rate, 100% CRUD coverage, performance compliance
+- **Pre-test validation** - Environment readiness, dependency verification, cleanup protocols
 
 ## Quick Start
 
