@@ -8,11 +8,12 @@ UMIG (Unified Migration Implementation Guide) is a pure ScriptRunner application
 
 **Stack**: Groovy 3.0.15 (ScriptRunner 9.21.0), Vanilla JS with AUI, PostgreSQL 14 with Liquibase, Podman containers, RESTful v2 APIs
 
-## Sprint 7 Status
+## Current Sprint Status
 
-**Current Sprint**: 21 of 66 story points complete (32%)
-**Branch**: feature/US-087-admin-gui-phase2-completion
-**Focus**: Admin GUI Phase 2 migration - continuing entity migration from Phase 1
+**Sprint 8**: Security Architecture Enhancement (Started September 26, 2025)
+**Branch**: `bugfix/US-058-email-service-iteration-step-views`
+**Focus**: Enhanced security architecture with ADRs 67-70
+**Previous Sprint 7**: Achieved 224% completion (130/58 points)
 
 ## Critical Commands
 
@@ -22,37 +23,43 @@ UMIG (Unified Migration Implementation Guide) is a pure ScriptRunner application
 npm start                    # Start complete development stack
 npm stop                     # Stop all services
 npm run restart:erase        # Reset everything (clean slate)
-npm run generate-data:erase  # Generate fake data with reset
+npm run generate-data:erase  # Generate fake data with reset - DO NOT USE without user permission
 ```
 
 ### Testing Commands - Technology-Prefixed Architecture
 
 ```bash
-# JavaScript Testing (Jest) - Complete test coverage with component architecture
+# JavaScript Testing (Jest)
 npm run test:js:unit         # JavaScript unit tests
 npm run test:js:integration  # JavaScript integration tests
 npm run test:js:e2e          # JavaScript E2E tests
 npm run test:js:quick        # Quick test suite (~158 tests)
-
-# Component Testing (Jest) - New component architecture validation
 npm run test:js:components   # Component unit tests (95%+ coverage)
 npm run test:js:security     # Component security tests (28 scenarios)
 npm run test:js:security:pentest # Penetration testing (21 attack vectors)
 
 # Groovy Testing - 31/31 tests passing (100%)
-npm run test:groovy:unit     # Groovy unit tests (35% faster compilation)
+npm run test:groovy:unit     # Groovy unit tests
 npm run test:groovy:integration # Groovy integration tests
 npm run test:groovy:all      # All Groovy tests
 
 # Cross-Technology Commands
-npm run test:all:comprehensive # Complete test suite (unit + integration + e2e + components + security)
-npm run test:all:unit        # All unit tests (JS + Groovy + Components)
-npm run test:all:quick       # Quick validation across technologies
+npm run test:all:comprehensive # Complete test suite
+npm run test:all:unit        # All unit tests (JS + Groovy)
+npm run test:all:quick       # Quick validation
+```
 
-# Legacy Commands (maintained for compatibility)
-npm test                     # Run JavaScript tests
-npm run test:unit           # Unit tests
-npm run test:integration    # Integration tests
+### Running Single Tests
+
+```bash
+# JavaScript tests (Jest)
+npm run test:js:unit -- --testPathPattern='specific.test.js'
+
+# Groovy tests - Self-contained architecture (from project root)
+groovy src/groovy/umig/tests/unit/SpecificTest.groovy
+
+# Component tests
+npm run test:js:components -- --testPathPattern='TeamsEntityManager'
 ```
 
 ### Email Testing (MailHog)
@@ -62,30 +69,32 @@ npm run mailhog:test        # Test SMTP connectivity
 npm run mailhog:check       # Check message count
 npm run mailhog:clear       # Clear test inbox
 npm run email:test          # Comprehensive email testing
-npm run email:demo          # Demo enhanced email functionality
 ```
 
-### Authentication for API Testing
-
-For session-based authentication setup with CURL, POSTMAN, and other API testing tools, see `local-dev-setup/SESSION_AUTH_UTILITIES.md` for complete cross-platform session capture utilities.
-
-### Running Single Tests
+### API Documentation
 
 ```bash
-# JavaScript tests (Jest)
-npm run test:js:unit -- --testPathPattern='specific.test.js'
-npm run test:js:unit -- --testNamePattern='specific test name'
-
-# Groovy tests - Self-contained architecture (from project root)
-groovy src/groovy/umig/tests/unit/SpecificTest.groovy
-groovy src/groovy/umig/tests/integration/SpecificIntegrationTest.groovy
-
-# Running specific component tests
-npm run test:js:components -- --testPathPattern='TeamsEntityManager'
-npm run test:js:security -- --testPathPattern='ComponentOrchestrator.pentest'
+npm run validate:openapi     # Validate OpenAPI specification
+npm run generate:redoc       # Generate ReDoc documentation
 ```
 
-## Architecture & Patterns
+### Build & Deployment
+
+```bash
+npm run build:production     # Production build with 84% size reduction
+npm run build:deployment     # Create deployment package
+```
+
+### Health Checks
+
+```bash
+npm run health:check         # Verify system health
+npm run postgres:check       # Check database connectivity
+npm run confluence:check     # Check Confluence status
+npm run scriptrunner:check   # Verify ScriptRunner installation
+```
+
+## Architecture & Critical Patterns
 
 ### Hierarchical Data Model
 
@@ -93,65 +102,22 @@ npm run test:js:security -- --testPathPattern='ComponentOrchestrator.pentest'
 **Pattern**: Canonical (`_master_`) templates vs Instance (`_instance_`) execution records
 **Scale**: Handles 5 migrations, 30 iterations, 1,443+ step instances
 
-### Critical Architectural Decisions (Sprint 7)
-
-**ADR-057: JavaScript Module Loading Anti-Pattern**
-
-- **Problem**: IIFE wrappers with availability checks cause race conditions
-- **Solution**: Direct class declaration without IIFE wrapper
-- **Impact**: 100% component loading success (25/25 components)
-
-```javascript
-// ❌ ANTI-PATTERN - DO NOT USE
-(function() {
-    if (typeof BaseComponent === 'undefined') {
-        console.error('BaseComponent not available');
-        return;
-    }
-    class ModalComponent extends BaseComponent { ... }
-})();
-
-// ✅ CORRECT PATTERN - USE THIS
-class ModalComponent extends BaseComponent { ... }
-window.ModalComponent = ModalComponent;
-```
-
-**ADR-058: Global SecurityUtils Access Pattern**
-
-- **Pattern**: `window.SecurityUtils` for cross-component security access
-- **Usage**: XSS protection, CSRF tokens, input sanitization
-- **Requirement**: Load SecurityUtils.js before any components
-
-**ADR-059: SQL Schema-First Development Principle**
-
-- **Rule**: Fix code to match schema, NEVER modify schema to match code
-- **Validation**: Schema is source of truth for all data structures
-- **Impact**: Prevents schema drift and maintains data integrity
-
-**ADR-060: BaseEntityManager Interface Compatibility**
-
-- **Pattern**: Components self-manage interface compliance
-- **Solution**: Dynamic adaptation without modifying BaseEntityManager
-- **Result**: 42% development velocity improvement
-
-### Revolutionary Self-Contained Test Architecture (TD-001)
-
-```groovy
-// Self-contained test pattern - embeds all dependencies
-class TestClass {
-    // Embedded MockSql, DatabaseUtil, repositories directly in test file
-    // Eliminates external dependencies and MetaClass complexity
-    // 35% compilation performance improvement achieved
-}
-```
-
-### MANDATORY Database Pattern
+### Database Access Pattern (MANDATORY)
 
 ```groovy
 // ALWAYS use DatabaseUtil.withSql pattern
 DatabaseUtil.withSql { sql ->
     return sql.rows('SELECT * FROM table_name WHERE id = ?', [id])
 }
+```
+
+### Type Safety (ADR-031, ADR-043)
+
+```groovy
+// MANDATORY explicit casting for ALL parameters
+UUID.fromString(param as String)      // UUIDs
+Integer.parseInt(param as String)     // Integers
+param.toUpperCase() as String        // Strings
 ```
 
 ### REST API Pattern
@@ -163,150 +129,14 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
     // Lazy load repositories to avoid class loading issues
     def getRepository = { -> new SomeRepository() }
 
-    // Type safety with explicit casting (ADR-031)
+    // Type safety with explicit casting
     params.migrationId = UUID.fromString(filters.migrationId as String)
-    params.teamId = Integer.parseInt(filters.teamId as String)
 
     return Response.ok(payload).build()
 }
 ```
 
-### Frontend Rules
-
-- **ZERO frameworks** - Pure vanilla JavaScript only
-- Use Atlassian AUI for styling
-- Dynamic rendering without page reloads
-- Pattern: `/admin-gui/*` modular components
-
-### Component Architecture (US-082-B/C)
-
-**Enterprise Component System**: 186KB+ production-ready component suite with ComponentOrchestrator
-
-**Core Components** (location: `src/groovy/umig/web/js/components/`):
-
-- `ComponentOrchestrator.js` - 62KB enterprise-secure orchestration system (8.5/10 security rating)
-- `BaseComponent.js` - Foundation component with lifecycle management
-- `TableComponent.js` - Advanced data table with sorting, filtering, pagination
-- `ModalComponent.js` - Feature-rich modal system with focus management
-- `FilterComponent.js` - Advanced filtering with persistence
-- `PaginationComponent.js` - Performance-optimized pagination
-- `SecurityUtils.js` - XSS/CSRF protection utilities
-
-**Entity Managers** (location: `src/groovy/umig/web/js/entities/*/`):
-
-- `BaseEntityManager.js` - 914-line architectural foundation (42% development acceleration)
-- `TeamsEntityManager.js` - Teams with bidirectional relationships (77% performance improvement)
-- `UsersEntityManager.js` - Users with authentication (68.5% performance improvement)
-- `EnvironmentsEntityManager.js` - Environment management with advanced filtering
-- `ApplicationsEntityManager.js` - Applications with security hardening (9.2/10 rating)
-- `LabelsEntityManager.js` - Label management with dynamic type control
-- `MigrationTypesEntityManager.js` - Migration type configuration
-- `IterationTypesEntityManager.js` - Iteration type workflow configuration
-
-**US-087 Phase 1 Migration Status** (Complete):
-
-- ✅ Teams, Users, Environments, Applications, Labels - 100% migrated
-- ✅ MigrationTypes, IterationTypes - Configuration entities complete
-- ✅ Component loading issues resolved (25/25 components operational)
-- ✅ Pagination fixes applied (ModalComponent, PaginationComponent)
-- ⏳ Phase 2-7 entities pending: Migrations, Iterations, Plans, Sequences, Phases, Steps, Instructions
-
-**Component Patterns**:
-
-```javascript
-// Standardized lifecycle: initialize() → mount() → render() → update() → unmount() → destroy()
-// Event-driven architecture with centralized orchestration
-// Security-first design with input validation at boundaries
-// Performance optimization through intelligent shouldUpdate() methods
-```
-
-### Hierarchical Filtering Pattern
-
-- Use instance IDs (`pli_id`, `sqi_id`, `phi_id`), NOT master IDs
-- Include ALL fields in SELECT that are referenced in result mapping
-- API pattern: `/resource?parentId={uuid}`
-
-## Key Files & References
-
-### Primary Architecture Document
-
-`docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` - Hub for 60+ ADRs
-
-### Technical Debt Documentation (Revolutionary Achievements)
-
-**Sprint 6 Completions**:
-
-- `docs/roadmap/sprint6/TD-001.md` - Self-contained architecture breakthrough (100% Groovy test pass rate)
-- `docs/roadmap/sprint6/TD-002.md` - Technology-prefixed test infrastructure (100% JavaScript test pass rate)
-- `docs/roadmap/sprint6/US-082-B-component-architecture.md` - Component architecture implementation (100% complete)
-
-**Sprint 7 Completions** (21 of 66 story points - 32% complete):
-
-- `docs/roadmap/sprint7/TD-003-CONSOLIDATED-Status-Field-Normalization.md` - Database status field consolidation (Phase A complete)
-- `docs/roadmap/sprint7/TD-004-CONSOLIDATED-BaseEntityManager-Interface-Resolution.md` - Interface mismatch resolution (42% velocity improvement)
-- `docs/roadmap/sprint7/TD-005-CONSOLIDATED-JavaScript-Test-Infrastructure-Resolution.md` - Test infrastructure fixes (96.2% memory improvement)
-- `docs/roadmap/sprint7/TD-007-admin-gui-component-updates.md` - Admin GUI component standardization
-- `docs/roadmap/sprint7/US-087-phase1-completion-report.md` - Admin GUI Phase 1 complete (Phases 2-7 pending)
-
-### Component Architecture Documentation
-
-- `docs/devJournal/20250910-03-emergency-component-architecture.md` - Emergency component development with security hardening
-- `ComponentOrchestrator-FINAL-SECURITY-ASSESSMENT.md` - Enterprise security certification (8.5/10 rating)
-- `docs/devJournal/20250917-01-module-loading-fixes-admin-gui.md` - Module loading race condition fixes
-- `docs/devJournal/20250917-02-admin-gui-pagination-fixes-phase1-complete.md` - Pagination component fixes
-
-### API Templates (Use as Reference)
-
-- `src/groovy/umig/api/v2/StepsApi.groovy` - Most comprehensive API example (1950 lines)
-- `src/groovy/umig/api/v2/TeamsApi.groovy` - Standard CRUD pattern
-- `src/groovy/umig/api/v2/InstructionsApi.groovy` - Hierarchical filtering
-
-### Repository Pattern
-
-- `src/groovy/umig/repository/StepRepository.groovy` - Complex queries
-- All data access via repositories with `DatabaseUtil.withSql`
-
-### Service Layer (US-056)
-
-- `StepInstanceDTO` - Instance execution DTO (516 lines)
-- `StepMasterDTO` - Master template DTO (231 lines)
-- `StepDataTransformationService` - Data transformation (580 lines)
-- Dual DTO architecture for master/instance separation (US-056F)
-- Single enrichment point pattern (ADR-047)
-
-## Critical Development Rules
-
-### Type Safety (ADR-031, ADR-043)
-
-```groovy
-// MANDATORY explicit casting for ALL parameters
-UUID.fromString(param as String)      // UUIDs
-Integer.parseInt(param as String)     // Integers
-param.toUpperCase() as String        // Strings
-```
-
-### Error Handling
-
-- SQL state mappings: 23503→400 (FK violation), 23505→409 (unique constraint)
-- Always provide actionable error messages (ADR-039)
-- Include context in error responses
-
-### Admin GUI Compatibility
-
-```groovy
-// Handle parameterless calls for Admin GUI
-if (!filters || filters.isEmpty()) {
-    return Response.ok(new JsonBuilder([]).toString()).build()
-}
-```
-
-### Authentication Context (ADR-042)
-
-- Dual authentication with fallback hierarchy
-- UserService provides intelligent user identification
-- Always log authentication context for audit
-
-### Component Loading Pattern (ADR-057)
+### JavaScript Module Loading (ADR-057)
 
 ```javascript
 // ✅ CORRECT - Direct class declaration without IIFE
@@ -314,55 +144,25 @@ class ModalComponent extends BaseComponent { ... }
 window.ModalComponent = ModalComponent;
 
 // ❌ WRONG - Never use IIFE wrappers (causes race conditions)
+(function() { ... })();
 ```
 
-## Services & Endpoints
+### Component Architecture
 
-- **Confluence**: http://localhost:8090
-- **PostgreSQL**: localhost:5432 (DB: umig_app_db)
-- **MailHog**: http://localhost:8025
-- **API Base**: `/rest/scriptrunner/latest/custom/`
+**Component Lifecycle**: initialize() → mount() → render() → update() → unmount() → destroy()
+**Security Pattern**: Use `window.SecurityUtils` for XSS/CSRF protection (ADR-058)
+**Base Pattern**: Always extend BaseEntityManager for entity managers (ADR-060)
 
-### Complete API Endpoints (27 total)
+### Error Handling
 
-Core: Users, Teams, TeamMembers, Environments, Applications, Labels, Migrations, Status
-Hierarchy: Plans, Sequences, Phases, Steps, EnhancedSteps, Instructions, Iterations
-Admin: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
-Special: Import, ImportQueue, StepView, Web, TestEndpoint
-Relationships: TeamsRelationship, UsersRelationship
-
-## Testing Infrastructure Excellence
-
-### Revolutionary Achievements (TD-001/TD-002 Complete)
-
-- **100% Test Pass Rate**: JavaScript 64/64, Groovy 31/31
-- **35% Performance Improvement**: Groovy compilation optimization
-- **Self-Contained Architecture**: Zero external dependencies in tests
-- **Technology-Prefixed Commands**: Clear separation between test technologies
-- **Zero Compilation Errors**: Complete static type checking compliance
-
-### JavaScript Testing Framework
-
-- Location: `local-dev-setup/__tests__/` (modern structure)
-- Categories: unit, integration, e2e, dom, email, security, performance, components
-- Framework: Jest with specialized configurations
-- Pattern: `{component}.{type}.test.js`
-- Component tests: `jest.config.components.js` for entity manager validation
-
-### Groovy Testing (Self-Contained Pattern)
-
-- Location: `src/groovy/umig/tests/unit/` and `src/groovy/umig/tests/integration/`
-- Revolutionary self-contained architecture (embedded dependencies)
-- 100% ADR-036 compliance (pure Groovy, no external frameworks)
-- Static type optimization with strategic dynamic areas
-- Run directly: `groovy src/groovy/umig/tests/unit/TestName.groovy`
-
-### Cross-Platform Testing
-
-- All tests runnable on Windows/macOS/Linux
-- No shell script dependencies
-- Docker/Podman container compatibility
-- Smart infrastructure detection for optimal resource usage
+```groovy
+// SQL state mappings
+if (e.getSQLState() == '23503') {
+    throw new BadRequestException("Foreign key violation")
+} else if (e.getSQLState() == '23505') {
+    throw new ConflictException("Unique constraint violation")
+}
+```
 
 ## Non-Negotiable Standards
 
@@ -373,189 +173,124 @@ Relationships: TeamsRelationship, UsersRelationship
 5. **Testing**: Self-contained architecture for Groovy tests
 6. **Naming**: Database `snake_case` with `_master_`/`_instance_` suffixes
 7. **Repository Pattern**: ALL data access through repositories
-8. **Error Handling**: SQL state mappings with actionable messages
-9. **Layer Separation**: Single enrichment point in repositories (ADR-047)
-10. **Service Layer**: Unified DTOs with transformation service (ADR-049)
-11. **Component Security**: Enterprise-grade security controls in all components (8.5/10 rating required)
-12. **Entity Managers**: Always extend BaseEntityManager for consistent architecture
-13. **Module Loading**: NEVER use IIFE wrappers - use direct class declaration (ADR-057)
-14. **Global Security**: Use `window.SecurityUtils` for cross-component security (ADR-058)
-15. **Schema Authority**: Database schema is immutable truth - fix code, not schema (ADR-059)
-16. **Interface Adaptation**: Components self-manage BaseEntityManager compatibility (ADR-060)
+8. **Schema Authority**: Database schema is truth - fix code, not schema (ADR-059)
+9. **Module Loading**: NEVER use IIFE wrappers - use direct class declaration
+10. **Component Security**: Enterprise-grade controls (8.5+/10 rating required)
+
+## Key File Locations
+
+### API Endpoints
+
+- Implementation: `src/groovy/umig/api/v2/*.groovy`
+- Documentation: `docs/api/*.md`
+- OpenAPI: `docs/api/openapi.yaml` (v2.12.0)
+
+### Repositories
+
+- Location: `src/groovy/umig/repository/*.groovy`
+- Pattern: All data access via repositories with `DatabaseUtil.withSql`
+
+### Frontend Components
+
+- Core: `src/groovy/umig/web/js/components/*.js`
+- Entity Managers: `src/groovy/umig/web/js/entities/*/*.js`
+- Security: `ComponentOrchestrator.js` (62KB, 8.5/10 rating)
+
+### Testing
+
+- JavaScript: `local-dev-setup/__tests__/`
+- Groovy: `src/groovy/umig/tests/`
+- Configurations: `jest.config.*.js`
+
+### Architecture Documentation
+
+- Central Hub: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
+- ADRs: `docs/architecture/adr/` (70+ decisions)
+- Latest ADRs: ADR-067 through ADR-070 (Security Architecture)
+
+### Sprint Documentation
+
+- Roadmap: `docs/roadmap/unified-roadmap.md`
+- Sprint 7: `docs/roadmap/sprint7/` (224% completion achieved)
+- Sprint 8: Security Architecture Enhancement (current)
+
+## Services & Endpoints
+
+- **Confluence**: http://localhost:8090 (admin/123456)
+- **PostgreSQL**: localhost:5432 (umig_app_db)
+- **MailHog**: http://localhost:8025
+- **API Base**: `/rest/scriptrunner/latest/custom/`
+
+### Complete API Endpoints (31+ total)
+
+**Core**: Users, Teams, TeamMembers, Environments, Applications, Labels, Migrations, Status
+**Hierarchy**: Plans, Sequences, Phases, Steps, EnhancedSteps, Instructions, Iterations
+**Admin**: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
+**System**: AdminVersion, Dashboard, DatabaseVersions, Roles
+**Special**: Import, ImportQueue, StepView, Web, TestEndpoint
+**Relationships**: TeamsRelationship, UsersRelationship
 
 ## Quick Troubleshooting
 
+### Component Loading Issues
+
+- Check for IIFE wrappers (remove them)
+- Verify SecurityUtils.js loads first
+- Check ComponentOrchestrator initialization
+
+### Type Casting Errors
+
+```groovy
+// Common fixes
+UUID.fromString(param as String)
+Integer.parseInt(param as String)
+param?.toString() ?: ''
+(param as Map<String, Object>)?.get('key')
+```
+
 ### Test Failures
 
-- Use technology-prefixed commands for clarity (`test:js:unit` vs `test:groovy:unit`)
-- Check self-contained test pattern for Groovy tests
-- Verify test database is clean with `npm run restart:erase`
-- Use `npm run health:check` for system validation
-- For integration test issues: ensure `jest.config.integration.js` uses `jsdom` environment
-- Component test failures: check ComponentOrchestrator security configuration
-
-### Component Integration Issues
-
-- Verify ComponentOrchestrator.js initialization and component registration
-- Check component lifecycle management (initialize → mount → render → update → unmount → destroy)
-- Validate cross-component event communication through orchestrator
-- Ensure security controls are active (XSS/CSRF protection, rate limiting)
-- For entity managers: confirm they extend BaseEntityManager properly
-
-### Module Loading Issues
-
-- **Race Condition Symptoms**: Components failing with "BaseComponent not available"
-- **Solution**: Remove IIFE wrapper, use direct class declaration (ADR-057)
-- **Verification**: Check all 25 components load successfully
-- **Loading Order**: SecurityUtils.js must load before components
+- JavaScript: Check `jest.config.*.js` environment settings
+- Groovy: Run from project root, not test directory
+- Clean database: `npm run restart:erase` (WARNING: erases data)
 
 ### Authentication Issues
 
 - Check UserService fallback hierarchy
-- Verify frontend provides userId when ThreadLocal fails
-- Review ADR-042 for context management
+- Verify ADR-042 dual authentication pattern
+- Review session-based authentication in `SESSION_AUTH_UTILITIES.md`
 
-### Type Casting Errors
+## Development Workflows
 
-- Ensure explicit casting per ADR-043
-- Check repository enrichment patterns (ADR-047)
-- Validate PostgreSQL type compatibility
+### Adding New Entity to Admin GUI
 
-### Template Rendering Failures
-
-- Verify unified DTO usage (ADR-049)
-- Check StepDataTransformationService
-- Ensure defensive null checking in templates
-
-### Groovy Test Issues
-
-- Ensure PostgreSQL JDBC driver is available: `npm run setup:groovy-jdbc`
-- Check classpath setup: `npm run groovy:classpath:status`
-- Run tests from project root, not from test directory
-- Self-contained tests embed all dependencies - no external setup needed
-
-## Documentation Structure
-
-### Sprint 7 Documentation (Current Sprint - 32% Complete)
-
-- **Completed Technical Debt**: TD-003A (5pts), TD-004 (2pts), TD-005 (5pts), TD-007 (3pts)
-- **Completed User Story**: US-087 Phase 1 (6pts of 8pts total)
-- **Pending Work**: TD-003B (3pts), US-087 Phases 2-7 (2pts), US-089 (38pts), US-088 (4pts)
-- Sprint overview: `docs/roadmap/unified-roadmap.md`
-- Sprint breakdown: `docs/roadmap/sprint7/sprint7-story-breakdown.md`
-
-### Sprint 6 Documentation (Completed Sprint)
-
-- Technical debt resolution: `docs/roadmap/sprint6/TD-001.md` and `TD-002.md`
-- Component architecture: `docs/roadmap/sprint6/US-082-B-component-architecture.md`
-- Entity migration standard: `docs/roadmap/sprint6/US-082-C-entity-migration-standard.md`
-- Development journal: `docs/devJournal/20250909-*.md` and `docs/devJournal/20250910-03-emergency-component-architecture.md`
-
-### Architecture Documentation
-
-- Central hub: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
-- **60 ADRs** covering all major architectural decisions (ADR-001 through ADR-060)
-- Latest ADRs (Sprint 7): ADR-057 through ADR-060
-- API documentation: `docs/api/` with OpenAPI specifications
-- ADR location: `docs/architecture/adr/`
-
-### Testing Documentation
-
-- JavaScript framework: `local-dev-setup/__tests__/README.md`
-- Groovy framework: `src/groovy/umig/tests/README.md`
-- Technology-prefixed commands: `local-dev-setup/PHASE1_TECHNOLOGY_PREFIXED_TESTS.md`
-
-## Dev Environment Health Checks
-
-```bash
-# Before starting work (from local-dev-setup/)
-npm run health:check          # Verify system health
-npm run postgres:check        # Check database connectivity
-npm run confluence:check      # Check Confluence status
-npm run scriptrunner:check    # Verify ScriptRunner installation
-
-# If issues found
-npm run restart:erase         # Clean restart (WARNING: erases data)
-npm run setup:groovy-jdbc     # Fix Groovy JDBC driver issues
-```
-
-## Debugging Commands
-
-```bash
-# Frontend debugging - watch browser console for:
-# - "BaseComponent not available" → Module loading race condition (see ADR-057)
-# - CSRF token errors → Check SecurityUtils.js is loaded first
-# - API 404 errors → Verify endpoint registration in ScriptRunner UI
-
-# Backend debugging
-groovy -cp "lib/*" src/groovy/umig/tests/TestDebugger.groovy  # Test Groovy classpath
-npm run logs:confluence       # View Confluence logs
-npm run logs:postgres         # View PostgreSQL logs
-npm run logs:all              # View all container logs
-```
-
-## Performance Profiling
-
-```bash
-# Performance testing (from local-dev-setup/)
-npm run perf:api -- --endpoint=/teams --iterations=100
-npm run perf:components      # Component rendering benchmarks
-npm run perf:database        # Database query performance
-```
-
-## Common Development Workflows
-
-### Adding a New Entity to Admin GUI
-
-1. Create API endpoint: `src/groovy/umig/api/v2/{Entity}Api.groovy`
+1. Create API: `src/groovy/umig/api/v2/{Entity}Api.groovy`
 2. Create repository: `src/groovy/umig/repository/{Entity}Repository.groovy`
 3. Create entity manager: `src/groovy/umig/web/js/entities/{entity}/{Entity}EntityManager.js`
 4. Register in ComponentOrchestrator
-5. Add database migrations in `liquibase/changelogs/`
+5. Add Liquibase migrations
 6. Write tests: `npm run test:js:components -- --testPathPattern={Entity}`
 
-### Fixing Type Safety Issues
+### Debugging
 
-```groovy
-// Common patterns for ADR-031/043 compliance
-UUID.fromString(param as String)           // UUID conversion
-Integer.parseInt(param as String)          // Integer conversion
-param?.toString() ?: ''                    // Safe string conversion with null check
-(param as Map<String, Object>)?.get('key') // Safe map access
-```
+```bash
+# Frontend console errors to watch for:
+# - "BaseComponent not available" → Module loading race condition
+# - CSRF token errors → SecurityUtils.js load order
+# - API 404 → Verify endpoint registration in ScriptRunner UI
 
-### Database Query Patterns
-
-```groovy
-// Repository pattern with proper error handling
-DatabaseUtil.withSql { sql ->
-    try {
-        def results = sql.rows('''
-            SELECT * FROM table_name
-            WHERE id = ? AND status = ?
-        ''', [id, 'ACTIVE'])
-        return results.collect { row ->
-            enrichEntity(row)  // Single enrichment point (ADR-047)
-        }
-    } catch (PSQLException e) {
-        if (e.getSQLState() == '23503') {
-            throw new BadRequestException("Foreign key violation: ${e.message}")
-        } else if (e.getSQLState() == '23505') {
-            throw new ConflictException("Unique constraint violation: ${e.message}")
-        }
-        throw e
-    }
-}
+# Backend debugging
+npm run logs:confluence      # View Confluence logs
+npm run logs:postgres        # View PostgreSQL logs
+npm run logs:all             # View all container logs
 ```
 
 ## Important Reminders
 
-- Database connection: Use `.env` credentials with `umig_app_db` and `umig_app_usr`
-- API testing: Use basic auth with `.env` credentials for CURL/Postman
-- Stack management: Usually already running, ask user before restarting
-- Never git add/commit without explicit user request
-- Stack restart: `npm restart` (from local-dev-setup/)
-- Data reset: `npm run restart:erase:umig` then `npm run generate-data`
-- ScriptRunner cache: Ask user to refresh manually when needed
-- Component loading: Never use IIFE wrappers - causes race conditions (ADR-057)
-- Schema authority: Database schema is truth - fix code, not schema (ADR-059)
+- Database: Use `.env` credentials with `umig_app_db`
+- API Testing: Basic auth with `.env` credentials for CURL/Postman
+- Stack Management: Usually running, ask before restarting
+- Git Operations: Never add/commit without explicit user request
+- Data Reset: Use `npm run restart:erase:umig` then `npm run generate-data`
+- ScriptRunner Cache: Ask user to refresh manually when needed
+- Schema Changes: NEVER modify schema to match code - fix code to match schema
