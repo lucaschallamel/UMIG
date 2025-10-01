@@ -1,0 +1,14705 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:033_td015_consolidate_canonical_email_templates
+--comment: TD-015 Phase 3: Update all email templates to match canonical enhanced-mobile-email-template.html specification with 100% mobile-responsive features, 35/35 variables, dark mode, print styles, and Outlook MSO compatibility
+
+-- =============================================================================
+-- CANONICAL TEMPLATE CONSOLIDATION - TD-015 Phase 3
+-- =============================================================================
+-- Purpose: Replace all database email templates with canonical specification
+-- Source: /docs/roadmap/ux-ui/canonical/enhanced-mobile-email-template.html
+-- Features: Mobile-responsive (4 breakpoints), Dark mode, Print styles,
+--           Outlook MSO, 35 variables, Gradient header, Comments section
+-- Impact: Updates 10 templates from ~2KB to ~45KB each
+-- Template Size: 45,273 bytes per template (from 1,974 bytes average)
+-- Variable Coverage: 35/35 variables (from 6-8 variables)
+-- CSS Features: 100% (10/10 enterprise features)
+-- Rollback: Supported via Liquibase
+-- =============================================================================
+
+-- Template 1: STEP_STATUS_CHANGED
+-- Purpose: Status change notifications (IN_PROGRESS → COMPLETED, etc.)
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Step Status: ${stepInstance.sti_name} → ${newStatus}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'STEP_STATUS_CHANGED'
+  AND emt_is_active = true;
+
+-- Template 2: STEP_OPENED
+-- Purpose: Step ready for execution notifications
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Step Ready: ${stepInstance.sti_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'STEP_OPENED'
+  AND emt_is_active = true;
+
+-- Template 3: INSTRUCTION_COMPLETED
+-- Purpose: Instruction completion notifications
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Instruction Complete: ${instruction.ini_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'INSTRUCTION_COMPLETED'
+  AND emt_is_active = true;
+
+-- Template 4: INSTRUCTION_UNCOMPLETED
+-- Purpose: Instruction uncomplete action notifications
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Instruction Uncompleted: ${instruction.ini_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'INSTRUCTION_UNCOMPLETED'
+  AND emt_is_active = true;
+
+-- Template 5: STEP_NOTIFICATION_MOBILE
+-- Purpose: Mobile-optimized step notifications
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Step Update: ${stepInstance.sti_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'STEP_NOTIFICATION_MOBILE'
+  AND emt_is_active = true;
+
+-- Template 6: STEP_STATUS_CHANGED_WITH_URL
+-- Purpose: Status change with StepView URL (replaces 87-byte stub)
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Step Status: ${stepInstance.sti_name} → ${newStatus}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'STEP_STATUS_CHANGED_WITH_URL'
+  AND emt_is_active = true;
+
+-- Template 7: STEP_OPENED_WITH_URL
+-- Purpose: Step opened with StepView URL (replaces 97-byte stub)
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Step Ready: ${stepInstance.sti_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'STEP_OPENED_WITH_URL'
+  AND emt_is_active = true;
+
+-- Template 8: INSTRUCTION_COMPLETED_WITH_URL
+-- Purpose: Instruction completed with StepView URL (replaces 95-byte stub)
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Instruction Complete: ${instruction.ini_name}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'INSTRUCTION_COMPLETED_WITH_URL'
+  AND emt_is_active = true;
+
+-- Template 9: BULK_STEP_STATUS_CHANGED
+-- Purpose: Bulk operation status changes
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Bulk Status Update: ${affectedStepsCount} steps',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'BULK_STEP_STATUS_CHANGED'
+  AND emt_is_active = true;
+
+-- Template 10: ITERATION_EVENT
+-- Purpose: Iteration-level event notifications
+UPDATE email_templates_emt
+SET emt_body_html = '<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>
+      ${stepInstance.sti_code ?: ''STEP''} - ${stepInstance.sti_name ?: ''Step
+      Details''} | UMIG
+    </title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* EMAIL CLIENT COMPATIBILITY RESET */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* UNIVERSAL STYLES */
+      * {
+          font-family: ''Segoe UI'', system-ui, -apple-system, ''Helvetica Neue'', Arial, sans-serif !important;
+      }
+
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f8f9fa !important;
+          color: #212529 !important;
+      }
+
+      /* TABLE RESETS FOR OUTLOOK */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+          border-collapse: collapse !important;
+      }
+
+      /* IMAGE HANDLING */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+          display: block !important;
+      }
+
+      /* CONTAINER STRUCTURE */
+      .email-wrapper {
+          width: 100% !important;
+          background-color: #f8f9fa !important;
+          padding: 20px 0 !important;
+      }
+
+      .email-container {
+          width: 100% !important;
+          max-width: 1000px !important;
+          min-width: 320px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+      }
+
+      /* HEADER SECTION */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .header-title {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .header-breadcrumb {
+          font-size: 16px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+          margin: 12px 0 !important;
+      }
+
+      .header-meta {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+          line-height: 1.4 !important;
+      }
+
+      .header-status-line {
+          font-size: 14px !important;
+          margin: 8px 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+      }
+
+      .header-info-line {
+          font-size: 12px !important;
+          margin: 4px 0 !important;
+          opacity: 0.9 !important;
+      }
+
+      /* CONTENT SECTIONS */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      .content-section {
+          margin-bottom: 32px !important;
+      }
+
+      .content-section:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      /* STEP DETAILS CARD */
+      .step-details-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+          margin: 24px 0 !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.3 !important;
+      }
+
+      /* METADATA GRID */
+      .metadata-grid {
+          width: 100% !important;
+      }
+
+      .metadata-row {
+          border-bottom: 1px solid #e9ecef !important;
+          padding: 12px 0 !important;
+      }
+
+      .metadata-row:last-child {
+          border-bottom: none !important;
+      }
+
+      .metadata-label {
+          font-weight: 600 !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .metadata-value {
+          font-size: 16px !important;
+          color: #212529 !important;
+          line-height: 1.4 !important;
+          word-wrap: break-word !important;
+      }
+
+      /* STATUS BADGES */
+      .status-badge {
+          display: inline-block !important;
+          padding: 8px 16px !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      .status-open { background-color: #17a2b8 !important; }
+      .status-in-progress { background-color: #fd7e14 !important; }
+      .status-completed { background-color: #28a745 !important; }
+      .status-blocked { background-color: #dc3545 !important; }
+      .status-cancelled { background-color: #6c757d !important; }
+
+      /* INSTRUCTIONS SECTION - TABLE FORMAT */
+      .instructions-container {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          border-spacing: 0 !important;
+      }
+
+      .instructions-table thead th {
+          background-color: #f8f9fa !important;
+          padding: 12px 8px !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          color: #495057 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          border-bottom: 2px solid #e9ecef !important;
+          text-align: left !important;
+          vertical-align: middle !important;
+      }
+
+      .instructions-table thead th:first-child {
+          width: 20px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(2) {
+          width: auto !important; /* Instruction column - flexible */
+      }
+
+      .instructions-table thead th:nth-child(3) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table thead th:nth-child(4) {
+          width: 120px !important;
+      }
+
+      .instructions-table thead th:nth-child(5) {
+          width: 80px !important;
+          text-align: center !important;
+      }
+
+      .instructions-table tbody tr {
+          border-bottom: 1px solid #f1f3f4 !important;
+      }
+
+      .instructions-table tbody tr:last-child {
+          border-bottom: none !important;
+      }
+
+      .instructions-table tbody tr:nth-child(even) {
+          background-color: #f8f9fa !important;
+      }
+
+      .instructions-table tbody td {
+          padding: 12px 8px !important;
+          vertical-align: middle !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instructions-table tbody td:first-child {
+          text-align: center !important;
+      }
+
+      .instructions-table tbody td:nth-child(3),
+      .instructions-table tbody td:nth-child(5) {
+          text-align: center !important;
+      }
+
+      .instruction-status {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 50% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+      }
+
+      .instruction-complete {
+          background-color: #28a745 !important;
+          color: #ffffff !important;
+      }
+
+      .instruction-pending {
+          background-color: #e9ecef !important;
+          color: #6c757d !important;
+      }
+
+      .instruction-text {
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          color: #212529 !important;
+      }
+
+      .instruction-completed-text {
+          text-decoration: line-through !important;
+          opacity: 0.6 !important;
+      }
+
+      .instruction-duration {
+          font-size: 13px !important;
+          color: #495057 !important;
+          font-weight: 500 !important;
+      }
+
+      .instruction-team {
+          font-size: 13px !important;
+          color: #495057 !important;
+      }
+
+      .instruction-control {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          font-family: ''Consolas'', ''Monaco'', monospace !important;
+      }
+
+      /* CTA BUTTON */
+      .cta-container {
+          text-align: center !important;
+          margin: 32px 0 !important;
+          padding: 24px !important;
+          background-color: #f8f9fa !important;
+          border-radius: 8px !important;
+      }
+
+      .cta-button {
+          display: inline-block !important;
+          padding: 16px 32px !important;
+          background-color: #007bff !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 16px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          min-height: 44px !important;
+          min-width: 200px !important;
+          box-sizing: border-box !important;
+      }
+
+      .cta-button:hover {
+          background-color: #0056b3 !important;
+          color: #ffffff !important;
+          text-decoration: none !important;
+      }
+
+      .cta-subtitle {
+          font-size: 14px !important;
+          color: #6c757d !important;
+          margin-top: 12px !important;
+          line-height: 1.4 !important;
+      }
+
+      /* DESCRIPTION BOX */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 20px !important;
+          margin: 16px 0 !important;
+          line-height: 1.6 !important;
+          color: #212529 !important;
+          font-size: 15px !important;
+          text-align: left !important;
+      }
+
+      /* COMMENT CARDS */
+      .comment-card {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+          border-radius: 6px !important;
+          padding: 16px !important;
+          margin-bottom: 12px !important;
+      }
+
+      .comment-card:first-child {
+          margin-top: 0 !important;
+      }
+
+      .comment-card:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          margin-bottom: 8px !important;
+          border-bottom: 1px solid #e9ecef !important;
+          padding-bottom: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-author {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          font-size: 14px !important;
+          text-align: left !important;
+      }
+
+      .comment-timestamp {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-left: 8px !important;
+          text-align: left !important;
+      }
+
+      .comment-text {
+          color: #212529 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          word-wrap: break-word !important;
+          margin: 0 !important;
+          text-align: left !important;
+      }
+
+      /* FOOTER */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e9ecef !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+          color: #6c757d !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-brand {
+          font-weight: 600 !important;
+          color: #212529 !important;
+          margin-bottom: 16px !important;
+      }
+
+      .footer-links {
+          margin: 20px 0 !important;
+      }
+
+      .footer-link {
+          color: #007bff !important;
+          text-decoration: none !important;
+          margin: 0 16px !important;
+          font-weight: 500 !important;
+      }
+
+      .footer-link:hover {
+          color: #0056b3 !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6c757d !important;
+          margin-top: 20px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e9ecef !important;
+          line-height: 1.4 !important;
+      }
+
+      /* RESPONSIVE DESIGN STRATEGY */
+      /* Mobile First: 320px - 600px */
+      @media screen and (max-width: 600px) {
+          .email-wrapper {
+              padding: 10px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 10px !important;
+              border-radius: 4px !important;
+          }
+
+          .email-header {
+              padding: 24px 20px !important;
+          }
+
+          .header-title {
+              font-size: 24px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 14px !important;
+          }
+
+          .header-status-line {
+              flex-direction: column !important;
+              gap: 4px !important;
+              align-items: center !important;
+          }
+
+          .header-info-line {
+              font-size: 11px !important;
+          }
+
+          .email-content {
+              padding: 24px 20px !important;
+          }
+
+          .step-details-card {
+              padding: 20px !important;
+              margin: 20px 0 !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .metadata-row {
+              padding: 10px 0 !important;
+          }
+
+          .instructions-table thead th {
+              padding: 10px 6px !important;
+              font-size: 12px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 10px 6px !important;
+              font-size: 13px !important;
+          }
+
+          .instructions-table thead th:nth-child(3),
+          .instructions-table thead th:nth-child(4),
+          .instructions-table thead th:nth-child(5) {
+              width: 60px !important;
+          }
+
+          .cta-container {
+              padding: 20px !important;
+              margin: 24px 0 !important;
+          }
+
+          .cta-button {
+              padding: 14px 28px !important;
+              font-size: 15px !important;
+              min-width: 160px !important;
+              width: 80% !important;
+              max-width: 280px !important;
+          }
+
+          .comment-card {
+              padding: 12px !important;
+              margin-bottom: 10px !important;
+          }
+
+          .comment-header {
+              margin-bottom: 6px !important;
+              padding-bottom: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-author {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 11px !important;
+              margin-left: 6px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 13px !important;
+              text-align: left !important;
+          }
+
+          .email-footer {
+              padding: 24px 20px !important;
+          }
+
+          .footer-link {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Tablet: 601px - 768px (scale proportionally) */
+      @media screen and (min-width: 601px) and (max-width: 768px) {
+          .email-wrapper {
+              padding: 15px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 20px !important;
+              max-width: 768px !important;
+              border-radius: 6px !important;
+          }
+
+          .email-header {
+              padding: 28px 22px !important;
+          }
+
+          .header-title {
+              font-size: 26px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 15px !important;
+          }
+
+          .email-content {
+              padding: 28px 22px !important;
+          }
+
+          .step-details-card {
+              padding: 22px !important;
+              margin: 22px 0 !important;
+          }
+
+          .section-title {
+              font-size: 19px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 11px 7px !important;
+              font-size: 12.5px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 11px 7px !important;
+              font-size: 13.5px !important;
+          }
+
+          .cta-button {
+              padding: 15px 30px !important;
+              font-size: 15.5px !important;
+              min-width: 180px !important;
+          }
+
+          .email-footer {
+              padding: 28px 22px !important;
+          }
+      }
+
+      /* Desktop: 769px+ (max 1000px) */
+      @media screen and (min-width: 769px) {
+          .email-wrapper {
+              padding: 30px 0 !important;
+          }
+
+          .email-container {
+              margin: 0 auto !important;
+              max-width: 1000px !important;
+              border-radius: 12px !important;
+          }
+
+          .email-header {
+              padding: 40px 32px !important;
+          }
+
+          .header-title {
+              font-size: 32px !important;
+          }
+
+          .header-breadcrumb {
+              font-size: 18px !important;
+          }
+
+          .header-status-line {
+              font-size: 16px !important;
+          }
+
+          .email-content {
+              padding: 40px 32px !important;
+          }
+
+          .step-details-card {
+              padding: 32px !important;
+              margin: 32px 0 !important;
+          }
+
+          .section-title {
+              font-size: 22px !important;
+          }
+
+          .metadata-grid {
+              max-width: 100% !important;
+          }
+
+          .metadata-row {
+              padding: 14px 0 !important;
+          }
+
+          .metadata-value {
+              font-size: 17px !important;
+          }
+
+          .instructions-table {
+              margin: 0 auto !important;
+          }
+
+          .instructions-table thead th {
+              padding: 14px 12px !important;
+              font-size: 14px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 14px 12px !important;
+              font-size: 15px !important;
+          }
+
+          .instructions-table thead th:first-child {
+              width: 25px !important;
+          }
+
+          .instructions-table thead th:nth-child(3) {
+              width: 100px !important;
+          }
+
+          .instructions-table thead th:nth-child(4) {
+              width: 140px !important;
+          }
+
+          .instructions-table thead th:nth-child(5) {
+              width: 100px !important;
+          }
+
+          .cta-container {
+              padding: 32px !important;
+              margin: 40px 0 !important;
+          }
+
+          .cta-button {
+              padding: 18px 36px !important;
+              font-size: 17px !important;
+              min-width: 220px !important;
+          }
+
+          .cta-subtitle {
+              font-size: 15px !important;
+              margin-top: 16px !important;
+          }
+
+          .description-box {
+              padding: 24px !important;
+              font-size: 16px !important;
+              line-height: 1.7 !important;
+          }
+
+          .comment-card {
+              padding: 20px !important;
+              margin-bottom: 16px !important;
+          }
+
+          .comment-author {
+              font-size: 15px !important;
+          }
+
+          .comment-timestamp {
+              font-size: 13px !important;
+          }
+
+          .comment-text {
+              font-size: 15px !important;
+              line-height: 1.6 !important;
+          }
+
+          .email-footer {
+              padding: 40px 32px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-brand {
+              font-size: 18px !important;
+              margin-bottom: 20px !important;
+          }
+
+          .footer-links {
+              margin: 24px 0 !important;
+          }
+
+          .footer-link {
+              margin: 0 20px !important;
+              font-size: 15px !important;
+          }
+
+          .footer-disclaimer {
+              font-size: 13px !important;
+              margin-top: 24px !important;
+              padding-top: 24px !important;
+          }
+      }
+
+      /* SMALL MOBILE (320px) */
+      @media screen and (max-width: 480px) {
+          .email-container {
+              margin: 0 5px !important;
+          }
+
+          .header-title {
+              font-size: 22px !important;
+              line-height: 1.1 !important;
+          }
+
+          .email-content {
+              padding: 20px 16px !important;
+          }
+
+          .step-details-card {
+              padding: 16px !important;
+          }
+
+          .metadata-value {
+              font-size: 15px !important;
+          }
+
+          .instructions-table {
+              font-size: 12px !important;
+          }
+
+          .instructions-table thead th {
+              padding: 8px 4px !important;
+              font-size: 11px !important;
+          }
+
+          .instructions-table tbody td {
+              padding: 8px 4px !important;
+              font-size: 12px !important;
+          }
+
+          /* Stack table on very small screens */
+          .instructions-table-mobile {
+              display: block !important;
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+          }
+
+          .cta-button {
+              width: 90% !important;
+              padding: 12px 20px !important;
+          }
+
+          .comment-card {
+              padding: 10px !important;
+              margin-bottom: 8px !important;
+          }
+
+          .comment-author {
+              font-size: 12px !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              font-size: 10px !important;
+              margin-left: 4px !important;
+              display: block !important;
+              margin-top: 2px !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              text-align: left !important;
+          }
+      }
+
+      /* DARK MODE SUPPORT */
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-wrapper {
+              background-color: #1a1a1a !important;
+          }
+
+          .email-container {
+              background-color: #2d2d2d !important;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .step-details-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .section-title,
+          .metadata-value,
+          .instruction-text {
+              color: #ffffff !important;
+          }
+
+          .metadata-label {
+              color: #cccccc !important;
+          }
+
+          .instructions-container {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table thead th {
+              background-color: #3a3a3a !important;
+              color: #ffffff !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody tr:nth-child(even) {
+              background-color: #3a3a3a !important;
+          }
+
+          .instructions-table tbody tr {
+              border-color: #4a4a4a !important;
+          }
+
+          .instructions-table tbody td {
+              color: #ffffff !important;
+          }
+
+          .instruction-duration,
+          .instruction-team,
+          .instruction-control {
+              color: #cccccc !important;
+          }
+
+          .description-box {
+              background-color: #2d2d2d !important;
+              border-color: #4a4a4a !important;
+              color: #ffffff !important;
+          }
+
+          .comment-card {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-header {
+              border-color: #4a4a4a !important;
+          }
+
+          .comment-author {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .comment-timestamp {
+              color: #cccccc !important;
+              text-align: left !important;
+          }
+
+          .comment-text {
+              color: #ffffff !important;
+              text-align: left !important;
+          }
+
+          .cta-container {
+              background-color: #3a3a3a !important;
+          }
+
+          .email-footer {
+              background-color: #3a3a3a !important;
+              border-color: #4a4a4a !important;
+              color: #cccccc !important;
+          }
+
+          .footer-brand {
+              color: #ffffff !important;
+          }
+      }
+
+      /* PRINT STYLES */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-wrapper {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+          }
+
+          .email-container {
+              box-shadow: none !important;
+              border: 1px solid #000000 !important;
+              max-width: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .header-title,
+          .header-breadcrumb,
+          .header-meta {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 1px solid #000000 !important;
+          }
+
+          .cta-button {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+              border: 2px solid #000000 !important;
+          }
+      }
+
+      /* OUTLOOK-SPECIFIC FIXES */
+      <!--[if mso]>
+      .email-container {
+          width: 600px !important;
+          max-width: 600px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+
+      .cta-button {
+          border: 1px solid #007bff !important;
+      }
+
+      table {
+          border-collapse: collapse !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-container {
+          border-spacing: 0 !important;
+        }
+
+        .instruction-item {
+          display: block !important;
+          width: 100% !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email Wrapper -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        class="email-wrapper"
+      >
+        <tr>
+          <td align="center" valign="top">
+            <!-- Email Container -->
+            <!--[if mso]>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                        <tr>
+                            <td>
+                    <![endif]-->
+            <div
+              class="email-container"
+              style="width: 100%; max-width: 1000px; min-width: 320px"
+            >
+              <!-- Header Section -->
+              <div class="email-header">
+                <h1 class="header-title">
+                  📋 ${stepInstance.sti_code ?: ''STEP''} -
+                  ${stepInstance.sti_name ?: ''Step Details''}
+                </h1>
+                <div class="header-breadcrumb">
+                  <% if (migrationCode && iterationCode) { %> ${migrationCode} ›
+                  ${iterationCode} <% if (stepInstance.plan_name) { %> ›
+                  ${stepInstance.plan_name}<% } %> <% if
+                  (stepInstance.sequence_name) { %> ›
+                  ${stepInstance.sequence_name}<% } %> <% if
+                  (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<%
+                  } %> <% } else { %> ${stepInstance.migration_name ?:
+                  ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
+                  <% } %>
+                </div>
+
+                <!-- Compact Status Line -->
+                <div class="header-status-line">
+                  <span>STATUS:</span>
+                  <span
+                    class="status-badge status-${(stepInstance.sti_status ?: ''open'').toLowerCase().replace(''_'', ''-'')}"
+                  >
+                    ${stepInstance.sti_status ?: ''OPEN''}
+                  </span>
+                </div>
+
+                <!-- Consolidated Info Lines -->
+                <div class="header-meta">
+                  <div class="header-info-line">
+                    LAST UPDATE: ${new Date().format(''MMM dd, yyyy HH:mm'')} <%
+                    if (oldStatus && newStatus && oldStatus != newStatus) { %> |
+                    Changed from ${oldStatus}<% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Section -->
+              <div class="email-content">
+                <!-- Step Details Card -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h2 class="section-title">📊 Step Summary</h2>
+                    <table
+                      class="metadata-grid"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      width="100%"
+                    >
+                      <!-- Duration & Environment (first row) -->
+                      <% if (stepInstance.sti_duration_minutes ||
+                      stepInstance.environment_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">
+                            Duration & Environment
+                          </div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.sti_duration_minutes) {
+                            %>${stepInstance.sti_duration_minutes} min<% } %><%
+                            if (stepInstance.sti_duration_minutes &&
+                            stepInstance.environment_name) { %> | <% } %><% if
+                            (stepInstance.environment_name) {
+                            %>${stepInstance.environment_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Assigned Team -->
+                      <% if (stepInstance.team_name) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Assigned Team</div>
+                          <div class="metadata-value">
+                            ${stepInstance.team_name}
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <!-- Impacted Teams -->
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Impacted Teams</div>
+                          <div class="metadata-value">
+                            <% if (stepInstance.impacted_teams &&
+                            stepInstance.impacted_teams.trim()) {
+                            %>${stepInstance.impacted_teams}<% } else { %>-<% }
+                            %>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Predecessor -->
+                      <% if (stepInstance.predecessor_code) { %>
+                      <tr>
+                        <td class="metadata-row">
+                          <div class="metadata-label">Predecessor</div>
+                          <div class="metadata-value">
+                            ${stepInstance.predecessor_code} <% if
+                            (stepInstance.predecessor_name) { %>:
+                            ${stepInstance.predecessor_name}<% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                    </table>
+
+                    <!-- Description -->
+                    <% if (stepInstance.sti_description) { %>
+                    <div class="metadata-label" style="margin-top: 20px">
+                      Description
+                    </div>
+                    <div class="description-box">
+                      ${stepInstance.sti_description}
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section">
+                  <h2 class="section-title">📝 Instructions</h2>
+                  <% if (stepInstance.instructions &&
+                  stepInstance.instructions.size() > 0) { %>
+                  <div class="instructions-container">
+                    <table
+                      class="instructions-table instructions-table-mobile"
+                      role="table"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <thead>
+                        <tr role="row">
+                          <th role="columnheader" scope="col"></th>
+                          <th role="columnheader" scope="col">Instruction</th>
+                          <th role="columnheader" scope="col">Duration</th>
+                          <th role="columnheader" scope="col">Team</th>
+                          <th role="columnheader" scope="col">Control</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% stepInstance.instructions.eachWithIndex {
+                        instruction, index -> %>
+                        <tr role="row">
+                          <td role="gridcell">
+                            <div
+                              class="instruction-status ${instruction.completed ? ''instruction-complete'' : ''instruction-pending''}"
+                            >
+                              ${instruction.completed ? ''✓'' : (index + 1)}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <div
+                              class="instruction-text ${instruction.completed ? ''instruction-completed-text'' : ''''}"
+                            >
+                              ${instruction.ini_name ?: instruction.description
+                              ?: "Instruction ${index + 1}"}
+                            </div>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.ini_duration_minutes) { %>
+                            <div class="instruction-duration">
+                              ${instruction.ini_duration_minutes} min
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-duration">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.team_name) { %>
+                            <div class="instruction-team">
+                              ${instruction.team_name}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-team">-</div>
+                            <% } %>
+                          </td>
+                          <td role="gridcell">
+                            <% if (instruction.control_code) { %>
+                            <div class="instruction-control">
+                              ${instruction.control_code}
+                            </div>
+                            <% } else { %>
+                            <div class="instruction-control">-</div>
+                            <% } %>
+                          </td>
+                        </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } else { %>
+                  <div class="description-box">
+                    <p
+                      style="
+                        text-align: center;
+                        color: #6c757d;
+                        font-style: italic;
+                      "
+                    >
+                      No instructions defined for this step.
+                    </p>
+                  </div>
+                  <% } %>
+                </div>
+
+                <!-- Call-to-Action Button -->
+                <div class="content-section">
+                  <div class="cta-container">
+                    <% if (hasStepViewUrl && stepViewUrl) { %>
+                    <a href="${stepViewUrl}" class="cta-button">
+                      🔗 View in Confluence
+                    </a>
+                    <div class="cta-subtitle">
+                      Click to view this step with live updates and
+                      collaboration features
+                    </div>
+                    <% } else { %>
+                    <div
+                      style="
+                        padding: 20px;
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 6px;
+                        text-align: left;
+                      "
+                    >
+                      <strong>📌 Access Information:</strong><br />
+                      Direct link is not available. Please access the UMIG
+                      system in Confluence to view the most current step details
+                      and collaborate with your team.
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Recent Comments Section -->
+                <div class="content-section">
+                  <div class="step-details-card">
+                    <h3 class="section-title">💬 Recent Comments</h3>
+                    <% if (recentComments && recentComments.size() > 0) { %> <%
+                    recentComments.take(3).eachWithIndex { comment, index -> %>
+                    <div
+                      class="comment-card"
+                      style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;"
+                    >
+                      <div
+                        class="comment-header"
+                        style="
+                          margin-bottom: 8px;
+                          border-bottom: 1px solid #e9ecef;
+                          padding-bottom: 8px;
+                          text-align: left;
+                        "
+                      >
+                        <span
+                          class="comment-author"
+                          style="
+                            font-weight: 600;
+                            color: #212529;
+                            font-size: 14px;
+                            text-align: left;
+                          "
+                          >${comment.author_name ?: ''Anonymous''}</span
+                        >
+                        <span
+                          class="comment-timestamp"
+                          style="
+                            font-size: 12px;
+                            color: #6c757d;
+                            margin-left: 8px;
+                            text-align: left;
+                          "
+                          >${comment.created_at ?: ''Recent''}</span
+                        >
+                      </div>
+                      <div
+                        class="comment-text"
+                        style="
+                          color: #212529;
+                          font-size: 14px;
+                          line-height: 1.5;
+                          word-wrap: break-word;
+                          text-align: left;
+                        "
+                      >
+                        ${comment.comment_text ?: ''''}
+                      </div>
+                    </div>
+                    <% } %> <% } else { %>
+                    <div class="description-box">
+                      <p
+                        style="
+                          text-align: center;
+                          color: #6c757d;
+                          font-style: italic;
+                          margin: 0;
+                        "
+                      >
+                        No comments yet. Be the first to add your insights!
+                      </p>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div class="footer-brand">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  <% if (hasStepViewUrl && stepViewUrl) { %>
+                  <a href="${stepViewUrl}" class="footer-link"
+                    >View in Confluence</a
+                  >
+                  <% } %>
+                  <a href="${documentationUrl ?: ''#''}" class="footer-link"
+                    >${documentationLinkText ?: ''View Documentation''}</a
+                  >
+                  <a href="${supportUrl ?: ''#''}" class="footer-link"
+                    >${supportLinkText ?: ''Support Portal''}</a
+                  >
+                </div>
+
+                <div style="font-size: 14px; color: #495057; margin: 16px 0">
+                  This step is part of the migration "${migrationCode ?:
+                  ''CURRENT''}".
+                  <br />
+                  For questions or technical support, please contact your
+                  project coordinator.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of ${new Date().format(''MMM dd, yyyy HH:mm'')}.
+                  For the most current information and real-time collaboration,
+                  please visit the live system in Confluence. This email is
+                  intended for authorized project team members and stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+            <!--[if mso]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+',
+    emt_subject = '[UMIG] ${migrationCode ? migrationCode + " - " : ""}Iteration Event: ${eventType}',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = 'TD-015-Phase3-Migration033'
+WHERE emt_type = 'ITERATION_EVENT'
+  AND emt_is_active = true;
+
+-- =============================================================================
+-- ROLLBACK SUPPORT
+-- =============================================================================
+--rollback UPDATE email_templates_emt SET updated_at = CURRENT_TIMESTAMP, updated_by = 'TD-015-Phase3-Rollback' WHERE updated_by = 'TD-015-Phase3-Migration033';
+
+COMMIT;

@@ -1,59 +1,27 @@
 # Infrastructure Scripts
 
-Purpose: Automated JDBC driver management and cross-platform Groovy integration test support
+Automated JDBC driver management and cross-platform Groovy integration test support.
 
-## Scripts
+## Structure
 
-### setup-groovy-jdbc.js
+```
+infrastructure/
+└── setup-groovy-jdbc.js             # Automated PostgreSQL JDBC setup
+```
 
-- **Purpose**: Automated PostgreSQL JDBC driver download and setup
+## Contents
+
+- **Script**: Automated download and setup of PostgreSQL JDBC driver (42.7.3)
 - **Features**: Cross-platform compatibility, pure Node.js implementation, automated driver management
-- **Usage**: `npm run setup:groovy-jdbc`
-
-## What It Does
-
-1. Creates `jdbc-drivers/` directory
-2. Downloads PostgreSQL JDBC driver (42.7.3) from official source
-3. Validates successful download
-4. Provides integration instructions
+- **Process**: Creates jdbc-drivers/ directory, downloads from official source, validates download, provides integration instructions
+- **Architecture Benefits**: Self-contained test architecture (TD-001), zero external dependencies, 35% performance improvement, 100% test pass rate
 
 ## Integration
 
-```bash
-# Automated setup
-npm run setup:groovy-jdbc
+- Setup: `npm run setup:groovy-jdbc`
+- Test usage: `npm run test:groovy:unit` (uses JDBC automatically)
+- Manual execution: `node scripts/utilities/groovy-with-jdbc.js your-test.groovy`
 
-# Use with tests
-npm run test:groovy:unit      # Uses JDBC automatically
-npm run test:groovy:integration
+---
 
-# Manual usage
-node scripts/utilities/groovy-with-jdbc.js your-test.groovy
-```
-
-## Configuration
-
-- **PostgreSQL JDBC Version**: 42.7.3
-- **Download Source**: https://jdbc.postgresql.org/download/
-- **Target Directory**: `./jdbc-drivers/`
-
-## Architecture Benefits
-
-- Self-contained test architecture (TD-001)
-- Technology-prefixed integration (TD-002)
-- Zero external dependencies
-- 35% performance improvement
-- 100% test pass rate (31/31 Groovy tests)
-
-## Troubleshooting
-
-```bash
-# Verify setup
-npm run groovy:classpath:status
-
-# Check driver exists
-ls -la jdbc-drivers/postgresql-42.7.3.jar
-
-# Test integration
-npm run test:groovy:unit -- --verbose
-```
+_Last Updated: 2025-10-01_

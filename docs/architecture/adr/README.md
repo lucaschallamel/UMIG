@@ -1,10 +1,21 @@
-# Architectural Decision Records (ADRs)
+# Architecture Decision Records (ADRs)
 
-This directory contains all Architectural Decision Records for the UMIG project, organized in a consolidated single-folder structure for easy navigation and reference.
+Comprehensive archive of architectural decisions for UMIG platform covering 72+ decisions across security, database, frontend, testing, and system design.
 
-## Structure
+## Purpose
 
-All ADRs are maintained in this single directory (`docs/adr/`) with a flat structure for simplified access and maintenance.
+- Document all significant architectural decisions with rationale
+- Provide historical context for design choices
+- Enable informed evolution of system architecture
+- Support onboarding and knowledge transfer
+- Maintain single source of truth for architectural patterns
+
+## Current Status (Sprint 8)
+
+**Total ADRs**: 72 documented decisions (ADR-001 through ADR-072)
+**Latest Updates**: Security Architecture (ADR-067 through ADR-071) - September 2025
+**Active Development**: Sprint 8 Security Architecture Enhancement
+**Implementation Tracking**: [ADR Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)
 
 ## ADR Index
 
@@ -89,15 +100,101 @@ All ADRs are maintained in this single directory (`docs/adr/`) with a flat struc
 
 - **[ADR-055](ADR-055-multi-agent-security-collaboration-workflow-architecture.md)** - Multi-Agent Security Collaboration Workflow Architecture
 
+### Data Migration & Implementation Patterns (ADR-056 to ADR-063)
+
+- **[ADR-056](ADR-056-entity-migration-specification-pattern.md)** - Entity Migration Specification Pattern
+- **[ADR-057](ADR-057-javascript-module-loading-anti-pattern.md)** - JavaScript Module Loading Anti-Pattern
+- **[ADR-058](ADR-058-global-securityutils-access-pattern.md)** - Global SecurityUtils Access Pattern
+- **[ADR-059](ADR-059-sql-schema-first-development-principle.md)** - SQL Schema-First Development Principle
+- **[ADR-060](ADR-060-baseentitymanager-interface-compatibility-pattern.md)** - BaseEntityManager Interface Compatibility Pattern
+- **[ADR-061](ADR-061-stepview-rbac-security-implementation.md)** - StepView RBAC Security Implementation
+- **[ADR-062](ADR-062-Modal-Component-Render-Override.md)** - Modal Component Render Override
+- **[ADR-063](ADR-063-pagination-component-interaction-pattern.md)** - Pagination Component Interaction Pattern
+
+### Versioning & Security Architecture (ADR-064 to ADR-071)
+
+- **[ADR-064](ADR-064-umig-namespace-prefixing-confluence-isolation.md)** - UMIG Namespace Prefixing Confluence Isolation
+- **[ADR-065](ADR-065-Phased-Implementation-Strategy.md)** - Phased Implementation Strategy
+- **[ADR-066](ADR-066-UMIG-Comprehensive-Versioning-Strategy.md)** - UMIG Comprehensive Versioning Strategy
+- **[ADR-067](ADR-067-Session-Security-Enhancement.md)** - Session Security Enhancement
+- **[ADR-068](ADR-068-SecurityUtils-Enhancement.md)** - SecurityUtils Enhancement
+- **[ADR-069](ADR-069-Component-Security-Boundary-Enforcement.md)** - Component Security Boundary Enforcement
+- **[ADR-070](ADR-070-Component-Lifecycle-Security.md)** - Component Lifecycle Security
+- **[ADR-071](ADR-071-Privacy-First-Security-Architecture.md)** - Privacy-First Security Architecture
+
+### Testing Architecture (ADR-072)
+
+- **[ADR-072](ADR-072-dual-track-testing-strategy.md)** - Dual-Track Testing Strategy - Manual Groovy + Automated Jest Integration
+
+## ADR Categories
+
+### Core Architecture (ADR-001 to ADR-020)
+
+Foundation patterns including Confluence integration, ScriptRunner backend, PostgreSQL database, vanilla JavaScript frontend, REST API architecture, and testing framework.
+
+### Data & Integration (ADR-021 to ADR-040)
+
+User management, team relationships, iteration-centric model, hierarchical filtering, email notifications, RBAC implementation, and quality validation.
+
+### Advanced Patterns (ADR-041 to ADR-053)
+
+Technical debt methodology, authentication contexts, type casting standards, repository patterns, runtime class loading, and self-contained test architecture.
+
+### Security & Component Architecture (ADR-054 to ADR-071)
+
+**Latest Sprint 8 Focus**: Enterprise component security (ADR-054), multi-agent workflows (ADR-055), entity migration (ADR-056), JavaScript module loading (ADR-057), SecurityUtils patterns (ADR-058), schema-first development (ADR-059), BaseEntityManager interface (ADR-060), StepView RBAC (ADR-061), pagination patterns (ADR-063), namespace prefixing (ADR-064), versioning strategy (ADR-066), **session security enhancement (ADR-067)**, **SecurityUtils enhancement (ADR-068)**, **component security boundaries (ADR-069)**, **component lifecycle security (ADR-070)**, **privacy-first architecture (ADR-071)**.
+
+### Testing Excellence (ADR-072)
+
+Dual-track testing strategy with manual Groovy and automated Jest integration.
+
+## Key ADR Highlights
+
+**Security Architecture (Sprint 8)**:
+
+- ADR-067: Session Security Enhancement - Privacy-compliant session management
+- ADR-068: SecurityUtils Enhancement - XSS/CSRF protection framework
+- ADR-069: Component Security Boundary Enforcement - 8.5/10 security rating
+- ADR-070: Component Lifecycle Security - Secure component initialisation
+- ADR-071: Privacy-First Security Architecture - GDPR compliance patterns
+
+**Foundation Patterns**:
+
+- ADR-003: PostgreSQL database with Liquibase migrations
+- ADR-004: Vanilla JavaScript frontend (no frameworks)
+- ADR-017: V2 REST API architecture (31+ endpoints)
+- ADR-031: Groovy type safety with explicit casting
+- ADR-044: ScriptRunner repository access patterns
+
+**Testing & Quality**:
+
+- ADR-052: Self-contained test architecture (100% pass rate)
+- ADR-053: Technology-prefixed test commands
+- ADR-072: Dual-track testing strategy (Jest + Groovy)
+
 ## ADR Process
 
-All architectural decisions follow a standard template and are documented using the format defined in [template.md](template.md).
+**Template**: [template.md](template.md) - Standard ADR format for all decisions
+**Status Values**: Accepted, Superseded, Deprecated
+**Approval**: Technical review required before acceptance
+**Updates**: Document superseding decisions with cross-references
 
 ## Related Documentation
 
-For comprehensive architectural guidance, also refer to:
+- **[TOGAF Architecture Specification](../UMIG%20-%20TOGAF%20Phases%20A-D%20-%20Architecture%20Requirements%20Specification.md)** - Central architectural hub (Phases A-D)
+- **[API Documentation](/docs/api/)** - REST API specifications (31+ endpoints)
+- **[Development Journal](/docs/devJournal/)** - Implementation details and decisions
+- **[Project Roadmap](/docs/roadmap/)** - Sprint planning and user stories
 
-- **[UMIG Solution Architecture](../architecture/)** - Consolidated architectural documentation organized by TOGAF phases
-- **[Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)** - Current status of all architectural decisions
+## Creating New ADRs
 
-## Total ADRs: 49 documented decisions
+1. Copy [template.md](template.md) to `ADR-{NNN}-{title-in-kebab-case}.md`
+2. Fill in all sections: Context, Decision, Rationale, Consequences, Alternatives
+3. Link related ADRs and documentation
+4. Submit for technical review
+5. Update this index after acceptance
+6. Update [ADR Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)
+
+---
+
+**Status**: 72 documented decisions | Latest: ADR-072 (Dual-Track Testing) | Sprint 8: Security Architecture Enhancement

@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.18
--- Dumped by pg_dump version 14.18
+\restrict FpZ1h8lnS4WxaqdLqaqHpALnqpqACGtOP7asEGOgK4UIxkkp2fvJI6UG3jLhebL
 
--- Started on 2025-09-09 10:59:01 UTC
+-- Dumped from database version 14.18
+-- Dumped by pg_dump version 16.10 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,7 +19,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 293 (class 1255 OID 83314)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: get_user_code(character varying); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -39,8 +45,6 @@ $$;
 
 
 --
--- TOC entry 4230 (class 0 OID 0)
--- Dependencies: 293
 -- Name: FUNCTION get_user_code(email_input character varying); Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -48,7 +52,6 @@ COMMENT ON FUNCTION public.get_user_code(email_input character varying) IS 'Help
 
 
 --
--- TOC entry 292 (class 1255 OID 83281)
 -- Name: update_updated_at(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -63,7 +66,6 @@ $$;
 
 
 --
--- TOC entry 291 (class 1255 OID 83147)
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -82,7 +84,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 212 (class 1259 OID 82445)
 -- Name: applications_app; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -99,7 +100,6 @@ CREATE TABLE public.applications_app (
 
 
 --
--- TOC entry 211 (class 1259 OID 82444)
 -- Name: applications_app_app_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -113,8 +113,6 @@ CREATE SEQUENCE public.applications_app_app_id_seq
 
 
 --
--- TOC entry 4231 (class 0 OID 0)
--- Dependencies: 211
 -- Name: applications_app_app_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -122,7 +120,6 @@ ALTER SEQUENCE public.applications_app_app_id_seq OWNED BY public.applications_a
 
 
 --
--- TOC entry 245 (class 1259 OID 82914)
 -- Name: audit_log_aud; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -138,8 +135,6 @@ CREATE TABLE public.audit_log_aud (
 
 
 --
--- TOC entry 4232 (class 0 OID 0)
--- Dependencies: 245
 -- Name: TABLE audit_log_aud; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -147,8 +142,6 @@ COMMENT ON TABLE public.audit_log_aud IS 'Logs all major events like status chan
 
 
 --
--- TOC entry 4233 (class 0 OID 0)
--- Dependencies: 245
 -- Name: COLUMN audit_log_aud.aud_details; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -156,7 +149,6 @@ COMMENT ON COLUMN public.audit_log_aud.aud_details IS 'Stores JSON data capturin
 
 
 --
--- TOC entry 244 (class 1259 OID 82913)
 -- Name: audit_log_aud_aud_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -169,8 +161,6 @@ CREATE SEQUENCE public.audit_log_aud_aud_id_seq
 
 
 --
--- TOC entry 4234 (class 0 OID 0)
--- Dependencies: 244
 -- Name: audit_log_aud_aud_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -178,7 +168,6 @@ ALTER SEQUENCE public.audit_log_aud_aud_id_seq OWNED BY public.audit_log_aud.aud
 
 
 --
--- TOC entry 239 (class 1259 OID 82822)
 -- Name: controls_instance_cti; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -204,8 +193,6 @@ CREATE TABLE public.controls_instance_cti (
 
 
 --
--- TOC entry 4235 (class 0 OID 0)
--- Dependencies: 239
 -- Name: TABLE controls_instance_cti; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -213,8 +200,6 @@ COMMENT ON TABLE public.controls_instance_cti IS 'Control instances linked to ph
 
 
 --
--- TOC entry 4236 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.phi_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -222,8 +207,6 @@ COMMENT ON COLUMN public.controls_instance_cti.phi_id IS 'Reference to the phase
 
 
 --
--- TOC entry 4237 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -231,8 +214,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_order IS 'Override order for 
 
 
 --
--- TOC entry 4238 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -240,8 +221,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_name IS 'Override name for th
 
 
 --
--- TOC entry 4239 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_description; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -249,8 +228,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_description IS 'Override desc
 
 
 --
--- TOC entry 4240 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -258,8 +235,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_type IS 'Override type for th
 
 
 --
--- TOC entry 4241 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_is_critical; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -267,8 +242,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_is_critical IS 'Override crit
 
 
 --
--- TOC entry 4242 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_code; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -276,8 +249,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_code IS 'Override code for th
 
 
 --
--- TOC entry 4243 (class 0 OID 0)
--- Dependencies: 239
 -- Name: COLUMN controls_instance_cti.cti_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -285,7 +256,6 @@ COMMENT ON COLUMN public.controls_instance_cti.cti_status IS 'Status ID referenc
 
 
 --
--- TOC entry 232 (class 1259 OID 82678)
 -- Name: controls_master_ctm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -306,7 +276,6 @@ CREATE TABLE public.controls_master_ctm (
 
 
 --
--- TOC entry 209 (class 1259 OID 82434)
 -- Name: databasechangelog; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -329,7 +298,6 @@ CREATE TABLE public.databasechangelog (
 
 
 --
--- TOC entry 210 (class 1259 OID 82439)
 -- Name: databasechangeloglock; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -342,7 +310,6 @@ CREATE TABLE public.databasechangeloglock (
 
 
 --
--- TOC entry 263 (class 1259 OID 83149)
 -- Name: email_templates_emt; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -358,13 +325,11 @@ CREATE TABLE public.email_templates_emt (
     updated_at timestamp with time zone DEFAULT now(),
     created_by character varying(255),
     updated_by character varying(255),
-    CONSTRAINT email_templates_emt_emt_type_check CHECK (((emt_type)::text = ANY ((ARRAY['STEP_OPENED'::character varying, 'INSTRUCTION_COMPLETED'::character varying, 'INSTRUCTION_UNCOMPLETED'::character varying, 'STEP_STATUS_CHANGED'::character varying, 'STEP_NOTIFICATION_MOBILE'::character varying, 'STEP_STATUS_CHANGED_WITH_URL'::character varying, 'STEP_OPENED_WITH_URL'::character varying, 'INSTRUCTION_COMPLETED_WITH_URL'::character varying, 'CUSTOM'::character varying])::text[])))
+    CONSTRAINT email_templates_emt_emt_type_check CHECK (((emt_type)::text = ANY (ARRAY[('STEP_OPENED'::character varying)::text, ('INSTRUCTION_COMPLETED'::character varying)::text, ('INSTRUCTION_UNCOMPLETED'::character varying)::text, ('STEP_STATUS_CHANGED'::character varying)::text, ('STEP_NOTIFICATION_MOBILE'::character varying)::text, ('STEP_STATUS_CHANGED_WITH_URL'::character varying)::text, ('STEP_OPENED_WITH_URL'::character varying)::text, ('INSTRUCTION_COMPLETED_WITH_URL'::character varying)::text, ('BULK_STEP_STATUS_CHANGED'::character varying)::text, ('ITERATION_EVENT'::character varying)::text, ('CUSTOM'::character varying)::text])))
 );
 
 
 --
--- TOC entry 4244 (class 0 OID 0)
--- Dependencies: 263
 -- Name: TABLE email_templates_emt; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -372,8 +337,6 @@ COMMENT ON TABLE public.email_templates_emt IS 'Stores HTML email templates for 
 
 
 --
--- TOC entry 4245 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -381,8 +344,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_id IS 'Unique identifier for th
 
 
 --
--- TOC entry 4246 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -390,8 +351,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_name IS 'Human-readable name fo
 
 
 --
--- TOC entry 4247 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_subject; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -399,8 +358,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_subject IS 'Email subject line 
 
 
 --
--- TOC entry 4248 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_body_html; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -408,8 +365,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_body_html IS 'HTML body content
 
 
 --
--- TOC entry 4249 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -417,8 +372,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_type IS 'Type of notification t
 
 
 --
--- TOC entry 4250 (class 0 OID 0)
--- Dependencies: 263
 -- Name: COLUMN email_templates_emt.emt_is_active; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -426,7 +379,6 @@ COMMENT ON COLUMN public.email_templates_emt.emt_is_active IS 'Whether this temp
 
 
 --
--- TOC entry 228 (class 1259 OID 82613)
 -- Name: environment_roles_enr; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -442,7 +394,6 @@ CREATE TABLE public.environment_roles_enr (
 
 
 --
--- TOC entry 227 (class 1259 OID 82612)
 -- Name: environment_roles_enr_enr_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -456,8 +407,6 @@ CREATE SEQUENCE public.environment_roles_enr_enr_id_seq
 
 
 --
--- TOC entry 4251 (class 0 OID 0)
--- Dependencies: 227
 -- Name: environment_roles_enr_enr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -465,7 +414,6 @@ ALTER SEQUENCE public.environment_roles_enr_enr_id_seq OWNED BY public.environme
 
 
 --
--- TOC entry 214 (class 1259 OID 82456)
 -- Name: environments_env; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -482,7 +430,6 @@ CREATE TABLE public.environments_env (
 
 
 --
--- TOC entry 213 (class 1259 OID 82455)
 -- Name: environments_env_env_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -496,8 +443,6 @@ CREATE SEQUENCE public.environments_env_env_id_seq
 
 
 --
--- TOC entry 4252 (class 0 OID 0)
--- Dependencies: 213
 -- Name: environments_env_env_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -505,7 +450,6 @@ ALTER SEQUENCE public.environments_env_env_id_seq OWNED BY public.environments_e
 
 
 --
--- TOC entry 241 (class 1259 OID 82863)
 -- Name: environments_env_x_applications_app; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -516,7 +460,6 @@ CREATE TABLE public.environments_env_x_applications_app (
 
 
 --
--- TOC entry 242 (class 1259 OID 82878)
 -- Name: environments_env_x_iterations_ite; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -528,7 +471,6 @@ CREATE TABLE public.environments_env_x_iterations_ite (
 
 
 --
--- TOC entry 267 (class 1259 OID 83415)
 -- Name: import_batches_imb; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -551,8 +493,6 @@ CREATE TABLE public.import_batches_imb (
 
 
 --
--- TOC entry 4253 (class 0 OID 0)
--- Dependencies: 267
 -- Name: TABLE import_batches_imb; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -560,8 +500,6 @@ COMMENT ON TABLE public.import_batches_imb IS 'Tracks import operations for audi
 
 
 --
--- TOC entry 4254 (class 0 OID 0)
--- Dependencies: 267
 -- Name: COLUMN import_batches_imb.imb_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -569,8 +507,6 @@ COMMENT ON COLUMN public.import_batches_imb.imb_id IS 'Unique identifier for the
 
 
 --
--- TOC entry 4255 (class 0 OID 0)
--- Dependencies: 267
 -- Name: COLUMN import_batches_imb.imb_source; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -578,8 +514,6 @@ COMMENT ON COLUMN public.import_batches_imb.imb_source IS 'Source of the import 
 
 
 --
--- TOC entry 4256 (class 0 OID 0)
--- Dependencies: 267
 -- Name: COLUMN import_batches_imb.imb_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -587,8 +521,6 @@ COMMENT ON COLUMN public.import_batches_imb.imb_type IS 'Type of import (JSON_IM
 
 
 --
--- TOC entry 4257 (class 0 OID 0)
--- Dependencies: 267
 -- Name: COLUMN import_batches_imb.imb_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -596,8 +528,6 @@ COMMENT ON COLUMN public.import_batches_imb.imb_status IS 'Status: IN_PROGRESS, 
 
 
 --
--- TOC entry 4258 (class 0 OID 0)
--- Dependencies: 267
 -- Name: COLUMN import_batches_imb.imb_statistics; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -605,7 +535,6 @@ COMMENT ON COLUMN public.import_batches_imb.imb_statistics IS 'JSON statistics a
 
 
 --
--- TOC entry 238 (class 1259 OID 82800)
 -- Name: instructions_instance_ini; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -629,8 +558,6 @@ CREATE TABLE public.instructions_instance_ini (
 
 
 --
--- TOC entry 4259 (class 0 OID 0)
--- Dependencies: 238
 -- Name: COLUMN instructions_instance_ini.tms_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -638,8 +565,6 @@ COMMENT ON COLUMN public.instructions_instance_ini.tms_id IS 'Override template 
 
 
 --
--- TOC entry 4260 (class 0 OID 0)
--- Dependencies: 238
 -- Name: COLUMN instructions_instance_ini.cti_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -647,8 +572,6 @@ COMMENT ON COLUMN public.instructions_instance_ini.cti_id IS 'Override custom te
 
 
 --
--- TOC entry 4261 (class 0 OID 0)
--- Dependencies: 238
 -- Name: COLUMN instructions_instance_ini.ini_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -656,8 +579,6 @@ COMMENT ON COLUMN public.instructions_instance_ini.ini_order IS 'Override order 
 
 
 --
--- TOC entry 4262 (class 0 OID 0)
--- Dependencies: 238
 -- Name: COLUMN instructions_instance_ini.ini_body; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -665,8 +586,6 @@ COMMENT ON COLUMN public.instructions_instance_ini.ini_body IS 'Override body fo
 
 
 --
--- TOC entry 4263 (class 0 OID 0)
--- Dependencies: 238
 -- Name: COLUMN instructions_instance_ini.ini_duration_minutes; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -674,7 +593,6 @@ COMMENT ON COLUMN public.instructions_instance_ini.ini_duration_minutes IS 'Over
 
 
 --
--- TOC entry 233 (class 1259 OID 82692)
 -- Name: instructions_master_inm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -694,7 +612,6 @@ CREATE TABLE public.instructions_master_inm (
 
 
 --
--- TOC entry 223 (class 1259 OID 82544)
 -- Name: iteration_types_itt; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -714,7 +631,6 @@ CREATE TABLE public.iteration_types_itt (
 
 
 --
--- TOC entry 224 (class 1259 OID 82549)
 -- Name: iterations_ite; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -736,8 +652,6 @@ CREATE TABLE public.iterations_ite (
 
 
 --
--- TOC entry 4264 (class 0 OID 0)
--- Dependencies: 224
 -- Name: COLUMN iterations_ite.ite_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -745,7 +659,6 @@ COMMENT ON COLUMN public.iterations_ite.ite_status IS 'Status ID referencing sta
 
 
 --
--- TOC entry 251 (class 1259 OID 82982)
 -- Name: labels_lbl; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -756,15 +669,13 @@ CREATE TABLE public.labels_lbl (
     lbl_description text,
     lbl_color character varying(7),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    created_by character varying(255) DEFAULT 'system'::character varying,
     updated_by character varying(255) DEFAULT 'system'::character varying,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    created_by character varying(255) DEFAULT 'system'::character varying
 );
 
 
 --
--- TOC entry 4265 (class 0 OID 0)
--- Dependencies: 251
 -- Name: COLUMN labels_lbl.created_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -772,17 +683,6 @@ COMMENT ON COLUMN public.labels_lbl.created_at IS 'Timestamp when record was cre
 
 
 --
--- TOC entry 4266 (class 0 OID 0)
--- Dependencies: 251
--- Name: COLUMN labels_lbl.created_by; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.labels_lbl.created_by IS 'User trigram (usr_code) or system/generator/migration identifier';
-
-
---
--- TOC entry 4267 (class 0 OID 0)
--- Dependencies: 251
 -- Name: COLUMN labels_lbl.updated_by; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -790,8 +690,6 @@ COMMENT ON COLUMN public.labels_lbl.updated_by IS 'User trigram (usr_code) who l
 
 
 --
--- TOC entry 4268 (class 0 OID 0)
--- Dependencies: 251
 -- Name: COLUMN labels_lbl.updated_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -799,7 +697,13 @@ COMMENT ON COLUMN public.labels_lbl.updated_at IS 'Timestamp when record was las
 
 
 --
--- TOC entry 250 (class 1259 OID 82981)
+-- Name: COLUMN labels_lbl.created_by; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.labels_lbl.created_by IS 'User trigram (usr_code) or system/generator/migration identifier';
+
+
+--
 -- Name: labels_lbl_lbl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -813,8 +717,6 @@ CREATE SEQUENCE public.labels_lbl_lbl_id_seq
 
 
 --
--- TOC entry 4269 (class 0 OID 0)
--- Dependencies: 250
 -- Name: labels_lbl_lbl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -822,7 +724,6 @@ ALTER SEQUENCE public.labels_lbl_lbl_id_seq OWNED BY public.labels_lbl.lbl_id;
 
 
 --
--- TOC entry 255 (class 1259 OID 83029)
 -- Name: labels_lbl_x_applications_app; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -836,8 +737,6 @@ CREATE TABLE public.labels_lbl_x_applications_app (
 
 
 --
--- TOC entry 4270 (class 0 OID 0)
--- Dependencies: 255
 -- Name: TABLE labels_lbl_x_applications_app; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -845,8 +744,6 @@ COMMENT ON TABLE public.labels_lbl_x_applications_app IS 'TIER 2 ASSOCIATION: La
 
 
 --
--- TOC entry 4271 (class 0 OID 0)
--- Dependencies: 255
 -- Name: COLUMN labels_lbl_x_applications_app.lbl_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -854,8 +751,6 @@ COMMENT ON COLUMN public.labels_lbl_x_applications_app.lbl_id IS 'References lab
 
 
 --
--- TOC entry 4272 (class 0 OID 0)
--- Dependencies: 255
 -- Name: COLUMN labels_lbl_x_applications_app.app_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -863,7 +758,6 @@ COMMENT ON COLUMN public.labels_lbl_x_applications_app.app_id IS 'References app
 
 
 --
--- TOC entry 254 (class 1259 OID 83028)
 -- Name: labels_lbl_x_applications_app_lbl_x_app_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -877,8 +771,6 @@ CREATE SEQUENCE public.labels_lbl_x_applications_app_lbl_x_app_id_seq
 
 
 --
--- TOC entry 4273 (class 0 OID 0)
--- Dependencies: 254
 -- Name: labels_lbl_x_applications_app_lbl_x_app_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -886,7 +778,6 @@ ALTER SEQUENCE public.labels_lbl_x_applications_app_lbl_x_app_id_seq OWNED BY pu
 
 
 --
--- TOC entry 259 (class 1259 OID 83071)
 -- Name: labels_lbl_x_controls_master_ctm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -900,8 +791,6 @@ CREATE TABLE public.labels_lbl_x_controls_master_ctm (
 
 
 --
--- TOC entry 4274 (class 0 OID 0)
--- Dependencies: 259
 -- Name: TABLE labels_lbl_x_controls_master_ctm; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -909,7 +798,13 @@ COMMENT ON TABLE public.labels_lbl_x_controls_master_ctm IS 'TIER 2 ASSOCIATION:
 
 
 --
--- TOC entry 258 (class 1259 OID 83070)
+-- Name: COLUMN labels_lbl_x_controls_master_ctm.created_by; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.labels_lbl_x_controls_master_ctm.created_by IS 'User trigram (usr_code) or system/generator/migration identifier';
+
+
+--
 -- Name: labels_lbl_x_controls_master_ctm_lbl_x_ctm_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -923,8 +818,6 @@ CREATE SEQUENCE public.labels_lbl_x_controls_master_ctm_lbl_x_ctm_id_seq
 
 
 --
--- TOC entry 4275 (class 0 OID 0)
--- Dependencies: 258
 -- Name: labels_lbl_x_controls_master_ctm_lbl_x_ctm_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -932,7 +825,6 @@ ALTER SEQUENCE public.labels_lbl_x_controls_master_ctm_lbl_x_ctm_id_seq OWNED BY
 
 
 --
--- TOC entry 253 (class 1259 OID 82999)
 -- Name: labels_lbl_x_steps_master_stm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -946,8 +838,6 @@ CREATE TABLE public.labels_lbl_x_steps_master_stm (
 
 
 --
--- TOC entry 4276 (class 0 OID 0)
--- Dependencies: 253
 -- Name: TABLE labels_lbl_x_steps_master_stm; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -955,7 +845,6 @@ COMMENT ON TABLE public.labels_lbl_x_steps_master_stm IS 'TIER 2 ASSOCIATION: La
 
 
 --
--- TOC entry 252 (class 1259 OID 82998)
 -- Name: labels_lbl_x_steps_master_stm_lbl_x_stm_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -969,8 +858,6 @@ CREATE SEQUENCE public.labels_lbl_x_steps_master_stm_lbl_x_stm_id_seq
 
 
 --
--- TOC entry 4277 (class 0 OID 0)
--- Dependencies: 252
 -- Name: labels_lbl_x_steps_master_stm_lbl_x_stm_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -978,7 +865,6 @@ ALTER SEQUENCE public.labels_lbl_x_steps_master_stm_lbl_x_stm_id_seq OWNED BY pu
 
 
 --
--- TOC entry 290 (class 1259 OID 83667)
 -- Name: migration_types_mit; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -999,8 +885,6 @@ CREATE TABLE public.migration_types_mit (
 
 
 --
--- TOC entry 4278 (class 0 OID 0)
--- Dependencies: 290
 -- Name: TABLE migration_types_mit; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1008,8 +892,6 @@ COMMENT ON TABLE public.migration_types_mit IS 'US-042: Master configuration tab
 
 
 --
--- TOC entry 4279 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1017,8 +899,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_id IS 'Primary key - auto-incre
 
 
 --
--- TOC entry 4280 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_code; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1026,8 +906,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_code IS 'Unique business code f
 
 
 --
--- TOC entry 4281 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1035,8 +913,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_name IS 'Human-readable name fo
 
 
 --
--- TOC entry 4282 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_description; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1044,8 +920,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_description IS 'Detailed descri
 
 
 --
--- TOC entry 4283 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_color; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1053,8 +927,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_color IS 'Hex color code for UI
 
 
 --
--- TOC entry 4284 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_icon; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1062,8 +934,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_icon IS 'Icon identifier for UI
 
 
 --
--- TOC entry 4285 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_display_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1071,8 +941,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_display_order IS 'Sort order fo
 
 
 --
--- TOC entry 4286 (class 0 OID 0)
--- Dependencies: 290
 -- Name: COLUMN migration_types_mit.mit_active; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1080,7 +948,6 @@ COMMENT ON COLUMN public.migration_types_mit.mit_active IS 'Whether this migrati
 
 
 --
--- TOC entry 289 (class 1259 OID 83666)
 -- Name: migration_types_mit_mit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1094,8 +961,6 @@ CREATE SEQUENCE public.migration_types_mit_mit_id_seq
 
 
 --
--- TOC entry 4287 (class 0 OID 0)
--- Dependencies: 289
 -- Name: migration_types_mit_mit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1103,7 +968,6 @@ ALTER SEQUENCE public.migration_types_mit_mit_id_seq OWNED BY public.migration_t
 
 
 --
--- TOC entry 222 (class 1259 OID 82527)
 -- Name: migrations_mig; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1125,8 +989,6 @@ CREATE TABLE public.migrations_mig (
 
 
 --
--- TOC entry 4288 (class 0 OID 0)
--- Dependencies: 222
 -- Name: COLUMN migrations_mig.mig_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1134,7 +996,6 @@ COMMENT ON COLUMN public.migrations_mig.mig_status IS 'Status ID referencing sta
 
 
 --
--- TOC entry 236 (class 1259 OID 82758)
 -- Name: phases_instance_phi; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1157,8 +1018,6 @@ CREATE TABLE public.phases_instance_phi (
 
 
 --
--- TOC entry 4289 (class 0 OID 0)
--- Dependencies: 236
 -- Name: COLUMN phases_instance_phi.phi_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1166,8 +1025,6 @@ COMMENT ON COLUMN public.phases_instance_phi.phi_order IS 'Override order for th
 
 
 --
--- TOC entry 4290 (class 0 OID 0)
--- Dependencies: 236
 -- Name: COLUMN phases_instance_phi.phi_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1175,8 +1032,6 @@ COMMENT ON COLUMN public.phases_instance_phi.phi_name IS 'Override name for the 
 
 
 --
--- TOC entry 4291 (class 0 OID 0)
--- Dependencies: 236
 -- Name: COLUMN phases_instance_phi.phi_description; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1184,8 +1039,6 @@ COMMENT ON COLUMN public.phases_instance_phi.phi_description IS 'Override descri
 
 
 --
--- TOC entry 4292 (class 0 OID 0)
--- Dependencies: 236
 -- Name: COLUMN phases_instance_phi.predecessor_phi_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1193,8 +1046,6 @@ COMMENT ON COLUMN public.phases_instance_phi.predecessor_phi_id IS 'Override pre
 
 
 --
--- TOC entry 4293 (class 0 OID 0)
--- Dependencies: 236
 -- Name: COLUMN phases_instance_phi.phi_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1202,7 +1053,6 @@ COMMENT ON COLUMN public.phases_instance_phi.phi_status IS 'Status ID referencin
 
 
 --
--- TOC entry 226 (class 1259 OID 82594)
 -- Name: phases_master_phm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1221,7 +1071,6 @@ CREATE TABLE public.phases_master_phm (
 
 
 --
--- TOC entry 234 (class 1259 OID 82715)
 -- Name: plans_instance_pli; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1241,8 +1090,6 @@ CREATE TABLE public.plans_instance_pli (
 
 
 --
--- TOC entry 4294 (class 0 OID 0)
--- Dependencies: 234
 -- Name: COLUMN plans_instance_pli.pli_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1250,7 +1097,6 @@ COMMENT ON COLUMN public.plans_instance_pli.pli_status IS 'Status ID referencing
 
 
 --
--- TOC entry 221 (class 1259 OID 82510)
 -- Name: plans_master_plm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1268,8 +1114,6 @@ CREATE TABLE public.plans_master_plm (
 
 
 --
--- TOC entry 4295 (class 0 OID 0)
--- Dependencies: 221
 -- Name: COLUMN plans_master_plm.plm_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1277,7 +1121,6 @@ COMMENT ON COLUMN public.plans_master_plm.plm_status IS 'Status ID referencing s
 
 
 --
--- TOC entry 216 (class 1259 OID 82467)
 -- Name: roles_rls; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1293,7 +1136,6 @@ CREATE TABLE public.roles_rls (
 
 
 --
--- TOC entry 215 (class 1259 OID 82466)
 -- Name: roles_rls_rls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1307,8 +1149,6 @@ CREATE SEQUENCE public.roles_rls_rls_id_seq
 
 
 --
--- TOC entry 4296 (class 0 OID 0)
--- Dependencies: 215
 -- Name: roles_rls_rls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1316,7 +1156,6 @@ ALTER SEQUENCE public.roles_rls_rls_id_seq OWNED BY public.roles_rls.rls_id;
 
 
 --
--- TOC entry 235 (class 1259 OID 82742)
 -- Name: sequences_instance_sqi; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1339,8 +1178,6 @@ CREATE TABLE public.sequences_instance_sqi (
 
 
 --
--- TOC entry 4297 (class 0 OID 0)
--- Dependencies: 235
 -- Name: COLUMN sequences_instance_sqi.sqi_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1348,8 +1185,6 @@ COMMENT ON COLUMN public.sequences_instance_sqi.sqi_name IS 'Override name for t
 
 
 --
--- TOC entry 4298 (class 0 OID 0)
--- Dependencies: 235
 -- Name: COLUMN sequences_instance_sqi.sqi_description; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1357,8 +1192,6 @@ COMMENT ON COLUMN public.sequences_instance_sqi.sqi_description IS 'Override des
 
 
 --
--- TOC entry 4299 (class 0 OID 0)
--- Dependencies: 235
 -- Name: COLUMN sequences_instance_sqi.sqi_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1366,8 +1199,6 @@ COMMENT ON COLUMN public.sequences_instance_sqi.sqi_order IS 'Override order for
 
 
 --
--- TOC entry 4300 (class 0 OID 0)
--- Dependencies: 235
 -- Name: COLUMN sequences_instance_sqi.predecessor_sqi_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1375,8 +1206,6 @@ COMMENT ON COLUMN public.sequences_instance_sqi.predecessor_sqi_id IS 'Override 
 
 
 --
--- TOC entry 4301 (class 0 OID 0)
--- Dependencies: 235
 -- Name: COLUMN sequences_instance_sqi.sqi_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1384,7 +1213,6 @@ COMMENT ON COLUMN public.sequences_instance_sqi.sqi_status IS 'Status ID referen
 
 
 --
--- TOC entry 225 (class 1259 OID 82576)
 -- Name: sequences_master_sqm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1403,7 +1231,6 @@ CREATE TABLE public.sequences_master_sqm (
 
 
 --
--- TOC entry 265 (class 1259 OID 83178)
 -- Name: status_sts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1424,8 +1251,6 @@ CREATE TABLE public.status_sts (
 
 
 --
--- TOC entry 4302 (class 0 OID 0)
--- Dependencies: 265
 -- Name: TABLE status_sts; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1433,8 +1258,6 @@ COMMENT ON TABLE public.status_sts IS 'Centralized status management for all ent
 
 
 --
--- TOC entry 4303 (class 0 OID 0)
--- Dependencies: 265
 -- Name: COLUMN status_sts.sts_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1442,8 +1265,6 @@ COMMENT ON COLUMN public.status_sts.sts_id IS 'Primary key for status records';
 
 
 --
--- TOC entry 4304 (class 0 OID 0)
--- Dependencies: 265
 -- Name: COLUMN status_sts.sts_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1451,8 +1272,6 @@ COMMENT ON COLUMN public.status_sts.sts_name IS 'Status name (e.g., PENDING, IN_
 
 
 --
--- TOC entry 4305 (class 0 OID 0)
--- Dependencies: 265
 -- Name: COLUMN status_sts.sts_color; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1460,8 +1279,6 @@ COMMENT ON COLUMN public.status_sts.sts_color IS 'Hex color code for UI display 
 
 
 --
--- TOC entry 4306 (class 0 OID 0)
--- Dependencies: 265
 -- Name: COLUMN status_sts.sts_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1469,7 +1286,6 @@ COMMENT ON COLUMN public.status_sts.sts_type IS 'Entity type this status applies
 
 
 --
--- TOC entry 264 (class 1259 OID 83177)
 -- Name: status_sts_sts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1483,8 +1299,6 @@ CREATE SEQUENCE public.status_sts_sts_id_seq
 
 
 --
--- TOC entry 4307 (class 0 OID 0)
--- Dependencies: 264
 -- Name: status_sts_sts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1492,7 +1306,6 @@ ALTER SEQUENCE public.status_sts_sts_id_seq OWNED BY public.status_sts.sts_id;
 
 
 --
--- TOC entry 249 (class 1259 OID 82956)
 -- Name: step_instance_comments_sic; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1508,7 +1321,6 @@ CREATE TABLE public.step_instance_comments_sic (
 
 
 --
--- TOC entry 248 (class 1259 OID 82955)
 -- Name: step_instance_comments_sic_sic_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1522,8 +1334,6 @@ CREATE SEQUENCE public.step_instance_comments_sic_sic_id_seq
 
 
 --
--- TOC entry 4308 (class 0 OID 0)
--- Dependencies: 248
 -- Name: step_instance_comments_sic_sic_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1531,7 +1341,6 @@ ALTER SEQUENCE public.step_instance_comments_sic_sic_id_seq OWNED BY public.step
 
 
 --
--- TOC entry 247 (class 1259 OID 82929)
 -- Name: step_pilot_comments_spc; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1548,7 +1357,6 @@ CREATE TABLE public.step_pilot_comments_spc (
 
 
 --
--- TOC entry 246 (class 1259 OID 82928)
 -- Name: step_pilot_comments_spc_spc_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1562,8 +1370,6 @@ CREATE SEQUENCE public.step_pilot_comments_spc_spc_id_seq
 
 
 --
--- TOC entry 4309 (class 0 OID 0)
--- Dependencies: 246
 -- Name: step_pilot_comments_spc_spc_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1571,7 +1377,6 @@ ALTER SEQUENCE public.step_pilot_comments_spc_spc_id_seq OWNED BY public.step_pi
 
 
 --
--- TOC entry 229 (class 1259 OID 82623)
 -- Name: step_types_stt; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1587,7 +1392,6 @@ CREATE TABLE public.step_types_stt (
 
 
 --
--- TOC entry 237 (class 1259 OID 82774)
 -- Name: steps_instance_sti; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1611,8 +1415,6 @@ CREATE TABLE public.steps_instance_sti (
 
 
 --
--- TOC entry 4310 (class 0 OID 0)
--- Dependencies: 237
 -- Name: COLUMN steps_instance_sti.sti_id_predecessor; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1620,8 +1422,6 @@ COMMENT ON COLUMN public.steps_instance_sti.sti_id_predecessor IS 'Override pred
 
 
 --
--- TOC entry 4311 (class 0 OID 0)
--- Dependencies: 237
 -- Name: COLUMN steps_instance_sti.sti_name; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1629,8 +1429,6 @@ COMMENT ON COLUMN public.steps_instance_sti.sti_name IS 'Override name for the s
 
 
 --
--- TOC entry 4312 (class 0 OID 0)
--- Dependencies: 237
 -- Name: COLUMN steps_instance_sti.sti_description; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1638,8 +1436,6 @@ COMMENT ON COLUMN public.steps_instance_sti.sti_description IS 'Override descrip
 
 
 --
--- TOC entry 4313 (class 0 OID 0)
--- Dependencies: 237
 -- Name: COLUMN steps_instance_sti.sti_duration_minutes; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1647,8 +1443,6 @@ COMMENT ON COLUMN public.steps_instance_sti.sti_duration_minutes IS 'Override du
 
 
 --
--- TOC entry 4314 (class 0 OID 0)
--- Dependencies: 237
 -- Name: COLUMN steps_instance_sti.sti_status; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1656,7 +1450,6 @@ COMMENT ON COLUMN public.steps_instance_sti.sti_status IS 'Status ID referencing
 
 
 --
--- TOC entry 230 (class 1259 OID 82628)
 -- Name: steps_master_stm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1680,7 +1473,6 @@ CREATE TABLE public.steps_master_stm (
 
 
 --
--- TOC entry 231 (class 1259 OID 82663)
 -- Name: steps_master_stm_x_iteration_types_itt; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1691,7 +1483,6 @@ CREATE TABLE public.steps_master_stm_x_iteration_types_itt (
 
 
 --
--- TOC entry 243 (class 1259 OID 82898)
 -- Name: steps_master_stm_x_teams_tms_impacted; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1702,7 +1493,6 @@ CREATE TABLE public.steps_master_stm_x_teams_tms_impacted (
 
 
 --
--- TOC entry 275 (class 1259 OID 83503)
 -- Name: stg_import_entity_dependencies_ied; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1720,8 +1510,6 @@ CREATE TABLE public.stg_import_entity_dependencies_ied (
 
 
 --
--- TOC entry 4315 (class 0 OID 0)
--- Dependencies: 275
 -- Name: TABLE stg_import_entity_dependencies_ied; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1729,7 +1517,6 @@ COMMENT ON TABLE public.stg_import_entity_dependencies_ied IS 'US-034: Manages e
 
 
 --
--- TOC entry 274 (class 1259 OID 83502)
 -- Name: stg_import_entity_dependencies_ied_ied_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1743,8 +1530,6 @@ CREATE SEQUENCE public.stg_import_entity_dependencies_ied_ied_id_seq
 
 
 --
--- TOC entry 4316 (class 0 OID 0)
--- Dependencies: 274
 -- Name: stg_import_entity_dependencies_ied_ied_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1752,7 +1537,6 @@ ALTER SEQUENCE public.stg_import_entity_dependencies_ied_ied_id_seq OWNED BY pub
 
 
 --
--- TOC entry 269 (class 1259 OID 83437)
 -- Name: stg_import_orchestrations_ior; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1777,8 +1561,6 @@ CREATE TABLE public.stg_import_orchestrations_ior (
 
 
 --
--- TOC entry 4317 (class 0 OID 0)
--- Dependencies: 269
 -- Name: TABLE stg_import_orchestrations_ior; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1786,7 +1568,6 @@ COMMENT ON TABLE public.stg_import_orchestrations_ior IS 'US-034: Tracks complet
 
 
 --
--- TOC entry 271 (class 1259 OID 83456)
 -- Name: stg_import_progress_tracking_ipt; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1810,8 +1591,6 @@ CREATE TABLE public.stg_import_progress_tracking_ipt (
 
 
 --
--- TOC entry 4318 (class 0 OID 0)
--- Dependencies: 271
 -- Name: TABLE stg_import_progress_tracking_ipt; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1819,7 +1598,6 @@ COMMENT ON TABLE public.stg_import_progress_tracking_ipt IS 'US-034: Real-time p
 
 
 --
--- TOC entry 270 (class 1259 OID 83455)
 -- Name: stg_import_progress_tracking_ipt_ipt_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1833,8 +1611,6 @@ CREATE SEQUENCE public.stg_import_progress_tracking_ipt_ipt_id_seq
 
 
 --
--- TOC entry 4319 (class 0 OID 0)
--- Dependencies: 270
 -- Name: stg_import_progress_tracking_ipt_ipt_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1842,7 +1618,6 @@ ALTER SEQUENCE public.stg_import_progress_tracking_ipt_ipt_id_seq OWNED BY publi
 
 
 --
--- TOC entry 276 (class 1259 OID 83522)
 -- Name: stg_import_queue_management_iqm; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1869,8 +1644,6 @@ CREATE TABLE public.stg_import_queue_management_iqm (
 
 
 --
--- TOC entry 4320 (class 0 OID 0)
--- Dependencies: 276
 -- Name: TABLE stg_import_queue_management_iqm; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1878,7 +1651,6 @@ COMMENT ON TABLE public.stg_import_queue_management_iqm IS 'US-034: Manages conc
 
 
 --
--- TOC entry 278 (class 1259 OID 83543)
 -- Name: stg_import_resource_locks_irl; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1898,8 +1670,6 @@ CREATE TABLE public.stg_import_resource_locks_irl (
 
 
 --
--- TOC entry 4321 (class 0 OID 0)
--- Dependencies: 278
 -- Name: TABLE stg_import_resource_locks_irl; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1907,7 +1677,6 @@ COMMENT ON TABLE public.stg_import_resource_locks_irl IS 'US-034: Prevents resou
 
 
 --
--- TOC entry 277 (class 1259 OID 83542)
 -- Name: stg_import_resource_locks_irl_irl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1921,8 +1690,6 @@ CREATE SEQUENCE public.stg_import_resource_locks_irl_irl_id_seq
 
 
 --
--- TOC entry 4322 (class 0 OID 0)
--- Dependencies: 277
 -- Name: stg_import_resource_locks_irl_irl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1930,7 +1697,6 @@ ALTER SEQUENCE public.stg_import_resource_locks_irl_irl_id_seq OWNED BY public.s
 
 
 --
--- TOC entry 273 (class 1259 OID 83479)
 -- Name: stg_import_rollback_actions_ira; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1953,8 +1719,6 @@ CREATE TABLE public.stg_import_rollback_actions_ira (
 
 
 --
--- TOC entry 4323 (class 0 OID 0)
--- Dependencies: 273
 -- Name: TABLE stg_import_rollback_actions_ira; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -1962,7 +1726,6 @@ COMMENT ON TABLE public.stg_import_rollback_actions_ira IS 'US-034: Audit trail 
 
 
 --
--- TOC entry 272 (class 1259 OID 83478)
 -- Name: stg_import_rollback_actions_ira_ira_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1976,8 +1739,6 @@ CREATE SEQUENCE public.stg_import_rollback_actions_ira_ira_id_seq
 
 
 --
--- TOC entry 4324 (class 0 OID 0)
--- Dependencies: 272
 -- Name: stg_import_rollback_actions_ira_ira_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -1985,7 +1746,6 @@ ALTER SEQUENCE public.stg_import_rollback_actions_ira_ira_id_seq OWNED BY public
 
 
 --
--- TOC entry 288 (class 1259 OID 83647)
 -- Name: stg_orchestration_dependencies_od; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2000,8 +1760,6 @@ CREATE TABLE public.stg_orchestration_dependencies_od (
 
 
 --
--- TOC entry 4325 (class 0 OID 0)
--- Dependencies: 288
 -- Name: TABLE stg_orchestration_dependencies_od; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2009,7 +1767,6 @@ COMMENT ON TABLE public.stg_orchestration_dependencies_od IS 'US-034: Manages de
 
 
 --
--- TOC entry 287 (class 1259 OID 83646)
 -- Name: stg_orchestration_dependencies_od_od_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2023,8 +1780,6 @@ CREATE SEQUENCE public.stg_orchestration_dependencies_od_od_id_seq
 
 
 --
--- TOC entry 4326 (class 0 OID 0)
--- Dependencies: 287
 -- Name: stg_orchestration_dependencies_od_od_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2032,7 +1787,6 @@ ALTER SEQUENCE public.stg_orchestration_dependencies_od_od_id_seq OWNED BY publi
 
 
 --
--- TOC entry 282 (class 1259 OID 83594)
 -- Name: stg_schedule_execution_history_seh; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2052,8 +1806,6 @@ CREATE TABLE public.stg_schedule_execution_history_seh (
 
 
 --
--- TOC entry 4327 (class 0 OID 0)
--- Dependencies: 282
 -- Name: TABLE stg_schedule_execution_history_seh; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2061,7 +1813,6 @@ COMMENT ON TABLE public.stg_schedule_execution_history_seh IS 'US-034: Audit tra
 
 
 --
--- TOC entry 281 (class 1259 OID 83593)
 -- Name: stg_schedule_execution_history_seh_seh_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2075,8 +1826,6 @@ CREATE SEQUENCE public.stg_schedule_execution_history_seh_seh_id_seq
 
 
 --
--- TOC entry 4328 (class 0 OID 0)
--- Dependencies: 281
 -- Name: stg_schedule_execution_history_seh_seh_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2084,7 +1833,6 @@ ALTER SEQUENCE public.stg_schedule_execution_history_seh_seh_id_seq OWNED BY pub
 
 
 --
--- TOC entry 284 (class 1259 OID 83613)
 -- Name: stg_schedule_resource_reservations_srr; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2104,8 +1852,6 @@ CREATE TABLE public.stg_schedule_resource_reservations_srr (
 
 
 --
--- TOC entry 4329 (class 0 OID 0)
--- Dependencies: 284
 -- Name: TABLE stg_schedule_resource_reservations_srr; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2113,7 +1859,6 @@ COMMENT ON TABLE public.stg_schedule_resource_reservations_srr IS 'US-034: Resou
 
 
 --
--- TOC entry 283 (class 1259 OID 83612)
 -- Name: stg_schedule_resource_reservations_srr_srr_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2127,8 +1872,6 @@ CREATE SEQUENCE public.stg_schedule_resource_reservations_srr_srr_id_seq
 
 
 --
--- TOC entry 4330 (class 0 OID 0)
--- Dependencies: 283
 -- Name: stg_schedule_resource_reservations_srr_srr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2136,7 +1879,6 @@ ALTER SEQUENCE public.stg_schedule_resource_reservations_srr_srr_id_seq OWNED BY
 
 
 --
--- TOC entry 280 (class 1259 OID 83563)
 -- Name: stg_scheduled_import_schedules_sis; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2171,8 +1913,6 @@ CREATE TABLE public.stg_scheduled_import_schedules_sis (
 
 
 --
--- TOC entry 4331 (class 0 OID 0)
--- Dependencies: 280
 -- Name: TABLE stg_scheduled_import_schedules_sis; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2180,7 +1920,6 @@ COMMENT ON TABLE public.stg_scheduled_import_schedules_sis IS 'US-034: Manages s
 
 
 --
--- TOC entry 279 (class 1259 OID 83562)
 -- Name: stg_scheduled_import_schedules_sis_sis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2194,8 +1933,6 @@ CREATE SEQUENCE public.stg_scheduled_import_schedules_sis_sis_id_seq
 
 
 --
--- TOC entry 4332 (class 0 OID 0)
--- Dependencies: 279
 -- Name: stg_scheduled_import_schedules_sis_sis_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2203,7 +1940,6 @@ ALTER SEQUENCE public.stg_scheduled_import_schedules_sis_sis_id_seq OWNED BY pub
 
 
 --
--- TOC entry 262 (class 1259 OID 83119)
 -- Name: stg_step_instructions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2224,8 +1960,6 @@ CREATE TABLE public.stg_step_instructions (
 
 
 --
--- TOC entry 4333 (class 0 OID 0)
--- Dependencies: 262
 -- Name: TABLE stg_step_instructions; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2233,8 +1967,6 @@ COMMENT ON TABLE public.stg_step_instructions IS 'Staging: instructions détaill
 
 
 --
--- TOC entry 4334 (class 0 OID 0)
--- Dependencies: 262
 -- Name: COLUMN stg_step_instructions.nominated_user; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2242,8 +1974,6 @@ COMMENT ON COLUMN public.stg_step_instructions.nominated_user IS 'User nominated
 
 
 --
--- TOC entry 4335 (class 0 OID 0)
--- Dependencies: 262
 -- Name: COLUMN stg_step_instructions.instruction_assigned_team; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2251,8 +1981,6 @@ COMMENT ON COLUMN public.stg_step_instructions.instruction_assigned_team IS 'Tea
 
 
 --
--- TOC entry 4336 (class 0 OID 0)
--- Dependencies: 262
 -- Name: COLUMN stg_step_instructions.associated_controls; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2260,8 +1988,6 @@ COMMENT ON COLUMN public.stg_step_instructions.associated_controls IS 'Control r
 
 
 --
--- TOC entry 4337 (class 0 OID 0)
--- Dependencies: 262
 -- Name: COLUMN stg_step_instructions.duration_minutes; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2269,8 +1995,6 @@ COMMENT ON COLUMN public.stg_step_instructions.duration_minutes IS 'Estimated du
 
 
 --
--- TOC entry 4338 (class 0 OID 0)
--- Dependencies: 262
 -- Name: COLUMN stg_step_instructions.instruction_order; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2278,7 +2002,6 @@ COMMENT ON COLUMN public.stg_step_instructions.instruction_order IS 'Order of in
 
 
 --
--- TOC entry 261 (class 1259 OID 83118)
 -- Name: stg_step_instructions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2293,7 +2016,6 @@ ALTER TABLE public.stg_step_instructions ALTER COLUMN id ADD GENERATED BY DEFAUL
 
 
 --
--- TOC entry 260 (class 1259 OID 83109)
 -- Name: stg_steps; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2319,8 +2041,6 @@ CREATE TABLE public.stg_steps (
 
 
 --
--- TOC entry 4339 (class 0 OID 0)
--- Dependencies: 260
 -- Name: TABLE stg_steps; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2328,8 +2048,6 @@ COMMENT ON TABLE public.stg_steps IS 'Staging: informations principales de chaqu
 
 
 --
--- TOC entry 4340 (class 0 OID 0)
--- Dependencies: 260
 -- Name: COLUMN stg_steps.step_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2337,7 +2055,6 @@ COMMENT ON COLUMN public.stg_steps.step_type IS 'Three-character step type code 
 
 
 --
--- TOC entry 286 (class 1259 OID 83631)
 -- Name: stg_tenant_resource_limits_trl; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2358,8 +2075,6 @@ CREATE TABLE public.stg_tenant_resource_limits_trl (
 
 
 --
--- TOC entry 4341 (class 0 OID 0)
--- Dependencies: 286
 -- Name: TABLE stg_tenant_resource_limits_trl; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2367,7 +2082,6 @@ COMMENT ON TABLE public.stg_tenant_resource_limits_trl IS 'US-034: Multi-tenant 
 
 
 --
--- TOC entry 285 (class 1259 OID 83630)
 -- Name: stg_tenant_resource_limits_trl_trl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2381,8 +2095,6 @@ CREATE SEQUENCE public.stg_tenant_resource_limits_trl_trl_id_seq
 
 
 --
--- TOC entry 4342 (class 0 OID 0)
--- Dependencies: 285
 -- Name: stg_tenant_resource_limits_trl_trl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2390,7 +2102,6 @@ ALTER SEQUENCE public.stg_tenant_resource_limits_trl_trl_id_seq OWNED BY public.
 
 
 --
--- TOC entry 266 (class 1259 OID 83368)
 -- Name: system_configuration_scf; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2413,8 +2124,6 @@ CREATE TABLE public.system_configuration_scf (
 
 
 --
--- TOC entry 4343 (class 0 OID 0)
--- Dependencies: 266
 -- Name: TABLE system_configuration_scf; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2422,8 +2131,6 @@ COMMENT ON TABLE public.system_configuration_scf IS 'Central configuration table
 
 
 --
--- TOC entry 4344 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_key; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2431,8 +2138,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_key IS 'Unique configurati
 
 
 --
--- TOC entry 4345 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_category; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2440,8 +2145,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_category IS 'Configuration
 
 
 --
--- TOC entry 4346 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_value; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2449,8 +2152,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_value IS 'Configuration va
 
 
 --
--- TOC entry 4347 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_is_system_managed; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2458,8 +2159,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_is_system_managed IS 'TRUE
 
 
 --
--- TOC entry 4348 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_data_type; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2467,8 +2166,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_data_type IS 'Expected dat
 
 
 --
--- TOC entry 4349 (class 0 OID 0)
--- Dependencies: 266
 -- Name: COLUMN system_configuration_scf.scf_validation_pattern; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2476,7 +2173,6 @@ COMMENT ON COLUMN public.system_configuration_scf.scf_validation_pattern IS 'Reg
 
 
 --
--- TOC entry 218 (class 1259 OID 82478)
 -- Name: teams_tms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2493,8 +2189,6 @@ CREATE TABLE public.teams_tms (
 
 
 --
--- TOC entry 4350 (class 0 OID 0)
--- Dependencies: 218
 -- Name: COLUMN teams_tms.created_by; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2502,8 +2196,6 @@ COMMENT ON COLUMN public.teams_tms.created_by IS 'User trigram (usr_code) or sys
 
 
 --
--- TOC entry 4351 (class 0 OID 0)
--- Dependencies: 218
 -- Name: COLUMN teams_tms.created_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2511,8 +2203,6 @@ COMMENT ON COLUMN public.teams_tms.created_at IS 'Timestamp when record was crea
 
 
 --
--- TOC entry 4352 (class 0 OID 0)
--- Dependencies: 218
 -- Name: COLUMN teams_tms.updated_by; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2520,8 +2210,6 @@ COMMENT ON COLUMN public.teams_tms.updated_by IS 'User trigram (usr_code) who la
 
 
 --
--- TOC entry 4353 (class 0 OID 0)
--- Dependencies: 218
 -- Name: COLUMN teams_tms.updated_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2529,7 +2217,6 @@ COMMENT ON COLUMN public.teams_tms.updated_at IS 'Timestamp when record was last
 
 
 --
--- TOC entry 217 (class 1259 OID 82477)
 -- Name: teams_tms_tms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2543,8 +2230,6 @@ CREATE SEQUENCE public.teams_tms_tms_id_seq
 
 
 --
--- TOC entry 4354 (class 0 OID 0)
--- Dependencies: 217
 -- Name: teams_tms_tms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2552,7 +2237,6 @@ ALTER SEQUENCE public.teams_tms_tms_id_seq OWNED BY public.teams_tms.tms_id;
 
 
 --
--- TOC entry 240 (class 1259 OID 82848)
 -- Name: teams_tms_x_applications_app; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2564,8 +2248,6 @@ CREATE TABLE public.teams_tms_x_applications_app (
 
 
 --
--- TOC entry 4355 (class 0 OID 0)
--- Dependencies: 240
 -- Name: TABLE teams_tms_x_applications_app; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2573,7 +2255,6 @@ COMMENT ON TABLE public.teams_tms_x_applications_app IS 'TIER 2 ASSOCIATION: Tea
 
 
 --
--- TOC entry 257 (class 1259 OID 83049)
 -- Name: teams_tms_x_users_usr; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2587,8 +2268,6 @@ CREATE TABLE public.teams_tms_x_users_usr (
 
 
 --
--- TOC entry 4356 (class 0 OID 0)
--- Dependencies: 257
 -- Name: TABLE teams_tms_x_users_usr; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2596,8 +2275,6 @@ COMMENT ON TABLE public.teams_tms_x_users_usr IS 'TIER 1 ASSOCIATION: User-Team 
 
 
 --
--- TOC entry 4357 (class 0 OID 0)
--- Dependencies: 257
 -- Name: COLUMN teams_tms_x_users_usr.tms_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2605,8 +2282,6 @@ COMMENT ON COLUMN public.teams_tms_x_users_usr.tms_id IS 'References teams_tms (
 
 
 --
--- TOC entry 4358 (class 0 OID 0)
--- Dependencies: 257
 -- Name: COLUMN teams_tms_x_users_usr.usr_id; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2614,7 +2289,6 @@ COMMENT ON COLUMN public.teams_tms_x_users_usr.usr_id IS 'References users_usr (
 
 
 --
--- TOC entry 256 (class 1259 OID 83048)
 -- Name: teams_tms_x_users_usr_tms_x_usr_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2628,8 +2302,6 @@ CREATE SEQUENCE public.teams_tms_x_users_usr_tms_x_usr_id_seq
 
 
 --
--- TOC entry 4359 (class 0 OID 0)
--- Dependencies: 256
 -- Name: teams_tms_x_users_usr_tms_x_usr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2637,7 +2309,6 @@ ALTER SEQUENCE public.teams_tms_x_users_usr_tms_x_usr_id_seq OWNED BY public.tea
 
 
 --
--- TOC entry 220 (class 1259 OID 82489)
 -- Name: users_usr; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2659,8 +2330,6 @@ CREATE TABLE public.users_usr (
 
 
 --
--- TOC entry 4360 (class 0 OID 0)
--- Dependencies: 220
 -- Name: COLUMN users_usr.usr_active; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2668,8 +2337,6 @@ COMMENT ON COLUMN public.users_usr.usr_active IS 'Indicates whether the user acc
 
 
 --
--- TOC entry 4361 (class 0 OID 0)
--- Dependencies: 220
 -- Name: COLUMN users_usr.created_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2677,8 +2344,6 @@ COMMENT ON COLUMN public.users_usr.created_at IS 'Timestamp when record was crea
 
 
 --
--- TOC entry 4362 (class 0 OID 0)
--- Dependencies: 220
 -- Name: COLUMN users_usr.updated_at; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2686,8 +2351,6 @@ COMMENT ON COLUMN public.users_usr.updated_at IS 'Timestamp when record was last
 
 
 --
--- TOC entry 4363 (class 0 OID 0)
--- Dependencies: 220
 -- Name: COLUMN users_usr.created_by; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2695,8 +2358,6 @@ COMMENT ON COLUMN public.users_usr.created_by IS 'User trigram (usr_code) or sys
 
 
 --
--- TOC entry 4364 (class 0 OID 0)
--- Dependencies: 220
 -- Name: COLUMN users_usr.updated_by; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2704,7 +2365,6 @@ COMMENT ON COLUMN public.users_usr.updated_by IS 'User trigram (usr_code) who la
 
 
 --
--- TOC entry 219 (class 1259 OID 82488)
 -- Name: users_usr_usr_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2718,8 +2378,6 @@ CREATE SEQUENCE public.users_usr_usr_id_seq
 
 
 --
--- TOC entry 4365 (class 0 OID 0)
--- Dependencies: 219
 -- Name: users_usr_usr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -2727,7 +2385,6 @@ ALTER SEQUENCE public.users_usr_usr_id_seq OWNED BY public.users_usr.usr_id;
 
 
 --
--- TOC entry 268 (class 1259 OID 83432)
 -- Name: v_staging_validation; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -2750,8 +2407,6 @@ CREATE VIEW public.v_staging_validation AS
 
 
 --
--- TOC entry 4366 (class 0 OID 0)
--- Dependencies: 268
 -- Name: VIEW v_staging_validation; Type: COMMENT; Schema: public; Owner: -
 --
 
@@ -2759,7 +2414,6 @@ COMMENT ON VIEW public.v_staging_validation IS 'Validation view for staging data
 
 
 --
--- TOC entry 3501 (class 2604 OID 82448)
 -- Name: applications_app app_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2767,7 +2421,6 @@ ALTER TABLE ONLY public.applications_app ALTER COLUMN app_id SET DEFAULT nextval
 
 
 --
--- TOC entry 3618 (class 2604 OID 82917)
 -- Name: audit_log_aud aud_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2775,7 +2428,6 @@ ALTER TABLE ONLY public.audit_log_aud ALTER COLUMN aud_id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 3561 (class 2604 OID 82616)
 -- Name: environment_roles_enr enr_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2783,7 +2435,6 @@ ALTER TABLE ONLY public.environment_roles_enr ALTER COLUMN enr_id SET DEFAULT ne
 
 
 --
--- TOC entry 3506 (class 2604 OID 82459)
 -- Name: environments_env env_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2791,7 +2442,6 @@ ALTER TABLE ONLY public.environments_env ALTER COLUMN env_id SET DEFAULT nextval
 
 
 --
--- TOC entry 3625 (class 2604 OID 82985)
 -- Name: labels_lbl lbl_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2799,7 +2449,6 @@ ALTER TABLE ONLY public.labels_lbl ALTER COLUMN lbl_id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3633 (class 2604 OID 83032)
 -- Name: labels_lbl_x_applications_app lbl_x_app_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2807,7 +2456,6 @@ ALTER TABLE ONLY public.labels_lbl_x_applications_app ALTER COLUMN lbl_x_app_id 
 
 
 --
--- TOC entry 3639 (class 2604 OID 83074)
 -- Name: labels_lbl_x_controls_master_ctm lbl_x_ctm_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2815,7 +2463,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm ALTER COLUMN lbl_x_ctm_
 
 
 --
--- TOC entry 3631 (class 2604 OID 83002)
 -- Name: labels_lbl_x_steps_master_stm lbl_x_stm_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2823,7 +2470,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm ALTER COLUMN lbl_x_stm_id 
 
 
 --
--- TOC entry 3760 (class 2604 OID 83670)
 -- Name: migration_types_mit mit_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2831,7 +2477,6 @@ ALTER TABLE ONLY public.migration_types_mit ALTER COLUMN mit_id SET DEFAULT next
 
 
 --
--- TOC entry 3511 (class 2604 OID 82470)
 -- Name: roles_rls rls_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2839,7 +2484,6 @@ ALTER TABLE ONLY public.roles_rls ALTER COLUMN rls_id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3653 (class 2604 OID 83181)
 -- Name: status_sts sts_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2847,7 +2491,6 @@ ALTER TABLE ONLY public.status_sts ALTER COLUMN sts_id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3623 (class 2604 OID 82959)
 -- Name: step_instance_comments_sic sic_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2855,7 +2498,6 @@ ALTER TABLE ONLY public.step_instance_comments_sic ALTER COLUMN sic_id SET DEFAU
 
 
 --
--- TOC entry 3620 (class 2604 OID 82932)
 -- Name: step_pilot_comments_spc spc_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2863,7 +2505,6 @@ ALTER TABLE ONLY public.step_pilot_comments_spc ALTER COLUMN spc_id SET DEFAULT 
 
 
 --
--- TOC entry 3700 (class 2604 OID 83506)
 -- Name: stg_import_entity_dependencies_ied ied_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2871,7 +2512,6 @@ ALTER TABLE ONLY public.stg_import_entity_dependencies_ied ALTER COLUMN ied_id S
 
 
 --
--- TOC entry 3688 (class 2604 OID 83459)
 -- Name: stg_import_progress_tracking_ipt ipt_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2879,7 +2519,6 @@ ALTER TABLE ONLY public.stg_import_progress_tracking_ipt ALTER COLUMN ipt_id SET
 
 
 --
--- TOC entry 3713 (class 2604 OID 83546)
 -- Name: stg_import_resource_locks_irl irl_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2887,7 +2526,6 @@ ALTER TABLE ONLY public.stg_import_resource_locks_irl ALTER COLUMN irl_id SET DE
 
 
 --
--- TOC entry 3695 (class 2604 OID 83482)
 -- Name: stg_import_rollback_actions_ira ira_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2895,7 +2533,6 @@ ALTER TABLE ONLY public.stg_import_rollback_actions_ira ALTER COLUMN ira_id SET 
 
 
 --
--- TOC entry 3755 (class 2604 OID 83650)
 -- Name: stg_orchestration_dependencies_od od_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2903,7 +2540,6 @@ ALTER TABLE ONLY public.stg_orchestration_dependencies_od ALTER COLUMN od_id SET
 
 
 --
--- TOC entry 3737 (class 2604 OID 83597)
 -- Name: stg_schedule_execution_history_seh seh_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2911,7 +2547,6 @@ ALTER TABLE ONLY public.stg_schedule_execution_history_seh ALTER COLUMN seh_id S
 
 
 --
--- TOC entry 3741 (class 2604 OID 83616)
 -- Name: stg_schedule_resource_reservations_srr srr_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2919,7 +2554,6 @@ ALTER TABLE ONLY public.stg_schedule_resource_reservations_srr ALTER COLUMN srr_
 
 
 --
--- TOC entry 3719 (class 2604 OID 83566)
 -- Name: stg_scheduled_import_schedules_sis sis_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2927,7 +2561,6 @@ ALTER TABLE ONLY public.stg_scheduled_import_schedules_sis ALTER COLUMN sis_id S
 
 
 --
--- TOC entry 3747 (class 2604 OID 83634)
 -- Name: stg_tenant_resource_limits_trl trl_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2935,7 +2568,6 @@ ALTER TABLE ONLY public.stg_tenant_resource_limits_trl ALTER COLUMN trl_id SET D
 
 
 --
--- TOC entry 3516 (class 2604 OID 82481)
 -- Name: teams_tms tms_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2943,7 +2575,6 @@ ALTER TABLE ONLY public.teams_tms ALTER COLUMN tms_id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3636 (class 2604 OID 83052)
 -- Name: teams_tms_x_users_usr tms_x_usr_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2951,7 +2582,6 @@ ALTER TABLE ONLY public.teams_tms_x_users_usr ALTER COLUMN tms_x_usr_id SET DEFA
 
 
 --
--- TOC entry 3521 (class 2604 OID 82492)
 -- Name: users_usr usr_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2959,7 +2589,6 @@ ALTER TABLE ONLY public.users_usr ALTER COLUMN usr_id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3768 (class 2606 OID 82454)
 -- Name: applications_app applications_app_app_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2968,7 +2597,6 @@ ALTER TABLE ONLY public.applications_app
 
 
 --
--- TOC entry 3770 (class 2606 OID 82452)
 -- Name: applications_app applications_app_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2977,7 +2605,6 @@ ALTER TABLE ONLY public.applications_app
 
 
 --
--- TOC entry 3867 (class 2606 OID 82922)
 -- Name: audit_log_aud audit_log_aud_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2986,7 +2613,6 @@ ALTER TABLE ONLY public.audit_log_aud
 
 
 --
--- TOC entry 3855 (class 2606 OID 82827)
 -- Name: controls_instance_cti controls_instance_cti_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2995,7 +2621,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 3828 (class 2606 OID 82686)
 -- Name: controls_master_ctm controls_master_ctm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3004,7 +2629,6 @@ ALTER TABLE ONLY public.controls_master_ctm
 
 
 --
--- TOC entry 3766 (class 2606 OID 82443)
 -- Name: databasechangeloglock databasechangeloglock_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3013,7 +2637,6 @@ ALTER TABLE ONLY public.databasechangeloglock
 
 
 --
--- TOC entry 3903 (class 2606 OID 83162)
 -- Name: email_templates_emt email_templates_emt_emt_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3022,7 +2645,6 @@ ALTER TABLE ONLY public.email_templates_emt
 
 
 --
--- TOC entry 3905 (class 2606 OID 83160)
 -- Name: email_templates_emt email_templates_emt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3031,7 +2653,6 @@ ALTER TABLE ONLY public.email_templates_emt
 
 
 --
--- TOC entry 3814 (class 2606 OID 82622)
 -- Name: environment_roles_enr environment_roles_enr_enr_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3040,7 +2661,6 @@ ALTER TABLE ONLY public.environment_roles_enr
 
 
 --
--- TOC entry 3816 (class 2606 OID 82620)
 -- Name: environment_roles_enr environment_roles_enr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3049,7 +2669,6 @@ ALTER TABLE ONLY public.environment_roles_enr
 
 
 --
--- TOC entry 3773 (class 2606 OID 82465)
 -- Name: environments_env environments_env_env_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3058,7 +2677,6 @@ ALTER TABLE ONLY public.environments_env
 
 
 --
--- TOC entry 3775 (class 2606 OID 82463)
 -- Name: environments_env environments_env_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3067,7 +2685,6 @@ ALTER TABLE ONLY public.environments_env
 
 
 --
--- TOC entry 3861 (class 2606 OID 82867)
 -- Name: environments_env_x_applications_app environments_env_x_applications_app_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3076,7 +2693,6 @@ ALTER TABLE ONLY public.environments_env_x_applications_app
 
 
 --
--- TOC entry 3863 (class 2606 OID 82882)
 -- Name: environments_env_x_iterations_ite environments_env_x_iterations_ite_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3085,7 +2701,6 @@ ALTER TABLE ONLY public.environments_env_x_iterations_ite
 
 
 --
--- TOC entry 3927 (class 2606 OID 83428)
 -- Name: import_batches_imb import_batches_imb_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3094,7 +2709,6 @@ ALTER TABLE ONLY public.import_batches_imb
 
 
 --
--- TOC entry 3853 (class 2606 OID 82806)
 -- Name: instructions_instance_ini instructions_instance_ini_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3103,7 +2717,6 @@ ALTER TABLE ONLY public.instructions_instance_ini
 
 
 --
--- TOC entry 3834 (class 2606 OID 82699)
 -- Name: instructions_master_inm instructions_master_inm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3112,7 +2725,6 @@ ALTER TABLE ONLY public.instructions_master_inm
 
 
 --
--- TOC entry 3803 (class 2606 OID 82548)
 -- Name: iteration_types_itt iteration_types_itt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3121,7 +2733,6 @@ ALTER TABLE ONLY public.iteration_types_itt
 
 
 --
--- TOC entry 3806 (class 2606 OID 82560)
 -- Name: iterations_ite iterations_ite_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3130,7 +2741,6 @@ ALTER TABLE ONLY public.iterations_ite
 
 
 --
--- TOC entry 3876 (class 2606 OID 82990)
 -- Name: labels_lbl labels_lbl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3139,7 +2749,6 @@ ALTER TABLE ONLY public.labels_lbl
 
 
 --
--- TOC entry 3884 (class 2606 OID 83035)
 -- Name: labels_lbl_x_applications_app labels_lbl_x_applications_app_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3148,7 +2757,6 @@ ALTER TABLE ONLY public.labels_lbl_x_applications_app
 
 
 --
--- TOC entry 3892 (class 2606 OID 83077)
 -- Name: labels_lbl_x_controls_master_ctm labels_lbl_x_controls_master_ctm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3157,7 +2765,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 3880 (class 2606 OID 83005)
 -- Name: labels_lbl_x_steps_master_stm labels_lbl_x_steps_master_stm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3166,7 +2773,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 3981 (class 2606 OID 83682)
 -- Name: migration_types_mit migration_types_mit_mit_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3175,7 +2781,6 @@ ALTER TABLE ONLY public.migration_types_mit
 
 
 --
--- TOC entry 3983 (class 2606 OID 83680)
 -- Name: migration_types_mit migration_types_mit_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3184,7 +2789,6 @@ ALTER TABLE ONLY public.migration_types_mit
 
 
 --
--- TOC entry 3799 (class 2606 OID 82538)
 -- Name: migrations_mig migrations_mig_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3193,7 +2797,6 @@ ALTER TABLE ONLY public.migrations_mig
 
 
 --
--- TOC entry 3845 (class 2606 OID 82763)
 -- Name: phases_instance_phi phases_instance_phi_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3202,7 +2805,6 @@ ALTER TABLE ONLY public.phases_instance_phi
 
 
 --
--- TOC entry 3812 (class 2606 OID 82601)
 -- Name: phases_master_phm phases_master_phm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3211,7 +2813,6 @@ ALTER TABLE ONLY public.phases_master_phm
 
 
 --
--- TOC entry 3826 (class 2606 OID 82667)
 -- Name: steps_master_stm_x_iteration_types_itt pk_stm_itt; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3220,7 +2821,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_iteration_types_itt
 
 
 --
--- TOC entry 3865 (class 2606 OID 82902)
 -- Name: steps_master_stm_x_teams_tms_impacted pk_stm_tms_impacted; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3229,7 +2829,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_teams_tms_impacted
 
 
 --
--- TOC entry 3837 (class 2606 OID 82726)
 -- Name: plans_instance_pli plans_instance_pli_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3238,7 +2837,6 @@ ALTER TABLE ONLY public.plans_instance_pli
 
 
 --
--- TOC entry 3796 (class 2606 OID 82521)
 -- Name: plans_master_plm plans_master_plm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3247,7 +2845,6 @@ ALTER TABLE ONLY public.plans_master_plm
 
 
 --
--- TOC entry 3778 (class 2606 OID 82474)
 -- Name: roles_rls roles_rls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3256,7 +2853,6 @@ ALTER TABLE ONLY public.roles_rls
 
 
 --
--- TOC entry 3780 (class 2606 OID 82476)
 -- Name: roles_rls roles_rls_rls_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3265,7 +2861,6 @@ ALTER TABLE ONLY public.roles_rls
 
 
 --
--- TOC entry 3841 (class 2606 OID 82747)
 -- Name: sequences_instance_sqi sequences_instance_sqi_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3274,7 +2869,6 @@ ALTER TABLE ONLY public.sequences_instance_sqi
 
 
 --
--- TOC entry 3809 (class 2606 OID 82583)
 -- Name: sequences_master_sqm sequences_master_sqm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3283,7 +2877,6 @@ ALTER TABLE ONLY public.sequences_master_sqm
 
 
 --
--- TOC entry 3911 (class 2606 OID 83189)
 -- Name: status_sts status_sts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3292,7 +2885,6 @@ ALTER TABLE ONLY public.status_sts
 
 
 --
--- TOC entry 3873 (class 2606 OID 82964)
 -- Name: step_instance_comments_sic step_instance_comments_sic_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3301,7 +2893,6 @@ ALTER TABLE ONLY public.step_instance_comments_sic
 
 
 --
--- TOC entry 3870 (class 2606 OID 82938)
 -- Name: step_pilot_comments_spc step_pilot_comments_spc_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3310,7 +2901,6 @@ ALTER TABLE ONLY public.step_pilot_comments_spc
 
 
 --
--- TOC entry 3818 (class 2606 OID 82627)
 -- Name: step_types_stt step_types_stt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3319,7 +2909,6 @@ ALTER TABLE ONLY public.step_types_stt
 
 
 --
--- TOC entry 3850 (class 2606 OID 82779)
 -- Name: steps_instance_sti steps_instance_sti_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3328,7 +2917,6 @@ ALTER TABLE ONLY public.steps_instance_sti
 
 
 --
--- TOC entry 3822 (class 2606 OID 82637)
 -- Name: steps_master_stm steps_master_stm_phm_id_stt_code_stm_number_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3337,7 +2925,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 3824 (class 2606 OID 82635)
 -- Name: steps_master_stm steps_master_stm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3346,7 +2933,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 3939 (class 2606 OID 83515)
 -- Name: stg_import_entity_dependencies_ied stg_import_entity_dependencies_ied_ied_entity_type_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3355,7 +2941,6 @@ ALTER TABLE ONLY public.stg_import_entity_dependencies_ied
 
 
 --
--- TOC entry 3941 (class 2606 OID 83513)
 -- Name: stg_import_entity_dependencies_ied stg_import_entity_dependencies_ied_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3364,7 +2949,6 @@ ALTER TABLE ONLY public.stg_import_entity_dependencies_ied
 
 
 --
--- TOC entry 3931 (class 2606 OID 83452)
 -- Name: stg_import_orchestrations_ior stg_import_orchestrations_ior_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3373,7 +2957,6 @@ ALTER TABLE ONLY public.stg_import_orchestrations_ior
 
 
 --
--- TOC entry 3934 (class 2606 OID 83471)
 -- Name: stg_import_progress_tracking_ipt stg_import_progress_tracking_ipt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3382,7 +2965,6 @@ ALTER TABLE ONLY public.stg_import_progress_tracking_ipt
 
 
 --
--- TOC entry 3945 (class 2606 OID 83539)
 -- Name: stg_import_queue_management_iqm stg_import_queue_management_iqm_iqm_request_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3391,7 +2973,6 @@ ALTER TABLE ONLY public.stg_import_queue_management_iqm
 
 
 --
--- TOC entry 3947 (class 2606 OID 83537)
 -- Name: stg_import_queue_management_iqm stg_import_queue_management_iqm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3400,7 +2981,6 @@ ALTER TABLE ONLY public.stg_import_queue_management_iqm
 
 
 --
--- TOC entry 3950 (class 2606 OID 83553)
 -- Name: stg_import_resource_locks_irl stg_import_resource_locks_irl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3409,7 +2989,6 @@ ALTER TABLE ONLY public.stg_import_resource_locks_irl
 
 
 --
--- TOC entry 3937 (class 2606 OID 83490)
 -- Name: stg_import_rollback_actions_ira stg_import_rollback_actions_ira_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3418,7 +2997,6 @@ ALTER TABLE ONLY public.stg_import_rollback_actions_ira
 
 
 --
--- TOC entry 3974 (class 2606 OID 83654)
 -- Name: stg_orchestration_dependencies_od stg_orchestration_dependencies_od_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3427,7 +3005,6 @@ ALTER TABLE ONLY public.stg_orchestration_dependencies_od
 
 
 --
--- TOC entry 3963 (class 2606 OID 83604)
 -- Name: stg_schedule_execution_history_seh stg_schedule_execution_history_seh_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3436,7 +3013,6 @@ ALTER TABLE ONLY public.stg_schedule_execution_history_seh
 
 
 --
--- TOC entry 3966 (class 2606 OID 83623)
 -- Name: stg_schedule_resource_reservations_srr stg_schedule_resource_reservations_srr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3445,7 +3021,6 @@ ALTER TABLE ONLY public.stg_schedule_resource_reservations_srr
 
 
 --
--- TOC entry 3957 (class 2606 OID 83587)
 -- Name: stg_scheduled_import_schedules_sis stg_scheduled_import_schedules_sis_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3454,7 +3029,6 @@ ALTER TABLE ONLY public.stg_scheduled_import_schedules_sis
 
 
 --
--- TOC entry 3959 (class 2606 OID 83589)
 -- Name: stg_scheduled_import_schedules_sis stg_scheduled_import_schedules_sis_sis_schedule_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3463,7 +3037,6 @@ ALTER TABLE ONLY public.stg_scheduled_import_schedules_sis
 
 
 --
--- TOC entry 3899 (class 2606 OID 83127)
 -- Name: stg_step_instructions stg_step_instructions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3472,7 +3045,6 @@ ALTER TABLE ONLY public.stg_step_instructions
 
 
 --
--- TOC entry 3897 (class 2606 OID 83117)
 -- Name: stg_steps stg_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3481,7 +3053,6 @@ ALTER TABLE ONLY public.stg_steps
 
 
 --
--- TOC entry 3968 (class 2606 OID 83643)
 -- Name: stg_tenant_resource_limits_trl stg_tenant_resource_limits_trl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3490,7 +3061,6 @@ ALTER TABLE ONLY public.stg_tenant_resource_limits_trl
 
 
 --
--- TOC entry 3919 (class 2606 OID 83382)
 -- Name: system_configuration_scf system_configuration_scf_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3499,7 +3069,6 @@ ALTER TABLE ONLY public.system_configuration_scf
 
 
 --
--- TOC entry 3783 (class 2606 OID 82485)
 -- Name: teams_tms teams_tms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3508,7 +3077,6 @@ ALTER TABLE ONLY public.teams_tms
 
 
 --
--- TOC entry 3785 (class 2606 OID 82487)
 -- Name: teams_tms teams_tms_tms_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3517,7 +3085,6 @@ ALTER TABLE ONLY public.teams_tms
 
 
 --
--- TOC entry 3859 (class 2606 OID 82852)
 -- Name: teams_tms_x_applications_app teams_tms_x_applications_app_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3526,7 +3093,6 @@ ALTER TABLE ONLY public.teams_tms_x_applications_app
 
 
 --
--- TOC entry 3888 (class 2606 OID 83055)
 -- Name: teams_tms_x_users_usr teams_tms_x_users_usr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3535,7 +3101,6 @@ ALTER TABLE ONLY public.teams_tms_x_users_usr
 
 
 --
--- TOC entry 3952 (class 2606 OID 83555)
 -- Name: stg_import_resource_locks_irl uk_irl_resource_request; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3544,7 +3109,6 @@ ALTER TABLE ONLY public.stg_import_resource_locks_irl
 
 
 --
--- TOC entry 3976 (class 2606 OID 83656)
 -- Name: stg_orchestration_dependencies_od uk_od_orchestration_dependency; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3553,7 +3117,6 @@ ALTER TABLE ONLY public.stg_orchestration_dependencies_od
 
 
 --
--- TOC entry 3901 (class 2606 OID 83409)
 -- Name: stg_step_instructions uk_stg_step_instructions_step_instruction; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3562,7 +3125,6 @@ ALTER TABLE ONLY public.stg_step_instructions
 
 
 --
--- TOC entry 3970 (class 2606 OID 83645)
 -- Name: stg_tenant_resource_limits_trl uk_trl_tenant_resource; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3571,7 +3133,6 @@ ALTER TABLE ONLY public.stg_tenant_resource_limits_trl
 
 
 --
--- TOC entry 3921 (class 2606 OID 83384)
 -- Name: system_configuration_scf unique_scf_key_per_env; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3580,7 +3141,6 @@ ALTER TABLE ONLY public.system_configuration_scf
 
 
 --
--- TOC entry 3831 (class 2606 OID 83069)
 -- Name: controls_master_ctm uq_ctm_code; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3589,7 +3149,6 @@ ALTER TABLE ONLY public.controls_master_ctm
 
 
 --
--- TOC entry 3878 (class 2606 OID 82992)
 -- Name: labels_lbl uq_labels_lbl_mig_id_lbl_name; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3598,7 +3157,6 @@ ALTER TABLE ONLY public.labels_lbl
 
 
 --
--- TOC entry 3894 (class 2606 OID 83079)
 -- Name: labels_lbl_x_controls_master_ctm uq_labels_lbl_x_controls_master_ctm_lbl_id_ctm_id; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3607,7 +3165,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 3882 (class 2606 OID 83007)
 -- Name: labels_lbl_x_steps_master_stm uq_labels_lbl_x_steps_master_stm_lbl_id_stm_id; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3616,7 +3173,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 3886 (class 2606 OID 83037)
 -- Name: labels_lbl_x_applications_app uq_lbl_x_app; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3625,7 +3181,6 @@ ALTER TABLE ONLY public.labels_lbl_x_applications_app
 
 
 --
--- TOC entry 3913 (class 2606 OID 83191)
 -- Name: status_sts uq_status_sts_name_type; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3634,7 +3189,6 @@ ALTER TABLE ONLY public.status_sts
 
 
 --
--- TOC entry 3890 (class 2606 OID 83057)
 -- Name: teams_tms_x_users_usr uq_tms_x_usr; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3643,7 +3197,6 @@ ALTER TABLE ONLY public.teams_tms_x_users_usr
 
 
 --
--- TOC entry 3789 (class 2606 OID 82495)
 -- Name: users_usr users_usr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3652,7 +3205,6 @@ ALTER TABLE ONLY public.users_usr
 
 
 --
--- TOC entry 3791 (class 2606 OID 82497)
 -- Name: users_usr users_usr_usr_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3661,7 +3213,6 @@ ALTER TABLE ONLY public.users_usr
 
 
 --
--- TOC entry 3793 (class 2606 OID 82499)
 -- Name: users_usr users_usr_usr_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3670,7 +3221,6 @@ ALTER TABLE ONLY public.users_usr
 
 
 --
--- TOC entry 3771 (class 1259 OID 83299)
 -- Name: idx_app_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3678,7 +3228,244 @@ CREATE INDEX idx_app_audit ON public.applications_app USING btree (created_at);
 
 
 --
--- TOC entry 3856 (class 1259 OID 83367)
+-- Name: idx_applications_app_code_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_app_code_lookup ON public.applications_app USING btree (app_code);
+
+
+--
+-- Name: INDEX idx_applications_app_code_lookup; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_app_code_lookup IS 'Primary performance index for application code lookups - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_app_name_search; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_app_name_search ON public.applications_app USING btree (upper((app_name)::text));
+
+
+--
+-- Name: INDEX idx_applications_app_name_search; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_app_name_search IS 'Performance index for application name searches - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_count_optimization; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_count_optimization ON public.applications_app USING btree (app_id) INCLUDE (app_code, app_name);
+
+
+--
+-- Name: INDEX idx_applications_count_optimization; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_count_optimization IS 'Performance index for application count queries - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_detail_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_detail_lookup ON public.applications_app USING btree (app_id) INCLUDE (app_code, app_name, app_description);
+
+
+--
+-- Name: INDEX idx_applications_detail_lookup; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_detail_lookup IS 'Performance index for application detail lookups - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_pagination; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_pagination ON public.applications_app USING btree (app_id, app_code, app_name);
+
+
+--
+-- Name: INDEX idx_applications_pagination; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_pagination IS 'Performance index for application pagination - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_search_composite; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_search_composite ON public.applications_app USING gin (to_tsvector('english'::regconfig, (((((COALESCE(app_code, ''::character varying))::text || ' '::text) || (COALESCE(app_name, ''::character varying))::text) || ' '::text) || COALESCE(app_description, ''::text))));
+
+
+--
+-- Name: INDEX idx_applications_search_composite; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_search_composite IS 'Full-text search index for applications - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_with_counts_optimization; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_with_counts_optimization ON public.applications_app USING btree (app_code, app_name) INCLUDE (app_id, app_description);
+
+
+--
+-- Name: INDEX idx_applications_with_counts_optimization; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_with_counts_optimization IS 'Performance index for application count queries - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_with_environments; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_with_environments ON public.environments_env_x_applications_app USING btree (app_id) INCLUDE (env_id);
+
+
+--
+-- Name: INDEX idx_applications_with_environments; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_with_environments IS 'Performance index for applications with environments - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_with_labels; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_with_labels ON public.labels_lbl_x_applications_app USING btree (app_id) INCLUDE (lbl_id);
+
+
+--
+-- Name: INDEX idx_applications_with_labels; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_with_labels IS 'Performance index for applications with labels - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_applications_with_teams; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_applications_with_teams ON public.teams_tms_x_applications_app USING btree (app_id) INCLUDE (tms_id);
+
+
+--
+-- Name: INDEX idx_applications_with_teams; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_applications_with_teams IS 'Performance index for applications with teams - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_apps_by_environment; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_apps_by_environment ON public.environments_env_x_applications_app USING btree (env_id, app_id);
+
+
+--
+-- Name: INDEX idx_apps_by_environment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_apps_by_environment IS 'Performance index for applications filtered by environment - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_apps_by_label; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_apps_by_label ON public.labels_lbl_x_applications_app USING btree (lbl_id, app_id);
+
+
+--
+-- Name: INDEX idx_apps_by_label; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_apps_by_label IS 'Performance index for applications filtered by label - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_apps_by_team; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_apps_by_team ON public.teams_tms_x_applications_app USING btree (tms_id, app_id);
+
+
+--
+-- Name: INDEX idx_apps_by_team; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_apps_by_team IS 'Performance index for applications filtered by team - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_audit_log_changed_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_changed_by ON public.audit_log_aud USING btree (usr_id, aud_timestamp DESC) WHERE (usr_id IS NOT NULL);
+
+
+--
+-- Name: INDEX idx_audit_log_changed_by; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_audit_log_changed_by IS 'Performance index for "who changed what" audit queries - US-082-C Users optimization';
+
+
+--
+-- Name: idx_audit_log_role_changes; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_role_changes ON public.audit_log_aud USING btree (aud_entity_type, aud_action, aud_timestamp DESC) WHERE (((aud_entity_type)::text = 'user'::text) AND ((aud_action)::text = 'role_change'::text));
+
+
+--
+-- Name: INDEX idx_audit_log_role_changes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_audit_log_role_changes IS 'Performance index for role change audit queries - US-082-C Users optimization';
+
+
+--
+-- Name: idx_audit_log_user_activity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_user_activity ON public.audit_log_aud USING btree (usr_id, aud_entity_type, aud_timestamp DESC) WHERE (usr_id IS NOT NULL);
+
+
+--
+-- Name: INDEX idx_audit_log_user_activity; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_audit_log_user_activity IS 'Performance index for user activity tracking - US-082-C Users optimization';
+
+
+--
+-- Name: idx_audit_log_user_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_user_entity ON public.audit_log_aud USING btree (aud_entity_type, aud_entity_id, aud_timestamp DESC) WHERE ((aud_entity_type)::text = 'user'::text);
+
+
+--
+-- Name: INDEX idx_audit_log_user_entity; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_audit_log_user_entity IS 'Performance index for user audit trail queries - US-082-C Users optimization';
+
+
+--
 -- Name: idx_controls_instance_cti_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3686,7 +3473,6 @@ CREATE INDEX idx_controls_instance_cti_status_id ON public.controls_instance_cti
 
 
 --
--- TOC entry 3857 (class 1259 OID 83311)
 -- Name: idx_cti_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3694,7 +3480,6 @@ CREATE INDEX idx_cti_audit ON public.controls_instance_cti USING btree (created_
 
 
 --
--- TOC entry 3829 (class 1259 OID 83306)
 -- Name: idx_ctm_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3702,7 +3487,160 @@ CREATE INDEX idx_ctm_audit ON public.controls_master_ctm USING btree (created_at
 
 
 --
--- TOC entry 3906 (class 1259 OID 83164)
+-- Name: idx_dto_comments_aggregation; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_comments_aggregation ON public.step_instance_comments_sic USING btree (sti_id, created_at DESC);
+
+
+--
+-- Name: INDEX idx_dto_comments_aggregation; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_comments_aggregation IS 'US-056-C DTO: Aggregation optimization for comments count and latest date subqueries';
+
+
+--
+-- Name: idx_dto_instructions_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_instructions_count ON public.instructions_instance_ini USING btree (sti_id, ini_is_completed, ini_completed_at);
+
+
+--
+-- Name: INDEX idx_dto_instructions_count; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_instructions_count IS 'US-056-C DTO: Aggregation optimization for instructions count subqueries';
+
+
+--
+-- Name: idx_dto_mig_name_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_mig_name_lookup ON public.migrations_mig USING btree (mig_name, mig_id);
+
+
+--
+-- Name: INDEX idx_dto_mig_name_lookup; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_mig_name_lookup IS 'US-056-C DTO: Migration name lookup optimization for API filtering';
+
+
+--
+-- Name: idx_dto_phi_hierarchy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_phi_hierarchy ON public.phases_instance_phi USING btree (phi_id, sqi_id, phi_status);
+
+
+--
+-- Name: INDEX idx_dto_phi_hierarchy; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_phi_hierarchy IS 'US-056-C DTO: Hierarchical navigation index for phases to sequences relationship';
+
+
+--
+-- Name: idx_dto_pli_context; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_pli_context ON public.plans_instance_pli USING btree (pli_id, ite_id, pli_status);
+
+
+--
+-- Name: INDEX idx_dto_pli_context; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_pli_context IS 'US-056-C DTO: Context lookup index for plan to migration/iteration filtering';
+
+
+--
+-- Name: idx_dto_sqi_plan_navigation; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_sqi_plan_navigation ON public.sequences_instance_sqi USING btree (sqi_id, pli_id, sqi_status);
+
+
+--
+-- Name: INDEX idx_dto_sqi_plan_navigation; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_sqi_plan_navigation IS 'US-056-C DTO: Navigation index for sequence to plan relationships';
+
+
+--
+-- Name: idx_dto_status_steps_covering; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_status_steps_covering ON public.steps_instance_sti USING btree (sti_status, phi_id) INCLUDE (sti_id, stm_id, created_at);
+
+
+--
+-- Name: INDEX idx_dto_status_steps_covering; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_status_steps_covering IS 'US-056-C DTO: Covering index for status-based step queries';
+
+
+--
+-- Name: idx_dto_sti_covering; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_sti_covering ON public.steps_instance_sti USING btree (sti_id) INCLUDE (stm_id, sti_name, sti_description, sti_status, created_at, updated_at, phi_id);
+
+
+--
+-- Name: INDEX idx_dto_sti_covering; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_sti_covering IS 'US-056-C DTO: Covering index for single step lookups avoiding table access';
+
+
+--
+-- Name: idx_dto_sti_status_phi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_sti_status_phi ON public.steps_instance_sti USING btree (sti_status, phi_id, stm_id);
+
+
+--
+-- Name: INDEX idx_dto_sti_status_phi; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_sti_status_phi IS 'US-056-C DTO: Primary filtering index for steps with status and hierarchical relationships';
+
+
+--
+-- Name: idx_dto_stm_hierarchy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_stm_hierarchy ON public.steps_master_stm USING btree (stm_id, phm_id, stt_code, stm_number);
+
+
+--
+-- Name: INDEX idx_dto_stm_hierarchy; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_stm_hierarchy IS 'US-056-C DTO: Step master hierarchy optimization for numbering and relationships';
+
+
+--
+-- Name: idx_dto_team_assignment; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dto_team_assignment ON public.teams_tms USING btree (tms_id, tms_name);
+
+
+--
+-- Name: INDEX idx_dto_team_assignment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_dto_team_assignment IS 'US-056-C DTO: Team assignment optimization for JOIN operations';
+
+
+--
 -- Name: idx_emt_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3710,7 +3648,6 @@ CREATE INDEX idx_emt_name ON public.email_templates_emt USING btree (emt_name);
 
 
 --
--- TOC entry 3907 (class 1259 OID 83163)
 -- Name: idx_emt_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3718,7 +3655,48 @@ CREATE INDEX idx_emt_type ON public.email_templates_emt USING btree (emt_type) W
 
 
 --
--- TOC entry 3776 (class 1259 OID 83300)
+-- Name: idx_env_app_assoc_app_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_env_app_assoc_app_id ON public.environments_env_x_applications_app USING btree (app_id);
+
+
+--
+-- Name: INDEX idx_env_app_assoc_app_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_env_app_assoc_app_id IS 'Performance index for applications by environment - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_env_app_assoc_composite; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_env_app_assoc_composite ON public.environments_env_x_applications_app USING btree (app_id, env_id);
+
+
+--
+-- Name: INDEX idx_env_app_assoc_composite; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_env_app_assoc_composite IS 'Composite performance index for environment-application queries - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_env_app_assoc_env_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_env_app_assoc_env_id ON public.environments_env_x_applications_app USING btree (env_id);
+
+
+--
+-- Name: INDEX idx_env_app_assoc_env_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_env_app_assoc_env_id IS 'Performance index for environments by application - US-082-C Applications optimization';
+
+
+--
 -- Name: idx_env_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3726,7 +3704,20 @@ CREATE INDEX idx_env_audit ON public.environments_env USING btree (created_at);
 
 
 --
--- TOC entry 3922 (class 1259 OID 83431)
+-- Name: idx_env_count_per_app; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_env_count_per_app ON public.environments_env_x_applications_app USING btree (app_id) INCLUDE (env_id);
+
+
+--
+-- Name: INDEX idx_env_count_per_app; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_env_count_per_app IS 'Performance index for environment counts per application - US-082-C Applications optimization';
+
+
+--
 -- Name: idx_imb_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3734,7 +3725,6 @@ CREATE INDEX idx_imb_created ON public.import_batches_imb USING btree (imb_creat
 
 
 --
--- TOC entry 3923 (class 1259 OID 83521)
 -- Name: idx_imb_ior_start; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3742,7 +3732,6 @@ CREATE INDEX idx_imb_ior_start ON public.import_batches_imb USING btree (ior_id,
 
 
 --
--- TOC entry 3924 (class 1259 OID 83429)
 -- Name: idx_imb_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3750,7 +3739,6 @@ CREATE INDEX idx_imb_status ON public.import_batches_imb USING btree (imb_status
 
 
 --
--- TOC entry 3925 (class 1259 OID 83430)
 -- Name: idx_imb_user; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3758,7 +3746,6 @@ CREATE INDEX idx_imb_user ON public.import_batches_imb USING btree (imb_user_id)
 
 
 --
--- TOC entry 3851 (class 1259 OID 83310)
 -- Name: idx_ini_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3766,7 +3753,6 @@ CREATE INDEX idx_ini_audit ON public.instructions_instance_ini USING btree (crea
 
 
 --
--- TOC entry 3832 (class 1259 OID 83305)
 -- Name: idx_inm_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3774,7 +3760,6 @@ CREATE INDEX idx_inm_audit ON public.instructions_master_inm USING btree (create
 
 
 --
--- TOC entry 3928 (class 1259 OID 83454)
 -- Name: idx_ior_status_started; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3782,7 +3767,6 @@ CREATE INDEX idx_ior_status_started ON public.stg_import_orchestrations_ior USIN
 
 
 --
--- TOC entry 3929 (class 1259 OID 83453)
 -- Name: idx_ior_user_started; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3790,7 +3774,6 @@ CREATE INDEX idx_ior_user_started ON public.stg_import_orchestrations_ior USING 
 
 
 --
--- TOC entry 3932 (class 1259 OID 83477)
 -- Name: idx_ipt_ior_phase; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3798,7 +3781,6 @@ CREATE INDEX idx_ipt_ior_phase ON public.stg_import_progress_tracking_ipt USING 
 
 
 --
--- TOC entry 3942 (class 1259 OID 83540)
 -- Name: idx_iqm_status_priority; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3806,7 +3788,6 @@ CREATE INDEX idx_iqm_status_priority ON public.stg_import_queue_management_iqm U
 
 
 --
--- TOC entry 3943 (class 1259 OID 83541)
 -- Name: idx_iqm_worker_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3814,7 +3795,6 @@ CREATE INDEX idx_iqm_worker_status ON public.stg_import_queue_management_iqm USI
 
 
 --
--- TOC entry 3935 (class 1259 OID 83501)
 -- Name: idx_ira_ior_executed; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3822,7 +3802,6 @@ CREATE INDEX idx_ira_ior_executed ON public.stg_import_rollback_actions_ira USIN
 
 
 --
--- TOC entry 3948 (class 1259 OID 83561)
 -- Name: idx_irl_resource_expires; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3830,7 +3809,6 @@ CREATE INDEX idx_irl_resource_expires ON public.stg_import_resource_locks_irl US
 
 
 --
--- TOC entry 3800 (class 1259 OID 83665)
 -- Name: idx_iteration_types_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3838,7 +3816,6 @@ CREATE INDEX idx_iteration_types_active ON public.iteration_types_itt USING btre
 
 
 --
--- TOC entry 3801 (class 1259 OID 83664)
 -- Name: idx_iteration_types_display_order; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3846,7 +3823,6 @@ CREATE INDEX idx_iteration_types_display_order ON public.iteration_types_itt USI
 
 
 --
--- TOC entry 3804 (class 1259 OID 83331)
 -- Name: idx_iterations_ite_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3854,7 +3830,62 @@ CREATE INDEX idx_iterations_ite_status_id ON public.iterations_ite USING btree (
 
 
 --
--- TOC entry 3874 (class 1259 OID 83301)
+-- Name: idx_label_app_assoc_app_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_label_app_assoc_app_id ON public.labels_lbl_x_applications_app USING btree (app_id);
+
+
+--
+-- Name: INDEX idx_label_app_assoc_app_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_label_app_assoc_app_id IS 'Performance index for applications by label - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_label_app_assoc_composite; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_label_app_assoc_composite ON public.labels_lbl_x_applications_app USING btree (app_id, lbl_id);
+
+
+--
+-- Name: INDEX idx_label_app_assoc_composite; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_label_app_assoc_composite IS 'Composite performance index for label-application queries - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_label_app_assoc_label_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_label_app_assoc_label_id ON public.labels_lbl_x_applications_app USING btree (lbl_id);
+
+
+--
+-- Name: INDEX idx_label_app_assoc_label_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_label_app_assoc_label_id IS 'Performance index for labels by application - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_label_count_per_app; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_label_count_per_app ON public.labels_lbl_x_applications_app USING btree (app_id) INCLUDE (lbl_id);
+
+
+--
+-- Name: INDEX idx_label_count_per_app; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_label_count_per_app IS 'Performance index for label counts per application - US-082-C Applications optimization';
+
+
+--
 -- Name: idx_lbl_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3862,7 +3893,6 @@ CREATE INDEX idx_lbl_audit ON public.labels_lbl USING btree (created_at);
 
 
 --
--- TOC entry 3977 (class 1259 OID 83684)
 -- Name: idx_migration_types_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3870,7 +3900,6 @@ CREATE INDEX idx_migration_types_active ON public.migration_types_mit USING btre
 
 
 --
--- TOC entry 3978 (class 1259 OID 83685)
 -- Name: idx_migration_types_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3878,7 +3907,6 @@ CREATE INDEX idx_migration_types_code ON public.migration_types_mit USING btree 
 
 
 --
--- TOC entry 3979 (class 1259 OID 83683)
 -- Name: idx_migration_types_display_order; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3886,7 +3914,6 @@ CREATE INDEX idx_migration_types_display_order ON public.migration_types_mit USI
 
 
 --
--- TOC entry 3797 (class 1259 OID 83325)
 -- Name: idx_migrations_mig_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3894,7 +3921,6 @@ CREATE INDEX idx_migrations_mig_status_id ON public.migrations_mig USING btree (
 
 
 --
--- TOC entry 3971 (class 1259 OID 83658)
 -- Name: idx_od_depends_on; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3902,7 +3928,6 @@ CREATE INDEX idx_od_depends_on ON public.stg_orchestration_dependencies_od USING
 
 
 --
--- TOC entry 3972 (class 1259 OID 83657)
 -- Name: idx_od_orchestration; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3910,7 +3935,6 @@ CREATE INDEX idx_od_orchestration ON public.stg_orchestration_dependencies_od US
 
 
 --
--- TOC entry 3842 (class 1259 OID 83355)
 -- Name: idx_phases_instance_phi_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3918,7 +3942,6 @@ CREATE INDEX idx_phases_instance_phi_status_id ON public.phases_instance_phi USI
 
 
 --
--- TOC entry 3843 (class 1259 OID 83308)
 -- Name: idx_phi_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3926,7 +3949,6 @@ CREATE INDEX idx_phi_audit ON public.phases_instance_phi USING btree (created_at
 
 
 --
--- TOC entry 3810 (class 1259 OID 83303)
 -- Name: idx_phm_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3934,7 +3956,6 @@ CREATE INDEX idx_phm_audit ON public.phases_master_phm USING btree (created_at);
 
 
 --
--- TOC entry 3835 (class 1259 OID 83343)
 -- Name: idx_plans_instance_pli_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3942,7 +3963,6 @@ CREATE INDEX idx_plans_instance_pli_status_id ON public.plans_instance_pli USING
 
 
 --
--- TOC entry 3794 (class 1259 OID 83337)
 -- Name: idx_plans_master_plm_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3950,7 +3970,20 @@ CREATE INDEX idx_plans_master_plm_status_id ON public.plans_master_plm USING btr
 
 
 --
--- TOC entry 3914 (class 1259 OID 83393)
+-- Name: idx_roles_hierarchy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_roles_hierarchy ON public.roles_rls USING btree (rls_code, rls_id);
+
+
+--
+-- Name: INDEX idx_roles_hierarchy; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_roles_hierarchy IS 'Performance index for role hierarchy queries - US-082-C Users optimization';
+
+
+--
 -- Name: idx_scf_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3958,7 +3991,6 @@ CREATE INDEX idx_scf_audit ON public.system_configuration_scf USING btree (creat
 
 
 --
--- TOC entry 3915 (class 1259 OID 83392)
 -- Name: idx_scf_category_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3966,7 +3998,6 @@ CREATE INDEX idx_scf_category_active ON public.system_configuration_scf USING bt
 
 
 --
--- TOC entry 3916 (class 1259 OID 83390)
 -- Name: idx_scf_env_category; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3974,7 +4005,6 @@ CREATE INDEX idx_scf_env_category ON public.system_configuration_scf USING btree
 
 
 --
--- TOC entry 3917 (class 1259 OID 83391)
 -- Name: idx_scf_key_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3982,7 +4012,6 @@ CREATE INDEX idx_scf_key_active ON public.system_configuration_scf USING btree (
 
 
 --
--- TOC entry 3960 (class 1259 OID 83611)
 -- Name: idx_seh_execution_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3990,7 +4019,6 @@ CREATE INDEX idx_seh_execution_id ON public.stg_schedule_execution_history_seh U
 
 
 --
--- TOC entry 3961 (class 1259 OID 83610)
 -- Name: idx_seh_sis_started; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3998,7 +4026,6 @@ CREATE INDEX idx_seh_sis_started ON public.stg_schedule_execution_history_seh US
 
 
 --
--- TOC entry 3838 (class 1259 OID 83349)
 -- Name: idx_sequences_instance_sqi_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4006,7 +4033,6 @@ CREATE INDEX idx_sequences_instance_sqi_status_id ON public.sequences_instance_s
 
 
 --
--- TOC entry 3871 (class 1259 OID 82980)
 -- Name: idx_sic_sti_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4014,7 +4040,6 @@ CREATE INDEX idx_sic_sti_id ON public.step_instance_comments_sic USING btree (st
 
 
 --
--- TOC entry 3953 (class 1259 OID 83591)
 -- Name: idx_sis_created_by_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4022,7 +4047,6 @@ CREATE INDEX idx_sis_created_by_status ON public.stg_scheduled_import_schedules_
 
 
 --
--- TOC entry 3954 (class 1259 OID 83590)
 -- Name: idx_sis_next_execution; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4030,7 +4054,6 @@ CREATE INDEX idx_sis_next_execution ON public.stg_scheduled_import_schedules_sis
 
 
 --
--- TOC entry 3955 (class 1259 OID 83592)
 -- Name: idx_sis_recurring_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4038,7 +4061,6 @@ CREATE INDEX idx_sis_recurring_active ON public.stg_scheduled_import_schedules_s
 
 
 --
--- TOC entry 3868 (class 1259 OID 82954)
 -- Name: idx_spc_stm_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4046,7 +4068,6 @@ CREATE INDEX idx_spc_stm_id ON public.step_pilot_comments_spc USING btree (stm_i
 
 
 --
--- TOC entry 3839 (class 1259 OID 83307)
 -- Name: idx_sqi_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4054,7 +4075,6 @@ CREATE INDEX idx_sqi_audit ON public.sequences_instance_sqi USING btree (created
 
 
 --
--- TOC entry 3807 (class 1259 OID 83302)
 -- Name: idx_sqm_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4062,7 +4082,6 @@ CREATE INDEX idx_sqm_audit ON public.sequences_master_sqm USING btree (created_a
 
 
 --
--- TOC entry 3964 (class 1259 OID 83629)
 -- Name: idx_srr_resource_time; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4070,7 +4089,6 @@ CREATE INDEX idx_srr_resource_time ON public.stg_schedule_resource_reservations_
 
 
 --
--- TOC entry 3908 (class 1259 OID 83193)
 -- Name: idx_status_sts_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4078,7 +4096,6 @@ CREATE INDEX idx_status_sts_name ON public.status_sts USING btree (sts_name);
 
 
 --
--- TOC entry 3909 (class 1259 OID 83192)
 -- Name: idx_status_sts_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4086,7 +4103,6 @@ CREATE INDEX idx_status_sts_type ON public.status_sts USING btree (sts_type);
 
 
 --
--- TOC entry 3846 (class 1259 OID 83176)
 -- Name: idx_steps_instance_sti_enr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4094,7 +4110,6 @@ CREATE INDEX idx_steps_instance_sti_enr_id ON public.steps_instance_sti USING bt
 
 
 --
--- TOC entry 3847 (class 1259 OID 83361)
 -- Name: idx_steps_instance_sti_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4102,7 +4117,6 @@ CREATE INDEX idx_steps_instance_sti_status_id ON public.steps_instance_sti USING
 
 
 --
--- TOC entry 3819 (class 1259 OID 83175)
 -- Name: idx_steps_master_stm_enr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4110,7 +4124,6 @@ CREATE INDEX idx_steps_master_stm_enr_id ON public.steps_master_stm USING btree 
 
 
 --
--- TOC entry 3895 (class 1259 OID 83407)
 -- Name: idx_stg_steps_import_batch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4118,7 +4131,6 @@ CREATE INDEX idx_stg_steps_import_batch ON public.stg_steps USING btree (import_
 
 
 --
--- TOC entry 3848 (class 1259 OID 83309)
 -- Name: idx_sti_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4126,7 +4138,6 @@ CREATE INDEX idx_sti_audit ON public.steps_instance_sti USING btree (created_at)
 
 
 --
--- TOC entry 3820 (class 1259 OID 83304)
 -- Name: idx_stm_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4134,7 +4145,160 @@ CREATE INDEX idx_stm_audit ON public.steps_master_stm USING btree (created_at);
 
 
 --
--- TOC entry 3781 (class 1259 OID 83297)
+-- Name: idx_team_app_assoc_app_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_team_app_assoc_app_id ON public.teams_tms_x_applications_app USING btree (app_id);
+
+
+--
+-- Name: INDEX idx_team_app_assoc_app_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_team_app_assoc_app_id IS 'Performance index for applications by team - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_team_app_assoc_composite; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_team_app_assoc_composite ON public.teams_tms_x_applications_app USING btree (app_id, tms_id);
+
+
+--
+-- Name: INDEX idx_team_app_assoc_composite; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_team_app_assoc_composite IS 'Composite performance index for team-application queries - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_team_app_assoc_team_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_team_app_assoc_team_id ON public.teams_tms_x_applications_app USING btree (tms_id);
+
+
+--
+-- Name: INDEX idx_team_app_assoc_team_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_team_app_assoc_team_id IS 'Performance index for teams by application - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_team_count_per_app; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_team_count_per_app ON public.teams_tms_x_applications_app USING btree (app_id) INCLUDE (tms_id);
+
+
+--
+-- Name: INDEX idx_team_count_per_app; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_team_count_per_app IS 'Performance index for team counts per application - US-082-C Applications optimization';
+
+
+--
+-- Name: idx_teams_users_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_created_at ON public.teams_tms_x_users_usr USING btree (created_at);
+
+
+--
+-- Name: INDEX idx_teams_users_created_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_created_at IS 'Performance index for created_at queries and cleanup operations - US-082-C Users optimization';
+
+
+--
+-- Name: idx_teams_users_created_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_created_by ON public.teams_tms_x_users_usr USING btree (created_by, usr_id, tms_id);
+
+
+--
+-- Name: INDEX idx_teams_users_created_by; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_created_by IS 'Performance index for role determination in bidirectional queries';
+
+
+--
+-- Name: idx_teams_users_member_stats; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_member_stats ON public.teams_tms_x_users_usr USING btree (usr_id) INCLUDE (tms_id, created_at);
+
+
+--
+-- Name: INDEX idx_teams_users_member_stats; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_member_stats IS 'Performance index for team membership statistics - US-082-C Users optimization';
+
+
+--
+-- Name: idx_teams_users_reverse_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_reverse_lookup ON public.teams_tms_x_users_usr USING btree (usr_id, tms_id, created_at DESC);
+
+
+--
+-- Name: INDEX idx_teams_users_reverse_lookup; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_reverse_lookup IS 'Performance index for user team membership queries - US-082-C Users optimization';
+
+
+--
+-- Name: idx_teams_users_stats; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_stats ON public.teams_tms_x_users_usr USING btree (tms_id, created_at);
+
+
+--
+-- Name: INDEX idx_teams_users_stats; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_stats IS 'Performance index for team statistics aggregation';
+
+
+--
+-- Name: idx_teams_users_tms_id_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_tms_id_created ON public.teams_tms_x_users_usr USING btree (tms_id, created_at);
+
+
+--
+-- Name: INDEX idx_teams_users_tms_id_created; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_tms_id_created IS 'Performance index for getUsersForTeam() - US-082-C Teams optimization';
+
+
+--
+-- Name: idx_teams_users_usr_id_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_teams_users_usr_id_created ON public.teams_tms_x_users_usr USING btree (usr_id, created_at DESC);
+
+
+--
+-- Name: INDEX idx_teams_users_usr_id_created; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_teams_users_usr_id_created IS 'Performance index for getTeamsForUser() - US-082-C Teams optimization';
+
+
+--
 -- Name: idx_tms_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4142,7 +4306,104 @@ CREATE INDEX idx_tms_audit ON public.teams_tms USING btree (created_at);
 
 
 --
--- TOC entry 3786 (class 1259 OID 83144)
+-- Name: idx_users_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_active ON public.users_usr USING btree (usr_active) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_active IS 'Partial index for efficient active user filtering';
+
+
+--
+-- Name: idx_users_admin_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_admin_active ON public.users_usr USING btree (usr_id, usr_first_name, usr_last_name) WHERE ((usr_is_admin = true) AND (usr_active = true));
+
+
+--
+-- Name: INDEX idx_users_admin_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_admin_active IS 'Partial index for admin user operations - US-082-C Users optimization';
+
+
+--
+-- Name: idx_users_code_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_code_active ON public.users_usr USING btree (usr_code, usr_active) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_code_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_code_active IS 'Performance index for username-based authentication - US-082-C Users optimization';
+
+
+--
+-- Name: idx_users_email_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_email_active ON public.users_usr USING btree (usr_email, usr_active) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_email_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_email_active IS 'Performance index for email-based user lookups - US-082-C Users optimization';
+
+
+--
+-- Name: idx_users_names_search; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_names_search ON public.users_usr USING gin (to_tsvector('english'::regconfig, (((usr_first_name)::text || ' '::text) || (usr_last_name)::text))) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_names_search; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_names_search IS 'Full-text search index for user name searches - US-082-C Users optimization';
+
+
+--
+-- Name: idx_users_pagination_sort; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_pagination_sort ON public.users_usr USING btree (usr_active, usr_last_name, usr_first_name, usr_id);
+
+
+--
+-- Name: INDEX idx_users_pagination_sort; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_pagination_sort IS 'Performance index for paginated user listings - US-082-C Users optimization';
+
+
+--
+-- Name: idx_users_role_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_role_active ON public.users_usr USING btree (rls_id, usr_active, created_at DESC) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_role_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_role_active IS 'Performance index for role-based queries and filtering - US-082-C Users optimization';
+
+
+--
 -- Name: idx_users_usr_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4150,7 +4411,20 @@ CREATE INDEX idx_users_usr_active ON public.users_usr USING btree (usr_active);
 
 
 --
--- TOC entry 3787 (class 1259 OID 83298)
+-- Name: idx_users_usr_id_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_usr_id_active ON public.users_usr USING btree (usr_id, usr_active) WHERE (usr_active = true);
+
+
+--
+-- Name: INDEX idx_users_usr_id_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON INDEX public.idx_users_usr_id_active IS 'Primary performance index for user ID lookups - US-082-C Users optimization';
+
+
+--
 -- Name: idx_usr_audit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4158,7 +4432,6 @@ CREATE INDEX idx_usr_audit ON public.users_usr USING btree (created_at);
 
 
 --
--- TOC entry 4069 (class 2620 OID 83284)
 -- Name: applications_app update_applications_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4166,7 +4439,6 @@ CREATE TRIGGER update_applications_updated_at BEFORE UPDATE ON public.applicatio
 
 
 --
--- TOC entry 4083 (class 2620 OID 83296)
 -- Name: controls_instance_cti update_controls_instance_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4174,7 +4446,6 @@ CREATE TRIGGER update_controls_instance_updated_at BEFORE UPDATE ON public.contr
 
 
 --
--- TOC entry 4077 (class 2620 OID 83291)
 -- Name: controls_master_ctm update_controls_master_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4182,7 +4453,6 @@ CREATE TRIGGER update_controls_master_updated_at BEFORE UPDATE ON public.control
 
 
 --
--- TOC entry 4070 (class 2620 OID 83285)
 -- Name: environments_env update_environments_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4190,7 +4460,6 @@ CREATE TRIGGER update_environments_updated_at BEFORE UPDATE ON public.environmen
 
 
 --
--- TOC entry 4082 (class 2620 OID 83295)
 -- Name: instructions_instance_ini update_instructions_instance_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4198,7 +4467,6 @@ CREATE TRIGGER update_instructions_instance_updated_at BEFORE UPDATE ON public.i
 
 
 --
--- TOC entry 4078 (class 2620 OID 83290)
 -- Name: instructions_master_inm update_instructions_master_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4206,7 +4474,6 @@ CREATE TRIGGER update_instructions_master_updated_at BEFORE UPDATE ON public.ins
 
 
 --
--- TOC entry 4084 (class 2620 OID 83286)
 -- Name: labels_lbl update_labels_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4214,7 +4481,6 @@ CREATE TRIGGER update_labels_updated_at BEFORE UPDATE ON public.labels_lbl FOR E
 
 
 --
--- TOC entry 4080 (class 2620 OID 83293)
 -- Name: phases_instance_phi update_phases_instance_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4222,7 +4488,6 @@ CREATE TRIGGER update_phases_instance_updated_at BEFORE UPDATE ON public.phases_
 
 
 --
--- TOC entry 4075 (class 2620 OID 83288)
 -- Name: phases_master_phm update_phases_master_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4230,7 +4495,6 @@ CREATE TRIGGER update_phases_master_updated_at BEFORE UPDATE ON public.phases_ma
 
 
 --
--- TOC entry 4079 (class 2620 OID 83292)
 -- Name: sequences_instance_sqi update_sequences_instance_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4238,7 +4502,6 @@ CREATE TRIGGER update_sequences_instance_updated_at BEFORE UPDATE ON public.sequ
 
 
 --
--- TOC entry 4074 (class 2620 OID 83287)
 -- Name: sequences_master_sqm update_sequences_master_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4246,7 +4509,6 @@ CREATE TRIGGER update_sequences_master_updated_at BEFORE UPDATE ON public.sequen
 
 
 --
--- TOC entry 4081 (class 2620 OID 83294)
 -- Name: steps_instance_sti update_steps_instance_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4254,7 +4516,6 @@ CREATE TRIGGER update_steps_instance_updated_at BEFORE UPDATE ON public.steps_in
 
 
 --
--- TOC entry 4076 (class 2620 OID 83289)
 -- Name: steps_master_stm update_steps_master_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4262,7 +4523,6 @@ CREATE TRIGGER update_steps_master_updated_at BEFORE UPDATE ON public.steps_mast
 
 
 --
--- TOC entry 4071 (class 2620 OID 83282)
 -- Name: teams_tms update_teams_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4270,7 +4530,6 @@ CREATE TRIGGER update_teams_updated_at BEFORE UPDATE ON public.teams_tms FOR EAC
 
 
 --
--- TOC entry 4073 (class 2620 OID 83283)
 -- Name: users_usr update_users_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4278,7 +4537,6 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users_usr FOR EAC
 
 
 --
--- TOC entry 4072 (class 2620 OID 83148)
 -- Name: users_usr update_users_usr_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4286,7 +4544,6 @@ CREATE TRIGGER update_users_usr_updated_at BEFORE UPDATE ON public.users_usr FOR
 
 
 --
--- TOC entry 4040 (class 2606 OID 82923)
 -- Name: audit_log_aud fk_aud_usr_usr_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4295,7 +4552,6 @@ ALTER TABLE ONLY public.audit_log_aud
 
 
 --
--- TOC entry 4030 (class 2606 OID 83362)
 -- Name: controls_instance_cti fk_controls_instance_cti_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4304,7 +4560,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 4026 (class 2606 OID 82833)
 -- Name: controls_instance_cti fk_cti_ctm_ctm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4313,7 +4568,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 4029 (class 2606 OID 83315)
 -- Name: controls_instance_cti fk_cti_phi_phi_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4322,7 +4576,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 4028 (class 2606 OID 82843)
 -- Name: controls_instance_cti fk_cti_usr_biz_validator; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4331,7 +4584,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 4027 (class 2606 OID 82838)
 -- Name: controls_instance_cti fk_cti_usr_it_validator; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4340,7 +4592,6 @@ ALTER TABLE ONLY public.controls_instance_cti
 
 
 --
--- TOC entry 4005 (class 2606 OID 82687)
 -- Name: controls_master_ctm fk_ctm_phm_phm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4349,7 +4600,6 @@ ALTER TABLE ONLY public.controls_master_ctm
 
 
 --
--- TOC entry 4034 (class 2606 OID 82873)
 -- Name: environments_env_x_applications_app fk_exa_app_app_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4358,7 +4608,6 @@ ALTER TABLE ONLY public.environments_env_x_applications_app
 
 
 --
--- TOC entry 4033 (class 2606 OID 82868)
 -- Name: environments_env_x_applications_app fk_exa_env_env_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4367,7 +4616,6 @@ ALTER TABLE ONLY public.environments_env_x_applications_app
 
 
 --
--- TOC entry 4037 (class 2606 OID 82893)
 -- Name: environments_env_x_iterations_ite fk_exi_enr_enr_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4376,7 +4624,6 @@ ALTER TABLE ONLY public.environments_env_x_iterations_ite
 
 
 --
--- TOC entry 4035 (class 2606 OID 82883)
 -- Name: environments_env_x_iterations_ite fk_exi_env_env_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4385,7 +4632,6 @@ ALTER TABLE ONLY public.environments_env_x_iterations_ite
 
 
 --
--- TOC entry 4036 (class 2606 OID 82888)
 -- Name: environments_env_x_iterations_ite fk_exi_ite_ite_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4394,7 +4640,6 @@ ALTER TABLE ONLY public.environments_env_x_iterations_ite
 
 
 --
--- TOC entry 4024 (class 2606 OID 82812)
 -- Name: instructions_instance_ini fk_ini_inm_inm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4403,7 +4648,6 @@ ALTER TABLE ONLY public.instructions_instance_ini
 
 
 --
--- TOC entry 4023 (class 2606 OID 82807)
 -- Name: instructions_instance_ini fk_ini_sti_sti_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4412,7 +4656,6 @@ ALTER TABLE ONLY public.instructions_instance_ini
 
 
 --
--- TOC entry 4025 (class 2606 OID 82817)
 -- Name: instructions_instance_ini fk_ini_usr_usr_id_completed_by; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4421,7 +4664,6 @@ ALTER TABLE ONLY public.instructions_instance_ini
 
 
 --
--- TOC entry 4008 (class 2606 OID 82710)
 -- Name: instructions_master_inm fk_inm_ctm_ctm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4430,7 +4672,6 @@ ALTER TABLE ONLY public.instructions_master_inm
 
 
 --
--- TOC entry 4006 (class 2606 OID 82700)
 -- Name: instructions_master_inm fk_inm_stm_stm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4439,7 +4680,6 @@ ALTER TABLE ONLY public.instructions_master_inm
 
 
 --
--- TOC entry 4007 (class 2606 OID 82705)
 -- Name: instructions_master_inm fk_inm_tms_tms_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4448,7 +4688,6 @@ ALTER TABLE ONLY public.instructions_master_inm
 
 
 --
--- TOC entry 3991 (class 2606 OID 82571)
 -- Name: iterations_ite fk_ite_itt_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4457,7 +4696,6 @@ ALTER TABLE ONLY public.iterations_ite
 
 
 --
--- TOC entry 3989 (class 2606 OID 82561)
 -- Name: iterations_ite fk_ite_mig_mig_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4466,7 +4704,6 @@ ALTER TABLE ONLY public.iterations_ite
 
 
 --
--- TOC entry 3990 (class 2606 OID 82566)
 -- Name: iterations_ite fk_ite_plm_plm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4475,7 +4712,6 @@ ALTER TABLE ONLY public.iterations_ite
 
 
 --
--- TOC entry 3992 (class 2606 OID 83326)
 -- Name: iterations_ite fk_iterations_ite_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4484,7 +4720,6 @@ ALTER TABLE ONLY public.iterations_ite
 
 
 --
--- TOC entry 4053 (class 2606 OID 83043)
 -- Name: labels_lbl_x_applications_app fk_lbl_x_app_app_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4493,7 +4728,6 @@ ALTER TABLE ONLY public.labels_lbl_x_applications_app
 
 
 --
--- TOC entry 4052 (class 2606 OID 83038)
 -- Name: labels_lbl_x_applications_app fk_lbl_x_app_lbl_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4502,7 +4736,6 @@ ALTER TABLE ONLY public.labels_lbl_x_applications_app
 
 
 --
--- TOC entry 4059 (class 2606 OID 83095)
 -- Name: labels_lbl_x_controls_master_ctm fk_lbl_x_ctm_ctm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4511,7 +4744,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 4058 (class 2606 OID 83090)
 -- Name: labels_lbl_x_controls_master_ctm fk_lbl_x_ctm_lbl_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4520,7 +4752,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 4050 (class 2606 OID 83018)
 -- Name: labels_lbl_x_steps_master_stm fk_lbl_x_stm_lbl_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4529,7 +4760,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 4051 (class 2606 OID 83023)
 -- Name: labels_lbl_x_steps_master_stm fk_lbl_x_stm_stm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4538,7 +4768,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 3987 (class 2606 OID 82539)
 -- Name: migrations_mig fk_mig_usr_usr_id_owner; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4547,7 +4776,6 @@ ALTER TABLE ONLY public.migrations_mig
 
 
 --
--- TOC entry 3988 (class 2606 OID 83320)
 -- Name: migrations_mig fk_migrations_mig_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4556,7 +4784,6 @@ ALTER TABLE ONLY public.migrations_mig
 
 
 --
--- TOC entry 4018 (class 2606 OID 83350)
 -- Name: phases_instance_phi fk_phases_instance_phi_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4565,7 +4792,6 @@ ALTER TABLE ONLY public.phases_instance_phi
 
 
 --
--- TOC entry 4017 (class 2606 OID 82769)
 -- Name: phases_instance_phi fk_phi_phm_phm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4574,7 +4800,6 @@ ALTER TABLE ONLY public.phases_instance_phi
 
 
 --
--- TOC entry 4016 (class 2606 OID 82764)
 -- Name: phases_instance_phi fk_phi_sqi_sqi_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4583,7 +4808,6 @@ ALTER TABLE ONLY public.phases_instance_phi
 
 
 --
--- TOC entry 3996 (class 2606 OID 82607)
 -- Name: phases_master_phm fk_phm_phm_predecessor; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4592,7 +4816,6 @@ ALTER TABLE ONLY public.phases_master_phm
 
 
 --
--- TOC entry 3995 (class 2606 OID 82602)
 -- Name: phases_master_phm fk_phm_sqm_sqm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4601,7 +4824,6 @@ ALTER TABLE ONLY public.phases_master_phm
 
 
 --
--- TOC entry 4012 (class 2606 OID 83338)
 -- Name: plans_instance_pli fk_plans_instance_pli_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4610,7 +4832,6 @@ ALTER TABLE ONLY public.plans_instance_pli
 
 
 --
--- TOC entry 3986 (class 2606 OID 83332)
 -- Name: plans_master_plm fk_plans_master_plm_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4619,7 +4840,6 @@ ALTER TABLE ONLY public.plans_master_plm
 
 
 --
--- TOC entry 4010 (class 2606 OID 82732)
 -- Name: plans_instance_pli fk_pli_ite_ite_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4628,7 +4848,6 @@ ALTER TABLE ONLY public.plans_instance_pli
 
 
 --
--- TOC entry 4009 (class 2606 OID 82727)
 -- Name: plans_instance_pli fk_pli_plm_plm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4637,7 +4856,6 @@ ALTER TABLE ONLY public.plans_instance_pli
 
 
 --
--- TOC entry 4011 (class 2606 OID 82737)
 -- Name: plans_instance_pli fk_pli_usr_usr_id_owner; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4646,7 +4864,6 @@ ALTER TABLE ONLY public.plans_instance_pli
 
 
 --
--- TOC entry 3985 (class 2606 OID 82522)
 -- Name: plans_master_plm fk_plm_tms_tms_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4655,7 +4872,6 @@ ALTER TABLE ONLY public.plans_master_plm
 
 
 --
--- TOC entry 4061 (class 2606 OID 83385)
 -- Name: system_configuration_scf fk_scf_env_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4664,7 +4880,6 @@ ALTER TABLE ONLY public.system_configuration_scf
 
 
 --
--- TOC entry 4015 (class 2606 OID 83344)
 -- Name: sequences_instance_sqi fk_sequences_instance_sqi_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4673,7 +4888,6 @@ ALTER TABLE ONLY public.sequences_instance_sqi
 
 
 --
--- TOC entry 4013 (class 2606 OID 82748)
 -- Name: sequences_instance_sqi fk_sqi_pli_pli_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4682,7 +4896,6 @@ ALTER TABLE ONLY public.sequences_instance_sqi
 
 
 --
--- TOC entry 4014 (class 2606 OID 82753)
 -- Name: sequences_instance_sqi fk_sqi_sqm_sqm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4691,7 +4904,6 @@ ALTER TABLE ONLY public.sequences_instance_sqi
 
 
 --
--- TOC entry 3993 (class 2606 OID 82584)
 -- Name: sequences_master_sqm fk_sqm_plm_plm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4700,7 +4912,6 @@ ALTER TABLE ONLY public.sequences_master_sqm
 
 
 --
--- TOC entry 3994 (class 2606 OID 82589)
 -- Name: sequences_master_sqm fk_sqm_sqm_predecessor; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4709,7 +4920,6 @@ ALTER TABLE ONLY public.sequences_master_sqm
 
 
 --
--- TOC entry 4021 (class 2606 OID 83170)
 -- Name: steps_instance_sti fk_steps_instance_sti_environment_roles_enr; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4718,7 +4928,6 @@ ALTER TABLE ONLY public.steps_instance_sti
 
 
 --
--- TOC entry 4022 (class 2606 OID 83356)
 -- Name: steps_instance_sti fk_steps_instance_sti_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4727,7 +4936,6 @@ ALTER TABLE ONLY public.steps_instance_sti
 
 
 --
--- TOC entry 4002 (class 2606 OID 83165)
 -- Name: steps_master_stm fk_steps_master_stm_environment_roles_enr; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4736,7 +4944,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 4060 (class 2606 OID 83410)
 -- Name: stg_step_instructions fk_stg_step_instructions_stg_steps_step_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4745,7 +4952,6 @@ ALTER TABLE ONLY public.stg_step_instructions
 
 
 --
--- TOC entry 4019 (class 2606 OID 82780)
 -- Name: steps_instance_sti fk_sti_phi_phi_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4754,7 +4960,6 @@ ALTER TABLE ONLY public.steps_instance_sti
 
 
 --
--- TOC entry 4020 (class 2606 OID 82785)
 -- Name: steps_instance_sti fk_sti_stm_stm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4763,7 +4968,6 @@ ALTER TABLE ONLY public.steps_instance_sti
 
 
 --
--- TOC entry 4001 (class 2606 OID 82658)
 -- Name: steps_master_stm fk_stm_enr_target; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4772,7 +4976,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 4004 (class 2606 OID 82673)
 -- Name: steps_master_stm_x_iteration_types_itt fk_stm_itt_itt_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4781,7 +4984,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_iteration_types_itt
 
 
 --
--- TOC entry 4003 (class 2606 OID 82668)
 -- Name: steps_master_stm_x_iteration_types_itt fk_stm_itt_stm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4790,7 +4992,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_iteration_types_itt
 
 
 --
--- TOC entry 3997 (class 2606 OID 82638)
 -- Name: steps_master_stm fk_stm_phm_phm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4799,7 +5000,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 4000 (class 2606 OID 82653)
 -- Name: steps_master_stm fk_stm_stm_predecessor; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4808,7 +5008,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 3999 (class 2606 OID 82648)
 -- Name: steps_master_stm fk_stm_stt_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4817,7 +5016,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 4038 (class 2606 OID 82903)
 -- Name: steps_master_stm_x_teams_tms_impacted fk_stm_tms_impacted_stm; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4826,7 +5024,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_teams_tms_impacted
 
 
 --
--- TOC entry 4039 (class 2606 OID 82908)
 -- Name: steps_master_stm_x_teams_tms_impacted fk_stm_tms_impacted_tms; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4835,7 +5032,6 @@ ALTER TABLE ONLY public.steps_master_stm_x_teams_tms_impacted
 
 
 --
--- TOC entry 3998 (class 2606 OID 82643)
 -- Name: steps_master_stm fk_stm_tms_owner; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4844,7 +5040,6 @@ ALTER TABLE ONLY public.steps_master_stm
 
 
 --
--- TOC entry 4054 (class 2606 OID 83058)
 -- Name: teams_tms_x_users_usr fk_tms_x_usr_tms_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4853,7 +5048,6 @@ ALTER TABLE ONLY public.teams_tms_x_users_usr
 
 
 --
--- TOC entry 4055 (class 2606 OID 83063)
 -- Name: teams_tms_x_users_usr fk_tms_x_usr_usr_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4862,7 +5056,6 @@ ALTER TABLE ONLY public.teams_tms_x_users_usr
 
 
 --
--- TOC entry 4032 (class 2606 OID 82858)
 -- Name: teams_tms_x_applications_app fk_txa_app_app_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4871,7 +5064,6 @@ ALTER TABLE ONLY public.teams_tms_x_applications_app
 
 
 --
--- TOC entry 4031 (class 2606 OID 82853)
 -- Name: teams_tms_x_applications_app fk_txa_tms_tms_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4880,7 +5072,6 @@ ALTER TABLE ONLY public.teams_tms_x_applications_app
 
 
 --
--- TOC entry 3984 (class 2606 OID 82505)
 -- Name: users_usr fk_usr_rls_rls_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4889,7 +5080,6 @@ ALTER TABLE ONLY public.users_usr
 
 
 --
--- TOC entry 4062 (class 2606 OID 83516)
 -- Name: import_batches_imb import_batches_imb_ior_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4898,7 +5088,6 @@ ALTER TABLE ONLY public.import_batches_imb
 
 
 --
--- TOC entry 4047 (class 2606 OID 82993)
 -- Name: labels_lbl labels_lbl_mig_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4907,7 +5096,6 @@ ALTER TABLE ONLY public.labels_lbl
 
 
 --
--- TOC entry 4057 (class 2606 OID 83085)
 -- Name: labels_lbl_x_controls_master_ctm labels_lbl_x_controls_master_ctm_ctm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4916,7 +5104,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 4056 (class 2606 OID 83080)
 -- Name: labels_lbl_x_controls_master_ctm labels_lbl_x_controls_master_ctm_lbl_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4925,7 +5112,6 @@ ALTER TABLE ONLY public.labels_lbl_x_controls_master_ctm
 
 
 --
--- TOC entry 4048 (class 2606 OID 83008)
 -- Name: labels_lbl_x_steps_master_stm labels_lbl_x_steps_master_stm_lbl_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4934,7 +5120,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 4049 (class 2606 OID 83013)
 -- Name: labels_lbl_x_steps_master_stm labels_lbl_x_steps_master_stm_stm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4943,7 +5128,6 @@ ALTER TABLE ONLY public.labels_lbl_x_steps_master_stm
 
 
 --
--- TOC entry 4045 (class 2606 OID 82970)
 -- Name: step_instance_comments_sic step_instance_comments_sic_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4952,7 +5136,6 @@ ALTER TABLE ONLY public.step_instance_comments_sic
 
 
 --
--- TOC entry 4044 (class 2606 OID 82965)
 -- Name: step_instance_comments_sic step_instance_comments_sic_sti_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4961,7 +5144,6 @@ ALTER TABLE ONLY public.step_instance_comments_sic
 
 
 --
--- TOC entry 4046 (class 2606 OID 82975)
 -- Name: step_instance_comments_sic step_instance_comments_sic_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4970,7 +5152,6 @@ ALTER TABLE ONLY public.step_instance_comments_sic
 
 
 --
--- TOC entry 4042 (class 2606 OID 82944)
 -- Name: step_pilot_comments_spc step_pilot_comments_spc_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4979,7 +5160,6 @@ ALTER TABLE ONLY public.step_pilot_comments_spc
 
 
 --
--- TOC entry 4041 (class 2606 OID 82939)
 -- Name: step_pilot_comments_spc step_pilot_comments_spc_stm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4988,7 +5168,6 @@ ALTER TABLE ONLY public.step_pilot_comments_spc
 
 
 --
--- TOC entry 4043 (class 2606 OID 82949)
 -- Name: step_pilot_comments_spc step_pilot_comments_spc_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4997,7 +5176,6 @@ ALTER TABLE ONLY public.step_pilot_comments_spc
 
 
 --
--- TOC entry 4063 (class 2606 OID 83472)
 -- Name: stg_import_progress_tracking_ipt stg_import_progress_tracking_ipt_ior_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5006,7 +5184,6 @@ ALTER TABLE ONLY public.stg_import_progress_tracking_ipt
 
 
 --
--- TOC entry 4066 (class 2606 OID 83556)
 -- Name: stg_import_resource_locks_irl stg_import_resource_locks_irl_irl_locked_by_request_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5015,7 +5192,6 @@ ALTER TABLE ONLY public.stg_import_resource_locks_irl
 
 
 --
--- TOC entry 4065 (class 2606 OID 83496)
 -- Name: stg_import_rollback_actions_ira stg_import_rollback_actions_ira_imb_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5024,7 +5200,6 @@ ALTER TABLE ONLY public.stg_import_rollback_actions_ira
 
 
 --
--- TOC entry 4064 (class 2606 OID 83491)
 -- Name: stg_import_rollback_actions_ira stg_import_rollback_actions_ira_ior_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5033,7 +5208,6 @@ ALTER TABLE ONLY public.stg_import_rollback_actions_ira
 
 
 --
--- TOC entry 4067 (class 2606 OID 83605)
 -- Name: stg_schedule_execution_history_seh stg_schedule_execution_history_seh_sis_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5042,7 +5216,6 @@ ALTER TABLE ONLY public.stg_schedule_execution_history_seh
 
 
 --
--- TOC entry 4068 (class 2606 OID 83624)
 -- Name: stg_schedule_resource_reservations_srr stg_schedule_resource_reservations_srr_sis_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5050,9 +5223,9 @@ ALTER TABLE ONLY public.stg_schedule_resource_reservations_srr
     ADD CONSTRAINT stg_schedule_resource_reservations_srr_sis_id_fkey FOREIGN KEY (sis_id) REFERENCES public.stg_scheduled_import_schedules_sis(sis_id) ON DELETE CASCADE;
 
 
--- Completed on 2025-09-09 10:59:02 UTC
-
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict FpZ1h8lnS4WxaqdLqaqHpALnqpqACGtOP7asEGOgK4UIxkkp2fvJI6UG3jLhebL
 

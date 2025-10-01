@@ -1,124 +1,305 @@
-# UMIG Roadmap Directory
+# Roadmap & Sprint Planning
 
-The `/docs/roadmap/` directory contains structured project management documentation including sprint planning, strategic roadmaps, and UI/UX specifications for the UMIG project.
+Sprint-based development roadmap for UMIG project, tracking user stories, technical debt items, and feature delivery across 8+ sprints.
 
-## Directory Purpose
+## Purpose
 
-This folder serves as the central hub for:
+- **Sprint Organisation**: Structured development cycles with clear objectives
+- **User Story Tracking**: Comprehensive feature and enhancement planning
+- **Progress Visibility**: Real-time status and completion metrics
+- **Strategic Planning**: Long-term product vision and roadmap
+- **UI/UX Specifications**: Interface design and implementation guidance
 
-- **Sprint-based development planning** and progress tracking
-- **Strategic roadmap documentation** with business objectives
-- **UI/UX interface specifications** and design assets
-- **Project backlog management** and priority planning
+## Current Status (Sprint 8)
 
-## Content Organization
+**Active Sprint**: Sprint 8 - Security Architecture Enhancement
+**Timeline**: September 26 - October 10, 2025
+**Branch**: `feature/sprint8-td-014-td-015-comprehensive-testing-email`
+**Completion**: Week 2 of 2-week sprint
 
-### 📋 Sprint Documentation
+**Active Stories**:
 
-**Structure**: `sprint{N}/` directories for each sprint cycle
+- **TD-014**: Comprehensive Testing Infrastructure (in progress)
+- **TD-015**: Email Template Consistency (in progress)
+- **US-088**: Build Process Optimisation (84% size reduction achieved ✅)
 
-Contains user stories, technical specifications, completion reports, and sprint retrospectives. Each sprint folder includes:
+**Sprint 7 Achievement**: 224% completion (130/58 points) - Exceptional delivery
 
-- User story breakdowns and acceptance criteria
-- Technical implementation guides and patterns
-- Progress tracking and velocity metrics
-- Completion reports and lessons learned
+## Structure
 
-**Current Active Sprints**: Sprint 7 (in progress), Sprint 8 (planned)
-**Completed Sprints**: Sprint 3-6 (archived with full documentation)
+```
+roadmap/
+├── unified-roadmap.md              # PRIMARY REFERENCE - Strategic roadmap
+├── sprint3/                        # Foundation sprint (Complete ✅)
+├── sprint4/                        # Core features sprint (Complete ✅)
+├── sprint6/                        # Enhanced capabilities (Complete ✅)
+├── sprint7/                        # Exceptional delivery (Complete ✅ 224%)
+├── sprint8/                        # Security architecture (Current 🔄)
+│   ├── TD-014-comprehensive-testing.md
+│   ├── TD-015-email-template-consistency.md
+│   ├── US-088-build-process-optimisation.md
+│   └── sprint8-story-breakdown.md
+├── ux-ui/                          # UI/UX specifications
+│   ├── admin-gui-specifications.md
+│   ├── iteration-view-design.md
+│   └── step-view-design.md
+└── backlog/                        # Future work planning
+```
 
-### 🎯 Strategic Planning
+## Sprint Overview
 
-**Location**: Root directory files
+### Sprint 8: Security Architecture Enhancement (Current)
 
-- **[unified-roadmap.md](./unified-roadmap.md)** - **PRIMARY REFERENCE** - Complete project roadmap with business strategy and timelines
-- High-level project vision and milestone planning
-- AI-accelerated development strategies
-- Business value delivery tracking
+**Focus**: Enterprise-grade security, email system, testing infrastructure
+**Timeline**: Sep 26 - Oct 10, 2025
+**Key Achievements**:
 
-### 🎨 UI/UX Specifications
+- ✅ ADR-067 to ADR-071: Security architecture documentation complete
+- ✅ Privacy-compliant session management implementation
+- 🔄 TD-014: Comprehensive testing infrastructure (95% complete)
+- 🔄 TD-015: Email template consolidation and archival
+- ✅ US-088: Build process optimisation (84% size reduction)
 
-**Location**: [ux-ui/](./ux-ui/) subdirectory
+### Sprint 7: Exceptional Delivery (Complete ✅)
 
-Complete interface documentation including:
+**Completion**: 224% (130/58 points) - September 2025
+**Highlights**:
 
-- Admin GUI specifications (entity management SPA)
-- Iteration View (primary runsheet interface)
-- Step View (focused task execution)
-- Design assets and visual diagrams
-- UI implementation templates
+- Component migration Phase 1 foundation (US-087)
+- Security framework implementation (8.5/10 rating)
+- Testing infrastructure modernisation (100% pass rate)
+- Technical debt reduction (93% resolution across TD-003 to TD-007)
 
-### 📦 Backlog Management
+### Sprint 6: Enhanced Capabilities (Complete ✅)
 
-**Locations**: `backlog/` and sprint-specific backlogs
+**Focus**: JSON-based architecture foundation
+**Achievements**:
 
-Organized product backlog with:
+- DTO pattern implementation (<51ms performance)
+- Comprehensive testing framework
+- Documentation consolidation
+- Quality assurance processes
 
-- Deferred user stories from completed sprints
-- Future feature planning and prioritization
-- Epic organization and story dependencies
-- Technical debt items and infrastructure work
+### Sprint 4: Core Features (Complete ✅)
 
-## Document Types & Standards
+**Focus**: Essential platform capabilities
+**Achievements**:
 
-### Sprint Documentation
+- Hierarchical data model implementation
+- REST API v2 architecture (31+ endpoints)
+- Admin GUI foundation
+- Database schema consolidation
 
-- **sprint{N}-story-breakdown.md** - Complete user story specifications
-- **US-{XXX}-{title}.md** - Individual user story details
-- **TD-{XXX}-{title}.md** - Technical debt items
-- **README.md** - Sprint overview and navigation
+### Sprint 3: Foundation (Complete ✅)
 
-### Status Tracking
+**Focus**: Technical infrastructure establishment
+**Achievements**:
 
-- **\_done/** subdirectories for completed work
-- **\_technical_details/** for implementation specifics
-- Progress indicators: ✅ (complete), ⏳ (in progress), 📋 (planned)
+- PostgreSQL database with Liquibase
+- ScriptRunner integration patterns
+- Vanilla JavaScript architecture
+- Local development environment
 
-### Cross-References
+## Document Types
 
-All roadmap documents link to:
+### User Stories (US-XXX)
 
-- Architecture decisions in `/docs/architecture/`
-- API specifications in `/docs/api/`
-- Development journal entries in `/docs/devJournal/`
-- Project setup in root `CLAUDE.md`
+**Format**: `US-{number}-{title-in-kebab-case}.md`
+**Example**: `US-087-admin-gui-component-migration.md`
+**Purpose**: Feature development and enhancements
+
+**Structure**:
+
+- User story and acceptance criteria
+- Technical specifications
+- Implementation guidance
+- Testing requirements
+- Documentation links
+
+### Technical Debt (TD-XXX)
+
+**Format**: `TD-{number}-{title-in-kebab-case}.md`
+**Example**: `TD-014-comprehensive-testing.md`
+**Purpose**: Technical debt remediation and infrastructure work
+
+**Structure**:
+
+- Problem statement and impact
+- Technical approach
+- Success criteria
+- Implementation plan
+- Validation requirements
+
+### Sprint Breakdown
+
+**Format**: `sprint{N}-story-breakdown.md`
+**Purpose**: Complete sprint planning and story organisation
+
+**Structure**:
+
+- Sprint objectives and timeline
+- Story point allocation
+- Priority ordering
+- Dependencies and risks
+- Success metrics
+
+## Status Indicators
+
+- ✅ **Complete**: Story finished and validated
+- 🔄 **In Progress**: Active development
+- ⏳ **Planned**: Scheduled for sprint
+- 📋 **Backlog**: Future work
+- 🚫 **Blocked**: Awaiting dependency resolution
+- ⚠️ **Risk**: Attention required
+
+## Sprint Metrics
+
+### Sprint 8 (Current)
+
+**Planned Points**: To be finalised
+**Completed Points**: In progress
+**Velocity**: Based on Sprint 7 exceptional performance
+**Timeline**: On track for October 10 completion
+
+### Sprint 7 (Complete)
+
+**Planned Points**: 58
+**Completed Points**: 130 (224% completion ⭐)
+**Velocity**: 65 points/week (exceptional)
+**Timeline**: Completed ahead of schedule
+
+### Sprint 6 (Complete)
+
+**Focus**: JSON architecture foundation
+**Achievement**: 100% completion with performance targets exceeded
+**Key Metric**: <51ms DTO performance (target: <100ms)
+
+## UI/UX Specifications
+
+### Admin GUI
+
+**Location**: [ux-ui/admin-gui-specifications.md](ux-ui/admin-gui-specifications.md)
+**Purpose**: Entity management single-page application
+**Features**:
+
+- 7 entity types with CRUD operations
+- BaseEntityManager pattern (914 lines)
+- Component-based architecture
+- 8.5/10 security rating
+
+### Iteration View
+
+**Location**: [ux-ui/iteration-view-design.md](ux-ui/iteration-view-design.md)
+**Purpose**: Primary runsheet interface for migration execution
+**Features**:
+
+- Hierarchical plan/sequence/phase/step display
+- Real-time status updates
+- Team assignment interface
+- Progress tracking
+
+### Step View
+
+**Location**: [ux-ui/step-view-design.md](ux-ui/step-view-design.md)
+**Purpose**: Focused task execution interface
+**Features**:
+
+- Detailed step information
+- Comment system with RBAC
+- Instruction management
+- Completion workflow
+
+## Backlog Management
+
+**Location**: [backlog/](backlog/)
+**Organisation**: Prioritised by business value and technical dependencies
+
+**Categories**:
+
+- **High Priority**: Essential features for next sprint
+- **Medium Priority**: Important enhancements
+- **Low Priority**: Nice-to-have improvements
+- **Future**: Long-term strategic items
+
+**Deferred Items**: Stories moved from completed sprints for future consideration
+
+## Key Roadmap Documents
+
+### Primary Reference
+
+**[unified-roadmap.md](unified-roadmap.md)** - Complete project roadmap
+
+- Business strategy and objectives
+- AI-accelerated development approach
+- Milestone planning and dependencies
+- Long-term product vision
+
+### Sprint Planning
+
+**Individual sprint directories** - Detailed sprint execution
+
+- Story breakdowns and specifications
+- Technical implementation details
+- Progress tracking and metrics
+- Completion reports and retrospectives
+
+### UI/UX Guidance
+
+**[ux-ui/](ux-ui/)** - Interface specifications
+
+- Design patterns and standards
+- Component specifications
+- User interaction flows
+- Visual design assets
+
+## Cross-References
+
+**Related Documentation**:
+
+- **[Architecture Decisions](/docs/architecture/adr/)** - ADRs (72+ decisions)
+- **[API Documentation](/docs/api/)** - REST endpoints (31+ APIs)
+- **[Development Journal](/docs/devJournal/)** - Implementation details
+- **[Memory Bank](/docs/memory-bank/)** - Project knowledge synthesis
+- **[CLAUDE.md](/CLAUDE.md)** - Project overview and setup
+
+**User Story Integration**:
+
+- Link to relevant ADRs for architectural context
+- Reference API specifications for implementation
+- Connect to development journal entries for detailed implementation notes
+- Cross-reference testing requirements and validation
 
 ## Navigation Guide
 
 ### For Current Work
 
-1. **Start Here**: [unified-roadmap.md](./unified-roadmap.md) for project overview
-2. **Active Sprint**: Check sprint7/ for current development tasks
-3. **Immediate Tasks**: Look for ⏳ status indicators
+1. Check [unified-roadmap.md](unified-roadmap.md) for strategic context
+2. Review `sprint8/` for active stories
+3. Look for 🔄 status indicators for immediate tasks
+4. Check development journal for latest implementation details
 
 ### For Planning
 
-1. **Backlog Review**: Check backlog/ directory for future work
-2. **Sprint Planning**: Review completed sprints for velocity and patterns
-3. **Strategic Direction**: Unified roadmap for long-term objectives
+1. Review backlog/ for prioritised future work
+2. Analyse Sprint 7 metrics for velocity planning
+3. Reference unified roadmap for strategic alignment
+4. Review completed sprints for proven patterns
 
 ### For Implementation
 
-1. **Technical Specs**: Individual user story files contain implementation details
-2. **UI References**: ux-ui/ directory for interface requirements
-3. **Patterns**: Completed sprints demonstrate proven development patterns
+1. Read individual user story files for specifications
+2. Check ux-ui/ for interface requirements
+3. Reference ADRs for architectural decisions
+4. Review API documentation for integration needs
 
-## Key Features
+## Quality Standards
 
-- **Sprint-based organization** with clear completion tracking
-- **Scalable structure** supporting multiple concurrent development streams
-- **Cross-referenced documentation** linking to architectural decisions
-- **Status visibility** with real-time progress indicators
-- **Template standardization** for consistent documentation quality
-- **Historical preservation** of completed work for pattern reuse
-
-## Related Documentation
-
-- **[/docs/architecture/](/docs/architecture/)** - Architectural decisions and ADRs
-- **[/docs/api/](/docs/api/)** - API specifications and endpoint documentation
-- **[/docs/devJournal/](/docs/devJournal/)** - Daily development progress
-- **[/CLAUDE.md](/CLAUDE.md)** - Project overview and development patterns
+- **Completion Criteria**: All acceptance criteria met and validated
+- **Documentation**: Complete specifications and implementation notes
+- **Testing**: Comprehensive test coverage and validation
+- **Cross-References**: Links to ADRs, APIs, and related documentation
+- **Retrospectives**: Lessons learnt captured for continuous improvement
 
 ---
 
-_This directory serves as the authoritative source for UMIG project planning, progress tracking, and strategic direction._
+**Status**: Sprint 8 Active (Week 2) | Next: Sprint 9 Planning | Velocity: Exceptional (224% Sprint 7) | Quality: Enterprise-grade

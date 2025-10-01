@@ -224,6 +224,223 @@ class ComponentOrchestrator {
 - **ISO27001**: Information security management compliance
 - **GDPR**: Data protection and privacy rights compliance
 
+## 📧 TD-015: Email Template Enhancement & Data Enrichment Patterns (October 1, 2025)
+
+### Instance-Level Environment Assignment Pattern - Critical Discovery
+
+**Pattern Type**: Database architecture pattern for multi-environment execution
+**Application**: Step execution tracking across different environments
+**Business Impact**: Enables environment progression (Dev → Test → UAT → Prod)
+
+#### Core Environment Assignment Architecture
+
+**1. Instance-Level vs Master-Level Data Separation**
+
+```groovy
+// CRITICAL PATTERN: Environment assignment at instance level
+// Master template (tbl_steps_master_stm) - Definition time
+// - NO environment reference (templates are environment-agnostic)
+// - Predecessor relationship (template-level)
+// - Impacted teams (template-level many-to-many)
+
+// Instance record (tbl_steps_instance_sti) - Execution time
+// - Environment assignment (enr_id) ← Instance-level
+// - Execution status, assigned user, actual times
+// - Enables same step template across multiple environments
+
+// SQL JOIN pattern (CRITICAL: uses sti.enr_id, not stm.enr_id)
+LEFT JOIN tbl_environment_roles_enr enr
+    ON sti.enr_id = enr.enr_id  -- Instance-level assignment
+```
+
+**Rationale**:
+
+- Different iterations can target different environments
+- Environment choice made during iteration planning (execution time)
+- Supports progressive environment deployment strategies
+- Enables parallel execution across multiple environments
+
+### String Aggregation Pattern - SQL Type Safety
+
+**Pattern Type**: SQL aggregation with proper type recognition
+**Application**: Comma-separated value generation from many-to-many relationships
+**Business Impact**: Prevention of type mismatch errors in data processing
+
+#### Core String Aggregation Pattern
+
+**1. SQL STRING_AGG Returns String, Not Collection**
+
+```groovy
+// SQL Layer - Aggregation with ordering
+STRING_AGG(DISTINCT tms_impacted.tms_name, ', '
+    ORDER BY tms_impacted.tms_name) AS impacted_teams
+// Returns: VARCHAR (e.g., "Team A, Team B, Team C")
+
+// Service Layer - Direct pass-through (recognize String type)
+impactedTeams: safeString(step.impacted_teams)
+// NOT: step.impacted_teams.collect { ... } (Collection operation)
+
+// Template Layer - Direct display (no parsing needed)
+def impactedTeamsStr = enrichedData.impacted_teams ?: ''
+// NOT: enrichedData.impacted_teams?.collect { it.trim() }?.join(', ')
+```
+
+**Critical Lesson**: SQL aggregation functions return primitive types (VARCHAR), not Collections. Groovy code must recognise the actual type to avoid silent failures.
+
+### Data Enrichment Pipeline Pattern - DTO to Template
+
+**Pattern Type**: Multi-stage data transformation for email rendering
+**Application**: Comprehensive step data enrichment for notification templates
+**Business Impact**: Rich contextual information in email notifications
+
+#### Core Enrichment Pipeline
+
+**1. Four-Stage Data Enrichment Architecture**
+
+```groovy
+// Stage 1: Repository Query (SQL aggregation)
+SELECT
+    sti.sti_id,
+    stm.stm_code,
+    enr.enr_name AS environment_name,
+    STRING_AGG(tms_name, ', ') AS impacted_teams,
+    pred_stm.stm_code AS predecessor_code,
+    pred_stm.stm_name AS predecessor_name
+FROM tbl_steps_instance_sti sti
+LEFT JOIN tbl_environment_roles_enr enr ON sti.enr_id = enr.enr_id
+LEFT JOIN tbl_steps_master_stm pred_stm ON stm.stm_id_predecessor = pred_stm.stm_id
+-- Returns: Flat SQL result set with aggregated strings
+
+// Stage 2: DTO Mapping (StepDataTransformationService)
+def transformedSteps = steps.collect { step ->
+    environmentId: safeUUIDToString(step.environment_id),
+    environmentName: safeString(step.environment_name),
+    impactedTeams: safeString(step.impacted_teams),  // String, not List
+    predecessorCode: safeString(step.predecessor_code)
+}
+// Returns: StepInstanceDTO with type-safe fields
+
+// Stage 3: Enriched Data Map (EnhancedEmailService)
+def enrichedData = [
+    // Original stepInstance fields
+    step_code: stepInstance.step_code,
+
+    // New enriched fields from DTO
+    environmentName: stepInstanceDTO.environmentName ?: '',
+    impacted_teams: stepInstanceDTO.impactedTeams ?: '',  // Pre-formatted
+    predecessorCode: stepInstanceDTO.predecessorCode ?: ''
+]
+// Returns: Unified data map for template processing
+
+// Stage 4: Template Rendering (buildOptionalField pattern)
+buildOptionalField('Duration & Environment',
+    "${stepInstanceDTO.durationFormatted} | ${enrichedData.environmentName}",
+    enrichedData.environmentName),
+buildOptionalField('Impacted Teams',
+    enrichedData.impacted_teams,  // Direct display
+    enrichedData.impacted_teams),
+buildOptionalField('Predecessor',
+    enrichedData.predecessorCode ?
+        "${enrichedData.predecessorCode}: ${enrichedData.predecessorName}" : '-',
+    enrichedData.predecessorCode)
+// Returns: Conditional HTML table rows
+```
+
+**Key Insights**:
+
+1. **SQL Aggregation Responsibility**: Database performs aggregation and formatting
+2. **DTO Type Safety**: Explicit type casting at transformation boundary (ADR-031)
+3. **Enrichment Strategy**: Merge DTO data into unified map before template processing
+4. **Optional Display**: Use `buildOptionalField()` helper to hide empty rows
+
+### Email Template Optional Field Pattern
+
+**Pattern Type**: Conditional field display with clean user experience
+**Application**: Email template rendering with dynamic field visibility
+**Business Impact**: Cleaner email layouts without empty placeholder fields
+
+#### Core Optional Field Pattern
+
+```groovy
+// Helper method for conditional field display
+def buildOptionalField(String label, String value, String condition) {
+    condition ? """
+        <tr>
+            <td><strong>${label}:</strong></td>
+            <td>${value}</td>
+        </tr>
+    """ : ''
+}
+
+// Usage patterns
+// Pattern 1: Show field only if data exists
+buildOptionalField('Environment', environmentName, environmentName)
+
+// Pattern 2: Show field with formatted composite value
+buildOptionalField('Duration & Environment',
+    "${duration} | ${environmentName}",
+    environmentName)  // Condition: only if environment assigned
+
+// Pattern 3: Show field always, but use fallback for missing data
+buildOptionalField('Predecessor',
+    predecessorCode ? "${predecessorCode}: ${predecessorName}" : '-',
+    true)  // Always show, use '-' if no predecessor
+```
+
+**Benefits**:
+
+- Cleaner email templates (no empty field rows)
+- Consistent display logic across all notification types
+- Easy to maintain and extend
+- Better user experience with relevant information only
+
+### Database Schema Authority Pattern (ADR-059) - Reinforced
+
+**Pattern Type**: Schema-first development with validation-before-coding
+**Application**: All database-related code changes
+**Business Impact**: Prevention of schema assumption errors
+
+#### Critical Validation Sequence
+
+**TD-015 Error Examples**:
+
+1. **Table Name Assumption Error**:
+   - ❌ Assumed: `tbl_environments_enr`
+   - ✅ Reality: `tbl_environment_roles_enr`
+   - Fix: Always verify table names with `\dt` before coding
+
+2. **Join Condition Assumption Error**:
+   - ❌ Assumed: `stm.enr_id` (master-level environment)
+   - ✅ Reality: `sti.enr_id` (instance-level environment)
+   - Fix: Always verify which table owns the foreign key
+
+**Best Practice Workflow**:
+
+```bash
+# Step 1: Verify table existence and structure
+\dt tbl_*environment*              # List matching tables
+\d+ tbl_environment_roles_enr      # Describe full schema
+
+# Step 2: Identify foreign key relationships
+SELECT
+    tc.table_name,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+    ON tc.constraint_name = kcu.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY'
+AND tc.table_name LIKE '%steps%';
+
+# Step 3: Test SQL query before implementation
+SELECT environmentName, impactedTeams, predecessorCode
+FROM -- complete query --
+WHERE sti_id = 'known-test-id';
+
+# Step 4: Implement code matching validated schema
+```
+
 ## 🎉 US-074 + EntityManagerTemplate v3.2.0 Revolutionary Patterns (September 24, 2025)
 
 ### Widget Security Rendering Patterns - Enterprise Grade Protection

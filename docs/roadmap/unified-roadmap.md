@@ -641,66 +641,61 @@ The following user stories were created based on project evolution and identifie
 - **Database Version Management**: US-088 foundation enables US-088-C enhanced capabilities
 - **Quality Standards**: Enterprise-grade patterns established and proven with 8.25 points/day velocity
 
-### 🚀 Sprint 8 (Sept 30 - Oct 14, 2025) - Foundation Acceleration & Advanced Features **READY TO START**
+### 🚀 Sprint 8 (Sept 30 - Oct 14, 2025) - Test Infrastructure & Configuration Management **IN PROGRESS**
 
-**Sprint Goal**: Leverage Sprint 7 foundations for rapid delivery of remaining features, complete US-087 EntityManagers, and establish advanced production capabilities
+**Sprint Goal**: Establish enterprise-grade Groovy test coverage and deliver environment-aware configuration management system
 **Sprint Start**: September 30, 2025 (Monday)
-**Sprint Duration**: 11 working days (Sept 30 - Oct 14, 2025)
-**Total Story Points**: 40 points (optimal scope leveraging foundations)
-**Sprint Status**: 🚀 **READY TO START** - Complete foundation inheritance from Sprint 7
-**Key Advantages**: Complete infrastructure foundation, proven acceleration patterns, enterprise security frameworks established
-**Sprint Focus**: US-087-D completion, advanced capabilities (US-088-C), production readiness enhancement
+**Sprint Duration**: 15 working days (Sept 30 - Oct 14, 2025)
+**Total Story Points**: 55 points (sustainable velocity with quality focus)
+**Sprint Status**: 🔄 **IN PROGRESS** - Day 2, TD-015 complete (10 points)
+**Current Progress**: 10 of 55 points complete (18%)
+**Key Achievements**: Email template consistency delivered, test pattern foundation established
+**Sprint Focus**: Test coverage expansion (TD-014), email enhancements (TD-016), configuration management (US-098)
 
-#### 🎯 Sprint 8 Stories (40 points total - Foundation Acceleration)
+#### 🎯 Sprint 8 Stories (55 points total - Quality & Configuration)
 
-**Priority 1: Sprint 7 Completion (19 points - Proven Patterns):**
+**Priority 1: Email Infrastructure (18 points - Complete + Enhance):**
 
-- **US-087-D: Missing Admin GUI EntityManagers** (10 points) ✅ **READY - Proven Framework**
-  - 5 missing EntityManagers: Migrations, Master Plans, Master Sequences, Master Phases, Master Steps
-  - **Acceleration Advantage**: US-087 Phase 2 framework proven (114% scope, 60% timeline reduction)
-  - **Security Foundation**: 8.8-9.2/10 security ratings established and replicable
-  - **Performance Guarantee**: <200ms response times under complex scenarios validated
-  - **ComponentOrchestrator Ready**: Complete enterprise orchestration system operational
+- **TD-015: Email Template Consistency** (10 points) ✅ **COMPLETE - Day 1**
+  - Simplified email templates (540 scriptlets removed, 83% size reduction)
+  - Helper methods for instructions/comments integration
+  - Template variable infrastructure (35 variables)
+  - 100% automated test coverage with comprehensive manual guide
+  - **Completion Date**: September 30, 2025
 
-- **US-088-C: Enhanced Database Version Manager Capabilities** (6 points) ✅ **FOUNDATION COMPLETE**
-  - **Complete Foundation**: US-088 4-phase build orchestration with 84% deployment optimization
-  - **Self-Contained Architecture**: SQL package generation, enterprise security (8.5+/10 rating)
-  - **Proven Integration**: User-validated functionality, ScriptRunner compliance established
-  - Enhanced capabilities: advanced SQL operations, rollback features, monitoring integration
+- **TD-016: Email Notification Enhancements** (8 points) ⏳ **NOT STARTED - Days 2-4**
+  - Complete step details in email notifications (instructions, comments)
+  - Fix Confluence URL generation (missing migration parameter bug)
+  - Email integration & audit log validation (>80% coverage, 100% pass rate)
+  - Multi-view verification (IterationView + StepView consistency)
+  - **Target**: October 2-4, 2025 (3 days)
 
-- **TD-003B: Test Suite Migration Plan Completion** (3 points) ✅ **CLEAR PATH**
-  - Final 22% of TD-003 technical debt resolution (78% complete from TD-003A)
-  - Test suite migration to configuration-driven approach
-  - 35+ test files requiring systematic migration with established patterns
+**Priority 2: Test Infrastructure Foundation (17 points - Critical Path):**
 
-**Priority 2: Production Readiness (13 points):**
+- **TD-014: Enterprise-Grade Groovy Test Coverage** (17 points) 🔄 **IN PROGRESS - 43%**
+  - **TD-014-A: API Layer Testing** (5 points) ✅ **COMPLETE - Day 1**
+    - 6 API endpoints tested (154 tests, 92.3% coverage)
+  - **TD-014-B: Repository Layer Testing** (6 points) 🔄 **IN PROGRESS - 37.5%**
+    - 8 repositories (2 complete, 1 designed, 5 pending)
+    - Target: October 3, 2025
+  - **TD-014-C: Service Layer Testing** (3 points) ⏳ **NOT STARTED**
+    - 3 services (Email, Validation, Authentication)
+    - Target: October 5, 2025
+  - **TD-014-D: Infrastructure Testing** (3 points) ⚠️ **CRITICAL PATH - NOT STARTED**
+    - TR-19: Groovy Test Pattern Documentation
+    - TR-20: ConfigurationService Test Scaffolding
+    - **Hard Deadline**: October 6, 2025 (blocks US-098)
 
-- **US-041A: Audit Logging Infrastructure** (5 points)
-  - Comprehensive audit trail system for administrative actions with tamper-evident storage
-  - Security event logging integrated with existing ADR-042 authentication framework
-  - **Foundation Ready**: Authentication patterns established, security framework operational
+**Priority 3: Configuration Management (20 points - Major Feature):**
 
-- **US-041B: PILOT Instance Management** (3 points)
-  - PILOT user interface for instance-level operations with enhanced RBAC integration
-  - **Component Foundation**: Leverages US-082-B component security patterns (8.5/10 rating)
-  - **Proven Security**: Enterprise-grade patterns established through Sprint 7
-
-- **US-089: Service Configuration Validation** (5 points)
-  - Health check endpoints for all 6 services from US-082-A foundation service layer
-  - Configuration validation schemas, service dependency monitoring, production readiness verification
-  - **Service Foundation**: 9,000+ lines of specialized services with 95%+ test coverage ready
-
-**Priority 3: Advanced Enhancement (8 points):**
-
-- **US-035-P2: IterationView Collaboration Features** (5 points) ✅ **52% Foundation**
-  - **Technical Foundation**: 52% foundation complete with solid technical base established
-  - Advanced collaboration features, dynamic adjustment capabilities, enhanced workflows
-  - **Clear Implementation Path**: All technical analysis preserved from Sprint 7 work
-
-- **US-091: Production Security Hardening** (3 points)
-  - Security audit preparation, vulnerability management process enhancement
-  - Production security compliance validation building on established 8.5-9.2/10 security ratings
-  - **Security Foundation**: Comprehensive hardening patterns established through Sprint 7
+- **US-098: Configuration Management System** (20 points) ⏳ **NOT STARTED - Days 12-15**
+  - Environment-aware configuration with database integration
+  - REST APIs for configuration CRUD operations
+  - ConfigurationService with fallback hierarchy
+  - Admin GUI for configuration management
+  - Comprehensive test coverage (>80%)
+  - **Dependency**: TD-014-D must complete first
+  - **Target**: October 7-14, 2025
 
 #### 🚀 Sprint 8 Foundation Advantages (Inherited from Sprint 7)
 

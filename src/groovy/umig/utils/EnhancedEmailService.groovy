@@ -2,7 +2,7 @@ package umig.utils
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
-import groovy.text.SimpleTemplateEngine
+import groovy.text.GStringTemplateEngine
 import groovy.sql.Sql
 import java.util.Date
 import java.util.UUID
@@ -54,7 +54,7 @@ class EnhancedEmailService {
 
     // Template caching for performance optimization (copied from EmailService)
     private static final Map<String, groovy.text.Template> TEMPLATE_CACHE = new ConcurrentHashMap<>()
-    private static final SimpleTemplateEngine TEMPLATE_ENGINE = new SimpleTemplateEngine()
+    private static final GStringTemplateEngine TEMPLATE_ENGINE = new GStringTemplateEngine()
     private static final AtomicLong cacheHits = new AtomicLong(0)
     private static final AtomicLong cacheMisses = new AtomicLong(0)
     private static final int MAX_CACHE_SIZE = 50
@@ -71,6 +71,75 @@ class EnhancedEmailService {
     static Map sendStepStatusChangedNotificationWithUrl(Map stepInstance, List<Map> teams, Map cutoverTeam,
                                                         String oldStatus, String newStatus, Integer userId = null,
                                                         String migrationCode = null, String iterationCode = null) {
+        println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
+        
+        // PHASE 2: Enrich stepInstance with complete data from new repository method
+        println "🔧 [EnhancedEmailService] ENRICHMENT: Using existing StepRepository.findByInstanceIdAsDTO"
+        try {
+            // Explicit type casting per ADR-031 for type safety
+            UUID stepInstanceId = stepInstance.sti_id instanceof UUID ?
+                stepInstance.sti_id as UUID :
+                UUID.fromString(stepInstance.sti_id.toString())
+
+            // Use EXISTING DTO method that already has comprehensive query with ALL data
+            println "🔧 [EnhancedEmailService] 🔍 Calling StepRepository.findByInstanceIdAsDTO with UUID: ${stepInstanceId}"
+            def stepRepository = new umig.repository.StepRepository()
+            // Explicit type casting per ADR-031 for static type checking
+            umig.dto.StepInstanceDTO enrichedDTO = stepRepository.findByInstanceIdAsDTO(stepInstanceId) as umig.dto.StepInstanceDTO
+            
+            if (enrichedDTO) {
+                println "🔧 [EnhancedEmailService] ✅ StepInstanceDTO retrieved successfully"
+                println "🔧 [EnhancedEmailService]   🔍 stepType: '${enrichedDTO.stepType}'"
+                println "🔧 [EnhancedEmailService]   🔍 stepNumber: ${enrichedDTO.stepNumber}"
+                
+                // Use DTO's computed stepCode property (format: BUS-031)
+                String stepCode = enrichedDTO.stepCode ?: ''
+                println "🔧 [EnhancedEmailService]   🔍 DTO stepCode: '${stepCode}'"
+                
+                // Build enriched data map with DTO properties
+                Map enrichedData = [
+                    step_code: stepCode,
+                    step_title: enrichedDTO.stepName,
+                    step_description: enrichedDTO.stepDescription,
+                    team_name: enrichedDTO.assignedTeamName,
+                    migration_code: enrichedDTO.migrationCode,
+                    iteration_code: enrichedDTO.iterationCode,
+                    sequence_name: enrichedDTO.sequenceName,
+                    phase_name: enrichedDTO.phaseName,
+                    instruction_count: enrichedDTO.instructionCount ?: 0,
+                    comment_count: enrichedDTO.comments?.size() ?: 0,
+                    step_status: enrichedDTO.stepStatus,
+                    // Duration field for Step Summary section (actualDuration with fallback to estimatedDuration)
+                    sti_duration_minutes: enrichedDTO.actualDuration ?: enrichedDTO.estimatedDuration ?: 0,
+                    // Environment and impacted teams for Step Summary section
+                    environment_name: enrichedDTO.environmentName ?: '',
+                    impacted_teams: enrichedDTO.impactedTeams ?: '',
+                    // Predecessor information for Step Summary section
+                    predecessor_code: enrichedDTO.predecessorCode ?: '',
+                    predecessor_name: enrichedDTO.predecessorName ?: ''
+                ]
+
+                println "🔧 [EnhancedEmailService]   🔍 step_title: '${enrichedData.step_title}'"
+                println "🔧 [EnhancedEmailService]   🔍 team_name: '${enrichedData.team_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 sti_duration_minutes: ${enrichedData.sti_duration_minutes}"
+                println "🔧 [EnhancedEmailService]   🔍 environment_name: '${enrichedData.environment_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 impacted_teams: '${enrichedData.impacted_teams}'"
+                println "🔧 [EnhancedEmailService]   🔍 predecessor_code: '${enrichedData.predecessor_code}'"
+                println "🔧 [EnhancedEmailService]   🔍 instruction_count: ${enrichedData.instruction_count}"
+                println "🔧 [EnhancedEmailService]   🔍 comment_count: ${enrichedData.comment_count}"
+                
+                // Merge enriched data into stepInstance (enriched data takes precedence)
+                stepInstance = enrichedData + (stepInstance as Map)
+                println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
+            } else {
+                println "🔧 [EnhancedEmailService] ⚠️ WARNING: StepInstanceDTO not found for ID: ${stepInstanceId}"
+            }
+        } catch (Exception enrichmentError) {
+            println "🔧 [EnhancedEmailService] ⚠️ WARNING: DTO enrichment failed: ${enrichmentError.message}"
+            println "🔧 [EnhancedEmailService] Stack trace:"
+            enrichmentError.printStackTrace()
+        }
+        
         println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
         println "🔧 [EnhancedEmailService] Input parameters:"
         println "🔧 [EnhancedEmailService]   stepInstance: ${stepInstance ? 'present' : 'null'}"
@@ -180,19 +249,75 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Prepare template variables with URL
+                // Prepare template variables with URL and enriched data
+                // PHASE 3 & 4: Expose all enriched fields for email template
                 def variables = [
+                    // Core step data with enriched fields
                     stepInstance: stepInstance,
+                    step_code: stepInstance.step_code ?: stepInstance.stt_code ? "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number ?: 0)}" : '',
+                    step_title: stepInstance.stm_name ?: stepInstance.sti_name ?: '',
+                    step_description: stepInstance.stm_description ?: stepInstance.sti_description ?: '',
+                    
+                    // Status change information
                     oldStatus: oldStatus,
                     newStatus: newStatus,
                     statusColor: getStatusColor(newStatus),
                     changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     changedBy: getUsernameById(sql, userId),
+                    
+                    // URL construction
                     stepViewUrl: stepViewUrl,
-                    contextualStepUrl: stepViewUrl, // Fix: Add missing contextualStepUrl for template compatibility
+                    contextualStepUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
+                    
+                    // Environment information (enriched)
+                    environment_name: stepInstance.environment_name ?: '',
+                    environment_type: stepInstance.environment_type ?: '',
+                    environment_role_name: stepInstance.environment_role_name ?: '',
+                    target_environment: stepInstance.environment_name ? 
+                        "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})" : 
+                        (stepInstance.environment_role_name ?: 'Not specified'),
+                    
+                    // Team information (enriched)
+                    team_name: stepInstance.team_name ?: 'Unassigned',
+                    team_email: stepInstance.team_email ?: '',
+                    
+                    // Step metadata (enriched)
+                    step_scope: stepInstance.stm_scope ?: '',
+                    step_location: stepInstance.stm_location ?: '',
+                    step_duration: stepInstance.sti_duration_minutes ?: stepInstance.stm_duration_minutes ?: 0,
+                    
+                    // Predecessor information (enriched)
+                    predecessor_code: stepInstance.predecessor_code ?: '',
+                    predecessor_name: stepInstance.predecessor_name ?: '',
+                    
+                    // Instructions (enriched - now populated from database)
+                    instructions: stepInstance.instructions ?: [],
+                    instruction_count: (stepInstance.instructions as List)?.size() ?: 0,
+                    has_instructions: ((stepInstance.instructions as List)?.size() ?: 0) > 0,
+                    
+                    // Comments (enriched - now populated from database)
+                    comments: stepInstance.comments ?: [],
+                    comment_count: (stepInstance.comments as List)?.size() ?: 0,
+                    has_comments: ((stepInstance.comments as List)?.size() ?: 0) > 0,
+
+                    // Impacted teams (enriched - now a comma-separated STRING from enrichedData)
+                    impacted_teams: stepInstance.impacted_teams ?: '',
+                    impacted_teams_list: stepInstance.impacted_teams ?: '',
+                    has_impacted_teams: (stepInstance.impacted_teams as String)?.trim() ? true : false,
+                    impacted_teams_count: ((stepInstance.impacted_teams as String)?.split(',')?.size() ?: 0),
+                    
+                    // Hierarchy context (already available, now explicit)
+                    migration_name: stepInstance.migration_name ?: '',
+                    iteration_name: stepInstance.iteration_name ?: '',
+                    plan_name: stepInstance.plan_name ?: '',
+                    sequence_name: stepInstance.sequence_name ?: '',
+                    phase_name: stepInstance.phase_name ?: '',
+                    
+                    // Operation context
+
                     sourceView: 'stepview', // Add missing sourceView property
                     isDirectChange: true,    // Template compatibility - indicates direct user action
                     isBulkOperation: false,  // Template compatibility - single step operation
@@ -200,8 +325,23 @@ class EnhancedEmailService {
                     changeContext: "Status changed from ${oldStatus} to ${newStatus} by ${getUsernameById(sql, userId)}", // Add missing changeContext variable
                     // Template-specific variables (must be top-level for template access)
                     // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
-                    recentComments: processCommentsForTemplate(stepInstance?.recentComments),
-                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                    recentComments: processCommentsForTemplate(stepInstance?.comments),
+                    
+                    // TD-015 Phase 3: Pre-processed variables for simplified templates (now using enriched data)
+                    breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
+                    instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
+                    commentsHtml: buildCommentsHtml((stepInstance?.comments ?: []) as List),
+                    durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
+                    stepViewLinkHtml: buildStepViewLinkHtml(stepViewUrl, stepViewUrl != null),
+                    statusBadgeHtml: buildStatusBadge(newStatus),
+                    teamRowHtml: buildOptionalField('Team', stepInstance?.team_name as String),
+                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams', stepInstance?.impacted_teams as String),
+                    predecessorRowHtml: buildOptionalField('Predecessor',
+                        stepInstance?.predecessor_code ? "${stepInstance.predecessor_code} ${stepInstance.predecessor_name ?: ''}".trim() : null),
+                    environmentRowHtml: buildOptionalField('Environment',
+                        (stepInstance?.environment_name ?
+                            "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})".toString() :
+                            (stepInstance.environment_role_name ?: '')) as String)
                 ]
 
                 println "🔧 [EnhancedEmailService] STEP 4: Processing email template"
@@ -246,14 +386,7 @@ class EnhancedEmailService {
                         ]
                     )
 
-                    // Also log the status change itself
-                    AuditLogRepository.logStepStatusChange(
-                        sql,
-                        userId,
-                        UUID.fromString(stepInstance.sti_id as String),
-                        oldStatus,
-                        newStatus
-                    )
+                    // Status change already logged by StepRepository - no need to duplicate here
 
                     return [success: true, emailsSent: recipients.size(), message: "Step status change notification sent successfully"]
                 } else {
@@ -352,7 +485,21 @@ class EnhancedEmailService {
                     // Template-specific variables (must be top-level for template access)
                     // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
                     recentComments: processCommentsForTemplate(stepInstance?.recentComments),
-                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                    impacted_teams: stepInstance?.impacted_teams ?: '',
+
+                    // TD-015 Phase 3: Pre-processed variables for simplified templates
+                    breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
+                    instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
+                    commentsHtml: buildCommentsHtml(processCommentsForTemplate(stepInstance?.recentComments)),
+                    durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
+                    stepViewLinkHtml: buildStepViewLinkHtml(stepViewUrl, stepViewUrl != null),
+                    statusBadgeHtml: buildStatusBadge('OPEN'), // Step status is OPEN
+                    newStatus: 'OPEN', // Add status for template compatibility
+                    teamRowHtml: buildOptionalField('Team', stepInstance?.team_name as String),
+                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams', stepInstance?.impacted_teams as String),
+                    predecessorRowHtml: buildOptionalField('Predecessor',
+                        stepInstance?.predecessor_code ? "${stepInstance.predecessor_code} ${stepInstance.predecessor_name ?: ''}".trim() : null),
+                    environmentRowHtml: buildOptionalField('Environment', stepInstance?.environment_name as String)
                 ]
                 
                 // Process template
@@ -459,7 +606,20 @@ class EnhancedEmailService {
                     // Template-specific variables (must be top-level for template access)
                     // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
                     recentComments: processCommentsForTemplate(stepInstance?.recentComments),
-                    impacted_teams: stepInstance?.impacted_teams ?: ''
+                    impacted_teams: stepInstance?.impacted_teams ?: '',
+
+                    // TD-015 Phase 3: Pre-processed variables for simplified templates
+                    breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
+                    instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
+                    commentsHtml: buildCommentsHtml(processCommentsForTemplate(stepInstance?.recentComments)),
+                    durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
+                    stepViewLinkHtml: buildStepViewLinkHtml(stepViewUrl, stepViewUrl != null),
+                    statusBadgeHtml: buildStatusBadge(stepInstance?.sti_status as String), // Use step's current status
+                    teamRowHtml: buildOptionalField('Team', stepInstance?.team_name as String),
+                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams', stepInstance?.impacted_teams as String),
+                    predecessorRowHtml: buildOptionalField('Predecessor',
+                        stepInstance?.predecessor_code ? "${stepInstance.predecessor_code} ${stepInstance.predecessor_name ?: ''}".trim() : null),
+                    environmentRowHtml: buildOptionalField('Environment', stepInstance?.environment_name as String)
                 ]
                 
                 // Process template
@@ -659,74 +819,343 @@ class EnhancedEmailService {
      * Enhanced to handle URL construction variables
      * FIXED: Added missing validation and caching from EmailService
      */
+    /**
+     * Process email templates using simple ${} variable substitution
+     * TD-015 Phase 3: Simplified to use GStringTemplateEngine only
+     *
+     * All GSP scriptlets (<% %>) have been removed from templates.
+     * Conditionals and loops are now pre-processed in Groovy code.
+     *
+     * @param templateText HTML template with ${variable} placeholders
+     * @param variables Map of variable names to values
+     * @return Processed template with all variables substituted
+     */
     private static String processTemplate(String templateText, Map variables) {
         try {
-            println "🔍 DEBUG EnhancedEmailService.processTemplate called:"
-            println "  - Template text length: ${templateText?.length()}"
-            println "  - Template text preview: ${templateText?.substring(0, Math.min(200, templateText?.length() ?: 0))}..."
-            println "  - Variables: ${variables?.keySet()}"
-
-            if (variables) {
-                variables.each { key, value ->
-                    println "    - ${key}: ${value} (${value?.getClass()?.simpleName})"
-                }
-            }
-
-            println "🔍 Starting template expression validation..."
-            // TEMPORARILY DISABLE VALIDATION FOR DEBUGGING
-            try {
-                validateTemplateExpression(templateText)
-                println "✅ Template expression validation passed"
-            } catch (Exception validationEx) {
-                println "⚠️ Template expression validation failed, but proceeding anyway for debugging: ${validationEx.message}"
-            }
-
-            println "🔍 Starting content size validation..."
-            try {
-                validateContentSize(variables, templateText)
-                println "✅ Content size validation passed"
-            } catch (Exception sizeEx) {
-                println "⚠️ Content size validation failed, but proceeding anyway for debugging: ${sizeEx.message}"
-            }
-
-            println "🔍 Getting cached template..."
-            // Use cached template for performance and reliability
-            def template = getCachedTemplate(templateText)
-            if (!template) {
-                println "❌ Template compilation failed, returning original text"
-                return templateText ?: ""
-            }
-            println "✅ Template compilation successful"
-
-            println "🔍 Processing template with variables..."
+            // Use GStringTemplateEngine for simple ${variable} substitution
+            // Note: All <% %> scriptlets must be removed from templates
+            def engine = new groovy.text.GStringTemplateEngine()
+            def template = engine.createTemplate(templateText)
             def result = template.make(variables).toString()
-            println "✅ Template processed successfully, result length: ${result.length()}"
-            println "  - Result preview: ${result.substring(0, Math.min(200, result.length()))}..."
+
+            println "✅ Template processed successfully (${result.length()} characters)"
             return result
-        } catch (SecurityException se) {
-            println "❌ EnhancedEmailService: Security validation failed - ${se.message}"
-            se.printStackTrace()
-            throw se
+
         } catch (Exception e) {
-            println "❌ EnhancedEmailService: Template processing error - ${e.message}"
-            println "  - Error type: ${e.class.simpleName}"
-            println "  - Error class: ${e.class.name}"
-            println "  - Template variables provided: ${variables?.keySet()}"
-
-            // Enhanced debugging
-            if (variables?.stepInstance) {
-                Map stepInstanceMap = variables.stepInstance as Map
-                println "  - stepInstance structure: ${stepInstanceMap.keySet()}"
-            }
-
-            // Print full template text if it's causing issues
-            println "🔍 Full template text causing error:"
-            println templateText
-
+            println "❌ Template processing error: ${e.message}"
+            println "   Template variables available: ${variables?.keySet()}"
             e.printStackTrace()
-            throw new RuntimeException("Failed to process email template: ${e.message}", e)
+            return templateText  // Fallback only on error
         }
     }
+
+    // ========================================
+    // TEMPLATE PRE-PROCESSING HELPER METHODS (TD-015 Phase 2)
+    // ========================================
+
+    /**
+     * Helper methods for pre-processing email template content
+     * These methods eliminate the need for GSP scriptlets in templates
+     * by performing all conditionals and loops in Groovy code before rendering
+     *
+     * All methods are:
+     * - Pure functions (no side effects)
+     * - Stateless (no instance variables)
+     * - Null-safe (handle missing data gracefully)
+     * - Easily testable (deterministic outputs)
+     *
+     * @see TD-015-PHASE2-HELPER-METHODS.md
+     * @since Sprint 8 (2025-09-30)
+     */
+
+    /**
+     * Build hierarchical breadcrumb navigation string
+     * Handles 6 nested conditionals from template lines 19-30
+     *
+     * @param migrationCode Migration identifier (e.g., "MIG-2025-Q1")
+     * @param iterationCode Iteration identifier (e.g., "ITER-001")
+     * @param stepInstance Map containing step hierarchy (plan_name, sequence_name, phase_name)
+     * @return Formatted breadcrumb string with › separators
+     */
+    private static String buildBreadcrumb(String migrationCode, String iterationCode, Map stepInstance) {
+        // Primary path: Use codes if available
+        if (migrationCode && iterationCode) {
+            def parts = [migrationCode, iterationCode]
+
+            // Add optional hierarchy levels
+            if (stepInstance?.plan_name) {
+                parts.add(stepInstance.plan_name as String)
+            }
+            if (stepInstance?.sequence_name) {
+                parts.add(stepInstance.sequence_name as String)
+            }
+            if (stepInstance?.phase_name) {
+                parts.add(stepInstance.phase_name as String)
+            }
+
+            return parts.join(' › ')
+        }
+
+        // Fallback path: Use full names from stepInstance
+        else {
+            String migration = stepInstance?.migration_name ?: 'Migration'
+            String iteration = stepInstance?.iteration_name ?: 'Iteration'
+            return "${migration} › ${iteration}"
+        }
+    }
+
+    /**
+     * Build instructions table HTML from instructions list
+     * Handles loop with conditional icons (template lines 145-158)
+     *
+     * @param instructions List of instruction maps (ini_name, ini_duration_minutes, team_name, control_code, completed)
+     * @return HTML string with <tr> rows for each instruction
+     */
+    private static String buildInstructionsHtml(List instructions) {
+        // Empty collection fallback
+        if (!instructions || instructions.isEmpty()) {
+            return '<tr><td colspan="5" style="text-align:center; color:#6c757d; padding:20px;">No instructions defined for this step.</td></tr>'
+        }
+
+        def html = new StringBuilder()
+        instructions.eachWithIndex { instruction, index ->
+            // Cast to Map for safe property access
+            def instructionMap = instruction as Map
+
+            // Status icon: ✓ if completed, otherwise show 1-based index number
+            def statusIcon = instructionMap.completed ? '✓' : (index + 1).toString()
+
+            // Fallback values for missing data
+            def name = instructionMap.ini_name ?: instructionMap.description ?: "Instruction ${index + 1}"
+            def duration = instructionMap.ini_duration_minutes ? "${instructionMap.ini_duration_minutes} min" : '-'
+            def team = instructionMap.team_name ?: '-'
+            def control = instructionMap.control_code ?: '-'
+
+            html.append("""
+        <tr>
+            <td style="text-align:center; font-weight:bold; color:${instructionMap.completed ? '#28a745' : '#6c757d'};">${statusIcon}</td>
+            <td>${name}</td>
+            <td>${duration}</td>
+            <td>${team}</td>
+            <td>${control}</td>
+        </tr>
+    """)
+        }
+
+        return html.toString()
+    }
+
+    /**
+     * Build recent comments HTML (max 3 items)
+     * Handles loop with index-based margin (template lines 185-197)
+     *
+     * @param comments List of comment maps (author_name, created_at, comment_text)
+     * @return HTML string with comment card divs (max 3)
+     */
+    private static String buildCommentsHtml(List comments) {
+        // Empty collection fallback
+        if (!comments || comments.isEmpty()) {
+            return '<p style="color:#6c757d; text-align:center; padding:20px;">No comments yet. Be the first to add your insights!</p>'
+        }
+
+        def html = new StringBuilder()
+        comments.take(3).eachWithIndex { comment, index ->
+            // Cast to Map for safe property access
+            def commentMap = comment as Map
+
+            // First comment has no top margin, others have 12px
+            def marginTop = index == 0 ? '0' : '12px'
+
+            // Fallback values
+            def author = commentMap.author_name ?: 'Anonymous'
+            def date = commentMap.created_at ?: 'Recent'
+            def text = commentMap.comment_text ?: '(No comment text)'
+
+            html.append("""
+        <div class="comment-card" style="margin: ${marginTop} 0; padding: 12px; background: #f8f9fa; border-left: 3px solid #0052cc;">
+            <div class="comment-author" style="font-weight: bold; color: #0052cc; margin-bottom: 4px;">${author}</div>
+            <div class="comment-date" style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">${date}</div>
+            <div class="comment-text" style="color: #212529;">${text}</div>
+        </div>
+    """)
+        }
+
+        return html.toString()
+    }
+
+    /**
+     * Build duration and environment display string
+     * Handles 3 conditionals with smart separator (template lines 67-76)
+     *
+     * @param stepInstance Map containing sti_duration_minutes and environment_name
+     * @return Formatted string: "30 min | Production" or "30 min" or "Production" or ""
+     */
+    private static String buildDurationAndEnvironment(Map stepInstance) {
+        def parts = []
+
+        // Add duration if present
+        if (stepInstance?.sti_duration_minutes) {
+            parts.add("${stepInstance.sti_duration_minutes} min")
+        }
+
+        // Add environment if present
+        if (stepInstance?.environment_name) {
+            parts.add(stepInstance.environment_name as String)
+        }
+
+        // Join with " | " separator only if both exist
+        return parts.join(' | ')
+    }
+
+    /**
+     * Build StepView link HTML or fallback message
+     * Handles conditional URL block (template lines 173-182)
+     *
+     * @param stepViewUrl Confluence StepView URL (or null if unavailable)
+     * @param hasStepViewUrl Boolean flag indicating URL availability
+     * @return HTML string with clickable link or informational message
+     */
+    private static String buildStepViewLinkHtml(String stepViewUrl, boolean hasStepViewUrl) {
+        // Primary path: URL available
+        if (hasStepViewUrl && stepViewUrl) {
+            return """
+        <div style="margin: 20px 0; text-align: center;">
+            <a href="${stepViewUrl}" class="btn-primary" style="
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #0052cc;
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: bold;
+            ">
+                🔗 View in Confluence
+            </a>
+            <p style="margin-top: 12px; color: #6c757d; font-size: 14px;">
+                Click to view this step with live updates and collaboration features
+            </p>
+        </div>
+    """
+        }
+
+        // Fallback path: URL unavailable
+        else {
+            return """
+        <div style="margin: 20px 0; padding: 16px; background: #f8f9fa; border-radius: 4px; text-align: center;">
+            <p style="margin: 0 0 8px 0; font-weight: bold; color: #495057;">📌 Access Information:</p>
+            <p style="margin: 0; color: #6c757d;">
+                Direct link is not available. Please access the UMIG system in Confluence
+                to view the most current step details and collaborate with your team.
+            </p>
+        </div>
+    """
+        }
+    }
+
+    /**
+     * Build optional table row HTML (reusable utility)
+     * Used for team, impacted_teams, predecessor, environment, etc.
+     *
+     * @param label Row label (e.g., "Team", "Predecessor")
+     * @param value Field value (or null if not present)
+     * @return HTML <tr> string or empty string if value is null/empty
+     */
+    private static String buildOptionalField(String label, String value) {
+        // Only generate row if value is present
+        if (value && value.trim()) {
+            return """
+        <tr>
+            <td style="font-weight: bold; color: #495057; width: 180px;">${label}</td>
+            <td style="color: #212529;">${value}</td>
+        </tr>
+    """
+        } else {
+            return '' // Return empty string to hide row
+        }
+    }
+
+    /**
+     * Build status badge HTML with color based on status
+     *
+     * @param status Step status string (e.g., "OPEN", "COMPLETED", "BLOCKED")
+     * @return HTML span with colored badge
+     */
+    private static String buildStatusBadge(String status) {
+        // Determine badge color based on status
+        String color
+        String displayText = status ?: 'UNKNOWN'
+
+        switch (status?.toUpperCase()) {
+            case 'OPEN':
+            case 'IN_PROGRESS':
+                color = '#0052cc' // Blue
+                break
+            case 'COMPLETED':
+            case 'DONE':
+                color = '#28a745' // Green
+                break
+            case 'BLOCKED':
+            case 'FAILED':
+                color = '#dc3545' // Red
+                break
+            case 'PENDING':
+            case 'WAITING':
+                color = '#ffc107' // Yellow/Orange
+                break
+            default:
+                color = '#6c757d' // Gray
+                break
+        }
+
+        return """
+    <span class="status-badge" style="
+        display: inline-block;
+        padding: 6px 12px;
+        background-color: ${color};
+        color: white;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 14px;
+    ">
+        ${displayText}
+    </span>
+"""
+    }
+
+    /**
+     * Build documentation link HTML
+     * Can be active link or disabled/placeholder state
+     *
+     * @param url Documentation URL (or null if unavailable)
+     * @param linkText Link display text (e.g., "View Documentation")
+     * @return HTML anchor tag or disabled text
+     */
+    private static String buildDocumentationLink(String url, String linkText) {
+        def displayText = linkText ?: 'View Documentation'
+
+        // Active link if URL present
+        if (url && url.trim() && url != '#') {
+            return """
+        <a href="${url}" target="_blank" style="
+            color: #0052cc;
+            text-decoration: none;
+            font-weight: bold;
+        ">
+            📖 ${displayText}
+        </a>
+    """
+        }
+
+        // Disabled state if URL not available
+        else {
+            return """
+        <span style="color: #6c757d; font-style: italic;">
+            📖 ${displayText} (Not Available)
+        </span>
+    """
+        }
+    }
+
     
     /**
      * Extract email addresses from team objects
@@ -1016,33 +1445,74 @@ class EnhancedEmailService {
      * Get cached template or compile and cache new one (copied from EmailService)
      */
     private static groovy.text.Template getCachedTemplate(String templateText) {
-        if (!templateText) return null
+        if (!templateText) {
+            println "🚨🚨🚨 [TD-015 DEBUG] getCachedTemplate: templateText is null or empty!"
+            return null
+        }
+
+        println "🚨🚨🚨 [TD-015 DEBUG] getCachedTemplate called, template length: ${templateText.length()}"
 
         // Use hash as cache key for stability
         String cacheKey = templateText.hashCode().toString()
+        println "🚨🚨🚨 [TD-015 DEBUG] Cache key: ${cacheKey}"
 
         groovy.text.Template template = TEMPLATE_CACHE.get(cacheKey)
         if (template != null) {
             cacheHits.incrementAndGet()
+            println "🚨🚨🚨 [TD-015 DEBUG] Template found in cache! (hits: ${cacheHits.get()})"
             return template
         }
+
+        println "🚨🚨🚨 [TD-015 DEBUG] Template NOT in cache, compiling... (misses: ${cacheMisses.get()})"
 
         // Compile and cache new template
         try {
             cacheMisses.incrementAndGet()
+            println "🚨🚨🚨 [TD-015 DEBUG] About to call TEMPLATE_ENGINE.createTemplate()..."
+            println "🚨🚨🚨 [TD-015 DEBUG] Template preview (first 500 chars): ${templateText.take(500)}"
+
             template = TEMPLATE_ENGINE.createTemplate(templateText)
+
+            println "✅ Template compiled successfully with GStringTemplateEngine (length: ${templateText.length()} chars)"
 
             // Limit cache size with simple eviction
             if (TEMPLATE_CACHE.size() >= MAX_CACHE_SIZE) {
                 // Remove oldest entry (simple FIFO)
                 String firstKey = TEMPLATE_CACHE.keySet().iterator().next()
                 TEMPLATE_CACHE.remove(firstKey)
+                println "🚨🚨🚨 [TD-015 DEBUG] Cache eviction: removed key ${firstKey}"
             }
 
             TEMPLATE_CACHE.put(cacheKey, template)
+            println "🚨🚨🚨 [TD-015 DEBUG] Template cached successfully, cache size now: ${TEMPLATE_CACHE.size()}"
             return template
         } catch (Exception e) {
-            println "EnhancedEmailService: Template compilation failed: ${e.message}"
+            // Log to audit log for visibility (println goes to catalina.out which is hard to access)
+            try {
+                DatabaseUtil.withSql { sql ->
+                    // Log as a template compilation failure
+                    // Using null for entityId since this is a template-level error, not entity-specific
+                    // Using 'TEMPLATE_ENGINE' as entityType to distinguish from step/instruction errors
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        null as Integer,  // No user context available during template compilation
+                        null as UUID,     // No specific entity ID - this is a template error
+                        [] as List<String>,  // No recipients yet - compilation happens before sending
+                        "Template Compilation Error" as String,
+                        "Template engine: GStringTemplateEngine | Error: ${e.class.name}: ${e.message} | Template preview: ${templateText.take(200)}" as String,
+                        'TEMPLATE_ENGINE' as String  // Custom entity type for template errors
+                    )
+                }
+            } catch (Exception auditError) {
+                // If audit logging fails, fall back to println
+                println "Failed to log template compilation error to audit log: ${auditError.message}"
+            }
+
+            // Also print for catalina.out debugging
+            println "❌ Template compilation FAILED with GStringTemplateEngine"
+            println "Exception: ${e.class.name}: ${e.message}"
+            e.printStackTrace()
+
             // Return null to trigger fallback behavior
             return null
         }

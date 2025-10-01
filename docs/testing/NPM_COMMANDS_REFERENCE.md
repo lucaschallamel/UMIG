@@ -1,8 +1,16 @@
 # NPM Test Commands - Quick Reference
 
-**Updated**: September 8, 2025 | **Status**: Production Ready | **Working Directory**: `/local-dev-setup/`
+**Updated**: October 1, 2025 | **Status**: Active Development | **Working Directory**: `/local-dev-setup/`
 
 ## 🚀 Essential Commands
+
+### Smart Testing (Infrastructure-Aware)
+
+```bash
+# Smart testing (adapts to environment)
+npm test                         # Detects infrastructure, runs appropriate tests
+npm run test:all:quick           # Quick validation (~158 tests, no infrastructure needed)
+```
 
 ### Core Testing Commands (Technology-Prefixed Architecture)
 
@@ -13,8 +21,8 @@ npm run test:js:integration      # JavaScript integration tests
 npm run test:js:e2e              # End-to-end JavaScript tests
 
 # Groovy Unit Tests (Self-Contained Architecture)
-npm run test:groovy:unit         # Groovy unit tests - 100% pass rate achievement
-npm run test:groovy:integration  # Groovy integration tests - revolutionary self-contained execution
+npm run test:groovy:unit         # Groovy unit tests (requires ScriptRunner context for some tests)
+npm run test:groovy:integration  # Groovy integration tests
 
 # Legacy Commands (Maintained for Compatibility)
 npm run test:unit                # All unit tests for repositories and core logic
@@ -42,9 +50,9 @@ npm run mailhog:clear            # Clear all messages from MailHog inbox
 ### Comprehensive Test Suites
 
 ```bash
-# Revolutionary Technology-Prefixed Architecture
+# Technology-Prefixed Architecture
 npm run test:js:all              # Complete JavaScript test suite (Jest framework)
-npm run test:groovy:all          # Complete Groovy test suite (100% pass rate - TD-001/TD-002 achievement)
+npm run test:groovy:all          # Complete Groovy test suite
 npm run test:all                 # All tests: JavaScript + Groovy + integration + UAT
 
 # Legacy Test Execution (Maintained for Compatibility)
@@ -69,13 +77,25 @@ npm run test:us028               # US-028 enhanced IterationView tests
 | `--auth`                | Include authentication tests       | `npm run test:integration:auth`             |
 | `--core`                | Run comprehensive test suite       | `npm run test:integration:core`             |
 
-### Email Testing Commands (NEW)
+### Email Testing Commands
 
 | Command                 | Description                           | Example                    |
 | ----------------------- | ------------------------------------- | -------------------------- |
 | `npm run mailhog:test`  | Test SMTP connectivity to MailHog     | Tests email infrastructure |
 | `npm run mailhog:check` | Check message count in MailHog inbox  | Returns number of emails   |
 | `npm run mailhog:clear` | Clear all messages from MailHog inbox | Resets test environment    |
+
+### Component-Specific Testing
+
+```bash
+# Test specific components
+npm run test:js:components -- --testPathPattern='TeamsEntityManager'
+npm run test:js:components -- --testPathPattern='ComponentOrchestrator'
+npm run test:js:security -- --testPathPattern='ComponentOrchestrator.pentest'
+
+# Test entity managers
+npm run test:js:components -- --testPathPattern='.*EntityManager'
+```
 
 ### Advanced Usage Examples
 
@@ -92,80 +112,80 @@ npm run test:unit:pattern "Steps"            # All Steps-related tests
 npm run test:unit:category "API"             # API unit tests only
 npm run test:unit:category "Database"        # Database unit tests only
 
-# Revolutionary Self-Contained Groovy Architecture
-npm run test:groovy:unit --self-contained    # 100% pass rate with zero external dependencies
-npm run test:groovy:integration --isolated   # Revolutionary isolated execution environment
+# Self-Contained Groovy Architecture
+npm run test:groovy:unit --self-contained    # Self-contained execution mode
+npm run test:groovy:integration --isolated   # Isolated execution environment
 
 # Quick validation
 npm run test:uat:quick                       # Essential UAT tests only
 npm run test:integration --dry-run           # Validate integration setup
 
-# Email testing workflow (TD-002 Achievement)
+# Email testing workflow
 npm run mailhog:test                         # Test SMTP connectivity
 npm run mailhog:clear                        # Clear test inbox
 npm run test:integration                     # Run tests (may send emails)
 npm run mailhog:check                        # Verify email notifications
 ```
 
-## 🏆 Revolutionary Testing Architecture Achievements (TD-001/TD-002)
+## 🏆 Testing Architecture Features (TD-001/TD-002)
 
-**Status**: ✅ **REVOLUTIONARY COMPLETION** (September 8, 2025)
+**Status**: ✅ Active Development (October 1, 2025)
 
 ### Phase 6 Technology-Prefixed Commands (TD-001)
 
-**Achievement**: 100% Pass Rate with Self-Contained Groovy Architecture
+**Goal**: Self-Contained Groovy Architecture with clear technology separation
 
-| Technology-Prefixed Command       | Achievement              | Revolutionary Feature                  |
-| --------------------------------- | ------------------------ | -------------------------------------- |
-| `npm run test:js:unit`            | ✅ 100% Jest Integration | Zero configuration Jest framework      |
-| `npm run test:js:integration`     | ✅ 100% E2E Coverage     | Complete end-to-end JavaScript testing |
-| `npm run test:groovy:unit`        | ✅ 100% Pass Rate        | Self-contained execution environment   |
-| `npm run test:groovy:integration` | ✅ 100% Pass Rate        | Revolutionary isolated architecture    |
+| Technology-Prefixed Command       | Framework | Architecture Feature          |
+| --------------------------------- | --------- | ----------------------------- |
+| `npm run test:js:unit`            | Jest      | Zero configuration Jest setup |
+| `npm run test:js:integration`     | Jest      | E2E JavaScript testing        |
+| `npm run test:groovy:unit`        | Groovy    | Self-contained execution      |
+| `npm run test:groovy:integration` | Groovy    | Isolated architecture         |
 
-### Testing Infrastructure Revolution (TD-002)
+### Testing Infrastructure (TD-002)
 
-**Achievement**: Complete elimination of external dependencies with 100% reliability
+**Goal**: Elimination of external dependencies for Groovy tests
 
-#### Revolutionary Self-Contained Groovy Architecture
+#### Self-Contained Groovy Architecture
 
 ```bash
-# Revolutionary Features Achieved:
+# Features:
 npm run test:groovy:unit --self-contained    # Zero external dependencies
 npm run test:groovy:integration --isolated   # Complete isolation from environment
-npm run test:groovy:all --revolutionary      # 100% pass rate guarantee
+npm run test:groovy:all                      # Complete Groovy test suite
 ```
 
-#### Key Revolutionary Achievements:
+#### Key Architectural Features:
 
-- ✅ **100% Pass Rate**: All Groovy tests achieve perfect execution
-- ✅ **Zero External Dependencies**: Self-contained execution environment
-- ✅ **Technology Separation**: Clear JavaScript vs Groovy test boundaries
-- ✅ **Revolutionary Architecture**: No MetaClass manipulation, no shell script dependencies
-- ✅ **Cross-Platform Excellence**: Universal Windows/macOS/Linux compatibility
+- ✅ **Self-Contained Execution**: Embedded test infrastructure
+- ✅ **Zero External Dependencies**: No shell script dependencies
+- ✅ **Technology Separation**: Clear JavaScript vs Groovy boundaries
+- ✅ **Cross-Platform**: Windows/macOS/Linux compatibility
+- ⚠️ **ScriptRunner Context**: Some tests require ScriptRunner execution environment
 
 ## 🔄 Shell Script Migration Status
 
-**Status**: ✅ **COMPLETE** (August 18, 2025) | **Enhanced**: ✅ **REVOLUTIONARY** (September 8, 2025)
+**Status**: ✅ Complete (August 18, 2025) | **Updated**: October 1, 2025
 
-### Migration Mapping (Legacy → Modern → Revolutionary)
+### Migration Mapping
 
-| ❌ Deprecated Shell Script              | ✅ NPM Legacy                   | 🚀 Revolutionary Technology-Prefixed         | Purpose                           |
-| --------------------------------------- | ------------------------------- | -------------------------------------------- | --------------------------------- |
-| `run-unit-tests.sh`                     | `npm run test:unit`             | `npm run test:groovy:unit`                   | Self-contained Groovy unit tests  |
-| `javascript-unit-tests.sh`              | `npm run test:unit`             | `npm run test:js:unit`                       | Jest-based JavaScript testing     |
-| `run-integration-tests.sh`              | `npm run test:integration`      | `npm run test:groovy:integration`            | Isolated Groovy integration tests |
-| `run-authenticated-tests.sh`            | `npm run test:integration:auth` | `npm run test:groovy:integration --auth`     | Authentication-enabled tests      |
-| `run-all-integration-tests.sh`          | `npm run test:integration:core` | `npm run test:groovy:all`                    | Complete Groovy test suite        |
-| `run-uat-validation.sh`                 | `npm run test:uat`              | `npm run test:js:e2e`                        | End-to-end JavaScript validation  |
-| `run-enhanced-iterationview-tests.sh`   | `npm run test:iterationview`    | `npm run test:js:integration --ui`           | UI component integration tests    |
-| `run-integration-tests-in-container.sh` | `npm run test:integration`      | `npm run test:groovy:integration --isolated` | Revolutionary isolated execution  |
-| `run-tests-via-scriptrunner.sh`         | `npm run test:integration`      | `npm run test:groovy:all --self-contained`   | 100% self-contained architecture  |
+| ❌ Deprecated Shell Script              | ✅ NPM Legacy                   | 🚀 Technology-Prefixed                       | Purpose                      |
+| --------------------------------------- | ------------------------------- | -------------------------------------------- | ---------------------------- |
+| `run-unit-tests.sh`                     | `npm run test:unit`             | `npm run test:groovy:unit`                   | Groovy unit tests            |
+| `javascript-unit-tests.sh`              | `npm run test:unit`             | `npm run test:js:unit`                       | JavaScript testing           |
+| `run-integration-tests.sh`              | `npm run test:integration`      | `npm run test:groovy:integration`            | Groovy integration tests     |
+| `run-authenticated-tests.sh`            | `npm run test:integration:auth` | `npm run test:groovy:integration --auth`     | Authentication-enabled tests |
+| `run-all-integration-tests.sh`          | `npm run test:integration:core` | `npm run test:groovy:all`                    | Complete Groovy suite        |
+| `run-uat-validation.sh`                 | `npm run test:uat`              | `npm run test:js:e2e`                        | E2E validation               |
+| `run-enhanced-iterationview-tests.sh`   | `npm run test:iterationview`    | `npm run test:js:integration --ui`           | UI component integration     |
+| `run-integration-tests-in-container.sh` | `npm run test:integration`      | `npm run test:groovy:integration --isolated` | Isolated execution           |
+| `run-tests-via-scriptrunner.sh`         | `npm run test:integration`      | `npm run test:groovy:all --self-contained`   | Self-contained architecture  |
 
 ### ⚠️ Important Notes
 
 - **Shell scripts are DEPRECATED**: Located in `/src/groovy/umig/tests/archived-shell-scripts/`
 - **Use NPM commands only**: All shell script functionality preserved in NPM commands
-- **100% functional equivalence**: No features lost in migration
+- **Functional equivalence**: Core features maintained through NPM commands
 - **Cross-platform support**: NPM commands work on Windows/macOS/Linux
 
 ## 🎯 Use Case Commands
@@ -228,13 +248,13 @@ npm run test:integration --verbose
 
 ### Key Features
 
-✅ **SDKMAN Integration**: Automatic Groovy version management  
-✅ **PostgreSQL JDBC**: Database connection handling  
-✅ **XML Parser Config**: Groovy compatibility settings  
-✅ **Test Reporting**: Comprehensive success/failure tracking  
-✅ **Error Handling**: Enhanced error reporting and diagnostics  
-✅ **Cross-Platform**: Windows/macOS/Linux compatibility  
-✅ **Container Support**: Podman/Docker integration  
+✅ **SDKMAN Integration**: Automatic Groovy version management
+✅ **PostgreSQL JDBC**: Database connection handling
+✅ **XML Parser Config**: Groovy compatibility settings
+✅ **Test Reporting**: Comprehensive success/failure tracking
+✅ **Error Handling**: Enhanced error reporting and diagnostics
+✅ **Cross-Platform**: Windows/macOS/Linux compatibility
+✅ **Container Support**: Podman/Docker integration
 ✅ **ScriptRunner Integration**: Full ScriptRunner environment support
 
 ## 🚨 Troubleshooting
@@ -358,39 +378,32 @@ npm run test:integration:auth                  # Integration validation
 npm run test:uat:quick                        # Quick acceptance check
 ```
 
-## 📊 Performance Metrics - Revolutionary Architecture
+## 📊 Test Execution Status
 
-### Technology-Prefixed Command Performance (TD-001/TD-002 Achievement)
+### Current Test Status (October 1, 2025)
 
-| Revolutionary Command             | Pass Rate   | Runtime | Architecture       | Features                      |
-| --------------------------------- | ----------- | ------- | ------------------ | ----------------------------- |
-| `npm run test:groovy:unit`        | ✅ **100%** | 38s     | Self-contained     | Zero external dependencies    |
-| `npm run test:groovy:integration` | ✅ **100%** | 95s     | Isolated execution | Revolutionary architecture    |
-| `npm run test:js:unit`            | ✅ **100%** | 25s     | Jest framework     | Zero configuration required   |
-| `npm run test:js:integration`     | ✅ **100%** | 85s     | E2E coverage       | Complete testing pipeline     |
-| `npm run test:groovy:all`         | ✅ **100%** | 145s    | Complete suite     | Perfect reliability guarantee |
+**Note**: Test execution metrics are under validation. See TD-014 progress tracking for current coverage data.
 
-### Legacy Performance Comparison
+| Test Suite                        | Status          | Notes                                      |
+| --------------------------------- | --------------- | ------------------------------------------ |
+| `npm run test:groovy:unit`        | ⚠️ Partial      | Some tests require ScriptRunner context    |
+| `npm run test:groovy:integration` | ⚠️ Partial      | Isolated tests need manual execution       |
+| `npm run test:js:unit`            | ✅ Active       | Jest framework tests                       |
+| `npm run test:js:integration`     | ✅ Active       | JavaScript integration tests               |
+| `npm run test:groovy:all`         | ⚠️ Under Review | See TD-014 for comprehensive test coverage |
 
-| Test Type             | Legacy Runtime | Revolutionary Runtime | Improvement | Cross-Platform |
-| --------------------- | -------------- | --------------------- | ----------- | -------------- |
-| **Unit Tests**        | 42s            | 38s                   | 9% faster   | ✅ Universal   |
-| **Integration Tests** | 115s           | 95s                   | 17% faster  | ✅ Universal   |
-| **UAT Tests**         | 165s           | 85s                   | 48% faster  | ✅ Universal   |
-| **Complete Suite**    | 322s           | 145s                  | 55% faster  | ✅ Universal   |
+### Validation in Progress
 
-### Revolutionary Achievement Metrics (TD-001/TD-002)
-
-- ✅ **100% Pass Rate**: Perfect execution across all technology-prefixed commands
-- ✅ **55% Performance Improvement**: Revolutionary architecture optimization
-- ✅ **Zero Dependencies**: Self-contained execution environment
-- ✅ **Universal Compatibility**: Windows/macOS/Linux native support
+- **TD-014**: Repository Layer comprehensive testing (43% complete)
+- **Sprint 8**: Security architecture enhancement with ADRs 67-70
+- **Test Infrastructure**: Path fixes applied, execution validation ongoing
 
 ## 📞 Support
 
 ### Related Documentation
 
 - **Testing Guide**: `/docs/testing/TESTING_GUIDE.md` - Comprehensive framework documentation
+- **TD-014 Progress**: `/docs/roadmap/sprint8/TD-014-COMPLETE-PROGRESS.md` - Current test coverage status
 - **Solution Architecture**: `/docs/solution-architecture.md` - System design and ADRs
 - **API Documentation**: `/docs/api/openapi.yaml` - OpenAPI specification
 
@@ -406,9 +419,9 @@ npm run test:uat:quick                        # Quick acceptance check
 
 ---
 
-**Revolutionary Quick Start**: `cd local-dev-setup && npm run test:groovy:all` (100% pass rate guarantee)  
-**Technology-Prefixed Commands**: ✅ Revolutionary architecture with perfect reliability (September 8, 2025)  
-**TD-001/TD-002 Achievements**: ✅ 100% pass rate with self-contained Groovy execution  
-**Migration Status**: ✅ Shell scripts → NPM → Revolutionary technology-prefixed architecture  
-**Email Testing**: ✅ MailHog integration with SMTP testing (August 27, 2025)  
-**Support**: Revolutionary self-contained testing framework with 55% performance improvement
+**Quick Start**: `cd local-dev-setup && npm run test:groovy:all`
+**Technology-Prefixed Commands**: ✅ Active development with self-contained Groovy execution
+**TD-001/TD-002 Goals**: Self-contained architecture with technology separation
+**Migration Status**: ✅ Shell scripts → NPM → Technology-prefixed architecture complete
+**Email Testing**: ✅ MailHog integration with SMTP testing (August 27, 2025)
+**Current Focus**: TD-014 comprehensive test coverage validation (Sprint 8)

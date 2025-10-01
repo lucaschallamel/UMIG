@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 class GroovyTestRunner {
   constructor() {
-    this.projectRoot = path.resolve(__dirname, "../../");
+    this.projectRoot = path.resolve(__dirname, "../../../");
     this.jdbcDir = path.join(__dirname, "../../jdbc-drivers");
     this.postgresqlJar = path.join(this.jdbcDir, "postgresql-42.7.3.jar");
   }
@@ -217,7 +217,7 @@ class GroovyTestRunner {
       } else {
         // Run specific test file or directory
         const target = args[0];
-        const targetPath = path.resolve(target);
+        const targetPath = path.resolve(this.projectRoot, target);
 
         if (fs.statSync(targetPath).isDirectory()) {
           await this.runGroovyTestsInDirectory(targetPath);

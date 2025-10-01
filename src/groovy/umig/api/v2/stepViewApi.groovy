@@ -172,33 +172,43 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
         try {
             switch (notificationType) {
                 case 'stepStatusChange':
-                    // Use existing sendStepStatusChangedNotificationWithUrl method (ADR-031: explicit type casting)
+                    // TD-015 Critical Bug Fix: Use new repository method to get ALL 35+ fields
+                    def stepInstanceForEmail = stepRepository.getCompleteStepForEmail(stepInstanceId)
+
                     def oldStatus = (((requestBody as Map).oldStatus as String) ?: "unknown") as String
                     def newStatus = (((requestBody as Map).newStatus as String) ?: ((stepData as Map).status as String)) as String
-                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+
+                    // Build teams list from complete step data
+                    def teams = []
+
+                    // Add assigned team if present
+                    if (stepInstanceForEmail.team_email) {
+                        teams.add([
+                            tms_id: stepInstanceForEmail.team_id,
+                            tms_name: stepInstanceForEmail.team_name,
+                            tms_email: stepInstanceForEmail.team_email
+                        ])
+                    }
+
+                    // Add impacted teams
+                    if (stepInstanceForEmail.impacted_teams) {
+                        teams.addAll(stepInstanceForEmail.impacted_teams as List<Map>)
+                    }
 
                     // US-058 Enhancement: Support direct recipient email for testing/development
                     def recipientEmail = ((requestBody as Map).recipientEmail as String)
                     if (recipientEmail && teams.isEmpty()) {
-                        // Create a synthetic team with the provided email for testing
                         teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
                     }
 
                     def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
-                    // Extract migration and iteration names from stepSummary
-                    def stepSummary = (stepData as Map).stepSummary as Map
-                    def migrationCode = stepSummary?.MigrationName as String
-                    def iterationCode = stepSummary?.IterationName as String
 
-                    // Create a simplified step instance structure for EnhancedEmailService
-                    def stepInstanceForEmail = [
-                        sti_id: stepSummary?.sti_id,
-                        sti_name: stepSummary?.Name,
-                        // Add other fields that EnhancedEmailService might need
-                    ]
+                    // Use codes from complete step data
+                    def migrationCode = stepInstanceForEmail.migration_code as String
+                    def iterationCode = stepInstanceForEmail.iteration_code as String
 
                     EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-                        stepInstanceForEmail,
+                        stepInstanceForEmail,  // ✅ COMPLETE OBJECT with all 35+ fields
                         teams as List<Map>,
                         cutoverTeam,
                         oldStatus,
@@ -211,21 +221,40 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     break
 
                 case 'instructionCompletion':
-                    // Use existing sendInstructionCompletedNotificationWithUrl method (ADR-031: explicit type casting)
+                    // TD-015 Critical Bug Fix: Use new repository method to get ALL 35+ fields
+                    def stepInstanceForEmail = stepRepository.getCompleteStepForEmail(stepInstanceId)
+
                     def instruction = (((requestBody as Map).instruction as Map) ?: [:]) as Map
-                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+
+                    // Build teams list from complete step data
+                    def teams = []
+
+                    // Add assigned team if present
+                    if (stepInstanceForEmail.team_email) {
+                        teams.add([
+                            tms_id: stepInstanceForEmail.team_id,
+                            tms_name: stepInstanceForEmail.team_name,
+                            tms_email: stepInstanceForEmail.team_email
+                        ])
+                    }
+
+                    // Add impacted teams
+                    if (stepInstanceForEmail.impacted_teams) {
+                        teams.addAll(stepInstanceForEmail.impacted_teams as List<Map>)
+                    }
 
                     // US-058 Enhancement: Support direct recipient email for testing/development
                     def recipientEmail = ((requestBody as Map).recipientEmail as String)
                     if (recipientEmail && teams.isEmpty()) {
                         teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
                     }
-                    def migrationCode = ((stepData as Map).migrationName as String)
-                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    def migrationCode = stepInstanceForEmail.migration_code as String
+                    def iterationCode = stepInstanceForEmail.iteration_code as String
 
                     EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
                         instruction,
-                        stepData as Map,
+                        stepInstanceForEmail,  // ✅ COMPLETE OBJECT with all 35+ fields
                         teams as List<Map>,
                         ((currentUser as Map)?.usr_id as Integer),
                         migrationCode,
@@ -235,19 +264,37 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     break
 
                 case 'stepAssignment':
-                    // Use sendStepOpenedNotificationWithUrl as it handles team assignments (ADR-031: explicit type casting)
-                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
+                    // TD-015 Critical Bug Fix: Use new repository method to get ALL 35+ fields
+                    def stepInstanceForEmail = stepRepository.getCompleteStepForEmail(stepInstanceId)
+
+                    // Build teams list from complete step data
+                    def teams = []
+
+                    // Add assigned team if present
+                    if (stepInstanceForEmail.team_email) {
+                        teams.add([
+                            tms_id: stepInstanceForEmail.team_id,
+                            tms_name: stepInstanceForEmail.team_name,
+                            tms_email: stepInstanceForEmail.team_email
+                        ])
+                    }
+
+                    // Add impacted teams
+                    if (stepInstanceForEmail.impacted_teams) {
+                        teams.addAll(stepInstanceForEmail.impacted_teams as List<Map>)
+                    }
 
                     // US-058 Enhancement: Support direct recipient email for testing/development
                     def recipientEmail = ((requestBody as Map).recipientEmail as String)
                     if (recipientEmail && teams.isEmpty()) {
                         teams = [[tms_email: recipientEmail, tms_name: "Direct Recipient"]]
                     }
-                    def migrationCode = ((stepData as Map).migrationName as String)
-                    def iterationCode = ((stepData as Map).iterationName as String)
+
+                    def migrationCode = stepInstanceForEmail.migration_code as String
+                    def iterationCode = stepInstanceForEmail.iteration_code as String
 
                     EnhancedEmailService.sendStepOpenedNotificationWithUrl(
-                        stepData as Map,
+                        stepInstanceForEmail,  // ✅ COMPLETE OBJECT with all 35+ fields
                         teams as List<Map>,
                         ((currentUser as Map)?.usr_id as Integer),
                         migrationCode,
@@ -257,24 +304,36 @@ stepViewApiEmail(httpMethod: "POST", groups: ["confluence-users", "confluence-ad
                     break
 
                 case 'stepEscalation':
-                    // For escalation, use status change with escalation context (ADR-031: explicit type casting)
-                    def oldStatus = ((stepData as Map).status as String)
-                    def newStatus = "escalated"
-                    def teams = (((stepData as Map).teams as List) ?: []) as List<Map>
-                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
-                    // Extract migration and iteration names from stepSummary
-                    def stepSummary = (stepData as Map).stepSummary as Map
-                    def migrationCode = stepSummary?.MigrationName as String
-                    def iterationCode = stepSummary?.IterationName as String
+                    // TD-015 Critical Bug Fix: Use new repository method to get ALL 35+ fields
+                    def stepInstanceForEmail = stepRepository.getCompleteStepForEmail(stepInstanceId)
 
-                    // Create a simplified step instance structure for EnhancedEmailService
-                    def stepInstanceForEmail = [
-                        sti_id: stepSummary?.sti_id,
-                        sti_name: stepSummary?.Name,
-                    ]
+                    def oldStatus = stepInstanceForEmail.sti_status as String
+                    def newStatus = "escalated" as String
+
+                    // Build teams list from complete step data
+                    def teams = []
+
+                    // Add assigned team if present
+                    if (stepInstanceForEmail.team_email) {
+                        teams.add([
+                            tms_id: stepInstanceForEmail.team_id,
+                            tms_name: stepInstanceForEmail.team_name,
+                            tms_email: stepInstanceForEmail.team_email
+                        ])
+                    }
+
+                    // Add impacted teams
+                    if (stepInstanceForEmail.impacted_teams) {
+                        teams.addAll(stepInstanceForEmail.impacted_teams as List<Map>)
+                    }
+
+                    def cutoverTeam = ((stepData as Map).cutoverTeam as Map)
+
+                    def migrationCode = stepInstanceForEmail.migration_code as String
+                    def iterationCode = stepInstanceForEmail.iteration_code as String
 
                     EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
-                        stepInstanceForEmail,
+                        stepInstanceForEmail,  // ✅ COMPLETE OBJECT with all 35+ fields
                         teams as List<Map>,
                         cutoverTeam,
                         oldStatus,
