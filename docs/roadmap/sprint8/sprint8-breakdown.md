@@ -3,7 +3,7 @@
 **Sprint Duration**: September 30 - October 14, 2025 (15 working days)
 **Current Date**: October 1, 2025 (Day 2 of sprint)
 **Team**: 1 developer (Lucas) + AI agent support
-**Sprint Commitment**: 55 points (47 original + 8 TD-016)
+**Sprint Commitment**: ~~55~~ **51.5 points** (47 original + ~~8~~ **4.5 TD-016**) ✅ **REVISED Oct 1**
 **Status**: In progress (10 points complete, 45 remaining)
 
 ## Executive Summary
@@ -13,7 +13,7 @@ Sprint 8 focuses on establishing enterprise-grade test infrastructure (TD-014) a
 **Key Success Metrics:**
 
 - ✅ TD-015 complete (10 points) - Email template consistency achieved
-- ⏳ TD-016 not started (8 points) - Email notification enhancements
+- ⏳ TD-016 ready to start (~~8~~ **4.5 points**) - Email notification enhancements ✅ **REVISED Oct 1**
 - 🔄 TD-014 in progress (17 points total, split into 4 sub-stories):
   - ✅ TD-014-A: API Layer Testing (5 points) - COMPLETE
   - 🔄 TD-014-B: Repository Layer Testing (6 points) - 37.5% COMPLETE
@@ -37,19 +37,19 @@ Sprint 8 focuses on establishing enterprise-grade test infrastructure (TD-014) a
 Sprint 7 Performance: 224% (130/58 points) - Exceptional but unsustainable
 Sprint 8 Target: 100% (55/55 points) - Quality-focused sustainable delivery
 Required Daily Velocity: 3.46 points/day
-Remaining Work: 40 points / 13 days = 3.08 points/day
+Remaining Work: ~~40~~ **36.5 points** / 13 days = ~~3.08~~ **2.81 points/day** ✅ **REVISED Oct 1**
 
 Velocity Trend:
 - Week 1: 15 points complete (TD-015: 10 pts + TD-014-A: 5 pts)
 - TD-014-B: 37.5% complete (2.25 pts earned, 3.75 pts remaining)
 - Target: 3.08 points/day for remaining 13 days (reduced from 3.46)
-- Capacity Impact: TD-016 adds 8 points (moderate increase)
+- Capacity Impact: TD-016 adds ~~8~~ **4.5 points** (44% reduction after prerequisites) ✅ **REVISED Oct 1**
 - Buffer: ~12% built into sprint planning (improved from original 8%)
 ```
 
 ## Three-Phase Execution Strategy
 
-### Phase 1: Email Enhancements & Test Foundation (Days 2-4, 11 points)
+### Phase 1: Email Enhancements & Test Foundation (Days 2-3, ~~11~~ **7.5 points**) ✅ **REVISED Oct 1**
 
 **Objective**: Complete email notification features and establish test infrastructure foundation for US-098 handoff
 

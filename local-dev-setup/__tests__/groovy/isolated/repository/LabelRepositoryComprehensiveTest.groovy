@@ -205,6 +205,36 @@ class LabelRepositoryComprehensiveTest {
         boolean isWrapperFor(Class<?> iface) { return false }
     }
 
+    /**
+     * PropertyAccessibleRowResult - Wrapper for GroovyRowResult that properly exposes map properties
+     *
+     * FIX: Resolves "No such property: count/total" errors by enabling direct property access
+     * on Map keys (e.g., result.count, result.total) which standard GroovyRowResult doesn't support
+     * in the test context.
+     *
+     * Root Cause: Tests access properties like `blocking.steps.count` but GroovyRowResult
+     * doesn't expose map keys as properties by default in static typing contexts.
+     *
+     * Solution: Override getProperty() to fall back to map access when standard property
+     * lookup fails, maintaining full backward compatibility.
+     */
+    static class PropertyAccessibleRowResult extends GroovyRowResult {
+        PropertyAccessibleRowResult(Map map) {
+            super(map)
+        }
+
+        @Override
+        Object getProperty(String name) {
+            try {
+                // First try GroovyRowResult's native property access
+                return super.getProperty(name)
+            } catch (MissingPropertyException e) {
+                // Fall back to map get() method for keys like 'count', 'total', etc.
+                return this.get(name)
+            }
+        }
+    }
+
     static class EmbeddedMockSql extends Sql {
         private Map<String, List<Map<String, Object>>> mockData = [:]
         private boolean throwError = false
@@ -370,7 +400,7 @@ class LabelRepositoryComprehensiveTest {
                 query.contains('FROM labels_lbl') &&
                 query.contains('ORDER BY lbl_name') &&
                 !query.contains('JOIN')) {
-                return mockData['labels'].collect { new GroovyRowResult(it as Map) }
+                return mockData['labels'].collect { new PropertyAccessibleRowResult(it as Map) }
             }
 
             // Find labels by migration ID (hierarchical)
@@ -379,7 +409,7 @@ class LabelRepositoryComprehensiveTest {
                 def relevantLabels = mockData['labels'].findAll { label ->
                     (label as Map<String, Object>).mig_id == migrationId
                 }
-                return relevantLabels.collect { new GroovyRowResult(it as Map) }
+                return relevantLabels.collect { new PropertyAccessibleRowResult(it as Map) }
             }
 
             // Find labels by iteration ID
@@ -391,7 +421,7 @@ class LabelRepositoryComprehensiveTest {
                     def relevantLabels = mockData['labels'].findAll { label ->
                         (label as Map<String, Object>).mig_id == migrationId
                     }
-                    return relevantLabels.collect { new GroovyRowResult(it as Map) }
+                    return relevantLabels.collect { new PropertyAccessibleRowResult(it as Map) }
                 }
                 return []
             }
@@ -408,7 +438,7 @@ class LabelRepositoryComprehensiveTest {
                         def relevantLabels = mockData['labels'].findAll { label ->
                             (label as Map<String, Object>).mig_id == migrationId
                         }
-                        return relevantLabels.collect { new GroovyRowResult(it as Map) }
+                        return relevantLabels.collect { new PropertyAccessibleRowResult(it as Map) }
                     }
                 }
                 return []
@@ -429,7 +459,7 @@ class LabelRepositoryComprehensiveTest {
                             def relevantLabels = mockData['labels'].findAll { label ->
                                 (label as Map<String, Object>).mig_id == migrationId
                             }
-                            return relevantLabels.collect { new GroovyRowResult(it as Map) }
+                            return relevantLabels.collect { new PropertyAccessibleRowResult(it as Map) }
                         }
                     }
                 }
@@ -450,7 +480,7 @@ class LabelRepositoryComprehensiveTest {
                 def relevantLabels = mockData['labels'].findAll {
                     labelIds.contains((it as Map<String, Object>).lbl_id)
                 }
-                return relevantLabels.collect { new GroovyRowResult(it as Map) }
+                return relevantLabels.collect { new PropertyAccessibleRowResult(it as Map) }
             }
 
             // Pagination query - count query
@@ -464,7 +494,7 @@ class LabelRepositoryComprehensiveTest {
                         lblName.contains(searchTerm) || (lblDesc && lblDesc.toLowerCase().contains(searchTerm))
                     }.size()
                 }
-                return [new GroovyRowResult([total: count] as Map)]
+                return [new PropertyAccessibleRowResult([total: count] as Map)]
             }
 
             // Pagination query - data query
@@ -510,7 +540,7 @@ class LabelRepositoryComprehensiveTest {
                 int limit = params.limit as Integer
                 def paginated = enrichedLabels.drop(offset).take(limit)
 
-                return paginated.collect { new GroovyRowResult(it as Map) }
+                return paginated.collect { new PropertyAccessibleRowResult(it as Map) }
             }
 
             // Get blocking relationships - applications
@@ -523,7 +553,7 @@ class LabelRepositoryComprehensiveTest {
                 def apps = mockData['applications'].findAll {
                     appIds.contains((it as Map<String, Object>).app_id)
                 }
-                return apps.collect { new GroovyRowResult(it as Map) }
+                return apps.collect { new PropertyAccessibleRowResult(it as Map) }
             }
 
             // Get blocking relationships - steps count
@@ -532,7 +562,7 @@ class LabelRepositoryComprehensiveTest {
                 def countResult = mockData['labelStepAssociations'].count {
                     (it as Map<String, Object>).lbl_id == labelId
                 }
-                return [new GroovyRowResult([count: countResult] as Map)]
+                return [new PropertyAccessibleRowResult([count: countResult] as Map)]
             }
 
             return []
@@ -570,7 +600,7 @@ class LabelRepositoryComprehensiveTest {
                     enriched.updated_at = enriched.created_at
                     enriched.updated_by = enriched.created_by
 
-                    return new GroovyRowResult(enriched as Map)
+                    return new PropertyAccessibleRowResult(enriched as Map)
                 }
                 return null
             }
