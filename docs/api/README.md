@@ -1,478 +1,343 @@
-# UMIG API V2 Documentation - US-082-C Entity Migration & Component Architecture
+# API Documentation
 
-This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API (version 2.3.0) enhanced with **component-based entity architecture and 9.2/10 security framework**.
+Comprehensive REST API documentation for UMIG platform, including OpenAPI specifications, Postman collections, and endpoint reference.
 
-**Status**: PRODUCTION-READY with 9.2/10 security rating
-**Entity Migration**: 7/7 entities successfully migrated with BaseEntityManager pattern
-**Component Architecture**: Complete integration with ComponentOrchestrator and SecurityUtils
-**API Endpoints**: 27 endpoints with component-based entity management
-**Performance**: <150ms average response time (exceeds <200ms target by 25% headroom)
+## Purpose
 
-## BREAKTHROUGH UPDATES (US-082-C Complete - Version 2.3.0)
+- **REST API Reference**: Complete documentation of 31+ production endpoints
+- **OpenAPI Specification**: Machine-readable API definition (OpenAPI 3.0.0)
+- **Testing Tools**: Postman collections for API validation
+- **Integration Guidance**: Authentication, error handling, and best practices
+- **Performance Standards**: Response time targets and optimisation guidelines
 
-### 🏢 Component-Based Entity Migration (US-082-C)
+## Current Status (Sprint 8)
 
-**COMPLETE ENTITY MIGRATION SUCCESS**: All 7 entities migrated with enterprise-grade architecture
+**API Version**: v2.12.0 (OpenAPI specification)
+**Endpoint Count**: 31+ production endpoints with comprehensive CRUD operations
+**Authentication**: Confluence user authentication + session-based (ADR-042)
+**Base Path**: `/rest/scriptrunner/latest/custom/`
+**Performance**: <200ms average response time (25% headroom over <150ms target)
+**Security Rating**: 9.2/10 (exceeds 8.9/10 target)
 
-- **BaseEntityManager Pattern**: 914-line foundation providing 42% development acceleration
-- **ComponentOrchestrator Integration**: Enterprise-grade UI component coordination
-- **SecurityUtils Framework**: 9.2/10 security rating across all entity operations
-- **Entity Coverage**: Teams, Users, Environments, Applications, Labels, Migration Types, Iteration Types
-- **Performance Excellence**: <150ms average response time with intelligent caching
+## Structure
 
-### 🛡️ Enterprise Security Excellence
-
-**9.2/10 SECURITY RATING ACHIEVED** - Exceeds 8.9/10 target by 0.3 points:
-
-- **21 Attack Vectors Mitigated**: Comprehensive protection across all threat categories
-- **28 Security Scenarios Validated**: Complete security testing coverage
-- **OWASP Top 10 Compliance**: Full adherence across all entity operations
-- **XSS Prevention**: HTML entity encoding, script filtering, event handler sanitization
-- **CSRF Protection**: Token validation and same-origin policy enforcement
-- **Rate Limiting**: Token bucket algorithm with multi-tier limits
-- **Input Validation**: Strict regex patterns and length limits across all entities
-
-### 🚀 Performance Excellence
-
-**<150ms Average Response Time Achievement** - Exceeds <200ms target with 25% headroom:
-
-- **Intelligent Caching**: Component-based caching with intelligent invalidation
-- **Circuit Breaker Pattern**: Automatic failure recovery and resilience
-- **Memory Optimization**: 3.8MB memory impact (target: <5MB)
-- **Security Overhead**: 7.2% performance impact (target: <10%)
-- **99th Percentile**: <300ms response time (target: <500ms with 40% headroom)
-
-## Recent Updates (September 2025 - Version 2.4.0 - Sprint 6 & US-087 Complete)
-
-### 🚀 Revolutionary Test Infrastructure Excellence (TD-001/TD-002 Complete)
-
-**100% TEST SUCCESS RATE ACHIEVED** - Technology-prefixed test architecture:
-
-- **JavaScript Tests**: 64/64 tests passing (100% success rate)
-- **Groovy Tests**: 31/31 tests passing (100% success rate)
-- **Self-Contained Architecture**: Zero external dependencies in Groovy tests (35% performance improvement)
-- **Technology-Prefixed Commands**: Clear separation with `test:js:*` and `test:groovy:*` patterns
-- **Component Testing**: 95%+ coverage with comprehensive security testing (28 scenarios)
-- **Memory Optimization**: 96.2% memory usage improvement through enhanced Jest configurations
-- **Performance Monitoring**: <200ms API response times maintained across all 27 endpoints
-
-### 🏢 US-087 Phase 1 Foundation Complete
-
-**ADMIN GUI COMPONENT MIGRATION READY** - Phase 1 infrastructure established:
-
-- **Module Loading System**: 100% success rate (25/25 components) with IIFE race condition fixes
-- **SQL Schema Alignment**: 8 critical column/table reference errors resolved in StepRepository
-- **SecurityUtils Enhancement**: XSS protection with `safeSetInnerHTML` method integration
-- **FeatureToggle System**: Gradual rollout controls with emergency rollback capabilities
-- **PerformanceMonitor**: Real-time metrics tracking with baseline comparison
-- **Teams Entity Integration**: Dual-mode operation (legacy + component) with backward compatibility
-
-### 🔧 Technical Debt Resolution (TD-003/TD-004/TD-005/TD-007)
-
-**93% TECHNICAL DEBT RESOLUTION** - Multi-stream concurrent achievements:
-
-- **TD-003 (Status Values)**: 78-80% complete with StatusProvider infrastructure and 11-story migration plan
-- **TD-004 (BaseEntityManager)**: 100% complete with architectural alignment and self-managing component pattern
-- **TD-005 (Test Infrastructure)**: 93% complete with memory optimization and comprehensive test suite remediation
-- **TD-007 (Authentication)**: 100% complete with streamlined authentication flow and redundant functionality removal
-
-### 🛡️ Enhanced Security & Performance
-
-**ENTERPRISE-GRADE SECURITY MAINTAINED**:
-
-- **Component Security**: 8.5/10+ security rating across ComponentOrchestrator system
-- **API Security**: Comprehensive XSS/CSRF protection across all 27 endpoints
-- **Input Validation**: Enhanced validation with audit logging and permission checks
-- **Rate Limiting**: Token bucket algorithm implementation across all API endpoints
-
-## Legacy Updates (August 21, 2025 - Version 2.1.3)
-
-- **US-036 StepView UI Refactoring**: Complete with comment system parity, RBAC implementation, and System Configuration API integration
-- **System Configuration API**: New API for email template and notification settings management
-- **Email Notification Infrastructure**: Production-ready automated notifications with EnhancedEmailService and UrlConstructionService
-- **BGO-002 Audit Logging Fix**: Corrected entity type issues (INSTRUCTION_INSTANCE vs STEP_INSTANCE)
-- **US-028 Enhanced IterationView Phase 1**: Complete integration with StepsAPIv2Client, real-time synchronization, and role-based access control
-- **Critical API Endpoint Fix**: Resolved configuration issue from /api/v2/steps to /steps for proper integration
-- **US-024 StepsAPI Enhancements**: Improved comments endpoint error messages with helpful guidance
-- **Enhanced Postman Collection**: Updated generation script with comprehensive authentication and variables
-- **OpenAPI Specification**: Updated error schemas and endpoint documentation
-- **Collection Size**: 1.4 MB with full API coverage and enhanced testing capabilities
-
-- The architectural principles and conventions for the V2 API are documented in **[ADR-017: V2 REST API Architecture and Conventions](../adr/ADR-017-V2-REST-API-Architecture.md)**.
-- The detailed technical specification for all endpoints is in **[`openapi.yaml`](openapi.yaml)**.
-
-## Viewing the API Documentation
-
-You can use a variety of tools to view the `openapi.yaml` file in a more user-friendly format.
-
-- **Redocly CLI (Recommended):**
-  - [Redoc Online Viewer](https://redocly.github.io/redoc/) (copy-paste or upload `openapi.yaml`)
-  - Local: `npm install -g @redocly/cli` then `redocly preview-docs openapi.yaml`
-  - _Note: `redoc-cli` is deprecated. Use `@redocly/cli` for all local Redoc documentation tasks. See: <https://www.npmjs.com/package/@redocly/cli>_
-- **Swagger Editor:**
-  - [Swagger Editor](https://editor.swagger.io/) (copy-paste or upload `openapi.yaml`)
-- **VS Code Extensions:**
-  - Install "Swagger Viewer" or "OpenAPI (Swagger) Editor" for instant preview in VS Code
-
-You can also use this file with OpenAPI Generator to produce client/server code or additional HTML documentation.
-
-## STEP View Macro & SPA
-
-- The `/stepViewApi` endpoint powers the STEP View macro and SPA, returning structured data for rendering migration/release steps in Confluence.
-
-## 🏭 Foundation Service API Integration Patterns
-
-### Enterprise-Grade API Enhancement Architecture
-
-**All API endpoints now integrate with foundation service layer** for enterprise-grade security, performance, and reliability.
-
-#### Foundation Service Integration Matrix
-
-| Foundation Service        | API Integration                 | Security Enhancement     | Performance Gain |
-| ------------------------- | ------------------------------- | ------------------------ | ---------------- |
-| **SecurityService**       | 8-phase security controls       | XSS, CSRF, rate limiting | <5% overhead     |
-| **ApiService**            | Intelligent caching + batch ops | Response validation      | 30% improvement  |
-| **AuthenticationService** | Role validation + sessions      | Advanced RBAC            | 25% auth speed   |
-| **NotificationService**   | Real-time API events            | Event monitoring         | N/A              |
-| **FeatureFlagService**    | Dynamic endpoint toggles        | Gradual rollouts         | N/A              |
-
-#### API Security Enhancement Pattern
-
-**8-Phase Security Control Implementation**:
-
-```yaml
-# Every API endpoint now implements:
-Phase_1: REQUEST_VALIDATION # Input sanitization, XSS prevention
-Phase_2: CSRF_PROTECTION # Double-submit cookie validation
-Phase_3: RATE_LIMITING # 100 req/min per user enforcement
-Phase_4: XSS_PREVENTION # 95+ pattern detection and blocking
-Phase_5: AUTHENTICATION # Enhanced role validation
-Phase_6: AUTHORIZATION # Resource-level permission checks
-Phase_7: SECURITY_HEADERS # CSP, HSTS, security headers injection
-Phase_8: THREAT_MONITORING # Real-time threat detection and alerting
+```
+api/
+├── openapi.yaml                    # OpenAPI 3.0.0 specification (v2.12.0+)
+├── postman/                        # Postman collections
+│   ├── UMIG_API_V2_Collection.postman_collection.json
+│   ├── environments/               # Environment configurations
+│   └── README.md                   # Postman usage instructions
+├── archived/                       # Deprecated API versions
+├── *.md                            # Individual endpoint documentation
+├── error-handling-guide.md         # Error codes and troubleshooting
+├── performance-guide.md            # Performance benchmarks
+├── uat-integration-guide.md        # UAT testing procedures
+└── API-Documentation-Comprehensive-Report.md  # Quality assessment
 ```
 
-#### Performance Enhancement Pattern
+## API Overview
 
-**Intelligent Caching Implementation**:
+### Endpoint Categories
 
-```yaml
-# ApiService caching integration across all endpoints:
-Cache_Hit_Rate: 70% # Target hit rate achieved
-TTL_Management: Intelligent # Context-aware cache expiry
-Batch_Operations: Enabled # Bulk processing optimization
-Response_Validation: Active # Cached response integrity
-Performance_Monitoring: Real-time # <100ms target enforcement
-```
+**Core Entities** (8 endpoints):
 
-#### Foundation Service API Endpoints
+- Users, Teams, Environments, Applications, Labels, Migrations, Status, Roles
 
-**New Foundation Service Integration APIs**:
+**Hierarchical Entities** (9 endpoints):
 
-- **`/foundation/security/status`** - Security service health and metrics
-- **`/foundation/api/cache/stats`** - Cache performance statistics
-- **`/foundation/auth/sessions`** - Active session management
-- **`/foundation/notifications/events`** - Real-time event stream
-- **`/foundation/features/flags`** - Feature flag configuration
+- Iterations, Plans (Master/Instance), Sequences (Master/Instance), Phases (Master/Instance), Steps, EnhancedSteps, Instructions
 
-## API Specifications
+**Configuration & Admin** (7 endpoints):
 
-Individual API specifications are available for detailed documentation (all enhanced with foundation services):
+- SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
 
-### Core APIs
+**System Utilities** (5 endpoints):
 
-- **[Applications API](ApplicationsAPI.md)** - Application management with environment associations
-- **[Controls API](ControlsAPI.md)** - Control point management for phase validation and quality gates
-- **[Email Templates API](EmailTemplatesAPI.md)** - Email template management for automated notifications
-- **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
-- **[Instructions API](InstructionsApi.md)** - Instruction management with team assignments and completion tracking
-- **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
-- **[Migrations API](migrationApi.md)** - ✅ **US-025 Phase 4 Complete** - Migration management with dashboard, bulk operations, and advanced filtering (17 endpoints, 100% integration test success)
-- **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
-- **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
-- **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
-- **[Steps API](StepsAPI.md)** - ✅ **US-024 Enhanced** - Step management with hierarchical filtering, email notification integration, and improved comments endpoint error handling
-- **[stepView API](stepViewAPI.md)** - Specialized API for standalone step view in Confluence pages
-- **[System Configuration API](SystemConfigurationAPI.md)** - ✅ **US-036 New** - System configuration management for email templates and notification settings
-- **[Team Members API](TeamMembersAPI.md)** - Team membership management and user-team associations
-- **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
-- **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
-- **[Web API](WebAPI.md)** - Static asset serving for JavaScript and CSS resources
+- AdminVersion, Dashboard, DatabaseVersions, Web (static assets), TestEndpoint
 
-### Hierarchical Filtering
+**Special Operations** (2 endpoints):
 
-The Teams and Labels APIs support hierarchical filtering based on the migration execution hierarchy:
+- Import, ImportQueue, StepView
 
-- **Migration Level** - Shows teams/labels involved in entire migration
-- **Iteration Level** - Shows teams/labels involved in specific iteration
-- **Plan Level** - Shows teams/labels involved in specific plan instance
-- **Sequence Level** - Shows teams/labels involved in specific sequence instance
-- **Phase Level** - Shows teams/labels involved in specific phase instance
+**Relationship Management** (2 endpoints):
 
-This provides progressive filtering where options become more contextually relevant as users drill down the hierarchy.
+- TeamsRelationship, UsersRelationship
 
-## Revolutionary API Testing Infrastructure
+### Key Features
 
-### Foundation Service Enhanced Testing
+**Hierarchical Filtering**: Progressive context-aware filtering across Migration → Iteration → Plan → Sequence → Phase → Step hierarchy
 
-**ENTERPRISE-GRADE API TESTING**: Complete integration with foundation service layer testing
+**Master/Instance Pattern**: Canonical templates (`_master_`) vs execution records (`_instance_`) for Plans, Sequences, Phases
 
-#### API Testing with Foundation Services
+**Audit Fields**: Standardised `created_by`, `created_at`, `updated_by`, `updated_at` across all entities (ADR US-002b)
 
-**Enhanced Postman Collection** with Foundation Service Integration:
+**Type Safety**: Explicit casting required for all parameters (ADR-031, ADR-043)
 
-- **Collection**: [`postman/UMIG_API_V2_Collection.postman_collection.json`](postman/UMIG_API_V2_Collection.postman_collection.json)
-- **Usage Instructions**: [`postman/README.md`](postman/README.md)
-- **Generation**: Use `npm run generate:postman:enhanced` for latest collection with foundation service authentication
-- **Size**: 1.4 MB with comprehensive API coverage + security testing
-- **Foundation Integration**: All endpoints include security validation, caching tests, performance metrics
+**Error Handling**: Consistent HTTP status codes with detailed error schemas
 
-#### Revolutionary Test Infrastructure (TD-001/TD-002 Complete)
+## Authentication
 
-**BREAKTHROUGH ACHIEVEMENT**: 100% test success rate across all technologies
+**Primary Method**: Confluence user authentication (Atlassian RBAC)
+**Session Management**: Privacy-compliant session-based authentication (ADR-067, ADR-042)
+**Security Groups**: `groups: ["confluence-users"]` on all endpoints
+**Testing**: Basic auth with `.env` credentials for CURL/Postman
 
-## Technology-Prefixed Test Commands
+## Testing Infrastructure (Sprint 8)
 
-**JavaScript Testing Framework** (64/64 tests passing):
+### Technology-Prefixed Commands
+
+**JavaScript Testing** (64/64 tests passing):
 
 ```bash
-# Core JavaScript Testing
-npm run test:js:unit                        # JavaScript unit tests (100% pass rate)
-npm run test:js:integration                  # JavaScript integration tests
-npm run test:js:e2e                         # End-to-end testing with Playwright
-npm run test:js:components                   # Component architecture testing (95%+ coverage)
-npm run test:js:security                     # Security testing (28 scenarios)
-npm run test:js:security:pentest             # Penetration testing (21 attack vectors)
-npm run test:js:all                         # Complete JavaScript test suite
-
-# Groovy Testing Framework (Self-Contained Architecture)
-npm run test:groovy:unit                     # Groovy unit tests (31/31 passing, 35% faster)
-npm run test:groovy:integration              # Groovy integration tests
-npm run test:groovy:security                 # Groovy security validation
-npm run test:groovy:all                     # Complete Groovy test suite
-
-# Cross-Technology Testing
-npm run test:all:unit                        # All unit tests (JS + Groovy)
-npm run test:all:integration                 # All integration tests
-npm run test:all:comprehensive               # Complete test suite (all technologies)
-
-# API-Specific Testing
-npm run test:quality                         # Quality assurance validation
-npm run test:performance                     # Performance testing suite
-npm run test:security                        # Security validation across all components
+npm run test:js:unit                    # JavaScript unit tests (100% pass rate)
+npm run test:js:integration              # JavaScript integration tests
+npm run test:js:e2e                     # End-to-end testing
+npm run test:js:components               # Component testing (95%+ coverage)
+npm run test:js:security                 # Security testing (28 scenarios)
+npm run test:js:security:pentest         # Penetration testing (21 attack vectors)
+npm run test:js:quick                   # Quick validation suite
 ```
 
-#### API Security Testing Matrix
-
-**Comprehensive Security Validation Coverage**:
-
-| Security Domain       | API Tests | Endpoint Coverage | Success Rate | Performance Impact |
-| --------------------- | --------- | ----------------- | ------------ | ------------------ |
-| **XSS Prevention**    | 12 tests  | All 27 endpoints  | ✅ 100%      | <1% overhead       |
-| **CSRF Protection**   | 6 tests   | All 27 endpoints  | ✅ 100%      | <0.5% overhead     |
-| **Rate Limiting**     | 7 tests   | All 27 endpoints  | ✅ 100%      | <2% overhead       |
-| **Authentication**    | 8 tests   | All 27 endpoints  | ✅ 100%      | <1% overhead       |
-| **Input Validation**  | 9 tests   | All 27 endpoints  | ✅ 100%      | <1% overhead       |
-| **Security Headers**  | 4 tests   | All 27 endpoints  | ✅ 100%      | <0.5% overhead     |
-| **Threat Monitoring** | 3 tests   | All 27 endpoints  | ✅ 100%      | <0.5% overhead     |
-
-**Total Security Tests**: 77/77 ✅ **PERFECT SUCCESS RATE** (API: 49, Component: 28)
-**Test Infrastructure**: JavaScript 64/64, Groovy 31/31 (100% success across technologies)
-**API Performance**: <200ms response time maintained with <5% security overhead
-**Memory Optimization**: 96.2% improvement through enhanced Jest configurations
-
-#### US-087 & Technical Debt Validation
-
-**Phase 1 Infrastructure Validation**:
+**Groovy Testing** (31/31 tests passing):
 
 ```bash
-# US-087 Phase 1 Infrastructure Testing
-npm run test:js:infrastructure:us087         # US-087 infrastructure validation
-npm run test:js:us087:security               # US-087 security audit
-npm run test:js:us087:integration            # US-087 integration tests
-npm run test:js:us087:phase1                 # Complete US-087 Phase 1 test suite
-
-# Emergency & Quick Testing
-npm run test:emergency                       # Emergency stabilization tests
-npm run test:js:quick                        # Quick JavaScript validation
-npm run test:quality                         # Quality assurance checks
+npm run test:groovy:unit                 # Groovy unit tests (self-contained)
+npm run test:groovy:integration          # Groovy integration tests
+npm run test:groovy:all                 # Complete Groovy test suite
 ```
 
-The collection is automatically generated from the OpenAPI specification v2.2.0 and includes all V2 API endpoints with revolutionary foundation service integration and comprehensive security testing.
+**Cross-Technology Testing**:
 
-## 📊 API Documentation Comprehensive Report
+```bash
+npm run test:all:comprehensive           # Complete test suite (all technologies)
+npm run test:all:unit                    # All unit tests (JS + Groovy)
+npm run test:quality                     # Quality assurance validation
+```
 
-**ENTERPRISE DOCUMENTATION EXCELLENCE ACHIEVED**: Complete API documentation transformation with 9.4/10 quality rating.
+### Postman Collection
 
-📋 **[UMIG API Documentation - Comprehensive Quality & Coverage Report](API-Documentation-Comprehensive-Report.md)**
+**Collection**: [postman/UMIG_API_V2_Collection.postman_collection.json](postman/UMIG_API_V2_Collection.json)
+**Size**: 1.4 MB with comprehensive API coverage
+**Generation**: `npm run generate:postman:enhanced`
+**Usage**: See [postman/README.md](postman/README.md)
 
-This comprehensive report documents the complete API documentation remediation effort, including:
+**Features**:
 
-- **95%+ Enterprise Feature Coverage**: From 20% baseline to enterprise-grade documentation
-- **100% Security Documentation**: Complete coverage of 9.2/10 security implementation
-- **Performance SLA Framework**: <100ms to <200ms response targets documented
-- **214 API Operations Enhanced**: Complete OpenAPI synchronization with enterprise security
-- **Quality Assurance Validation**: 9.4/10 documentation quality achievement
+- All 31+ endpoints with realistic examples
+- Multi-environment support (dev, UAT, production)
+- Authentication pre-configured
+- Security testing scenarios
+- Performance validation
 
-**Key Sections**:
+## Security Architecture
 
-- Executive Summary & Business Impact
-- API Coverage & Quality Assessment (25+ APIs analyzed)
-- OpenAPI Specification Synchronization (v2.9.0 → v2.10.0)
-- Relationship API Coverage Analysis (Critical gaps identified)
-- Performance & Security Metrics (Enterprise standards)
-- Future Recommendations (Immediate & strategic actions)
+**Security Rating**: 9.2/10 (exceeds 8.9/10 target by 0.3 points)
 
-**Critical Finding**: TeamsRelationshipApi and UsersRelationshipApi are fully implemented with enterprise features but undocumented (40% functionality gap).
+**Attack Vector Mitigation** (21 vectors):
 
----
+- XSS Prevention: HTML entity encoding, script filtering, event handler sanitisation
+- CSRF Protection: Token validation, same-origin policy enforcement
+- Rate Limiting: Token bucket algorithm with multi-tier limits
+- Input Validation: Strict regex patterns and length limits
+- SQL Injection: Parameterised queries (DatabaseUtil.withSql pattern)
 
-## Recent API Updates
+**Security Testing** (28 scenarios):
 
-### Plans API (Completed)
+```bash
+npm run test:js:security                # Component security (28 scenarios)
+npm run test:js:security:pentest        # Penetration testing (21 attack vectors)
+```
 
-- **Full CRUD operations** for both master plan templates and plan instances
-- **Hierarchical filtering** by migration, iteration, team, and status
-- **Master plan endpoints**:
-  - `GET /plans/master` - List all master plans with audit fields
-  - `GET /plans/master/{id}` - Get specific master plan
-  - `POST /plans/master` - Create new master plan
-  - `PUT /plans/master/{id}` - Update master plan
-  - `DELETE /plans/master/{id}` - Soft delete master plan
-- **Plan instance endpoints**:
-  - `GET /plans` - List plan instances with filtering
-  - `GET /plans/instance/{id}` - Get specific plan instance
-  - `POST /plans/instance` - Create plan instance from master
-  - `PUT /plans/instance/{id}` - Update plan instance
-  - `DELETE /plans/instance/{id}` - Delete plan instance
-  - `PUT /plans/{id}/status` - Update instance status
+**OWASP Top 10 Compliance**: Full adherence across all entity operations
 
-### Sequences API (Completed)
+## Performance Standards
 
-- **Full CRUD operations** for both master sequence templates and sequence instances
-- **Hierarchical filtering** by migration, iteration, plan, team, and status
-- **Ordering support** with predecessor relationships and sequence ordering
-- **Master sequence endpoints**:
-  - `GET /sequences/master` - List all master sequences with audit fields
-  - `GET /sequences/master/{id}` - Get specific master sequence
-  - `POST /sequences/master` - Create new master sequence
-  - `PUT /sequences/master/{id}` - Update master sequence
-  - `DELETE /sequences/master/{id}` - Soft delete master sequence
-  - `PUT /sequences/master/{id}/order` - Update sequence order
-- **Sequence instance endpoints**:
-  - `GET /sequences` - List sequence instances with filtering
-  - `GET /sequences/instance/{id}` - Get specific sequence instance
-  - `POST /sequences/instance` - Create sequence instance from master
-  - `PUT /sequences/instance/{id}` - Update sequence instance
-  - `DELETE /sequences/instance/{id}` - Delete sequence instance
-  - `PUT /sequences/instance/{id}/status` - Update instance status
+**Response Time Targets**:
 
-### Phases API (Completed)
+- **Average**: <200ms (achieved: <150ms with 25% headroom)
+- **99th Percentile**: <500ms (achieved: <300ms with 40% headroom)
+- **Critical Operations**: <100ms (GET single entity)
 
-- **Full CRUD operations** for both master phase templates and phase instances
-- **Control point validation system** with emergency override capabilities
-- **Progress aggregation** combining step completion (70%) and control point status (30%)
-- **Hierarchical filtering** by migration, iteration, plan, sequence, team, and status
-- **Master phase endpoints**:
-  - `GET /phases/master` - List all master phases with audit fields
-  - `GET /phases/master/{id}` - Get specific master phase
-  - `POST /phases/master` - Create new master phase
-  - `PUT /phases/master/{id}` - Update master phase
-  - `DELETE /phases/master/{id}` - Soft delete master phase
-  - `PUT /phases/master/{id}/order` - Update phase order
-  - `PUT /phases/master/{id}/bulk-reorder` - Bulk reorder phases
-- **Phase instance endpoints**:
-  - `GET /phases` - List phase instances with filtering
-  - `GET /phases/instance/{id}` - Get specific phase instance
-  - `POST /phases/instance` - Create phase instance from master
-  - `PUT /phases/instance/{id}` - Update phase instance
-  - `DELETE /phases/instance/{id}` - Delete phase instance
-  - `PUT /phases/instance/{id}/status` - Update instance status
-  - `PUT /phases/instance/{id}/control-point` - Update control point status
-  - `PUT /phases/instance/{id}/emergency-override` - Emergency override with audit trail
-- **Utility endpoints**:
-  - `GET /phases/by-sequence/{sequenceId}` - Get phases by sequence instance
-  - `GET /phases/progress/{phaseId}` - Get phase progress aggregation
-  - `PUT /phases/validate-dependencies` - Validate phase dependencies
+**Caching Strategy**:
 
-### Environments API (Completed)
+- Component-based caching with intelligent invalidation
+- 70% cache hit rate target
+- Context-aware cache expiry
 
-- **Complete environments management system** with application and iteration associations
-- **CRUD operations** with counts display and relationship management
-- **Many-to-many relationships** with applications and iterations
-- **Environment role support** for iterations
+**Performance Testing**:
 
-### Audit Fields Standardization (US-002b)
+```bash
+npm run test:performance                # Performance validation
+npm run test:quality                    # Quality metrics
+```
 
-All API entities now include standardized audit fields:
+## Error Handling
 
-- **`created_by`** - User who created the entity
-- **`created_at`** - Creation timestamp (ISO 8601)
-- **`updated_by`** - User who last updated the entity
-- **`updated_at`** - Last update timestamp (ISO 8601)
+**HTTP Status Codes**:
 
-### Technical Standards
-
-#### Type Safety (ADR-031)
-
-- **Mandatory explicit casting** for all query parameters
-- **UUID Parameters**: `UUID.fromString(param as String)`
-- **Integer Parameters**: `Integer.parseInt(param as String)`
-- **Null handling** checks required before casting
-
-#### Error Handling
-
+- **200 OK**: Successful operation
+- **201 Created**: Entity created successfully
 - **400 Bad Request**: Invalid parameters, type errors, missing required fields
 - **404 Not Found**: Resource not found
 - **409 Conflict**: Duplicate entries, deletion blocked by relationships
-- **500 Internal Server Error**: Database errors
+- **500 Internal Server Error**: Database errors, unexpected failures
 
-#### Database Access Pattern
+**Error Response Format**:
 
-- **Repository pattern** with `DatabaseUtil.withSql`
-- **Instance IDs usage** for hierarchical filtering (pli_id, sqi_id, phi_id)
-- **Complete field selection** - include ALL fields referenced in result mapping
-
-## US-030 Documentation Suite (August 2025)
-
-The US-030 API Documentation Completion initiative delivered 8 comprehensive documentation deliverables to enhance API usability, testing, and development workflows:
-
-### Interactive Documentation
-
-- **[Interactive Swagger UI](swagger-ui-deployment.html)** - Self-contained HTML interface for exploring and testing APIs directly in the browser
-- **[Swagger Configuration](swagger-config.json)** - Multi-environment configuration supporting development, UAT, and production endpoints
-
-### Enhanced Examples & Testing
-
-- **[Enhanced API Examples](enhanced-examples.yaml)** - 50+ realistic API examples using authentic UMIG domain data including migrations, iterations, plans, and team hierarchies
-- **[UAT Integration Guide](uat-integration-guide.md)** - Complete User Acceptance Testing procedures with test scenarios, validation checklists, and environment setup instructions
-- **[Documentation Validation Script](validate-documentation.js)** - Automated validation tool ensuring OpenAPI specification accuracy and completeness
-
-### Comprehensive Guides
-
-- **[Error Handling Guide](error-handling-guide.md)** - Complete error documentation with HTTP status codes, error schemas, troubleshooting procedures, and resolution strategies
-- **[Performance Guide](performance-guide.md)** - Performance benchmarks, optimization guidelines, caching strategies, and monitoring recommendations
-- **[US-030 Completion Summary](us-030-completion-summary.md)** - Project completion report with implementation details and future recommendations
-
-### Quick Start
-
-#### Access Interactive Documentation
-
-Open `swagger-ui-deployment.html` in your browser for immediate API exploration with live testing capabilities.
-
-#### Validate Documentation
-
-```bash
-# Run automated validation
-node validate-documentation.js
-
-# Validate specific OpenAPI file
-node validate-documentation.js openapi.yaml
+```json
+{
+  "error": "Error type",
+  "message": "Detailed error message",
+  "field": "Problematic field (if applicable)",
+  "value": "Invalid value (if applicable)"
+}
 ```
 
-#### UAT Testing
+**Detailed Guide**: [error-handling-guide.md](error-handling-guide.md)
 
-Follow the comprehensive procedures in `uat-integration-guide.md` for systematic API validation including:
+## Key API Documentation
+
+### Core APIs
+
+- **[Users API](UsersAPI.md)** - User management with authentication and roles
+- **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
+- **[Team Members API](TeamMembersAPI.md)** - Team membership associations
+- **[Environments API](EnvironmentsAPI.md)** - Environment management with relationships
+- **[Applications API](ApplicationsAPI.md)** - Application management
+- **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
+- **[Migrations API](migrationApi.md)** - Migration lifecycle (US-025 complete, 17 endpoints)
+
+### Hierarchical APIs
+
+- **[Iterations API]** - Iteration management
+- **[Plans API](PlansAPI.md)** - Master plans and instances
+- **[Sequences API](SequencesAPI.md)** - Sequence ordering and dependencies
+- **[Phases API](PhasesAPI.md)** - Phase control points and progress
+- **[Steps API](StepsAPI.md)** - Step management (US-024 enhanced)
+- **[Instructions API](InstructionsApi.md)** - Instruction tracking
+
+### Configuration APIs
+
+- **[System Configuration API](SystemConfigurationAPI.md)** - Email templates, notifications (US-036)
+- **[Email Templates API](EmailTemplatesAPI.md)** - Email template management
+- **[Controls API](ControlsAPI.md)** - Control point validation
+
+### Special APIs
+
+- **[stepView API](stepViewAPI.md)** - Standalone step view for Confluence pages
+- **[Web API](WebAPI.md)** - Static asset serving (JavaScript, CSS)
+
+## Technical Standards
+
+### Type Safety (ADR-031, ADR-043)
+
+**Mandatory Explicit Casting**:
+
+```groovy
+// UUID parameters
+UUID.fromString(param as String)
+
+// Integer parameters
+Integer.parseInt(param as String)
+
+// String parameters
+param.toUpperCase() as String
+
+// Null handling
+param?.toString() ?: ''
+```
+
+### Database Access Pattern (ADR-044)
+
+**Repository Pattern with DatabaseUtil.withSql**:
+
+```groovy
+DatabaseUtil.withSql { sql ->
+    return sql.rows('SELECT * FROM table_name WHERE id = ?', [id])
+}
+```
+
+### REST API Pattern (ADR-017)
+
+```groovy
+@BaseScript CustomEndpointDelegate delegate
+
+entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
+    def getRepository = { -> new SomeRepository() }
+
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+
+    return Response.ok(payload).build()
+}
+```
+
+## Comprehensive Documentation Suite (US-030)
+
+**Interactive Documentation**:
+
+- [swagger-ui-deployment.html](swagger-ui-deployment.html) - Browser-based API exploration
+- [swagger-config.json](swagger-config.json) - Multi-environment configuration
+
+**Enhanced Guides**:
+
+- [enhanced-examples.yaml](enhanced-examples.yaml) - 50+ realistic API examples
+- [uat-integration-guide.md](uat-integration-guide.md) - UAT testing procedures
+- [error-handling-guide.md](error-handling-guide.md) - Complete error documentation
+- [performance-guide.md](performance-guide.md) - Performance benchmarks
+- [us-030-completion-summary.md](us-030-completion-summary.md) - Project completion report
+
+**Validation Tools**:
+
+```bash
+npm run validate:openapi            # Validate OpenAPI specification
+npm run generate:redoc              # Generate ReDoc documentation
+node validate-documentation.js       # Automated validation
+```
+
+## Quality Assessment
+
+**Documentation Quality**: 9.4/10 (enterprise-grade)
+**API Coverage**: 95%+ feature documentation
+**Security Documentation**: 100% coverage of 9.2/10 implementation
+**Performance SLA**: Complete documentation of <100ms to <200ms targets
+**OpenAPI Synchronisation**: 214 operations documented (v2.10.0+)
+
+**Comprehensive Report**: [API-Documentation-Comprehensive-Report.md](API-Documentation-Comprehensive-Report.md)
+
+## Related Documentation
+
+- **[Architecture Decisions](/docs/architecture/adr/)** - ADR-017 (V2 REST API Architecture), ADR-042 (Dual Authentication)
+- **[Development Journal](/docs/devJournal/)** - Implementation details and decisions
+- **[Project Roadmap](/docs/roadmap/)** - Sprint planning and API evolution
+- **[CLAUDE.md](/CLAUDE.md)** - Project overview and critical patterns
+
+## Quick Start
+
+### Viewing Documentation
+
+**Redocly CLI** (Recommended):
+
+```bash
+npm install -g @redocly/cli
+redocly preview-docs openapi.yaml
+```
+
+**Online Viewers**:
+
+- [Redoc Online](https://redocly.github.io/redoc/) - Upload openapi.yaml
+- [Swagger Editor](https://editor.swagger.io/) - Upload openapi.yaml
+
+### Testing with Postman
+
+1. Import [postman/UMIG_API_V2_Collection.postman_collection.json](postman/UMIG_API_V2_Collection.json)
+2. Configure environment (development/UAT/production)
+3. Set authentication credentials from `.env`
+4. Execute test scenarios
+
+### UAT Testing
+
+Follow comprehensive procedures in [uat-integration-guide.md](uat-integration-guide.md):
 
 - Environment setup and configuration
 - Test scenario execution
@@ -480,88 +345,6 @@ Follow the comprehensive procedures in `uat-integration-guide.md` for systematic
 - Security testing
 - Data integrity verification
 
-### Key Features
+---
 
-- **Production-Ready Examples**: All examples use realistic UMIG data patterns
-- **Multi-Environment Support**: Documentation works across development, UAT, and production
-- **Automated Validation**: Continuous validation ensures documentation accuracy
-- **Performance Optimized**: Guidelines for optimal API usage and caching strategies
-- **UAT-Ready**: Complete testing procedures for production deployment
-- **Interactive Testing**: Browser-based API exploration and testing
-
-### Documentation Standards
-
-All US-030 deliverables follow enterprise documentation standards:
-
-- **Comprehensive Coverage**: 100% endpoint documentation with examples
-- **Validation Automated**: Continuous accuracy checking
-- **Performance Focused**: Sub-3-second response time guidelines
-- **Security Compliant**: Authentication and authorization documentation
-- **UAT-Validated**: Production-ready testing procedures
-
-## Security
-
-### Security Remediation Summary (PR #42, August 19, 2025)
-
-The UMIG API documentation underwent comprehensive security remediation to eliminate critical vulnerabilities and implement enterprise security best practices.
-
-#### Key Security Improvements
-
-**1. Credential Management Security**
-
-- ✅ **Eliminated hardcoded credentials**: All base64-encoded and plaintext credentials removed from committed code
-- ✅ **Environment variable pattern**: Implemented `UMIG_AUTH_CREDENTIALS` environment variable for secure authentication
-- ✅ **Development fallback**: Safe defaults maintained for local development (`admin:admin`)
-- ✅ **Production ready**: Supports secure credential injection via secret management systems
-
-**2. CDN Security Enhancement**
-
-- ✅ **SRI integrity hashes**: All external CDN resources (Swagger UI, etc.) now include integrity verification
-- ✅ **CORS configuration**: Proper crossorigin attributes prevent CDN-based attacks
-- ✅ **Version pinning**: Dependencies locked to specific versions for stability
-
-**3. Secure Authentication Patterns**
-
-JavaScript pattern for API clients:
-
-```javascript
-const credentials = process.env.UMIG_AUTH_CREDENTIALS || "admin:admin";
-const authHeader = "Basic " + Buffer.from(credentials).toString("base64");
-```
-
-Shell script pattern for testing:
-
-```bash
--H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
-```
-
-#### Environment Configuration
-
-The API uses environment variables for secure configuration. Reference `.env.example` in the project root for complete setup:
-
-- `UMIG_AUTH_CREDENTIALS` - Authentication credentials (format: username:password)
-- `UMIG_BASE_URL` - API base URL configuration
-- `UMIG_TIMEOUT` - Request timeout settings
-- `UMIG_MAX_RETRIES` - Retry configuration
-
-#### Security Best Practices
-
-**Development Teams**:
-
-- Configure local environments using `.env.example` as reference
-- Never commit credentials to version control
-- Use environment variables for all authentication
-
-**Production Deployment**:
-
-- Configure environment variables in deployment system
-- Implement proper secret management (Azure Key Vault, AWS Secrets Manager)
-- Establish credential rotation policies
-
-#### Security Status
-
-- ✅ **Zero hardcoded credentials** in codebase
-- ✅ **All CDN resources secured** with SRI hashes
-- ✅ **Environment variable pattern** implemented across all documentation
-- ✅ **Security verification completed** with zero findings
-- ✅ **Production deployment ready** with secure configuration patterns
+**Status**: Production-Ready | Version: v2.12.0+ | Endpoints: 31+ | Security: 9.2/10 | Performance: <150ms avg | Test Coverage: 100% (95/95 tests passing)

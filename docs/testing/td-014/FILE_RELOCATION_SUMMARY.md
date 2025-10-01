@@ -20,6 +20,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 **To**: `/docs/testing/td-014/TD-014-WEEK1-DAY3-4-CONFIGURATION-API-TESTS-COMPLETE.md`
 
 **Rationale**:
+
 - **Content Type**: TD-014 specific progress documentation
 - **Scope**: SystemConfigurationApi and UrlConfigurationApi test completion report
 - **Directory Alignment**: The `docs/testing/td-014/` directory already contains related TD-014 test documentation:
@@ -40,6 +41,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 **To**: `/docs/testing/PHASE0_QUICK_START.md`
 
 **Rationale**:
+
 - **Content Type**: Emergency test infrastructure fix guide
 - **Scope**: JavaScript test infrastructure remediation (tough-cookie stack overflow resolution)
 - **Audience**: Development team addressing test failures
@@ -55,6 +57,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 **To**: `/docs/testing/TEST_REMEDIATION_COMPREHENSIVE_PLAN.md`
 
 **Rationale**:
+
 - **Content Type**: Strategic test infrastructure planning document
 - **Scope**: Complete 4-phase JavaScript test remediation strategy
 - **Phases Covered**:
@@ -75,6 +78,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 **To**: `/docs/testing/TEST_REMEDIATION_EXECUTIVE_SUMMARY.md`
 
 **Rationale**:
+
 - **Content Type**: Executive decision document
 - **Audience**: Product Owner, Technical Lead, QA Lead
 - **Scope**: High-level overview for US-087 Phase 2 proceed/hold decision
@@ -90,6 +94,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 **To**: `/docs/testing/TEST_REMEDIATION_INDEX.md`
 
 **Rationale**:
+
 - **Content Type**: Documentation navigation index
 - **Scope**: Complete navigation across test infrastructure remediation documents
 - **Purpose**: Guides users through:
@@ -106,8 +111,10 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 ## Directory Organization Principles Applied
 
 ### Local Development Setup (`local-dev-setup/`)
+
 **Purpose**: Development environment configuration and setup
 **Should Contain**:
+
 - Environment setup scripts
 - Docker/Podman configuration
 - npm package configuration
@@ -116,6 +123,7 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 - Quick start guides for local development
 
 **Should NOT Contain**:
+
 - Project documentation
 - Progress tracking documents
 - Testing strategies
@@ -123,8 +131,10 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 - Sprint planning documents
 
 ### Testing Documentation (`docs/testing/`)
+
 **Purpose**: Testing strategy, guides, and infrastructure documentation
 **Should Contain**:
+
 - Test infrastructure guides
 - Testing best practices
 - Test remediation plans
@@ -133,8 +143,10 @@ Successfully relocated 5 documentation files from `local-dev-setup/` to their pr
 - General testing documentation
 
 ### TD-014 Specific Documentation (`docs/testing/td-014/`)
+
 **Purpose**: TD-014 story-specific test documentation
 **Should Contain**:
+
 - TD-014 test implementation summaries
 - TD-014 test architecture documents
 - TD-014 quality validation reports
@@ -153,6 +165,7 @@ After relocation, verified the following files for cross-references:
 ### Internal Cross-References
 
 Within `TEST_REMEDIATION_INDEX.md`, all internal references correctly point to relative paths that remain valid after relocation:
+
 - References to Executive Summary: `TEST_REMEDIATION_EXECUTIVE_SUMMARY.md` (same directory)
 - References to Phase 0 Quick Start: `PHASE0_QUICK_START.md` (same directory)
 - References to Comprehensive Plan: `TEST_REMEDIATION_COMPREHENSIVE_PLAN.md` (same directory)
@@ -164,6 +177,7 @@ All relative references remain functional.
 ## Verification Results
 
 ### Pre-Relocation State
+
 ```bash
 local-dev-setup/
 ├── PHASE0_QUICK_START.md
@@ -174,6 +188,7 @@ local-dev-setup/
 ```
 
 ### Post-Relocation State
+
 ```bash
 docs/testing/
 ├── PHASE0_QUICK_START.md                              # ← Relocated
@@ -185,6 +200,7 @@ docs/testing/
 ```
 
 ### Git Status Verification
+
 ```
 renamed: local-dev-setup/PHASE0_QUICK_START.md
       → docs/testing/PHASE0_QUICK_START.md
@@ -272,6 +288,7 @@ All relocations performed using `git mv` to preserve file history. ✅
 **Verification**: All relocations staged and verified via `git status`
 
 **Next Step**: Commit relocations with conventional commit message:
+
 ```bash
 git commit -m "docs: relocate testing documentation from local-dev-setup to docs/testing
 

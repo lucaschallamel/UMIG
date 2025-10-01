@@ -204,7 +204,7 @@ TEST_MODE=integration npm run test:js:integration -- --testPathPattern=template-
 
 ## 🔧 Deployment Steps
 
-1. ✅ Code changes committed to branch `bugfix/US-058-email-service-iteration-step-views`
+1. ✅ Code changes committed to branch `feature/sprint8-td-014-td-015-comprehensive-testing-email`
 2. ⏸️ **USER ACTION REQUIRED**: Restart Confluence to clear ScriptRunner cache
    ```bash
    npm run restart:umig
@@ -283,4 +283,4 @@ TEST_MODE=integration npm run test:js:integration -- --testPathPattern=template-
 **Reviewed By**: Lucas Challamel
 **Date**: 2025-09-30
 **Sprint**: Sprint 8 - Security Architecture Enhancement
-**Branch**: `bugfix/US-058-email-service-iteration-step-views`
+**Branch**: `feature/sprint8-td-014-td-015-comprehensive-testing-email`

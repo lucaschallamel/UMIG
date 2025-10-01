@@ -223,7 +223,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 
 **Field Transformation Mappings**:
 
-*Migration Entity (16 fields)*:
+_Migration Entity (16 fields)_:
+
 - `mig_id`, `usr_id_owner`, `mig_name`, `mig_description`, `mig_type`
 - `mig_start_date`, `mig_end_date`, `mig_business_cutover_date`
 - `created_by`, `created_at`, `updated_by`, `updated_at`
@@ -231,7 +232,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - `iteration_count`, `plan_count` (computed from joins)
 - `statusMetadata` (nested object: `{id, name, color, type}`)
 
-*Iteration Entity (13 fields)*:
+_Iteration Entity (13 fields)_:
+
 - `ite_id`, `mig_id`, `plm_id`, `itt_code`, `ite_name`, `ite_description`
 - `ite_static_cutover_date`, `ite_dynamic_cutover_date`
 - `created_by`, `created_at`, `updated_by`, `updated_at`
@@ -239,7 +241,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 
 **Test Categories (50 tests)**:
 
-*Category A: CRUD Operations (10 tests)*
+_Category A: CRUD Operations (10 tests)_
+
 - Create success with all fields (A1)
 - Create duplicate name - SQL state 23505 (A2)
 - Create invalid status name (A3)
@@ -251,7 +254,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - Delete success - no relationships (A9)
 - Delete FK violation - SQL state 23503 (A10)
 
-*Category B: Retrieval & Pagination (8 tests)*
+_Category B: Retrieval & Pagination (8 tests)_
+
 - Find all non-paginated with computed counts (B1)
 - Paginated first page (B2)
 - Paginated last page (B3)
@@ -261,7 +265,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - Paginated with sort - mig_name ASC (B7)
 - Paginated with sort - iteration_count DESC (B8)
 
-*Category C: Status Filtering (6 tests)*
+_Category C: Status Filtering (6 tests)_
+
 - Find by single status (C1)
 - Find by multiple statuses (C2)
 - Find by status - no results (C3)
@@ -269,7 +274,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - Status filtering with pagination (C5)
 - Empty status list (C6)
 
-*Category D: Date Range Filtering (6 tests)*
+_Category D: Date Range Filtering (6 tests)_
+
 - Date range - mig_start_date (D1)
 - Date range - mig_end_date (D2)
 - Date range - mig_business_cutover_date (D3)
@@ -277,7 +283,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - Date range - null dates in records (D5)
 - Date range with pagination (D6)
 
-*Category E: Hierarchical Relationships (12 tests)*
+_Category E: Hierarchical Relationships (12 tests)_
+
 - Find iterations by migration ID - found (E1)
 - Find iterations by migration ID - not found (E2)
 - Find iteration by ID - found (E3)
@@ -291,7 +298,8 @@ Total Progress:               6.0 of 14.0 points (43%)
 - Update iteration partial fields (E11)
 - Delete iteration success (E12)
 
-*Category F: Validation & Edge Cases (8 tests)*
+_Category F: Validation & Edge Cases (8 tests)_
+
 - Null UUID parameter (F1)
 - Invalid UUID format (F2)
 - Negative page number (F3)

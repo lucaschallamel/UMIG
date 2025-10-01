@@ -303,11 +303,11 @@ class EnhancedEmailService {
                     comment_count: (stepInstance.comments as List)?.size() ?: 0,
                     has_comments: ((stepInstance.comments as List)?.size() ?: 0) > 0,
 
-                    // Impacted teams (enriched - now proper list from JSON aggregation)
-                    impacted_teams: stepInstance.impacted_teams ?: [],
-                    impacted_teams_count: (stepInstance.impacted_teams as List)?.size() ?: 0,
-                    has_impacted_teams: ((stepInstance.impacted_teams as List)?.size() ?: 0) > 0,
-                    impacted_teams_list: (stepInstance.impacted_teams as List ?: []).collect { (it as Map).tms_name }.join(', '),
+                    // Impacted teams (enriched - now a comma-separated STRING from enrichedData)
+                    impacted_teams: stepInstance.impacted_teams ?: '',
+                    impacted_teams_list: stepInstance.impacted_teams ?: '',
+                    has_impacted_teams: (stepInstance.impacted_teams as String)?.trim() ? true : false,
+                    impacted_teams_count: ((stepInstance.impacted_teams as String)?.split(',')?.size() ?: 0),
                     
                     // Hierarchy context (already available, now explicit)
                     migration_name: stepInstance.migration_name ?: '',
@@ -335,8 +335,7 @@ class EnhancedEmailService {
                     stepViewLinkHtml: buildStepViewLinkHtml(stepViewUrl, stepViewUrl != null),
                     statusBadgeHtml: buildStatusBadge(newStatus),
                     teamRowHtml: buildOptionalField('Team', stepInstance?.team_name as String),
-                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams',
-                        (stepInstance?.impacted_teams as List ?: []).collect { (it as Map).tms_name }.join(', ')),
+                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams', stepInstance?.impacted_teams as String),
                     predecessorRowHtml: buildOptionalField('Predecessor',
                         stepInstance?.predecessor_code ? "${stepInstance.predecessor_code} ${stepInstance.predecessor_name ?: ''}".trim() : null),
                     environmentRowHtml: buildOptionalField('Environment',
