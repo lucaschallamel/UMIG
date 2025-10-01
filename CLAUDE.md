@@ -38,7 +38,7 @@ npm run test:js:components   # Component unit tests (95%+ coverage)
 npm run test:js:security     # Component security tests (28 scenarios)
 npm run test:js:security:pentest # Penetration testing (21 attack vectors)
 
-# Groovy Testing - 31/31 tests passing (100%)
+# Groovy Testing - 43/43 tests passing (100%)
 npm run test:groovy:unit     # Groovy unit tests
 npm run test:groovy:integration # Groovy integration tests
 npm run test:groovy:all      # All Groovy tests
@@ -81,17 +81,18 @@ npm run generate:redoc       # Generate ReDoc documentation
 ### Build & Deployment
 
 ```bash
-npm run build:production     # Production build with 84% size reduction
-npm run build:deployment     # Create deployment package
+npm run build:uat            # UAT build
+npm run build:prod           # Production build with 84% size reduction
+npm run build:dev            # Development build with tests
 ```
 
 ### Health Checks
 
 ```bash
 npm run health:check         # Verify system health
-npm run postgres:check       # Check database connectivity
-npm run confluence:check     # Check Confluence status
-npm run scriptrunner:check   # Verify ScriptRunner installation
+npm run logs:postgres        # View PostgreSQL logs
+npm run logs:confluence      # View Confluence logs
+npm run logs:all             # View all container logs
 ```
 
 ## Architecture & Critical Patterns
@@ -224,7 +225,7 @@ if (e.getSQLState() == '23503') {
 ### Complete API Endpoints (31+ total)
 
 **Core**: Users, Teams, TeamMembers, Environments, Applications, Labels, Migrations, Status
-**Hierarchy**: Plans, Sequences, Phases, Steps, EnhancedSteps, Instructions, Iterations
+**Hierarchy**: Plans, Sequences, Phases, Steps, Instructions, Iterations
 **Admin**: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
 **System**: AdminVersion, Dashboard, DatabaseVersions, Roles
 **Special**: Import, ImportQueue, StepView, Web, TestEndpoint
@@ -258,7 +259,7 @@ param?.toString() ?: ''
 
 - Check UserService fallback hierarchy
 - Verify ADR-042 dual authentication pattern
-- Review session-based authentication in `SESSION_AUTH_UTILITIES.md`
+- Review session-based authentication in `local-dev-setup/SESSION_AUTH_UTILITIES.md`
 
 ## Development Workflows
 
@@ -288,7 +289,7 @@ npm run logs:all             # View all container logs
 ## Important Reminders
 
 - Database: Use `.env` credentials with `umig_app_db`
-- API Testing: Basic auth with `.env` credentials for CURL/Postman
+- API Testing: Session-based auth (see `local-dev-setup/SESSION_AUTH_UTILITIES.md`)
 - Stack Management: Usually running, ask before restarting
 - Git Operations: Never add/commit without explicit user request
 - Data Reset: Use `npm run restart:erase:umig` then `npm run generate-data`

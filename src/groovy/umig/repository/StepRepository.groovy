@@ -4203,4 +4203,181 @@ class StepRepository {
             ]
         }
     }
+
+    /**
+     * Retrieves complete step instance data for email notifications
+     * Includes all required information: master data, environment, teams, 
+     * instructions, comments, and relationships
+     * 
+     * Performance: Single primary query + 2 conditional supplementary queries
+     * Optimized for email template rendering with complete data
+     * 
+     * @param stepInstanceId UUID of the step instance
+     * @return Map with complete step data for email template, or null if not found
+     */
+    static Map getEnhancedStepInstanceForEmail(UUID stepInstanceId) {
+        if (!stepInstanceId) {
+            throw new IllegalArgumentException("Step instance ID cannot be null")
+        }
+        
+        DatabaseUtil.withSql { sql ->
+            try {
+                // PRIMARY QUERY: Fetch core step data with environment and teams
+                def stepData = sql.firstRow('''
+                    SELECT 
+                        -- Step instance core
+                        sti.sti_id,
+                        sti.sti_name,
+                        sti.sti_description,
+                        sti.sti_status,
+                        sti.sti_duration_minutes,
+                        
+                        -- Step master details
+                        stm.stm_id,
+                        stm.stm_name,
+                        stm.stm_description,
+                        stm.stm_number,
+                        stm.stt_code,
+                        CONCAT(stm.stt_code, '-', LPAD(stm.stm_number::text, 3, '0')) as step_code,
+                        
+                        -- Environment information
+                        enr.enr_id as env_role_id,
+                        enr.enr_name as environment_role_name,
+                        enr.enr_type as environment_role_type,
+                        env.env_id,
+                        env.env_name as environment_name,
+                        env.env_type as environment_type,
+                        
+                        -- Team assignments
+                        owner_team.tms_id as owner_team_id,
+                        owner_team.tms_name as team_name,
+                        owner_team.tms_email as team_email,
+                        
+                        -- Impacted teams (aggregated as JSON array)
+                        COALESCE(
+                            (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                'tms_id', imp_team.tms_id,
+                                'tms_name', imp_team.tms_name,
+                                'tms_email', imp_team.tms_email
+                            ))
+                            FROM steps_master_stm_x_teams_tms_impacted imp_x
+                            JOIN teams_tms imp_team ON imp_x.tms_id = imp_team.tms_id
+                            WHERE imp_x.stm_id = stm.stm_id),
+                            '[]'::json
+                        ) as impacted_teams_json,
+                        
+                        -- Predecessor information
+                        pred.stm_id as predecessor_id,
+                        pred.stm_name as predecessor_name,
+                        CONCAT(pred.stt_code, '-', LPAD(pred.stm_number::text, 3, '0')) as predecessor_code,
+                        
+                        -- Hierarchy context
+                        mig.mig_id,
+                        mig.mig_code as migration_code,
+                        mig.mig_name as migration_name,
+                        ite.ite_id,
+                        ite.ite_code as iteration_code,
+                        ite.ite_name as iteration_name,
+                        pli.pli_id,
+                        plm.plm_name as plan_name,
+                        sqi.sqi_id,
+                        sqm.sqm_name as sequence_name,
+                        phi.phi_id,
+                        phm.phm_name as phase_name,
+                        
+                        -- Counts for conditional fetching
+                        (SELECT COUNT(*) FROM instructions_instance_ini WHERE sti_id = sti.sti_id) as instruction_count,
+                        (SELECT COUNT(*) FROM step_instance_comments_sic WHERE sti_id = sti.sti_id) as comment_count,
+                        
+                        -- Audit fields
+                        sti.created_by,
+                        sti.created_at,
+                        sti.updated_by,
+                        sti.updated_at
+                        
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN environment_roles_enr enr ON stm.enr_id_target = enr.enr_id
+                    LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                    LEFT JOIN steps_master_stm pred ON stm.stm_id_predecessor = pred.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = enr.enr_id
+                    LEFT JOIN environments_env env ON eei.env_id = env.env_id
+                    WHERE sti.sti_id = ?
+                ''', [stepInstanceId])
+                
+                if (!stepData) {
+                    return null // Step not found
+                }
+                
+                // Parse impacted teams JSON to proper list structure
+                def impactedTeamsList = []
+                if (stepData.impacted_teams_json) {
+                    def parsedJson = new groovy.json.JsonSlurper().parseText(stepData.impacted_teams_json.toString())
+                    impactedTeamsList = parsedJson instanceof List ? parsedJson : []
+                }
+                stepData.impacted_teams = impactedTeamsList
+                stepData.remove('impacted_teams_json') // Clean up temp field
+                
+                // SUPPLEMENTARY QUERY 1: Fetch instructions if count > 0
+                if ((stepData.instruction_count as Integer) > 0) {
+                    stepData.instructions = sql.rows('''
+                        SELECT 
+                            ini.ini_id,
+                            COALESCE(ini.ini_body, inm.inm_body) as body,
+                            COALESCE(ini.ini_order, inm.inm_order) as order_number,
+                            COALESCE(ini.ini_duration_minutes, inm.inm_duration_minutes) as duration_minutes,
+                            ini.ini_is_completed,
+                            tms.tms_id as team_id,
+                            tms.tms_name as team_name,
+                            ctm.ctm_code as control_code,
+                            ctm.ctm_name as control_name
+                        FROM instructions_instance_ini ini
+                        JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                        LEFT JOIN teams_tms tms ON COALESCE(ini.tms_id, inm.tms_id) = tms.tms_id
+                        LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
+                        WHERE ini.sti_id = ?
+                        ORDER BY COALESCE(ini.ini_order, inm.inm_order)
+                    ''', [stepInstanceId])
+                } else {
+                    stepData.instructions = []
+                }
+                
+                // SUPPLEMENTARY QUERY 2: Fetch recent comments if count > 0 (limit to last 5)
+                if ((stepData.comment_count as Integer) > 0) {
+                    stepData.comments = sql.rows('''
+                        SELECT 
+                            sic.sic_id,
+                            sic.comment_body,
+                            sic.created_at,
+                            usr.usr_id,
+                            usr.usr_first_name,
+                            usr.usr_last_name,
+                            usr.usr_email,
+                            tms.tms_name as team_name
+                        FROM step_instance_comments_sic sic
+                        LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
+                        LEFT JOIN teams_tms tms ON usr.tms_id = tms.tms_id
+                        WHERE sic.sti_id = ?
+                        ORDER BY sic.sic_created_at DESC
+                        LIMIT 5
+                    ''', [stepInstanceId])
+                } else {
+                    stepData.comments = []
+                }
+                
+                return stepData
+                
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to get enhanced step instance for email: ${stepInstanceId}", e)
+            }
+        }
+    }
 }

@@ -1,18 +1,23 @@
-# US-098: Configuration Management System Implementation
+# US-098: Configuration Management System - Schema-Compliant Version
 
-**Story ID**: US-098
+**Story ID**: US-098-CORRECTED
 **Epic**: Infrastructure Modernization
-**Sprint**: 7
-**Story Points**: 13
+**Sprint**: 8
+**Story Points**: 20 (adjusted from 13 - increased for schema compliance complexity)
 **Priority**: High
 **Type**: Technical Story
-**Created**: 2024-09-26
+**Created**: 2025-10-01
+**Status**: Ready for Implementation
 
-## Story Description
+---
 
-**As a** UMIG system administrator
-**I want** a centralized configuration management system that supports environment-specific configurations
-**So that** I can deploy UMIG across multiple environments (LOCAL, DEV, UAT, PROD) without hardcoded values and ensure proper configuration isolation
+## Story Overview
+
+**As a** UMIG developer
+**I want** a centralized configuration management system using the existing `system_configuration_scf` schema
+**So that** configuration is consistent, type-safe, and respects FK relationships with proper environment isolation
+
+---
 
 ## Business Value & Justification
 
@@ -36,6 +41,8 @@
 - **Risk Mitigation**: Prevents potential security incidents from exposed credentials
 - **Compliance Value**: Meets enterprise security requirements for environment separation
 
+---
+
 ## Current State Analysis
 
 ### Configuration Audit Results
@@ -58,12 +65,73 @@ Total Hardcoded Values: 78
 - **UAT**: User Acceptance Testing environment with production-like settings
 - **PROD**: Production environment with security-hardened configurations
 
-### Existing Infrastructure
+### Existing Infrastructure (CRITICAL)
 
-- ✅ `system_configuration_scf` table exists with environment field support
+- ✅ `system_configuration_scf` table exists with `env_id INTEGER` FK support
+- ✅ **SystemConfigurationRepository** already exists (425 lines, fully functional)
 - ✅ ScriptRunner manages database connections (no additional setup required)
 - ✅ PostgreSQL backend supports JSON configuration storage
-- ⚠️ No centralized configuration access pattern currently exists
+- ⚠️ **No centralized ConfigurationService utility layer currently exists**
+
+---
+
+## Actual Database Schema (Schema-First Development - ADR-059)
+
+```sql
+-- ACTUAL SCHEMA FROM 022_create_system_configuration_scf.sql
+CREATE TABLE system_configuration_scf (
+    scf_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    env_id INTEGER NOT NULL,                          -- FK to environments_env(env_id)
+    scf_key VARCHAR(255) NOT NULL,                    -- Configuration key
+    scf_category VARCHAR(100) NOT NULL,               -- e.g., MACRO_LOCATION, API_CONFIG
+    scf_value TEXT NOT NULL,                          -- Configuration value
+    scf_description TEXT,
+    scf_is_active BOOLEAN DEFAULT TRUE,
+    scf_is_system_managed BOOLEAN DEFAULT FALSE,
+    scf_data_type VARCHAR(50) DEFAULT 'STRING',       -- STRING, INTEGER, BOOLEAN, JSON, URL
+    scf_validation_pattern VARCHAR(500),              -- Regex pattern for validation
+    created_by VARCHAR(255) DEFAULT 'system',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(255) DEFAULT 'system',
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_scf_env_id FOREIGN KEY (env_id) REFERENCES environments_env(env_id),
+    CONSTRAINT unique_scf_key_per_env UNIQUE (env_id, scf_key)
+);
+```
+
+**CRITICAL NOTES**:
+- Column names: `scf_id`, `scf_key`, `scf_value`, `env_id` (NOT `id`, `key`, `value`, `environment`)
+- FK relationship: `env_id INTEGER` references `environments_env(env_id)`
+- Unique constraint: `UNIQUE(env_id, scf_key)` - one key per environment
+- All audit fields present: `created_by`, `created_at`, `updated_by`, `updated_at`
+
+---
+
+## Scope Clarification (IMPORTANT)
+
+### What Already Exists
+
+**SystemConfigurationRepository** (425 lines) provides:
+- `findActiveConfigurationsByEnvironment(Integer envId)`
+- `findConfigurationsByCategory(String category, Integer envId)`
+- `findConfigurationByKey(String key, Integer envId)`
+- `createConfiguration(Map params, String createdBy)`
+- `updateConfigurationValue(UUID scfId, String newValue, String updatedBy, String changeReason)`
+- `validateConfigurationValue(String value, String dataType, String validationPattern)`
+- Complete audit trail and history tracking
+
+### What Needs to be Built
+
+**ConfigurationService Utility Layer** - A service layer providing:
+- Environment detection (LOCAL, DEV, UAT, PROD)
+- Configuration retrieval with fallback hierarchy
+- Type-safe configuration access methods (getString, getInteger, getBoolean)
+- Caching mechanism with 5-minute TTL
+- Integration with existing SystemConfigurationRepository
+
+**Focus**: ConfigurationService utility layer ONLY, not repository implementation
+
+---
 
 ## Detailed Acceptance Criteria
 
@@ -78,59 +146,117 @@ Total Hardcoded Values: 78
 - Caching mechanism with 5-minute TTL
 - Type-safe configuration access methods
 - Logging of configuration source for audit trails
+- Integration with existing SystemConfigurationRepository
 
 **Technical Specifications**:
 
 ```groovy
 // Core service methods required
+// Location: src/groovy/umig/service/ConfigurationService.groovy
 class ConfigurationService {
+    // Type-safe accessors
     static String getString(String key, String defaultValue = null)
     static Integer getInteger(String key, Integer defaultValue = null)
     static Boolean getBoolean(String key, Boolean defaultValue = false)
-    static Map<String, Object> getSection(String section)
-    static void clearCache()
+    static Map<String, Object> getSection(String sectionPrefix)
+
+    // Environment management
     static String getCurrentEnvironment()
+    static Integer getCurrentEnvironmentId()
+
+    // Cache management
+    static void clearCache()
+    static void refreshConfiguration()
 }
 ```
 
-### AC-2: Environment Detection Logic
+### AC-2: Environment Detection Logic (CORRECTED)
 
 **Given** the application is running in any environment
 **When** ConfigurationService determines the environment
 **Then** it should:
 
 - Detect LOCAL environment via .env file presence or system properties
-- Identify DEV/UAT/PROD via database environment markers
+- Identify DEV/UAT/PROD via database `env_id` FK and `scf_key = 'app.environment'`
 - Default to PROD if detection fails (fail-safe approach)
 - Log environment detection for operational visibility
 - Support manual environment override via system property
+- **Return INTEGER env_id** for database FK relationships (NOT VARCHAR environment code)
 
 **Environment Detection Priority**:
 
-1. System property: `-Dumig.environment=ENV`
-2. Environment variable: `UMIG_ENVIRONMENT`
-3. Database query: `SELECT environment FROM system_configuration_scf WHERE key = 'app.environment'`
-4. Default: PROD (security-first fallback)
+1. System property: `-Dumig.environment=ENV` → resolve to `env_id`
+2. Environment variable: `UMIG_ENVIRONMENT` → resolve to `env_id`
+3. Database query using SystemConfigurationRepository:
+   ```groovy
+   // Query: Find env_id where scf_key = 'app.environment'
+   def config = repository.findConfigurationByKey('app.environment', null)
+   Integer envId = config?.env_id as Integer
+   ```
+4. Default: PROD environment → resolve to `env_id` for PROD (security-first fallback)
 
-### AC-3: Fallback Hierarchy Implementation
+**Type Safety Requirements** (ADR-031, ADR-043):
+```groovy
+// MANDATORY: Explicit casting for environment resolution
+String envCode = System.getProperty('umig.environment') as String
+Integer envId = resolveEnvironmentId(envCode as String)
+```
+
+### AC-3: Fallback Hierarchy Implementation (CORRECTED)
 
 **Given** a configuration key is requested
 **When** ConfigurationService retrieves the value
 **Then** it should follow this hierarchy:
 
-1. Environment-specific value from database (`key` + environment)
-2. Global value from database (`key` with environment = 'GLOBAL')
-3. .env file value (LOCAL environment only)
-4. Hardcoded default value
-5. Return null or throw exception if no value found and no default provided
+1. **Environment-specific value** from database using `env_id` FK:
+   ```groovy
+   // Use SystemConfigurationRepository with INTEGER env_id
+   repository.findConfigurationByKey(key, currentEnvId as Integer)
+   ```
+
+2. **Global value** from database (env_id for 'GLOBAL' environment):
+   ```groovy
+   // Resolve 'GLOBAL' to its env_id, then query
+   Integer globalEnvId = resolveEnvironmentId('GLOBAL')
+   repository.findConfigurationByKey(key, globalEnvId as Integer)
+   ```
+
+3. **.env file value** (LOCAL environment only):
+   ```groovy
+   // Only when currentEnvironment == 'LOCAL'
+   fetchFromEnvFile(key as String)
+   ```
+
+4. **Hardcoded default value** passed as parameter
+
+5. **Return null or throw exception** if no value found and no default provided
 
 **Fallback Logic Example**:
 
 ```groovy
-// For key "smtp.host" in UAT environment:
-// 1. Check: smtp.host + environment='UAT'
-// 2. Check: smtp.host + environment='GLOBAL'
-// 3. Return: hardcoded default or null
+// For key "smtp.host" in UAT environment (env_id = 3):
+String getSmtpHost() {
+    String key = 'smtp.host'
+    Integer uatEnvId = 3 // Resolved from environment detection
+
+    // 1. Check environment-specific (UAT)
+    def config = repository.findConfigurationByKey(key, uatEnvId as Integer)
+    if (config?.scf_value) return config.scf_value as String
+
+    // 2. Check global environment
+    Integer globalEnvId = resolveEnvironmentId('GLOBAL')
+    config = repository.findConfigurationByKey(key, globalEnvId as Integer)
+    if (config?.scf_value) return config.scf_value as String
+
+    // 3. Check .env (LOCAL only)
+    if (currentEnvironment == 'LOCAL') {
+        String envValue = fetchFromEnvFile(key)
+        if (envValue) return envValue
+    }
+
+    // 4. Return hardcoded default
+    return 'localhost'
+}
 ```
 
 ### AC-4: Caching Strategy
@@ -151,32 +277,41 @@ class ConfigurationService {
 - Cache memory usage: <10MB for all configurations
 - Cache hit ratio: >85% in steady-state operation
 
-### AC-5: Database Integration
+### AC-5: Database Integration (CORRECTED)
 
 **Given** the existing `system_configuration_scf` table
 **When** ConfigurationService accesses database configurations
 **Then** it should:
 
-- Use existing table structure without modifications
-- Support environment-specific and global configurations
+- **Use existing SystemConfigurationRepository methods** (no direct SQL in ConfigurationService)
+- Support environment-specific and global configurations using `env_id` FK
 - Handle database connectivity failures gracefully
-- Use proper SQL patterns with prepared statements
-- Follow existing DatabaseUtil.withSql pattern
+- Follow existing DatabaseUtil.withSql pattern (via repository)
+- **NEVER modify schema** - adapt service to existing schema (ADR-059)
 
-**Database Schema Usage**:
+**Database Integration Pattern**:
 
-```sql
--- Existing table structure (NO CHANGES REQUIRED)
-system_configuration_scf (
-    id UUID PRIMARY KEY,
-    key VARCHAR(255) NOT NULL,
-    value TEXT,
-    environment VARCHAR(50), -- 'LOCAL', 'DEV', 'UAT', 'PROD', 'GLOBAL'
-    description TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-)
+```groovy
+class ConfigurationService {
+    // Lazy repository initialization to avoid class loading issues
+    private static SystemConfigurationRepository getRepository() {
+        return new SystemConfigurationRepository()
+    }
+
+    static String getString(String key, String defaultValue = null) {
+        // Use repository methods with INTEGER env_id
+        Integer envId = getCurrentEnvironmentId()
+        def config = getRepository().findConfigurationByKey(key as String, envId as Integer)
+        return config?.scf_value as String ?: defaultValue
+    }
+}
 ```
+
+**Schema-First Development** (ADR-059):
+- ✅ Use actual column names: `scf_id`, `scf_key`, `scf_value`, `env_id`
+- ✅ Respect FK constraint: `env_id INTEGER FK to environments_env(env_id)`
+- ✅ Honor unique constraint: `UNIQUE(env_id, scf_key)`
+- ❌ NEVER modify schema to match code expectations
 
 ### AC-6: Security & Audit Requirements
 
@@ -188,7 +323,7 @@ system_configuration_scf (
 - Provide audit trail of configuration access
 - Support configuration value encryption for sensitive data
 - Validate configuration key patterns to prevent injection
-- Log all configuration changes with user context
+- Log all configuration changes with user context (via repository)
 
 **Security Classifications**:
 
@@ -196,35 +331,127 @@ system_configuration_scf (
 - **INTERNAL**: Database hosts, service endpoints
 - **CONFIDENTIAL**: API keys, passwords, security tokens
 
+### AC-7: Foreign Key Relationship Handling (NEW - MANDATORY)
+
+**Given** the `env_id INTEGER` FK constraint to `environments_env(env_id)`
+**When** ConfigurationService resolves environments
+**Then** it should:
+
+- **Always use INTEGER env_id** for repository calls (NOT VARCHAR env_code)
+- Maintain environment code → env_id mapping cache
+- Validate env_id exists in environments_env before queries
+- Handle FK constraint violations gracefully
+- Support environment resolution by both code and ID
+
+**Environment Resolution Pattern**:
+
+```groovy
+class ConfigurationService {
+    // Cache: env_code → env_id mapping
+    private static Map<String, Integer> environmentIdCache = [:]
+
+    /**
+     * Resolve environment code to env_id (FK-compliant)
+     * ADR-031: Type safety with explicit casting
+     */
+    static Integer resolveEnvironmentId(String envCode) {
+        // Check cache first
+        if (environmentIdCache.containsKey(envCode)) {
+            return environmentIdCache[envCode] as Integer
+        }
+
+        // Query environments_env table
+        DatabaseUtil.withSql { sql ->
+            def row = sql.firstRow(
+                'SELECT env_id FROM environments_env WHERE env_code = ?',
+                [envCode as String]
+            )
+
+            if (!row) {
+                throw new IllegalArgumentException(
+                    "Unknown environment code: ${envCode}".toString()
+                )
+            }
+
+            Integer envId = row.env_id as Integer
+            environmentIdCache[envCode] = envId
+            return envId
+        }
+    }
+
+    /**
+     * Get current environment ID (FK-compliant)
+     */
+    static Integer getCurrentEnvironmentId() {
+        String envCode = getCurrentEnvironment()
+        return resolveEnvironmentId(envCode as String)
+    }
+}
+```
+
+---
+
 ## Technical Requirements
 
 ### TR-1: Implementation Architecture
 
 ```groovy
 // Location: src/groovy/umig/service/ConfigurationService.groovy
+package umig.service
+
+import umig.repository.SystemConfigurationRepository
+import umig.utils.DatabaseUtil
+import java.util.concurrent.ConcurrentHashMap
+
 class ConfigurationService {
-    private static final Map<String, CachedValue> cache = [:]
+    // Cache configuration values with TTL
+    private static final Map<String, CachedValue> configCache = new ConcurrentHashMap<>()
     private static final long CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
-    // Core configuration access
+    // Cache environment ID mappings
+    private static final Map<String, Integer> environmentIdCache = new ConcurrentHashMap<>()
+
+    // Lazy repository to avoid class loading issues (ADR pattern)
+    private static SystemConfigurationRepository getRepository() {
+        return new SystemConfigurationRepository()
+    }
+
+    // Type-safe configuration accessors
     static String getString(String key, String defaultValue = null)
     static Integer getInteger(String key, Integer defaultValue = null)
     static Boolean getBoolean(String key, Boolean defaultValue = false)
-
-    // Advanced access patterns
     static Map<String, Object> getSection(String sectionPrefix)
     static List<String> getList(String key, List<String> defaultValue = [])
 
-    // Environment and cache management
+    // Environment management (FK-compliant)
     static String getCurrentEnvironment()
+    static Integer getCurrentEnvironmentId()
+    static Integer resolveEnvironmentId(String envCode)
+
+    // Cache management
     static void clearCache()
     static void refreshConfiguration()
 
     // Internal methods
     private static String detectEnvironment()
-    private static String fetchFromDatabase(String key, String environment)
+    private static String fetchFromDatabase(String key, Integer envId)
     private static String fetchFromEnvFile(String key)
     private static boolean isCacheValid(String key)
+
+    // Cached value container
+    private static class CachedValue {
+        String value
+        long timestamp
+
+        CachedValue(String value) {
+            this.value = value
+            this.timestamp = System.currentTimeMillis()
+        }
+
+        boolean isExpired() {
+            return (System.currentTimeMillis() - timestamp) > CACHE_TTL_MS
+        }
+    }
 }
 ```
 
@@ -250,22 +477,53 @@ Examples:
 SMTP_HOST=localhost
 SMTP_PORT=1025
 
-// DEV/UAT/PROD: Database storage
-INSERT INTO system_configuration_scf VALUES
-('smtp.server.host', 'mail.company.com', 'PROD', 'Production SMTP server'),
-('smtp.server.host', 'mail-dev.company.com', 'DEV', 'Development SMTP server'),
-('smtp.server.host', 'mail-uat.company.com', 'UAT', 'UAT SMTP server');
+// DEV/UAT/PROD: Database storage using env_id FK
+INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_description) VALUES
+-- PROD (env_id = 4)
+(4, 'smtp.server.host', 'EMAIL', 'mail.company.com', 'Production SMTP server'),
+-- DEV (env_id = 1)
+(1, 'smtp.server.host', 'EMAIL', 'mail-dev.company.com', 'Development SMTP server'),
+-- UAT (env_id = 3)
+(3, 'smtp.server.host', 'EMAIL', 'mail-uat.company.com', 'UAT SMTP server');
 ```
 
 ### TR-4: Error Handling & Resilience
 
 ```groovy
-// Graceful degradation patterns
-try {
-    return fetchFromDatabase(key, environment)
-} catch (SQLException e) {
-    log.warn("Database unavailable for config ${key}, using fallback")
-    return fetchFromEnvFile(key) ?: getHardcodedDefault(key)
+// Graceful degradation patterns with type safety
+static String getString(String key, String defaultValue = null) {
+    try {
+        // Type safety: explicit casting (ADR-031, ADR-043)
+        Integer envId = getCurrentEnvironmentId()
+        def config = getRepository().findConfigurationByKey(key as String, envId as Integer)
+
+        if (config?.scf_value) {
+            return config.scf_value as String
+        }
+
+        // Try global fallback
+        Integer globalEnvId = resolveEnvironmentId('GLOBAL')
+        config = getRepository().findConfigurationByKey(key as String, globalEnvId as Integer)
+
+        if (config?.scf_value) {
+            return config.scf_value as String
+        }
+
+        // LOCAL: .env fallback
+        if (getCurrentEnvironment() == 'LOCAL') {
+            String envValue = fetchFromEnvFile(key as String)
+            if (envValue) return envValue
+        }
+
+        return defaultValue
+
+    } catch (SQLException e) {
+        log.warn("Database unavailable for config ${key}, using fallback")
+        return fetchFromEnvFile(key as String) ?: defaultValue
+    } catch (Exception e) {
+        log.error("Unexpected error retrieving config ${key}: ${e.message}")
+        return defaultValue
+    }
 }
 ```
 
@@ -276,52 +534,166 @@ try {
 - Performance tests for cache efficiency
 - Security tests for sensitive data handling
 - Environment detection tests across all target environments
+- **FK relationship validation tests** (NEW)
+- **Type safety validation tests** (NEW)
+
+### TR-6: Type Safety Compliance (NEW - MANDATORY)
+
+**Requirement**: All parameter handling must follow ADR-031 and ADR-043 type safety requirements
+
+**Type Safety Patterns**:
+
+```groovy
+// ✅ CORRECT: Explicit casting for all parameters
+static String getString(String key, String defaultValue = null) {
+    Integer envId = getCurrentEnvironmentId()
+    def config = getRepository().findConfigurationByKey(key as String, envId as Integer)
+    return config?.scf_value as String ?: defaultValue
+}
+
+static Integer getInteger(String key, Integer defaultValue = null) {
+    String value = getString(key as String, null)
+    if (!value) return defaultValue
+
+    try {
+        return Integer.parseInt(value as String)
+    } catch (NumberFormatException e) {
+        log.warn("Invalid integer for key ${key}: ${value}")
+        return defaultValue
+    }
+}
+
+// ❌ WRONG: No casting, unsafe parameter handling
+static String getString(String key, String defaultValue = null) {
+    def config = getRepository().findConfigurationByKey(key, getCurrentEnvironmentId())
+    return config?.scf_value ?: defaultValue  // Unsafe - no casting
+}
+```
+
+**UUID Handling**:
+
+```groovy
+// ✅ CORRECT: UUID from String with type safety
+UUID scfId = UUID.fromString(params.scfId as String)
+
+// ❌ WRONG: Direct UUID usage without validation
+UUID scfId = params.scfId  // Unsafe
+```
+
+### TR-7: Foreign Key Relationship Handling (NEW - MANDATORY)
+
+**Requirement**: All database operations must respect `env_id INTEGER FK` constraint
+
+**FK-Compliant Patterns**:
+
+```groovy
+// ✅ CORRECT: Use INTEGER env_id for FK relationships
+static String getConfigValue(String key) {
+    Integer envId = getCurrentEnvironmentId()  // Returns INTEGER
+    def config = getRepository().findConfigurationByKey(key as String, envId as Integer)
+    return config?.scf_value as String
+}
+
+// ✅ CORRECT: Environment resolution with validation
+static Integer resolveEnvironmentId(String envCode) {
+    DatabaseUtil.withSql { sql ->
+        def row = sql.firstRow(
+            'SELECT env_id FROM environments_env WHERE env_code = ?',
+            [envCode as String]
+        )
+
+        if (!row) {
+            throw new IllegalArgumentException("Unknown environment: ${envCode}".toString())
+        }
+
+        return row.env_id as Integer
+    }
+}
+
+// ❌ WRONG: Using VARCHAR env_code instead of INTEGER env_id
+def config = getRepository().findConfigurationByKey(key, 'UAT')  // FK violation
+```
+
+**FK Constraint Handling**:
+
+```groovy
+// Validate env_id exists before creating configuration
+static UUID createConfiguration(Map params) {
+    // Validate FK relationship
+    Integer envId = params.envId as Integer
+    if (!environmentExists(envId)) {
+        throw new IllegalArgumentException(
+            "Invalid environment ID: ${envId}. FK constraint to environments_env would be violated.".toString()
+        )
+    }
+
+    return getRepository().createConfiguration(params, params.createdBy as String)
+}
+
+static boolean environmentExists(Integer envId) {
+    DatabaseUtil.withSql { sql ->
+        def row = sql.firstRow(
+            'SELECT 1 FROM environments_env WHERE env_id = ?',
+            [envId as Integer]
+        )
+        return row != null
+    }
+}
+```
+
+---
 
 ## Implementation Phases
 
-### Phase 1: Foundation (Story Points: 5)
+### Phase 1: Foundation (Story Points: 6)
 
-**Duration**: 3-4 days
-**Scope**: Core ConfigurationService implementation
+**Duration**: 4-5 days
+**Scope**: Core ConfigurationService implementation with FK-compliant environment handling
 
 **Deliverables**:
 
 - ConfigurationService.groovy implementation
-- Environment detection logic
-- Basic configuration retrieval with fallback hierarchy
+- Environment detection logic with env_id resolution
+- Environment code → env_id mapping cache
+- FK-compliant configuration retrieval with fallback hierarchy
+- Type-safe accessor methods (getString, getInteger, getBoolean)
 - Unit test suite (>90% coverage)
 - Documentation for configuration key naming standards
 
 **Success Criteria**:
 
 - ✅ Environment detection works across LOCAL/DEV/UAT/PROD
+- ✅ FK-compliant queries using INTEGER env_id (NOT VARCHAR env_code)
 - ✅ Configuration retrieval follows proper fallback hierarchy
 - ✅ All unit tests pass
+- ✅ Type safety compliance (ADR-031, ADR-043)
 - ✅ Performance: <50ms cached, <200ms uncached access
 
-### Phase 2: Database Integration & Caching (Story Points: 3)
+### Phase 2: Database Integration & Caching (Story Points: 5)
 
-**Duration**: 2-3 days
-**Scope**: Database connectivity and caching implementation
+**Duration**: 3-4 days
+**Scope**: Repository integration and caching implementation
 
 **Deliverables**:
 
-- Database integration with system_configuration_scf table
+- SystemConfigurationRepository integration
 - Caching mechanism with 5-minute TTL
 - Cache management utilities
-- Integration test suite
+- FK validation for environment operations
+- Integration test suite with FK relationship tests
 - Performance benchmarking
 
 **Success Criteria**:
 
-- ✅ Database queries use existing DatabaseUtil.withSql pattern
+- ✅ Repository methods called with correct INTEGER env_id parameters
 - ✅ Cache hit ratio >85% in testing
 - ✅ Cache invalidation works correctly
 - ✅ Graceful degradation when database unavailable
+- ✅ FK constraint violations handled gracefully
 
-### Phase 3: Security & Audit (Story Points: 2)
+### Phase 3: Security & Audit (Story Points: 3)
 
-**Duration**: 1-2 days
+**Duration**: 2-3 days
 **Scope**: Security hardening and audit capabilities
 
 **Deliverables**:
@@ -330,7 +702,7 @@ try {
 - Configuration access audit logging
 - Security classification implementation
 - Security test suite
-- Audit trail verification
+- Audit trail verification (via repository)
 
 **Success Criteria**:
 
@@ -339,25 +711,29 @@ try {
 - ✅ Security tests verify data protection
 - ✅ Audit trails are complete and accurate
 
-### Phase 4: Migration Planning (Story Points: 3)
+### Phase 4: Migration Planning (Story Points: 6)
 
-**Duration**: 2-3 days
+**Duration**: 4-5 days
 **Scope**: Migration strategy for 78 hardcoded values
 
 **Deliverables**:
 
 - Complete inventory of 78 hardcoded configurations
-- Migration scripts for database population
+- Migration scripts for database population using correct env_id FK values
 - Environment-specific configuration templates
+- FK validation in migration scripts
 - Migration validation tests
 - Rollback procedures
 
 **Success Criteria**:
 
 - ✅ All 78 configurations identified and categorized
+- ✅ Migration scripts use INTEGER env_id (FK-compliant)
 - ✅ Migration scripts tested in development environment
 - ✅ Configuration templates validated for all environments
 - ✅ Rollback procedures verified
+
+---
 
 ## Configuration Migration Strategy
 
@@ -365,47 +741,50 @@ try {
 
 **Target**: Critical path for UAT deployment
 
-```
-1. SMTP Settings (12 values)
-   - smtp.server.host, smtp.server.port
-   - smtp.auth.username, smtp.auth.password
-   - smtp.security.tls, smtp.timeout.connection
+```sql
+-- SMTP Settings (12 values) - using env_id FK
+INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_description) VALUES
+(3, 'smtp.server.host', 'EMAIL', 'mail-uat.company.com', 'UAT SMTP server'),
+(3, 'smtp.server.port', 'EMAIL', '587', 'UAT SMTP port'),
+(3, 'smtp.auth.username', 'EMAIL', 'umig-uat@company.com', 'UAT SMTP username'),
+-- ... additional SMTP configs with correct env_id FK
 
-2. Database Configuration (8 values)
-   - database.connection.timeout
-   - database.pool.max.size
-   - database.query.timeout
+-- Database Configuration (8 values)
+(3, 'database.connection.timeout', 'DATABASE', '30000', 'Connection timeout in ms'),
+(3, 'database.pool.max.size', 'DATABASE', '20', 'Maximum pool size'),
+-- ... additional DB configs
 
-3. API Endpoints (15 values)
-   - api.confluence.base.url
-   - api.external.service.urls
-   - api.timeout.default
+-- API Endpoints (15 values)
+(3, 'api.confluence.base.url', 'API', 'https://confluence-uat.company.com', 'UAT Confluence URL'),
+-- ... additional API configs
 ```
 
 ### Medium-Priority Configurations (Phase 4B)
 
 **Target**: Operational efficiency improvements
 
-```
-4. File Paths (18 values)
-   - logging.file.path
-   - upload.directory.path
-   - backup.location.path
+```sql
+-- File Paths (18 values) - FK-compliant
+INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_description) VALUES
+(3, 'logging.file.path', 'FILESYSTEM', '/var/log/umig/uat', 'UAT log directory'),
+(3, 'upload.directory.path', 'FILESYSTEM', '/var/umig/uploads/uat', 'UAT upload directory'),
+-- ... additional file path configs
 
-5. Feature Flags (8 values)
-   - feature.notifications.email
-   - feature.advanced.filtering
-   - feature.audit.logging
+-- Feature Flags (8 values)
+(3, 'feature.notifications.email', 'FEATURE', 'true', 'Enable email notifications in UAT'),
+-- ... additional feature flags
 ```
 
 ### Low-Priority Configurations (Phase 4C)
 
 **Target**: System optimization
 
+```sql
+-- Timeout Values (11 values)
+-- Security Settings (6 values)
 ```
-6. Timeout Values (11 values)
-7. Security Settings (6 values)
-```
+
+---
 
 ## Success Metrics
 
@@ -417,6 +796,8 @@ try {
 - **Cache Efficiency**: >85% cache hit ratio
 - **Test Coverage**: >90% unit test coverage, >80% integration coverage
 - **Security Compliance**: 0 sensitive values logged, 100% audit coverage
+- **FK Compliance**: 100% repository calls use INTEGER env_id (NEW)
+- **Type Safety**: 100% parameter handling with explicit casting (NEW)
 
 ### Qualitative Metrics
 
@@ -424,20 +805,27 @@ try {
 - **Operational Efficiency**: Deployment time reduced from 60+ minutes to <15 minutes
 - **Developer Experience**: Simplified environment-specific configuration management
 - **Security Posture**: Elimination of hardcoded credentials and environment data
+- **Schema Integrity**: Zero schema modifications (ADR-059 compliance)
 
 ### Acceptance Testing Scenarios
 
 1. **Environment Detection**: Verify correct environment identification across all target environments
-2. **Configuration Retrieval**: Test fallback hierarchy works correctly for all configuration types
-3. **Performance**: Validate cache efficiency and response times meet requirements
-4. **Security**: Confirm sensitive data protection and audit trail completeness
-5. **Migration**: Verify all 78 configurations migrated successfully with proper environment targeting
+2. **FK Relationship Validation**: Test env_id resolution and FK constraint handling
+3. **Configuration Retrieval**: Test fallback hierarchy works correctly for all configuration types
+4. **Type Safety**: Validate all parameter casting follows ADR-031/043 requirements
+5. **Performance**: Validate cache efficiency and response times meet requirements
+6. **Security**: Confirm sensitive data protection and audit trail completeness
+7. **Migration**: Verify all 78 configurations migrated successfully with proper env_id FK values
+
+---
 
 ## Dependencies & Prerequisites
 
 ### Internal Dependencies
 
-- ✅ `system_configuration_scf` table exists and is accessible
+- ✅ `system_configuration_scf` table exists with `env_id INTEGER FK` support
+- ✅ `environments_env` table exists with `env_id` primary key
+- ✅ **SystemConfigurationRepository exists** (425 lines, fully functional)
 - ✅ DatabaseUtil.withSql pattern established and functional
 - ✅ ScriptRunner environment provides database connectivity
 - ✅ Existing logging framework available for audit trails
@@ -451,7 +839,31 @@ try {
 
 ### Blockers & Risk Mitigation
 
-#### Risk 1: Database Performance Impact
+#### Risk 1: FK Constraint Violations
+
+**Risk**: Incorrect env_id values cause FK constraint violations
+**Probability**: Medium
+**Impact**: High
+**Mitigation**:
+
+- Implement env_id validation before all repository calls
+- Cache environment ID mappings to prevent repeated lookups
+- Comprehensive FK relationship testing
+- Clear error messages for FK violations
+
+#### Risk 2: Type Casting Errors
+
+**Risk**: Groovy dynamic typing causes runtime type errors
+**Probability**: Medium
+**Impact**: Medium
+**Mitigation**:
+
+- Mandatory explicit casting for all parameters (ADR-031, ADR-043)
+- Comprehensive unit tests for type conversion edge cases
+- Clear documentation of type expectations
+- Code review focus on type safety compliance
+
+#### Risk 3: Database Performance Impact
 
 **Risk**: Configuration queries impact database performance
 **Probability**: Low
@@ -459,10 +871,10 @@ try {
 **Mitigation**:
 
 - Implement 5-minute caching to reduce database load
-- Use prepared statements for query optimization
+- Use SystemConfigurationRepository with optimized queries
 - Monitor query performance during implementation
 
-#### Risk 2: Cache Coherency Issues
+#### Risk 4: Cache Coherency Issues
 
 **Risk**: Cached values become stale during configuration updates
 **Probability**: Medium
@@ -473,7 +885,7 @@ try {
 - Implement cache expiration logging
 - Include cache refresh in operational procedures
 
-#### Risk 3: Environment Detection Failures
+#### Risk 5: Environment Detection Failures
 
 **Risk**: Incorrect environment detection leads to wrong configurations
 **Probability**: Low
@@ -485,29 +897,22 @@ try {
 - Comprehensive environment detection testing
 - Manual override capability via system properties
 
-#### Risk 4: Migration Data Loss
-
-**Risk**: Configuration migration causes loss of existing settings
-**Probability**: Low
-**Impact**: High
-**Mitigation**:
-
-- Complete backup of existing configurations before migration
-- Rollback procedures tested and documented
-- Phased migration approach with validation at each step
-- Parallel operation during transition period
+---
 
 ## Definition of Done
 
 ### Technical Completion Criteria
 
 - [ ] ConfigurationService.groovy implemented with all required methods
-- [ ] Environment detection logic functional across all target environments
-- [ ] Fallback hierarchy implemented and tested
+- [ ] Environment detection logic functional with FK-compliant env_id resolution
+- [ ] Environment code → env_id mapping cache implemented
+- [ ] Fallback hierarchy implemented using INTEGER env_id parameters
 - [ ] Caching mechanism operational with 5-minute TTL
-- [ ] Database integration using existing patterns
+- [ ] SystemConfigurationRepository integration complete (no direct SQL in service)
 - [ ] Security protections implemented for sensitive data
-- [ ] Audit logging operational for all configuration access
+- [ ] Audit logging operational via repository layer
+- [ ] Type safety compliance (ADR-031, ADR-043) verified
+- [ ] FK relationship handling validated
 
 ### Quality Assurance Criteria
 
@@ -515,23 +920,29 @@ try {
 - [ ] Integration test coverage >80%
 - [ ] Performance benchmarks meet requirements (<50ms cached, <200ms uncached)
 - [ ] Security tests verify no sensitive data in logs
+- [ ] FK constraint tests pass (env_id validation)
+- [ ] Type safety tests pass (explicit casting validation)
 - [ ] All 78 configurations identified and migration planned
 
 ### Documentation Criteria
 
 - [ ] Configuration key naming standards documented
 - [ ] Environment setup procedures documented for each target environment
+- [ ] FK relationship patterns documented
+- [ ] Type safety requirements documented
 - [ ] Migration procedures documented with rollback steps
 - [ ] Operational procedures updated for configuration management
 - [ ] Security classification guide created for configuration types
 
 ### Deployment Readiness Criteria
 
-- [ ] UAT environment configuration validated
+- [ ] UAT environment configuration validated with correct env_id FK values
 - [ ] Production deployment procedures tested in UAT
 - [ ] Configuration backup and restore procedures verified
 - [ ] Monitoring and alerting configured for configuration system health
 - [ ] Stakeholder sign-off obtained for UAT deployment readiness
+
+---
 
 ## Related Stories & Technical Debt
 
@@ -554,12 +965,46 @@ try {
 
 ---
 
+## ADR Compliance Matrix
+
+| ADR | Requirement | Implementation Status |
+|-----|-------------|----------------------|
+| ADR-031 | Type Safety Requirements | ✅ Mandatory explicit casting for all parameters |
+| ADR-036 | Repository Layer Pattern | ✅ Use existing SystemConfigurationRepository |
+| ADR-043 | PostgreSQL Type Casting | ✅ INTEGER env_id with explicit casting |
+| ADR-059 | Schema-First Development | ✅ Use actual schema, never modify to match code |
+
+---
+
+## Story Estimation Rationale
+
+**Original Estimate**: 13 story points (underestimated)
+**Corrected Estimate**: 20 story points
+
+**Adjustment Factors**:
+
+- **+3 points**: FK relationship handling complexity (env_id resolution, validation, caching)
+- **+2 points**: Type safety compliance overhead (explicit casting for all parameters)
+- **+1 point**: Schema-first development constraints (code must adapt to schema)
+- **+1 point**: Integration with existing SystemConfigurationRepository (understanding existing patterns)
+
+**Complexity Breakdown**:
+
+- **Foundation (6 points)**: Environment detection + FK handling + type safety
+- **Integration (5 points)**: Repository integration + caching + FK validation
+- **Security (3 points)**: Audit + sensitive data protection
+- **Migration (6 points)**: 78 configs + FK-compliant migration scripts + validation
+
+**Realistic Timeline**: 4-5 weeks with proper schema compliance and type safety requirements
+
+---
+
 **Story Owner**: Infrastructure Team
 **Technical Lead**: [TBD]
 **Stakeholders**: DevOps Team, Security Team, Product Owner
 **Review Date**: Weekly sprint reviews
-**Target Completion**: Sprint 7 (End of Week 3)
+**Target Completion**: Sprint 8 (End of Week 5)
 
 ---
 
-_This story document follows UMIG project standards and integrates with existing Sprint 7 objectives. Implementation should follow established architectural patterns and maintain compatibility with existing ScriptRunner environment._
+_This corrected story document follows UMIG project standards and mandatory patterns. Implementation must use actual schema structure (env_id INTEGER FK), existing SystemConfigurationRepository (425 lines), and comply with ADR-031/043 type safety requirements. Schema-first development (ADR-059) is mandatory - code adapts to schema, never vice versa._

@@ -72,6 +72,48 @@ class EnhancedEmailService {
                                                         String oldStatus, String newStatus, Integer userId = null,
                                                         String migrationCode = null, String iterationCode = null) {
         println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
+        
+        // PHASE 2: Enrich stepInstance with complete data from new repository method
+        println "🔧 [EnhancedEmailService] ENRICHMENT: Fetching complete step data for email template"
+        try {
+            // Explicit type casting per ADR-031 for type safety
+            UUID stepInstanceId = stepInstance.sti_id instanceof UUID ?
+                stepInstance.sti_id as UUID :
+                UUID.fromString(stepInstance.sti_id.toString())
+
+            // Call static method directly on the class (not on instance)
+            // The method is static, so we call it directly on the class reference
+            println "🔧 [EnhancedEmailService] 🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail with UUID: ${stepInstanceId}"
+            Map<String, Object> enrichedData = umig.repository.StepRepository.getEnhancedStepInstanceForEmail(stepInstanceId) as Map<String, Object>
+            println "🔧 [EnhancedEmailService] 🔍 DIAGNOSTIC: enrichedData = ${enrichedData ? 'NOT NULL' : 'NULL'}"
+
+            if (enrichedData) {
+                println "🔧 [EnhancedEmailService] ✅ Enhanced data retrieved - DETAILED INSPECTION:"
+                println "🔧 [EnhancedEmailService]   🔍 step_code: '${enrichedData.step_code}' (empty=${enrichedData.step_code == '' || enrichedData.step_code == null})"
+                println "🔧 [EnhancedEmailService]   🔍 sti_name: '${enrichedData.sti_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 environment_name: '${enrichedData.environment_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 environment_role_name: '${enrichedData.environment_role_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 team_name: '${enrichedData.team_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 sti_duration_minutes: '${enrichedData.sti_duration_minutes}'"
+                println "🔧 [EnhancedEmailService]   🔍 Instructions count: ${(enrichedData.instructions as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService]   🔍 Comments count: ${(enrichedData.comments as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService]   🔍 Impacted teams count: ${(enrichedData.impacted_teams as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService]   🔍 ALL KEYS in enrichedData: ${enrichedData.keySet()}"
+
+                // Merge enriched data into stepInstance (enriched data takes precedence)
+                // Both must be cast as Map for proper merge operation
+                stepInstance = (enrichedData as Map) + (stepInstance as Map)
+                println "🔧 [EnhancedEmailService] ✅ Step instance enriched - AFTER MERGE step_code: '${stepInstance.step_code}'"
+            } else {
+                println "🔧 [EnhancedEmailService] ⚠️ WARNING: Could not retrieve enhanced data (enrichedData is NULL), using original stepInstance"
+            }
+        } catch (Exception enrichmentError) {
+            println "🔧 [EnhancedEmailService] ⚠️ WARNING: Data enrichment failed: ${enrichmentError.message}"
+            println "🔧 [EnhancedEmailService] Continuing with original stepInstance data"
+            enrichmentError.printStackTrace()
+        }
+        
+        println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
         println "🔧 [EnhancedEmailService] Input parameters:"
         println "🔧 [EnhancedEmailService]   stepInstance: ${stepInstance ? 'present' : 'null'}"
         println "🔧 [EnhancedEmailService]   stepInstance.sti_name: ${stepInstance?.sti_name}"
@@ -180,19 +222,75 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Prepare template variables with URL
+                // Prepare template variables with URL and enriched data
+                // PHASE 3 & 4: Expose all enriched fields for email template
                 def variables = [
+                    // Core step data with enriched fields
                     stepInstance: stepInstance,
+                    step_code: stepInstance.step_code ?: stepInstance.stt_code ? "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number ?: 0)}" : '',
+                    step_title: stepInstance.stm_name ?: stepInstance.sti_name ?: '',
+                    step_description: stepInstance.stm_description ?: stepInstance.sti_description ?: '',
+                    
+                    // Status change information
                     oldStatus: oldStatus,
                     newStatus: newStatus,
                     statusColor: getStatusColor(newStatus),
                     changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     changedBy: getUsernameById(sql, userId),
+                    
+                    // URL construction
                     stepViewUrl: stepViewUrl,
-                    contextualStepUrl: stepViewUrl, // Fix: Add missing contextualStepUrl for template compatibility
+                    contextualStepUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
+                    
+                    // Environment information (enriched)
+                    environment_name: stepInstance.environment_name ?: '',
+                    environment_type: stepInstance.environment_type ?: '',
+                    environment_role_name: stepInstance.environment_role_name ?: '',
+                    target_environment: stepInstance.environment_name ? 
+                        "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})" : 
+                        (stepInstance.environment_role_name ?: 'Not specified'),
+                    
+                    // Team information (enriched)
+                    team_name: stepInstance.team_name ?: 'Unassigned',
+                    team_email: stepInstance.team_email ?: '',
+                    
+                    // Step metadata (enriched)
+                    step_scope: stepInstance.stm_scope ?: '',
+                    step_location: stepInstance.stm_location ?: '',
+                    step_duration: stepInstance.sti_duration_minutes ?: stepInstance.stm_duration_minutes ?: 0,
+                    
+                    // Predecessor information (enriched)
+                    predecessor_code: stepInstance.predecessor_code ?: '',
+                    predecessor_name: stepInstance.predecessor_name ?: '',
+                    
+                    // Instructions (enriched - now populated from database)
+                    instructions: stepInstance.instructions ?: [],
+                    instruction_count: (stepInstance.instructions as List)?.size() ?: 0,
+                    has_instructions: ((stepInstance.instructions as List)?.size() ?: 0) > 0,
+                    
+                    // Comments (enriched - now populated from database)
+                    comments: stepInstance.comments ?: [],
+                    comment_count: (stepInstance.comments as List)?.size() ?: 0,
+                    has_comments: ((stepInstance.comments as List)?.size() ?: 0) > 0,
+
+                    // Impacted teams (enriched - now proper list from JSON aggregation)
+                    impacted_teams: stepInstance.impacted_teams ?: [],
+                    impacted_teams_count: (stepInstance.impacted_teams as List)?.size() ?: 0,
+                    has_impacted_teams: ((stepInstance.impacted_teams as List)?.size() ?: 0) > 0,
+                    impacted_teams_list: (stepInstance.impacted_teams as List ?: []).collect { (it as Map).tms_name }.join(', '),
+                    
+                    // Hierarchy context (already available, now explicit)
+                    migration_name: stepInstance.migration_name ?: '',
+                    iteration_name: stepInstance.iteration_name ?: '',
+                    plan_name: stepInstance.plan_name ?: '',
+                    sequence_name: stepInstance.sequence_name ?: '',
+                    phase_name: stepInstance.phase_name ?: '',
+                    
+                    // Operation context
+
                     sourceView: 'stepview', // Add missing sourceView property
                     isDirectChange: true,    // Template compatibility - indicates direct user action
                     isBulkOperation: false,  // Template compatibility - single step operation
@@ -200,21 +298,24 @@ class EnhancedEmailService {
                     changeContext: "Status changed from ${oldStatus} to ${newStatus} by ${getUsernameById(sql, userId)}", // Add missing changeContext variable
                     // Template-specific variables (must be top-level for template access)
                     // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
-                    recentComments: processCommentsForTemplate(stepInstance?.recentComments),
-                    impacted_teams: stepInstance?.impacted_teams ?: '',
-
-                    // TD-015 Phase 3: Pre-processed variables for simplified templates
+                    recentComments: processCommentsForTemplate(stepInstance?.comments),
+                    
+                    // TD-015 Phase 3: Pre-processed variables for simplified templates (now using enriched data)
                     breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
                     instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
-                    commentsHtml: buildCommentsHtml(processCommentsForTemplate(stepInstance?.recentComments)),
+                    commentsHtml: buildCommentsHtml((stepInstance?.comments ?: []) as List),
                     durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
                     stepViewLinkHtml: buildStepViewLinkHtml(stepViewUrl, stepViewUrl != null),
                     statusBadgeHtml: buildStatusBadge(newStatus),
                     teamRowHtml: buildOptionalField('Team', stepInstance?.team_name as String),
-                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams', stepInstance?.impacted_teams as String),
+                    impactedTeamsRowHtml: buildOptionalField('Impacted Teams',
+                        (stepInstance?.impacted_teams as List ?: []).collect { (it as Map).tms_name }.join(', ')),
                     predecessorRowHtml: buildOptionalField('Predecessor',
                         stepInstance?.predecessor_code ? "${stepInstance.predecessor_code} ${stepInstance.predecessor_name ?: ''}".trim() : null),
-                    environmentRowHtml: buildOptionalField('Environment', stepInstance?.environment_name as String)
+                    environmentRowHtml: buildOptionalField('Environment',
+                        (stepInstance?.environment_name ?
+                            "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})".toString() :
+                            (stepInstance.environment_role_name ?: '')) as String)
                 ]
 
                 println "🔧 [EnhancedEmailService] STEP 4: Processing email template"
@@ -259,14 +360,7 @@ class EnhancedEmailService {
                         ]
                     )
 
-                    // Also log the status change itself
-                    AuditLogRepository.logStepStatusChange(
-                        sql,
-                        userId,
-                        UUID.fromString(stepInstance.sti_id as String),
-                        oldStatus,
-                        newStatus
-                    )
+                    // Status change already logged by StepRepository - no need to duplicate here
 
                     return [success: true, emailsSent: recipients.size(), message: "Step status change notification sent successfully"]
                 } else {

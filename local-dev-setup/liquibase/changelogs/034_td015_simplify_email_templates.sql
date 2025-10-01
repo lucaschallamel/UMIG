@@ -27,7 +27,7 @@ BEGIN;
 -- ======================================================================================
 UPDATE email_templates_emt
 SET
-    emt_subject = '[UMIG] Step ${stepInstance.sti_code ?: "STEP"} - Status Changed to ${newStatus}',
+    emt_subject = '[UMIG] ${step_code}: ${step_title} - Status Changed to ${newStatus}',
     emt_body_html = '<!doctype html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
   <head>
@@ -37,7 +37,7 @@ SET
     <meta name="x-apple-disable-message-reformatting" />
     <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no" />
 
-    <title>${stepInstance.sti_code ?: "STEP"} - ${stepInstance.sti_name ?: "Step Details"} | UMIG</title>
+    <title>${step_code ?: "STEP"} - ${step_title ?: "Step Details"} | UMIG</title>
 
     <!--[if mso]>
       <noscript>
@@ -184,7 +184,7 @@ SET
         <tr>
           <td class="email-header">
             <h1 style="font-size: 24px; margin: 0 0 8px 0; font-weight: 700;">
-              📋 ${stepInstance.sti_name ?: "Step Details"}
+              📋 ${step_code}: ${step_title ?: "Step Details"}
             </h1>
             <p style="margin: 0; font-size: 14px; opacity: 0.9;">
               ${breadcrumb}
@@ -274,7 +274,7 @@ WHERE emt_type = 'STEP_STATUS_CHANGED'
 -- ======================================================================================
 UPDATE email_templates_emt
 SET
-    emt_subject = '[UMIG] Step ${stepInstance.sti_code ?: "STEP"} - Status Changed to ${newStatus}',
+    emt_subject = '[UMIG] ${step_code}: ${step_title} - Status Changed to ${newStatus}',
     emt_body_html = (SELECT emt_body_html FROM email_templates_emt WHERE emt_type = 'STEP_STATUS_CHANGED' AND emt_is_active = true LIMIT 1),
     updated_at = CURRENT_TIMESTAMP,
     updated_by = 'TD-015-Migration'
