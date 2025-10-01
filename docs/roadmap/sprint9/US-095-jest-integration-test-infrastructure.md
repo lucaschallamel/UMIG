@@ -933,7 +933,7 @@ CONFLUENCE_ADMIN_PASSWORD=123456
 
 - **US-096**: Core Entity API Integration Tests (Sprint 9, Week 3-4)
 - **US-097**: Advanced API Integration Tests (Sprint 10, Week 1-2)
-- **US-098**: Security & Performance Integration Tests (Sprint 10, Week 3-4)
+- **US-099**: Security & Performance Integration Tests (Sprint 10, Week 3-4)
 
 **Builds upon**:
 
@@ -1147,4 +1147,4 @@ npm run test:js:integration -- --verbose
 - 5 API endpoints with comprehensive test coverage
 - Database isolation preventing production pollution
 - <2 minute test execution time
-- Foundation for US-096, US-097, US-098 implementation
+- Foundation for US-096, US-097, US-099 implementation

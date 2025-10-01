@@ -823,7 +823,7 @@ __tests__/integration/fixtures/files/
 
 **Enables**:
 
-- US-098: Security & Performance Integration Tests
+- US-099: Security & Performance Integration Tests
 
 ## Risk Assessment
 
@@ -921,4 +921,4 @@ __tests__/integration/fixtures/files/
 - 200+ comprehensive test scenarios
 - Performance baselines established
 - <4 minute test execution time
-- Foundation for US-098 security/performance testing
+- Foundation for US-099 security/performance testing

@@ -1,8 +1,8 @@
-# US-098: Security & Performance Integration Tests
+# US-099: Security & Performance Integration Tests
 
 ## Story Metadata
 
-**Story ID**: US-098
+**Story ID**: US-099
 **Epic**: Jest Integration Testing - Dual-Track Testing Strategy
 **Sprint**: Sprint 10 (Week 3-4)
 **Priority**: P1 (HIGH - Production readiness validation)
@@ -85,7 +85,7 @@ This story achieves 100% API integration test coverage (31/31 endpoints) with co
 
 ## Acceptance Criteria
 
-### AC-098.1: Authentication & Authorization Testing
+### AC-099.1: Authentication & Authorization Testing
 
 **Given** API endpoints require authentication validation
 **When** authentication integration tests are created
@@ -211,7 +211,7 @@ describe("Authentication Integration Tests", () => {
 - [ ] Role-based access enforced (403 for non-admin)
 - [ ] All endpoints require authentication (groups: ["confluence-users"])
 
-### AC-098.2: CSRF Protection Validation
+### AC-099.2: CSRF Protection Validation
 
 **Given** CSRF protection required for mutating operations
 **When** CSRF integration tests are created
@@ -330,7 +330,7 @@ describe("CSRF Protection Integration Tests", () => {
 - [ ] Token rotation enforced
 - [ ] Expired tokens rejected
 
-### AC-098.3: XSS Prevention Validation
+### AC-099.3: XSS Prevention Validation
 
 **Given** XSS prevention required for user input
 **When** XSS integration tests are created
@@ -448,7 +448,7 @@ describe("XSS Prevention Integration Tests", () => {
 - [ ] Email templates escape user input
 - [ ] Malicious URLs blocked
 
-### AC-098.4: SQL Injection Prevention
+### AC-099.4: SQL Injection Prevention
 
 **Given** SQL injection prevention required
 **When** SQL injection tests are created
@@ -548,7 +548,7 @@ describe("SQL Injection Prevention Integration Tests", () => {
 - [ ] No SQL errors from malicious input
 - [ ] Database integrity maintained
 
-### AC-098.5: Performance Baseline Establishment
+### AC-099.5: Performance Baseline Establishment
 
 **Given** Performance baselines required for production
 **When** performance integration tests are created
@@ -692,7 +692,7 @@ describe("Performance Baseline Integration Tests", () => {
 - [ ] Large datasets: <500ms with pagination
 - [ ] Consistent performance across repeated requests
 
-### AC-098.6: Concurrent Request Testing
+### AC-099.6: Concurrent Request Testing
 
 **Given** Concurrent request handling required
 **When** load testing integration tests are created
@@ -833,7 +833,7 @@ describe("Concurrent Request Integration Tests", () => {
 - [ ] No connection pool exhaustion
 - [ ] Transaction isolation maintained
 
-### AC-098.7: Complete Test Suite Execution
+### AC-099.7: Complete Test Suite Execution
 
 **Given** Complete integration test suite ready
 **When** all 250+ tests execute
@@ -855,13 +855,13 @@ describe("Concurrent Request Integration Tests", () => {
 ```
 __tests__/integration/api/
 ├── security/
-│   ├── authentication.integration.test.js    # AC-098.1
-│   ├── csrf.integration.test.js              # AC-098.2
-│   ├── xss.integration.test.js               # AC-098.3
-│   └── sql-injection.integration.test.js     # AC-098.4
+│   ├── authentication.integration.test.js    # AC-099.1
+│   ├── csrf.integration.test.js              # AC-099.2
+│   ├── xss.integration.test.js               # AC-099.3
+│   └── sql-injection.integration.test.js     # AC-099.4
 └── performance/
-    ├── response-times.integration.test.js    # AC-098.5
-    └── concurrent-requests.integration.test.js # AC-098.6
+    ├── response-times.integration.test.js    # AC-099.5
+    └── concurrent-requests.integration.test.js # AC-099.6
 ```
 
 ## Dependencies and Integration Points
@@ -958,16 +958,16 @@ __tests__/integration/api/
 
 **Week 3 (Days 1-5): Security Testing**
 
-- Day 1-2: Authentication & authorization tests (AC-098.1)
-- Day 3: CSRF protection tests (AC-098.2)
-- Day 4: XSS prevention tests (AC-098.3)
-- Day 5: SQL injection prevention tests (AC-098.4)
+- Day 1-2: Authentication & authorization tests (AC-099.1)
+- Day 3: CSRF protection tests (AC-099.2)
+- Day 4: XSS prevention tests (AC-099.3)
+- Day 5: SQL injection prevention tests (AC-099.4)
 
 **Week 4 (Days 1-5): Performance Testing & Finalization**
 
-- Day 1-2: Response time baselines (AC-098.5)
-- Day 3: Concurrent request testing (AC-098.6)
-- Day 4: Complete suite validation (AC-098.7)
+- Day 1-2: Response time baselines (AC-099.5)
+- Day 3: Concurrent request testing (AC-099.6)
+- Day 4: Complete suite validation (AC-099.7)
 - Day 5: Documentation, security review, final approval
 
 ## Related Documentation
