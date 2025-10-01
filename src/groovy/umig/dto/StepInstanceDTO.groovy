@@ -85,15 +85,47 @@ class StepInstanceDTO {
     // ========================================
     // TEAM ASSIGNMENT AND OWNERSHIP
     // ========================================
-    
+
     /** Assigned team identifier */
     @JsonProperty("assignedTeamId")
     String assignedTeamId
-    
+
     /** Assigned team display name */
     @JsonProperty("assignedTeamName")
     String assignedTeamName
-    
+
+    // ========================================
+    // ENVIRONMENT AND IMPACTED TEAMS
+    // ========================================
+
+    /** Target environment name for step execution */
+    @JsonProperty("environmentName")
+    String environmentName
+
+    /** Target environment identifier */
+    @JsonProperty("environmentId")
+    String environmentId
+
+    /** Comma-separated list of impacted team names */
+    @JsonProperty("impactedTeams")
+    String impactedTeams
+
+    // ========================================
+    // PREDECESSOR RELATIONSHIP
+    // ========================================
+
+    /** Predecessor step code (e.g., "BUS-30") */
+    @JsonProperty("predecessorCode")
+    String predecessorCode
+
+    /** Predecessor step name */
+    @JsonProperty("predecessorName")
+    String predecessorName
+
+    /** Predecessor step identifier */
+    @JsonProperty("predecessorId")
+    String predecessorId
+
     // ========================================
     // HIERARCHICAL CONTEXT
     // ========================================
@@ -410,7 +442,17 @@ class StepInstanceDTO {
         // Team information
         map.assignedTeamId = assignedTeamId
         map.assignedTeamName = assignedTeamName ?: "Unassigned"
-        
+
+        // Environment and impacted teams for email templates
+        map.environmentId = environmentId
+        map.environmentName = environmentName ?: ""
+        map.impactedTeams = impactedTeams ?: ""
+
+        // Predecessor information for email templates
+        map.predecessorId = predecessorId
+        map.predecessorCode = predecessorCode ?: ""
+        map.predecessorName = predecessorName ?: ""
+
         // Hierarchical context
         map.migrationId = migrationId
         map.migrationCode = migrationCode ?: ""
@@ -492,6 +534,12 @@ class StepInstanceDTO {
         Builder stepStatus(String stepStatus) { dto.stepStatus = stepStatus; return this }
         Builder assignedTeamId(String teamId) { dto.assignedTeamId = teamId; return this }
         Builder assignedTeamName(String teamName) { dto.assignedTeamName = teamName; return this }
+        Builder environmentId(String environmentId) { dto.environmentId = environmentId; return this }
+        Builder environmentName(String environmentName) { dto.environmentName = environmentName; return this }
+        Builder impactedTeams(String impactedTeams) { dto.impactedTeams = impactedTeams; return this }
+        Builder predecessorId(String predecessorId) { dto.predecessorId = predecessorId; return this }
+        Builder predecessorCode(String predecessorCode) { dto.predecessorCode = predecessorCode; return this }
+        Builder predecessorName(String predecessorName) { dto.predecessorName = predecessorName; return this }
         Builder migrationId(String migrationId) { dto.migrationId = migrationId; return this }
         Builder migrationCode(String migrationCode) { dto.migrationCode = migrationCode; return this }
         Builder iterationId(String iterationId) { dto.iterationId = iterationId; return this }

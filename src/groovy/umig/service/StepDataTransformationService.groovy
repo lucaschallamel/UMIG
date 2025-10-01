@@ -87,7 +87,17 @@ class StepDataTransformationService {
                 // Team assignment
                 .assignedTeamId(safeUUIDToString(row.tms_id ?: row.assigned_team_id))
                 .assignedTeamName(safeString(row.team_name ?: row.tms_name))
-                
+
+                // Environment and impacted teams
+                .environmentId(safeUUIDToString(row.environment_id))
+                .environmentName(safeString(row.environment_name))
+                .impactedTeams(safeString(row.impacted_teams))
+
+                // Predecessor relationship
+                .predecessorId(safeUUIDToString(row.predecessor_id))
+                .predecessorCode(safeString(row.predecessor_code))
+                .predecessorName(safeString(row.predecessor_name))
+
                 // Hierarchical context
                 .migrationId(safeUUIDToString(row.migration_id))
                 .migrationCode(safeString(row.migration_name))

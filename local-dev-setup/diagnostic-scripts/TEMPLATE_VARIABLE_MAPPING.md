@@ -46,6 +46,7 @@ def variables = [
 ```
 
 **Logic**:
+
 1. First tries `stepInstance.step_code` (from enrichedData)
 2. If empty, tries to construct from `stepInstance.stt_code` and `stepInstance.stm_number`
 3. If still empty, uses empty string ''
@@ -77,10 +78,12 @@ def variables = [
 ### Symptom: Empty step_code in Email
 
 The email subject and header show:
+
 - Subject: `[UMIG] : Step 4: socius vester amiculum sursum amita - Status Changed to CANCELLED`
 - Header: `📋 : Step 4: socius vester amiculum sursum amita`
 
 Notice the `: Step 4:` pattern - the colon with space before "Step 4" indicates:
+
 - **`${step_code}` is being replaced with an EMPTY STRING** (not null, not undefined)
 - The template processor IS working (variables are being substituted)
 - But the value is empty
@@ -90,9 +93,11 @@ Notice the `: Step 4:` pattern - the colon with space before "Step 4" indicates:
 **Three Possible Scenarios**:
 
 #### Scenario 1: ScriptRunner Cache Issue (MOST LIKELY)
+
 **Probability**: 90%
 
 **Evidence**:
+
 - Code was fixed (static method call on line 86)
 - Database has correct data (verified)
 - Liquibase migration updated templates
@@ -108,6 +113,7 @@ Map<String, Object> enrichedData = stepRepository.getEnhancedStepInstanceForEmai
 ```
 
 When this fails, `enrichedData` is null, so:
+
 1. The catch block at line 103-107 prints "WARNING: Data enrichment failed"
 2. `stepInstance` is NOT enriched (no `step_code` field added)
 3. Line 230 evaluates: `stepInstance.step_code` → null → fallback to `stepInstance.stt_code` → might also be null → empty string ''
@@ -115,6 +121,7 @@ When this fails, `enrichedData` is null, so:
 
 **Verification**:
 Check Confluence logs for this message:
+
 ```
 🔧 [EnhancedEmailService] ⚠️ WARNING: Data enrichment failed: [error message]
 ```
@@ -126,18 +133,21 @@ If you DON'T see this message but also don't see the new diagnostic messages (li
 ---
 
 #### Scenario 2: Enrichment Query Returns NULL for step_code
+
 **Probability**: 5%
 
 **Evidence**: Would need to verify
 
 **Hypothesis**:
 The database query in `StepRepository.getEnhancedStepInstanceForEmail()` is running but returning NULL for step_code field due to:
+
 - `stm.stt_code` is NULL in database
 - `stm.stm_number` is NULL in database
 - JOIN condition failing
 
 **Verification**:
 Run the SQL verification script:
+
 ```bash
 psql -h localhost -p 5432 -U umig_app_user -d umig_app_db -f local-dev-setup/diagnostic-scripts/verify-step-instance-data.sql
 ```
@@ -147,6 +157,7 @@ psql -h localhost -p 5432 -U umig_app_user -d umig_app_db -f local-dev-setup/dia
 ---
 
 #### Scenario 3: Template Variable Mapping Bug
+
 **Probability**: 5%
 
 **Evidence**: Would need to verify
@@ -156,6 +167,7 @@ The template variable preparation (line 230) has a logic bug that results in emp
 
 **Verification**:
 Check logs for this message (from line 106):
+
 ```
 🔧 [EnhancedEmailService] ✅ Step instance enriched - AFTER MERGE step_code: '[value]'
 ```
@@ -176,6 +188,7 @@ npm run logs:confluence | grep -A 50 "EnhancedEmailService" | tail -100
 ```
 
 **Look for**:
+
 - `🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail` (new logging)
 - `✅ Enhanced data retrieved - DETAILED INSPECTION:` (new logging)
 - `step_code: 'TRT-004'` (should show value)
@@ -192,9 +205,11 @@ npm run logs:confluence | grep -A 50 "EnhancedEmailService" | tail -100
 ### Step 2: Force ScriptRunner Cache Refresh
 
 **Method 1** (Recommended - 5 seconds):
+
 1. Open Confluence: http://localhost:8090
 2. Settings → Manage apps → Script Console
 3. Run this code:
+
 ```groovy
 import com.onresolve.scriptrunner.runner.ScriptRunnerImpl
 ScriptRunnerImpl.getInstance().clearCaches()
@@ -202,6 +217,7 @@ return "✅ Caches cleared"
 ```
 
 **Verification**:
+
 - Trigger another step status change
 - Check logs immediately
 - Should now see new diagnostic messages
@@ -223,6 +239,7 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db
 ```
 
 **Check**:
+
 - Does `step_code_computed` show "TRT-004"?
 - Does `stt_code` have value?
 - Does `stm_number` have value?
@@ -243,6 +260,7 @@ groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
 This tests the enrichment method directly, bypassing ScriptRunner.
 
 **Expected Output**:
+
 ```
 ✅ SUCCESS - Step data retrieved!
 
@@ -264,23 +282,24 @@ This tests the enrichment method directly, bypassing ScriptRunner.
 
 From line 227-289 in `EnhancedEmailService.groovy`:
 
-| Variable Name | Source | Fallback |
-|---------------|--------|----------|
-| `step_code` | `stepInstance.step_code` | Construct from `stt_code` + `stm_number` |
-| `step_title` | `stepInstance.stm_name` | `stepInstance.sti_name` |
-| `step_description` | `stepInstance.stm_description` | `stepInstance.sti_description` |
-| `environment_name` | `stepInstance.environment_name` | Empty string |
-| `environment_role_name` | `stepInstance.environment_role_name` | Empty string |
-| `team_name` | `stepInstance.team_name` | 'Unassigned' |
-| `team_email` | `stepInstance.team_email` | Empty string |
-| `step_duration` | `stepInstance.sti_duration_minutes` | 0 |
-| `instructions` | `stepInstance.instructions` | Empty array |
-| `comments` | `stepInstance.comments` | Empty array |
-| `impacted_teams` | `stepInstance.impacted_teams` | Empty array |
+| Variable Name           | Source                               | Fallback                                 |
+| ----------------------- | ------------------------------------ | ---------------------------------------- |
+| `step_code`             | `stepInstance.step_code`             | Construct from `stt_code` + `stm_number` |
+| `step_title`            | `stepInstance.stm_name`              | `stepInstance.sti_name`                  |
+| `step_description`      | `stepInstance.stm_description`       | `stepInstance.sti_description`           |
+| `environment_name`      | `stepInstance.environment_name`      | Empty string                             |
+| `environment_role_name` | `stepInstance.environment_role_name` | Empty string                             |
+| `team_name`             | `stepInstance.team_name`             | 'Unassigned'                             |
+| `team_email`            | `stepInstance.team_email`            | Empty string                             |
+| `step_duration`         | `stepInstance.sti_duration_minutes`  | 0                                        |
+| `instructions`          | `stepInstance.instructions`          | Empty array                              |
+| `comments`              | `stepInstance.comments`              | Empty array                              |
+| `impacted_teams`        | `stepInstance.impacted_teams`        | Empty array                              |
 
 ### Critical Fields for Email Rendering
 
 **Required for proper display**:
+
 1. `step_code` - Shows empty in screenshot (PRIMARY ISSUE)
 2. `environment_name` - Shows empty in screenshot
 3. `instructions` - Shows "No instructions" despite 4 existing
@@ -297,6 +316,7 @@ From line 227-289 in `EnhancedEmailService.groovy`:
 **Root Cause (90% confidence)**: ScriptRunner cache still running old buggy code
 
 **Evidence**:
+
 - Code was fixed (static method call)
 - Database has correct data
 - Template syntax is correct
@@ -310,6 +330,7 @@ From line 227-289 in `EnhancedEmailService.groovy`:
 
 **Last Updated**: 2025-10-01
 **Related Files**:
+
 - `/src/groovy/umig/utils/EnhancedEmailService.groovy` (lines 76-109, 227-289)
 - `/src/groovy/umig/repository/StepRepository.groovy` (line 4241)
 - `/local-dev-setup/liquibase/changelogs/034_td015_simplify_email_templates.sql`

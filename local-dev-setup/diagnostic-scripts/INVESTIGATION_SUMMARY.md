@@ -16,12 +16,14 @@ The email template is showing empty data (step_code, environment, instructions, 
 ## Timeline of Events
 
 ### Previous Session
+
 1. ✅ Identified static method invocation bug in `EnhancedEmailService.groovy` (line 86)
 2. ✅ Fixed: Changed `stepRepository.method()` → `StepRepository.method()`
 3. ✅ Updated Liquibase migration with simplified template variables
 4. ✅ Verified database has all correct data
 
 ### Current Session
+
 5. ❌ Email still showing empty sections (screenshot evidence)
 6. ✅ Added comprehensive diagnostic logging
 7. ✅ Created standalone test scripts
@@ -37,11 +39,13 @@ The email template is showing empty data (step_code, environment, instructions, 
 **Subject**: `[UMIG] : Step 4: socius vester amiculum sursum amita - Status Changed to CANCELLED`
 
 **Key Observation**: Notice `: Step 4:` with colon before "Step 4"
+
 - This means `${step_code}` is being replaced with **empty string** (not null)
 - Template processor IS working (variables are being substituted)
 - But the enrichment data is not being provided
 
 **Empty Sections**:
+
 - ❌ `step_code`: Empty (shows only `: Step 4:` instead of `TRT-004: Step 4:`)
 - ❌ `environment_name`: Empty ("Duration & Environment" section empty)
 - ❌ `instructions`: Shows "No instructions defined" (database has 4)
@@ -56,6 +60,7 @@ The email template is showing empty data (step_code, environment, instructions, 
 **Step Instance UUID**: `821ccc8f-1e4f-4986-8478-96cc2ce4ecd0`
 
 **Database Query Results** (verified):
+
 - ✅ Step exists in `steps_instance_sti`
 - ✅ `stt_code` = "TRT"
 - ✅ `stm_number` = 4
@@ -70,6 +75,7 @@ The email template is showing empty data (step_code, environment, instructions, 
 ### 3. Code Analysis
 
 #### Fixed Code (Current)
+
 ```groovy
 // Line 86 - CORRECT
 Map<String, Object> enrichedData = umig.repository.StepRepository.getEnhancedStepInstanceForEmail(stepInstanceId)
@@ -78,6 +84,7 @@ Map<String, Object> enrichedData = umig.repository.StepRepository.getEnhancedSte
 This is the proper way to call a static method.
 
 #### Old Code (Buggy - May Still Be Running)
+
 ```groovy
 // OLD - INCORRECT
 Map<String, Object> enrichedData = stepRepository.getEnhancedStepInstanceForEmail(stepInstanceId)
@@ -92,18 +99,21 @@ This would fail because `stepRepository` is not defined. It should be `StepRepos
 ### 4. Template Variable Mapping
 
 **Variable Flow**:
+
 1. Database query → `enrichedData.step_code` = "TRT-004"
 2. Merge enrichment → `stepInstance.step_code` = "TRT-004"
 3. Template vars → `variables.step_code` = `stepInstance.step_code`
 4. Template → `${step_code}` replaced with value
 
 **Line 230 Logic** (in EnhancedEmailService):
+
 ```groovy
 step_code: stepInstance.step_code ?: stepInstance.stt_code ?
     "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number ?: 0)}" : '',
 ```
 
 **If enrichment fails**:
+
 - `stepInstance.step_code` = null
 - Fallback to `stepInstance.stt_code` = null (not in original stepInstance)
 - Result: empty string ''
@@ -117,6 +127,7 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 ### Primary Hypothesis: ScriptRunner Cache (90% confidence)
 
 **Evidence**:
+
 1. Code was fixed (static method call is correct)
 2. Database has correct data
 3. Template syntax is correct
@@ -124,6 +135,7 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 5. **Behavior hasn't changed** despite all fixes
 
 **Logic**:
+
 - ScriptRunner caches compiled Groovy classes for performance
 - When you modify `.groovy` files, ScriptRunner continues using cached versions
 - Our fix was made to the source file, but ScriptRunner is still running the old cached version
@@ -134,6 +146,7 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 **Expected Log Output** (if cache is the issue):
 
 **What you WON'T see** (because old code doesn't have these logs):
+
 ```
 🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail with UUID: [uuid]
 🔍 DIAGNOSTIC: enrichedData = NOT NULL
@@ -142,6 +155,7 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 ```
 
 **What you MIGHT see** (if old code is running):
+
 ```
 ⚠️ WARNING: Data enrichment failed: [error about stepRepository not found]
 ```
@@ -151,10 +165,12 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 ### Secondary Hypotheses (10% total)
 
 #### Hypothesis 2: Query Returns NULL (5% confidence)
+
 - Database query succeeds but returns NULL for step_code
 - Would need to verify with standalone test script
 
 #### Hypothesis 3: Variable Mapping Bug (5% confidence)
+
 - Template variable preparation has logic bug
 - Would need to verify logs show enrichedData but empty after processing
 
@@ -163,9 +179,11 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 ## Diagnostic Tools Created
 
 ### 1. Enhanced Logging
+
 **File**: `/src/groovy/umig/utils/EnhancedEmailService.groovy`
 
 **Added Lines 86-88, 91-106**:
+
 - Detailed inspection of enrichedData
 - Shows actual values of critical fields
 - Shows all keys in enrichedData map
@@ -176,9 +194,11 @@ step_code: stepInstance.step_code ?: stepInstance.stt_code ?
 ---
 
 ### 2. Diagnostic Test Script
+
 **File**: `/local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy`
 
 **Usage**:
+
 ```bash
 groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
 ```
@@ -188,6 +208,7 @@ groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
 **Tests**: Both UUIDs (old and new)
 
 **Expected Output** (if database is correct):
+
 ```
 ✅ SUCCESS - Step data retrieved!
 📋 CRITICAL FIELDS:
@@ -200,9 +221,11 @@ groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
 ---
 
 ### 3. Database Verification Script
+
 **File**: `/local-dev-setup/diagnostic-scripts/verify-step-instance-data.sql`
 
 **Usage**:
+
 ```bash
 docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db -f verify-step-instance-data.sql
 ```
@@ -210,6 +233,7 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db -f verify-ste
 **Purpose**: Verify database data exists and step_code is correctly computed
 
 **Checks**:
+
 - Step instance basic data
 - Step master data with step_code construction
 - Complete enriched data
@@ -220,9 +244,11 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db -f verify-ste
 ---
 
 ### 4. ScriptRunner Cache Refresh Guide
+
 **File**: `/local-dev-setup/diagnostic-scripts/SCRIPTRUNNER_CACHE_REFRESH.md`
 
 **Methods Documented**:
+
 1. **Script Console** (5 seconds - RECOMMENDED)
 2. **Plugin Restart** (30 seconds)
 3. **Confluence Restart** (2-3 minutes)
@@ -233,9 +259,11 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db -f verify-ste
 ---
 
 ### 5. Template Variable Mapping Analysis
+
 **File**: `/local-dev-setup/diagnostic-scripts/TEMPLATE_VARIABLE_MAPPING.md`
 
 **Documents**:
+
 - Complete variable flow (Database → EnrichedData → stepInstance → Template)
 - Variable mapping reference table
 - Diagnostic workflow with decision tree
@@ -248,11 +276,14 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db -f verify-ste
 ### Immediate Actions (Required)
 
 #### 1. Force ScriptRunner Cache Refresh
+
 **Method** (Recommended - fastest):
+
 1. Open http://localhost:8090
 2. Settings (gear icon) → Manage apps
 3. Script Console (left sidebar under SCRIPTRUNNER)
 4. Paste and run:
+
 ```groovy
 import com.onresolve.scriptrunner.runner.ScriptRunnerImpl
 ScriptRunnerImpl.getInstance().clearCaches()
@@ -266,12 +297,14 @@ return "✅ Caches cleared"
 ---
 
 #### 2. Check Confluence Logs Immediately After Cache Clear
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup
 npm run logs:confluence | grep "EnhancedEmailService" | tail -100
 ```
 
 **Look For** (NEW diagnostic messages):
+
 ```
 🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail with UUID: 821ccc8f-...
 🔍 DIAGNOSTIC: enrichedData = NOT NULL
@@ -289,12 +322,14 @@ npm run logs:confluence | grep "EnhancedEmailService" | tail -100
 ---
 
 #### 3. Trigger Test Email
+
 1. Open Admin GUI: http://localhost:8090/pages/viewpage.action?pageId=...
 2. Change any step status (e.g., COMPLETED → CANCELLED)
 3. Check MailHog: http://localhost:8025
 4. Email should now show populated data
 
 **Expected Result**:
+
 - Subject: `[UMIG] TRT-004: socius vester... - Status Changed to CANCELLED` (note TRT-004 present)
 - Header: `📋 TRT-004: socius vester...` (note TRT-004 present)
 - "Duration & Environment" section: Shows environment name
@@ -306,6 +341,7 @@ npm run logs:confluence | grep "EnhancedEmailService" | tail -100
 ### Verification Actions (Optional but Recommended)
 
 #### 4. Run Diagnostic Test Script
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG
 groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
@@ -318,6 +354,7 @@ groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
 ---
 
 #### 5. Run Database Verification
+
 ```bash
 docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db
 \i /path/to/local-dev-setup/diagnostic-scripts/verify-step-instance-data.sql
@@ -332,21 +369,28 @@ docker exec -it umig-postgres psql -U umig_app_user -d umig_app_db
 ### Troubleshooting Actions (If Cache Refresh Doesn't Work)
 
 #### If Method 1 Doesn't Work
+
 Try **Method 2**: Plugin Restart
+
 1. Settings → Manage apps
 2. Find "ScriptRunner for Confluence"
 3. Click **Disable** → Wait 5 seconds → Click **Enable**
 4. Go back to step 2 (check logs)
 
 #### If Method 2 Doesn't Work
+
 Try **Method 3**: Confluence Container Restart
+
 ```bash
 npm run restart:confluence
 ```
+
 Wait 2-3 minutes for Confluence to fully restart, then go back to step 2.
 
 #### If All Methods Don't Work
+
 Possible issues:
+
 1. **Files not saved** - Check file timestamps
 2. **Syntax errors** - Check Confluence logs for compilation errors
 3. **Wrong files modified** - Verify file paths are correct
@@ -362,6 +406,7 @@ Possible issues:
 ✅ **Header**: `📋 TRT-004: socius vester amiculum sursum amita`
 
 ✅ **Duration & Environment Section**:
+
 ```
 Target Environment: Production (Target Environment Role Name)
 Duration: 30 minutes
@@ -376,16 +421,19 @@ Duration: 30 minutes
 ## Logs Should Show
 
 ✅ **BEFORE enrichment** (line 86):
+
 ```
 🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail with UUID: 821ccc8f-1e4f-4986-8478-96cc2ce4ecd0
 ```
 
 ✅ **AFTER query** (line 88):
+
 ```
 🔍 DIAGNOSTIC: enrichedData = NOT NULL
 ```
 
 ✅ **DETAILED inspection** (lines 91-101):
+
 ```
 ✅ Enhanced data retrieved - DETAILED INSPECTION:
    🔍 step_code: 'TRT-004' (empty=false)
@@ -397,6 +445,7 @@ Duration: 30 minutes
 ```
 
 ✅ **AFTER merge** (line 106):
+
 ```
 ✅ Step instance enriched - AFTER MERGE step_code: 'TRT-004'
 ```
@@ -429,12 +478,14 @@ Duration: 30 minutes
 ## Next Session
 
 If cache refresh resolves the issue:
+
 1. ✅ Verify email has populated data
 2. ✅ Verify logs show detailed diagnostics
 3. ✅ Mark TD-015 as complete
 4. 🧹 Clean up excessive logging (optional - keep for now)
 
 If cache refresh doesn't resolve the issue:
+
 1. Run diagnostic script to identify where enrichment fails
 2. Check database verification results
 3. Review Confluence logs for compilation errors

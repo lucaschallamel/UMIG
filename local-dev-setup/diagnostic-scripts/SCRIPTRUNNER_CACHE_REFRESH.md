@@ -11,11 +11,13 @@ ScriptRunner for Confluence caches compiled Groovy classes to improve performanc
 ## Method 1: UI-Based Cache Clear (RECOMMENDED - Fastest)
 
 ### Step 1: Navigate to ScriptRunner Console
+
 1. Open Confluence: http://localhost:8090
 2. Click **Settings** (gear icon) → **Manage apps**
 3. In left sidebar, click **Script Console** (under SCRIPTRUNNER section)
 
 ### Step 2: Clear Script Cache
+
 In the Script Console, run this code:
 
 ```groovy
@@ -30,6 +32,7 @@ return "✅ ScriptRunner caches cleared successfully"
 Click **Run** button.
 
 ### Step 3: Verify Cache Cleared
+
 You should see: `✅ ScriptRunner caches cleared successfully`
 
 ---
@@ -37,6 +40,7 @@ You should see: `✅ ScriptRunner caches cleared successfully`
 ## Method 2: Restart ScriptRunner Plugin (More Thorough)
 
 ### Via Manage Apps UI:
+
 1. Open Confluence: http://localhost:8090
 2. Click **Settings** (gear icon) → **Manage apps**
 3. Find **ScriptRunner for Confluence** in the app list
@@ -76,21 +80,25 @@ npm start
 ## Verification After Cache Refresh
 
 ### 1. Check Confluence Logs
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup
 npm run logs:confluence | grep "EnhancedEmailService"
 ```
 
 **Look for**:
+
 - `🔧 [EnhancedEmailService] 🔍 DIAGNOSTIC:` messages
 - Recent timestamps (after your cache refresh)
 
 ### 2. Trigger Test Email
+
 1. Change a step status in Admin GUI
 2. Check MailHog: http://localhost:8025
 3. Check Confluence logs for diagnostic output
 
 ### 3. Expected Log Output (After Cache Refresh)
+
 ```
 🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl ==================
 🔧 [EnhancedEmailService] ENRICHMENT: Fetching complete step data for email template
@@ -111,16 +119,20 @@ npm run logs:confluence | grep "EnhancedEmailService"
 ## Troubleshooting
 
 ### Issue: Method 1 doesn't work
+
 **Solution**: Try Method 2 (restart ScriptRunner plugin)
 
 ### Issue: Still seeing old behavior after all methods
+
 **Possible Causes**:
+
 1. Browser cache - Hard refresh (Cmd+Shift+R on Mac)
 2. Files not saved - Check file timestamps
 3. Syntax errors preventing compilation - Check Confluence logs for errors
 4. Wrong files being modified - Verify file paths
 
 **Debug Steps**:
+
 ```bash
 # Check if files were actually saved
 ls -lh /Users/lucaschallamel/Documents/GitHub/UMIG/src/groovy/umig/utils/EnhancedEmailService.groovy
@@ -131,12 +143,15 @@ npm run logs:confluence | grep -i "error\|exception" | tail -50
 ```
 
 ### Issue: No logs appearing at all
+
 **Possible Causes**:
+
 1. Log level too high - ScriptRunner may filter println statements
 2. Confluence not capturing stdout - Check log configuration
 3. Wrong log file - ScriptRunner may use separate log file
 
 **Solution**: Check all log files
+
 ```bash
 # Check atlassian-confluence.log
 docker exec umig-confluence tail -100 /var/atlassian/application-data/confluence/logs/atlassian-confluence.log
@@ -158,12 +173,12 @@ docker exec umig-confluence ls -lh /var/atlassian/application-data/confluence/lo
 
 ## Quick Reference Card
 
-| Method | Time | Disruption | When to Use |
-|--------|------|------------|-------------|
-| Method 1: Script Console | 5 sec | None | First try (90% success rate) |
-| Method 2: Plugin Restart | 30 sec | Minimal | If Method 1 fails |
-| Method 3: Confluence Restart | 2-3 min | Medium | If Methods 1-2 fail |
-| Method 4: Full Stack Restart | 3-5 min | High | Last resort only |
+| Method                       | Time    | Disruption | When to Use                  |
+| ---------------------------- | ------- | ---------- | ---------------------------- |
+| Method 1: Script Console     | 5 sec   | None       | First try (90% success rate) |
+| Method 2: Plugin Restart     | 30 sec  | Minimal    | If Method 1 fails            |
+| Method 3: Confluence Restart | 2-3 min | Medium     | If Methods 1-2 fail          |
+| Method 4: Full Stack Restart | 3-5 min | High       | Last resort only             |
 
 ---
 
@@ -179,6 +194,7 @@ docker exec umig-confluence ls -lh /var/atlassian/application-data/confluence/lo
 ## Next Steps After Cache Refresh
 
 1. Run diagnostic script to verify enrichment works:
+
    ```bash
    groovy local-dev-setup/diagnostic-scripts/test-email-enrichment.groovy
    ```

@@ -90,7 +90,7 @@ Complete the enterprise-grade test coverage initiative by implementing comprehen
    - Type safety assertions (instanceof checks, explicit casting validation)
 
 3. **Test Data Setup Conventions**:
-   - Namespacing strategy for test data isolation (td014_*, us098_* prefixes)
+   - Namespacing strategy for test data isolation (td014*\*, us098*\* prefixes)
    - Cleanup patterns (reverse dependency order)
    - Test data factory methods
    - Realistic test data generation
@@ -109,6 +109,7 @@ Complete the enterprise-grade test coverage initiative by implementing comprehen
    - Layer-specific coverage targets (API 90-95%, Repository 85-90%, Service 80-85%)
 
 **Acceptance Criteria**:
+
 - [ ] Documentation file created in `docs/testing/`
 - [ ] All 5 sections completed with code examples
 - [ ] Mocking patterns cover DatabaseUtil, repositories, external services
@@ -121,6 +122,7 @@ Complete the enterprise-grade test coverage initiative by implementing comprehen
 **Dependencies**: None (can be completed in parallel with API/repository testing)
 
 **Verification**:
+
 ```bash
 test -f docs/testing/groovy-test-standards.md && \
 grep -q "DatabaseUtil.withSql" docs/testing/groovy-test-standards.md && \
@@ -161,6 +163,7 @@ grep -q "Service Layer Test Templates" docs/testing/groovy-test-standards.md
    - Assertion patterns for configuration entities
 
 **Acceptance Criteria**:
+
 - [ ] ConfigurationServiceTest.groovy created in `src/groovy/umig/tests/unit/service/`
 - [ ] 10 example tests implemented and passing
 - [ ] All tests follow patterns from TR-19 documentation
@@ -175,6 +178,7 @@ grep -q "Service Layer Test Templates" docs/testing/groovy-test-standards.md
 **Dependencies**: TR-19 (must be completed first to ensure pattern consistency)
 
 **Verification**:
+
 ```bash
 test -f src/groovy/umig/tests/unit/service/ConfigurationServiceTest.groovy && \
 grep -c "@Test" src/groovy/umig/tests/unit/service/ConfigurationServiceTest.groovy | grep -q "10" && \
@@ -183,6 +187,7 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 ```
 
 **US-098 Integration Notes**:
+
 - US-098 agent extends these 10 tests to 20-30 tests (full ConfigurationService coverage)
 - Patterns are already established, agent focuses on business logic testing
 - Reduces US-098 test creation time by 30-40% (2-3 days → 1-2 days)
@@ -644,15 +649,15 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 
 ## Enhanced Timeline Summary
 
-| Phase                | Duration        | Story Points | Components                                                                                                                 | Key Deliverables                                                                                       |
-| -------------------- | --------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Week 1**           | Days 1-5        | 8            | TR-19, ImportApi, ImportQueueApi, SystemConfigurationApi, UrlConfigurationApi, EnhancedStepsApi, EmailTemplatesApi        | TR-19 documentation, 160-190 API tests, US-098 patterns ready                                          |
-| **Week 2**           | Days 1-5        | 8            | ApplicationRepository, EnvironmentRepository, PlanRepository, SequenceRepository, PhaseRepository, InstructionRepository   | 205-245 repository tests, TR-20 scaffolding (10 tests), US-098 scaffolding ready                      |
-| **Week 3**           | Days 1-5        | 3            | EmailService, ValidationService, AuthenticationService                                                                     | 90-105 service tests, service layer patterns documented                                                |
-| **Total**            | 15 working days | 17           | 17 components + 2 infrastructure deliverables                                                                              | 465-550 total tests, 85-90% coverage, TR-19 + TR-20 complete, US-098 ready                            |
-| **Critical Path**    | Days 1-3        | 1            | TR-19 documentation                                                                                                        | Must complete before Week 2 Day 5 (TR-20), enables US-098                                              |
-| **US-098 Handoff**   | End of Week 2   | 3            | TR-19 + TR-20                                                                                                              | Complete patterns + scaffolding ready for US-098 agent (30-40% time reduction)                         |
-| **Final Validation** | End of Week 3   | N/A          | Full test suite                                                                                                            | 465-550 tests passing, 85-90% coverage, documentation complete, architecture approval, US-098 handoff |
+| Phase                | Duration        | Story Points | Components                                                                                                               | Key Deliverables                                                                                      |
+| -------------------- | --------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| **Week 1**           | Days 1-5        | 8            | TR-19, ImportApi, ImportQueueApi, SystemConfigurationApi, UrlConfigurationApi, EnhancedStepsApi, EmailTemplatesApi       | TR-19 documentation, 160-190 API tests, US-098 patterns ready                                         |
+| **Week 2**           | Days 1-5        | 8            | ApplicationRepository, EnvironmentRepository, PlanRepository, SequenceRepository, PhaseRepository, InstructionRepository | 205-245 repository tests, TR-20 scaffolding (10 tests), US-098 scaffolding ready                      |
+| **Week 3**           | Days 1-5        | 3            | EmailService, ValidationService, AuthenticationService                                                                   | 90-105 service tests, service layer patterns documented                                               |
+| **Total**            | 15 working days | 17           | 17 components + 2 infrastructure deliverables                                                                            | 465-550 total tests, 85-90% coverage, TR-19 + TR-20 complete, US-098 ready                            |
+| **Critical Path**    | Days 1-3        | 1            | TR-19 documentation                                                                                                      | Must complete before Week 2 Day 5 (TR-20), enables US-098                                             |
+| **US-098 Handoff**   | End of Week 2   | 3            | TR-19 + TR-20                                                                                                            | Complete patterns + scaffolding ready for US-098 agent (30-40% time reduction)                        |
+| **Final Validation** | End of Week 3   | N/A          | Full test suite                                                                                                          | 465-550 tests passing, 85-90% coverage, documentation complete, architecture approval, US-098 handoff |
 
 ---
 
@@ -660,27 +665,27 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 
 Priority levels guide implementation sequencing and resource allocation:
 
-| Component                      | Priority      | Story Points | Test Count | Coverage Impact | Dependencies                           | Parallel Opportunities                   |
-| ------------------------------ | ------------- | ------------ | ---------- | --------------- | -------------------------------------- | ---------------------------------------- |
-| **TR-19 Documentation**        | P0 (Critical) | 1.0          | N/A        | N/A             | None                                   | Can parallel with ImportApi              |
-| **TR-20 Scaffolding**          | P0 (Critical) | 2.0          | 10         | 0.5%            | TR-19 (must complete first)            | Depends on TR-19 completion              |
-| **ApplicationRepository**      | P1 (Critical) | 1.5          | 35-40      | 2-3%            | None                                   | Can parallel with EnvironmentRepository  |
-| **EnvironmentRepository**      | P1 (Critical) | 1.5          | 35-40      | 2-3%            | ApplicationRepository (relationships)  | Can parallel with ApplicationRepository  |
-| **ImportApi**                  | P1 (Critical) | 1.0          | 30-35      | 1-2%            | ImportQueueApi (integration)           | Can parallel with ImportQueueApi + TR-19 |
-| **ImportQueueApi**             | P1 (Critical) | 1.0          | 25-30      | 1-2%            | None                                   | Can parallel with ImportApi + TR-19      |
-| **EnhancedStepsApi**           | P2 (High)     | 1.0          | 40-45      | 2%              | StepRepository (tested in TD-013)      | Independent                              |
-| **EmailService**               | P2 (High)     | 1.25         | 35-40      | 2%              | EmailTemplatesApi, MailHog             | Independent                              |
-| **SystemConfigurationApi**     | P2 (High)     | 0.75         | 25-30      | 1%              | None                                   | Can parallel with UrlConfigurationApi    |
-| **UrlConfigurationApi**        | P2 (High)     | 0.75         | 20-25      | 1%              | SystemConfigurationApi (integration)   | Can parallel with SystemConfigurationApi |
-| **ValidationService**          | P2 (High)     | 1.0          | 30-35      | 1.5%            | All repositories (validation targets)  | Depends on repository completion         |
-| **EmailTemplatesApi**          | P2 (High)     | 0.5          | 20-25      | 1%              | None                                   | Independent                              |
-| **PlanRepository**             | P3 (Medium)   | 1.0          | 30-35      | 1%              | IterationRepository (tested in TD-013) | Independent                              |
-| **SequenceRepository**         | P3 (Medium)   | 0.75         | 25-30      | 1%              | PlanRepository (hierarchy)             | Depends on PlanRepository                |
-| **PhaseRepository**            | P3 (Medium)   | 0.75         | 25-30      | 1%              | SequenceRepository (hierarchy)         | Depends on SequenceRepository            |
-| **InstructionRepository**      | P3 (Medium)   | 0.75         | 25-30      | 1%              | StepRepository (tested in TD-013)      | Independent                              |
-| **LabelRepository**            | P3 (Medium)   | 0.5          | 20-25      | 0.5%            | None                                   | Independent                              |
-| **MigrationRepository**        | P3 (Medium)   | 1.5          | 10-15      | 1%              | TD-013 (partial completion)            | Independent                              |
-| **AuthenticationService**      | P3 (Medium)   | 0.75         | 25-30      | 1%              | UserService (ADR-042)                  | Independent                              |
+| Component                  | Priority      | Story Points | Test Count | Coverage Impact | Dependencies                           | Parallel Opportunities                   |
+| -------------------------- | ------------- | ------------ | ---------- | --------------- | -------------------------------------- | ---------------------------------------- |
+| **TR-19 Documentation**    | P0 (Critical) | 1.0          | N/A        | N/A             | None                                   | Can parallel with ImportApi              |
+| **TR-20 Scaffolding**      | P0 (Critical) | 2.0          | 10         | 0.5%            | TR-19 (must complete first)            | Depends on TR-19 completion              |
+| **ApplicationRepository**  | P1 (Critical) | 1.5          | 35-40      | 2-3%            | None                                   | Can parallel with EnvironmentRepository  |
+| **EnvironmentRepository**  | P1 (Critical) | 1.5          | 35-40      | 2-3%            | ApplicationRepository (relationships)  | Can parallel with ApplicationRepository  |
+| **ImportApi**              | P1 (Critical) | 1.0          | 30-35      | 1-2%            | ImportQueueApi (integration)           | Can parallel with ImportQueueApi + TR-19 |
+| **ImportQueueApi**         | P1 (Critical) | 1.0          | 25-30      | 1-2%            | None                                   | Can parallel with ImportApi + TR-19      |
+| **EnhancedStepsApi**       | P2 (High)     | 1.0          | 40-45      | 2%              | StepRepository (tested in TD-013)      | Independent                              |
+| **EmailService**           | P2 (High)     | 1.25         | 35-40      | 2%              | EmailTemplatesApi, MailHog             | Independent                              |
+| **SystemConfigurationApi** | P2 (High)     | 0.75         | 25-30      | 1%              | None                                   | Can parallel with UrlConfigurationApi    |
+| **UrlConfigurationApi**    | P2 (High)     | 0.75         | 20-25      | 1%              | SystemConfigurationApi (integration)   | Can parallel with SystemConfigurationApi |
+| **ValidationService**      | P2 (High)     | 1.0          | 30-35      | 1.5%            | All repositories (validation targets)  | Depends on repository completion         |
+| **EmailTemplatesApi**      | P2 (High)     | 0.5          | 20-25      | 1%              | None                                   | Independent                              |
+| **PlanRepository**         | P3 (Medium)   | 1.0          | 30-35      | 1%              | IterationRepository (tested in TD-013) | Independent                              |
+| **SequenceRepository**     | P3 (Medium)   | 0.75         | 25-30      | 1%              | PlanRepository (hierarchy)             | Depends on PlanRepository                |
+| **PhaseRepository**        | P3 (Medium)   | 0.75         | 25-30      | 1%              | SequenceRepository (hierarchy)         | Depends on SequenceRepository            |
+| **InstructionRepository**  | P3 (Medium)   | 0.75         | 25-30      | 1%              | StepRepository (tested in TD-013)      | Independent                              |
+| **LabelRepository**        | P3 (Medium)   | 0.5          | 20-25      | 0.5%            | None                                   | Independent                              |
+| **MigrationRepository**    | P3 (Medium)   | 1.5          | 10-15      | 1%              | TD-013 (partial completion)            | Independent                              |
+| **AuthenticationService**  | P3 (Medium)   | 0.75         | 25-30      | 1%              | UserService (ADR-042)                  | Independent                              |
 
 **Parallel Execution Opportunities** (for 2-developer team):
 
@@ -696,14 +701,14 @@ Priority levels guide implementation sequencing and resource allocation:
 
 Detailed effort estimates based on component complexity:
 
-| Complexity Level | Tests per Component | Time per Test | Justification                                                                      |
-| ---------------- | ------------------- | ------------- | ---------------------------------------------------------------------------------- |
-| **Low**          | 20-25               | 15-20 min     | Simple CRUD, minimal logic (LabelRepository, EmailTemplatesApi)                    |
-| **Medium**       | 25-35               | 20-30 min     | Moderate logic, relationships (most repositories, configuration APIs)              |
-| **High**         | 35-45               | 30-45 min     | Complex logic, hierarchies (EnhancedStepsApi, EmailService)                        |
-| **Very High**    | 40-50               | 45-60 min     | Very complex, multiple integrations (ApplicationRepository, EnvironmentRepository) |
-| **Documentation**| N/A                 | 8-10 hours    | TR-19 test pattern documentation (5 sections with examples)                        |
-| **Scaffolding**  | 10 tests            | 12-16 hours   | TR-20 ConfigurationService scaffolding (template + 10 example tests)               |
+| Complexity Level  | Tests per Component | Time per Test | Justification                                                                      |
+| ----------------- | ------------------- | ------------- | ---------------------------------------------------------------------------------- |
+| **Low**           | 20-25               | 15-20 min     | Simple CRUD, minimal logic (LabelRepository, EmailTemplatesApi)                    |
+| **Medium**        | 25-35               | 20-30 min     | Moderate logic, relationships (most repositories, configuration APIs)              |
+| **High**          | 35-45               | 30-45 min     | Complex logic, hierarchies (EnhancedStepsApi, EmailService)                        |
+| **Very High**     | 40-50               | 45-60 min     | Very complex, multiple integrations (ApplicationRepository, EnvironmentRepository) |
+| **Documentation** | N/A                 | 8-10 hours    | TR-19 test pattern documentation (5 sections with examples)                        |
+| **Scaffolding**   | 10 tests            | 12-16 hours   | TR-20 ConfigurationService scaffolding (template + 10 example tests)               |
 
 **Total Estimated Time**: 136-169 hours (17 story points × 8-10 hours per point)
 
@@ -721,18 +726,18 @@ Detailed effort estimates based on component complexity:
 
 ### Daily Verification Checkpoints
 
-| Day        | Checkpoint                                | Coverage Target      | Pass Rate Target | Verification Actions                                                                                     |
-| ---------- | ----------------------------------------- | -------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
-| **Day 2**  | TR-19 documentation complete              | N/A                  | N/A              | Review TR-19 documentation, validate against TD-013 tests, confirm US-098 handoff readiness              |
-| **Day 2**  | Import infrastructure complete            | +1-2%                | 100%             | Review ImportApi + ImportQueueApi tests, verify queue state machine, TR-19 pattern compliance            |
-| **Day 4**  | Configuration management complete         | +1-2%                | 100%             | Review configuration APIs, verify admin security gates, TR-19 pattern compliance                         |
-| **Day 5**  | API layer complete                        | +3-4% (78-82% total) | 100%             | Full API layer review, performance benchmarks validated, TR-19 pattern compliance                        |
-| **Day 7**  | Core repositories complete                | +2-3%                | 100%             | Review Application + Environment repositories, relationship validation, TR-19 pattern compliance         |
-| **Day 9**  | Hierarchical repositories complete        | +3-4%                | 100%             | Review plan/sequence/phase/instruction repositories, cascade operations, TR-19 pattern compliance        |
-| **Day 10** | Repository layer + TR-20 complete         | +4-5% (82-87% total) | 100%             | Full repository layer review, TR-20 scaffolding (10 tests passing), US-098 handoff checklist complete   |
-| **Day 12** | Communication services complete           | +2%                  | 100%             | Review EmailService, verify MailHog integration, TR-19 pattern compliance                                |
-| **Day 14** | Validation framework complete             | +1.5%                | 100%             | Review ValidationService, verify business rule engine, TR-19 pattern compliance                          |
-| **Day 15** | Service layer complete                    | +1% (85-90% total)   | 100%             | Full service layer review, integration validation, architecture approval, US-098 handoff documentation   |
+| Day        | Checkpoint                         | Coverage Target      | Pass Rate Target | Verification Actions                                                                                   |
+| ---------- | ---------------------------------- | -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------ |
+| **Day 2**  | TR-19 documentation complete       | N/A                  | N/A              | Review TR-19 documentation, validate against TD-013 tests, confirm US-098 handoff readiness            |
+| **Day 2**  | Import infrastructure complete     | +1-2%                | 100%             | Review ImportApi + ImportQueueApi tests, verify queue state machine, TR-19 pattern compliance          |
+| **Day 4**  | Configuration management complete  | +1-2%                | 100%             | Review configuration APIs, verify admin security gates, TR-19 pattern compliance                       |
+| **Day 5**  | API layer complete                 | +3-4% (78-82% total) | 100%             | Full API layer review, performance benchmarks validated, TR-19 pattern compliance                      |
+| **Day 7**  | Core repositories complete         | +2-3%                | 100%             | Review Application + Environment repositories, relationship validation, TR-19 pattern compliance       |
+| **Day 9**  | Hierarchical repositories complete | +3-4%                | 100%             | Review plan/sequence/phase/instruction repositories, cascade operations, TR-19 pattern compliance      |
+| **Day 10** | Repository layer + TR-20 complete  | +4-5% (82-87% total) | 100%             | Full repository layer review, TR-20 scaffolding (10 tests passing), US-098 handoff checklist complete  |
+| **Day 12** | Communication services complete    | +2%                  | 100%             | Review EmailService, verify MailHog integration, TR-19 pattern compliance                              |
+| **Day 14** | Validation framework complete      | +1.5%                | 100%             | Review ValidationService, verify business rule engine, TR-19 pattern compliance                        |
+| **Day 15** | Service layer complete             | +1% (85-90% total)   | 100%             | Full service layer review, integration validation, architecture approval, US-098 handoff documentation |
 
 ### Phase Exit Gates
 
@@ -850,7 +855,7 @@ Detailed effort estimates based on component complexity:
    - Repository mocking demonstrated (ConfigurationRepository mock)
    - Validation testing patterns established
    - Exception handling patterns shown
-   - Test data namespacing (us098_* prefix)
+   - Test data namespacing (us098\_\* prefix)
 
 3. **Extension Instructions**:
    - US-098 agent extends 10 tests → 20-30 tests
@@ -1093,7 +1098,7 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 - [ ] **TR-19 documentation complete** - Ready for US-098 agent consumption
 - [ ] **TR-20 scaffolding complete** - 10 ConfigurationService tests passing
 - [ ] **Handoff documentation prepared** - Extension instructions for US-098 agent
-- [ ] **Test data namespacing established** - us098_* prefix convention documented
+- [ ] **Test data namespacing established** - us098\_\* prefix convention documented
 
 ---
 
@@ -1101,23 +1106,23 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 
 ### Risk Matrix (ENHANCED)
 
-| Risk                                   | Probability | Impact | Mitigation Strategies                                                                                                                                                                                                                                  |
-| -------------------------------------- | ----------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **TR-19 documentation delay**          | Low         | High   | (1) Prioritize TR-19 completion (Days 1-3)<br>(2) Parallel work with API tests<br>(3) Daily progress review<br>(4) Fallback: Complete TR-19 in Week 2 if needed (before TR-20)<br>(5) US-098 handoff on time critical                                |
-| **TR-20 pattern inconsistency**        | Medium      | Medium | (1) TR-19 must complete before TR-20<br>(2) Code review for pattern adherence<br>(3) Validate against TR-19 documentation<br>(4) US-098 handoff checklist validation<br>(5) Pair programming for TR-20 implementation                                 |
-| **Scope creep**                        | Medium      | High   | (1) Strict adherence to 17 components + TR-19 + TR-20<br>(2) Change control process for any additions<br>(3) Weekly scope review with product owner<br>(4) Document scope changes and impact<br>(5) Defer non-critical components to Sprint 9        |
-| **Complex test scenarios**             | High        | Medium | (1) Leverage proven TD-013 templates and TR-19 patterns<br>(2) Pair programming for complex components<br>(3) Early prototyping of difficult test scenarios<br>(4) Knowledge sharing sessions<br>(5) Incremental complexity increase                  |
-| **Service layer dependencies**         | High        | Medium | (1) Implement service layer testing patterns early (TR-19)<br>(2) Create reusable mock utilities for external services<br>(3) Isolate external dependencies (SMTP, MailHog)<br>(4) Document service mocking patterns<br>(5) Incremental integration   |
-| **Performance regression**             | Low         | High   | (1) Continuous monitoring with <5 min limit<br>(2) Daily performance benchmarking<br>(3) Optimize slow tests immediately<br>(4) Profile memory usage regularly<br>(5) Maintain 35% compilation improvement                                             |
-| **Repository relationship complexity** | Medium      | Medium | (1) Comprehensive test data builders<br>(2) Document relationship patterns<br>(3) Visual relationship diagrams<br>(4) Incremental relationship validation<br>(5) Leverage existing TD-013 relationship tests                                           |
-| **Resource availability**              | Medium      | Medium | (1) Flexible sprint allocation<br>(2) Parallel work on independent components<br>(3) Cross-training for bus factor mitigation<br>(4) Clear priority matrix (P0/P1/P2/P3)<br>(5) Daily standup for blocker identification                             |
-| **Type casting complexity**            | Low         | Medium | (1) ADR-031 compliance checklist<br>(2) Automated type safety validation<br>(3) Code review focus on casting<br>(4) Reusable casting utility functions<br>(5) Examples from TD-013                                                                     |
-| **Test data generation**               | Medium      | Low    | (1) Realistic test data builders<br>(2) Seed data scripts<br>(3) Data generation utilities<br>(4) Validate against production data shapes<br>(5) Incremental data complexity                                                                           |
-| **Integration test failures**          | Medium      | Medium | (1) Layered testing approach (unit → integration)<br>(2) Mock external dependencies<br>(3) CI/CD pipeline validation<br>(4) Daily integration test runs<br>(5) Rapid failure investigation                                                             |
-| **Documentation debt**                 | Low         | Low    | (1) Document patterns as you go<br>(2) Code review includes documentation check<br>(3) Weekly documentation review<br>(4) Testing pattern templates<br>(5) Sprint demo documentation                                                                   |
-| **Technical debt introduction**        | Low         | Medium | (1) ADR compliance validation<br>(2) Architecture team review<br>(3) Code quality gates<br>(4) Pattern consistency enforcement<br>(5) Refactoring opportunities identified                                                                             |
-| **CI/CD pipeline failures**            | Low         | High   | (1) Local testing before commit<br>(2) Incremental CI/CD integration<br>(3) Pipeline monitoring<br>(4) Rapid failure response<br>(5) Rollback procedures                                                                                               |
-| **US-098 handoff failure**             | Low         | High   | (1) TR-19 + TR-20 exit criteria strict<br>(2) Handoff documentation checklist<br>(3) US-098 agent review of scaffolding<br>(4) Extension instructions validated<br>(5) Time savings estimation validated                                              |
+| Risk                                   | Probability | Impact | Mitigation Strategies                                                                                                                                                                                                                               |
+| -------------------------------------- | ----------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TR-19 documentation delay**          | Low         | High   | (1) Prioritize TR-19 completion (Days 1-3)<br>(2) Parallel work with API tests<br>(3) Daily progress review<br>(4) Fallback: Complete TR-19 in Week 2 if needed (before TR-20)<br>(5) US-098 handoff on time critical                               |
+| **TR-20 pattern inconsistency**        | Medium      | Medium | (1) TR-19 must complete before TR-20<br>(2) Code review for pattern adherence<br>(3) Validate against TR-19 documentation<br>(4) US-098 handoff checklist validation<br>(5) Pair programming for TR-20 implementation                               |
+| **Scope creep**                        | Medium      | High   | (1) Strict adherence to 17 components + TR-19 + TR-20<br>(2) Change control process for any additions<br>(3) Weekly scope review with product owner<br>(4) Document scope changes and impact<br>(5) Defer non-critical components to Sprint 9       |
+| **Complex test scenarios**             | High        | Medium | (1) Leverage proven TD-013 templates and TR-19 patterns<br>(2) Pair programming for complex components<br>(3) Early prototyping of difficult test scenarios<br>(4) Knowledge sharing sessions<br>(5) Incremental complexity increase                |
+| **Service layer dependencies**         | High        | Medium | (1) Implement service layer testing patterns early (TR-19)<br>(2) Create reusable mock utilities for external services<br>(3) Isolate external dependencies (SMTP, MailHog)<br>(4) Document service mocking patterns<br>(5) Incremental integration |
+| **Performance regression**             | Low         | High   | (1) Continuous monitoring with <5 min limit<br>(2) Daily performance benchmarking<br>(3) Optimize slow tests immediately<br>(4) Profile memory usage regularly<br>(5) Maintain 35% compilation improvement                                          |
+| **Repository relationship complexity** | Medium      | Medium | (1) Comprehensive test data builders<br>(2) Document relationship patterns<br>(3) Visual relationship diagrams<br>(4) Incremental relationship validation<br>(5) Leverage existing TD-013 relationship tests                                        |
+| **Resource availability**              | Medium      | Medium | (1) Flexible sprint allocation<br>(2) Parallel work on independent components<br>(3) Cross-training for bus factor mitigation<br>(4) Clear priority matrix (P0/P1/P2/P3)<br>(5) Daily standup for blocker identification                            |
+| **Type casting complexity**            | Low         | Medium | (1) ADR-031 compliance checklist<br>(2) Automated type safety validation<br>(3) Code review focus on casting<br>(4) Reusable casting utility functions<br>(5) Examples from TD-013                                                                  |
+| **Test data generation**               | Medium      | Low    | (1) Realistic test data builders<br>(2) Seed data scripts<br>(3) Data generation utilities<br>(4) Validate against production data shapes<br>(5) Incremental data complexity                                                                        |
+| **Integration test failures**          | Medium      | Medium | (1) Layered testing approach (unit → integration)<br>(2) Mock external dependencies<br>(3) CI/CD pipeline validation<br>(4) Daily integration test runs<br>(5) Rapid failure investigation                                                          |
+| **Documentation debt**                 | Low         | Low    | (1) Document patterns as you go<br>(2) Code review includes documentation check<br>(3) Weekly documentation review<br>(4) Testing pattern templates<br>(5) Sprint demo documentation                                                                |
+| **Technical debt introduction**        | Low         | Medium | (1) ADR compliance validation<br>(2) Architecture team review<br>(3) Code quality gates<br>(4) Pattern consistency enforcement<br>(5) Refactoring opportunities identified                                                                          |
+| **CI/CD pipeline failures**            | Low         | High   | (1) Local testing before commit<br>(2) Incremental CI/CD integration<br>(3) Pipeline monitoring<br>(4) Rapid failure response<br>(5) Rollback procedures                                                                                            |
+| **US-098 handoff failure**             | Low         | High   | (1) TR-19 + TR-20 exit criteria strict<br>(2) Handoff documentation checklist<br>(3) US-098 agent review of scaffolding<br>(4) Extension instructions validated<br>(5) Time savings estimation validated                                            |
 
 ### Mitigation Strategies (Cross-Cutting)
 
@@ -1134,32 +1139,32 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 
 ### Quantitative Metrics (ENHANCED)
 
-| Metric                              | Baseline     | Target        | Achievement Tracking                                        |
-| ----------------------------------- | ------------ | ------------- | ----------------------------------------------------------- |
-| **Coverage Achievement**            | 75-78%       | 85-90%        | Daily coverage reports via npm test commands                |
-| **Test Success Rate**               | N/A          | 100%          | Zero test failures across 465-550 tests                     |
-| **Performance Metrics**             | Varies       | <5 min        | Suite execution time monitoring                             |
-| **Component Coverage**              | 0/17         | 17/17         | Component completion tracking per day                       |
-| **Test Count**                      | 106 (TD-013) | 571-656 total | Cumulative test count (106 existing + 465-550 new)         |
-| **Compilation Performance**         | Varies       | <10s per file | Individual file compilation benchmarks                      |
-| **Memory Usage**                    | Varies       | <512MB peak   | Memory profiling during test runs                           |
-| **Defect Detection**                | Unknown      | 95%+          | Critical path coverage validation                           |
-| **TR-19 Documentation Completeness**| 0%           | 100%          | 5 sections complete with examples                           |
-| **TR-20 Scaffolding Tests**         | 0            | 10            | ConfigurationServiceTest.groovy with 10 passing tests       |
-| **US-098 Time Savings**             | N/A          | 30-40%        | Estimated test creation time reduction (2-3 days → 1-2 days)|
+| Metric                               | Baseline     | Target        | Achievement Tracking                                         |
+| ------------------------------------ | ------------ | ------------- | ------------------------------------------------------------ |
+| **Coverage Achievement**             | 75-78%       | 85-90%        | Daily coverage reports via npm test commands                 |
+| **Test Success Rate**                | N/A          | 100%          | Zero test failures across 465-550 tests                      |
+| **Performance Metrics**              | Varies       | <5 min        | Suite execution time monitoring                              |
+| **Component Coverage**               | 0/17         | 17/17         | Component completion tracking per day                        |
+| **Test Count**                       | 106 (TD-013) | 571-656 total | Cumulative test count (106 existing + 465-550 new)           |
+| **Compilation Performance**          | Varies       | <10s per file | Individual file compilation benchmarks                       |
+| **Memory Usage**                     | Varies       | <512MB peak   | Memory profiling during test runs                            |
+| **Defect Detection**                 | Unknown      | 95%+          | Critical path coverage validation                            |
+| **TR-19 Documentation Completeness** | 0%           | 100%          | 5 sections complete with examples                            |
+| **TR-20 Scaffolding Tests**          | 0            | 10            | ConfigurationServiceTest.groovy with 10 passing tests        |
+| **US-098 Time Savings**              | N/A          | 30-40%        | Estimated test creation time reduction (2-3 days → 1-2 days) |
 
 ### Qualitative Metrics
 
-| Metric                       | Target                                                          | Validation Method                                           |
-| ---------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Code Quality**             | ADR-031 compliance validated                                    | Code review checklist (100% explicit casting)               |
-| **Architecture Consistency** | TD-001 pattern maintained                                       | Architecture team review (self-contained tests)             |
-| **Team Confidence**          | Positive feedback on test coverage                              | Team retrospective and survey                               |
-| **Production Stability**     | Reduced incident rate                                           | Post-deployment incident tracking                           |
-| **Maintainability**          | Reusable test patterns established                              | Pattern documentation and reuse metrics                     |
-| **Documentation Quality**    | Complete test strategy and patterns                             | Documentation review and completeness check                 |
-| **US-098 Readiness**         | TR-19 + TR-20 complete with handoff documentation               | Handoff checklist validation, US-098 agent review           |
-| **Pattern Reusability**      | TR-19 patterns applied to all future service tests              | Future service test creation time tracking                  |
+| Metric                       | Target                                             | Validation Method                                 |
+| ---------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| **Code Quality**             | ADR-031 compliance validated                       | Code review checklist (100% explicit casting)     |
+| **Architecture Consistency** | TD-001 pattern maintained                          | Architecture team review (self-contained tests)   |
+| **Team Confidence**          | Positive feedback on test coverage                 | Team retrospective and survey                     |
+| **Production Stability**     | Reduced incident rate                              | Post-deployment incident tracking                 |
+| **Maintainability**          | Reusable test patterns established                 | Pattern documentation and reuse metrics           |
+| **Documentation Quality**    | Complete test strategy and patterns                | Documentation review and completeness check       |
+| **US-098 Readiness**         | TR-19 + TR-20 complete with handoff documentation  | Handoff checklist validation, US-098 agent review |
+| **Pattern Reusability**      | TR-19 patterns applied to all future service tests | Future service test creation time tracking        |
 
 ### Enterprise Readiness Indicators
 
@@ -1226,7 +1231,7 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 - [ ] **Pattern compliance**: All tests follow TR-19 documentation patterns
 - [ ] **Repository mocking demonstrated**: ConfigurationRepository mock properly implemented
 - [ ] **Coverage areas**: CRUD, validation, error handling all demonstrated
-- [ ] **Test data namespacing**: us098_* prefix used consistently
+- [ ] **Test data namespacing**: us098\_\* prefix used consistently
 - [ ] **US-098 readiness**: Scaffolding ready for extension to 20-30 tests by US-098 agent
 - [ ] **Code review approved**: Scaffolding reviewed and approved by architecture team
 
@@ -1235,7 +1240,7 @@ npm run test:groovy:unit -- ConfigurationServiceTest.groovy
 - [ ] **TR-19 documentation complete**: All 5 sections with examples, validated against TD-013
 - [ ] **TR-20 scaffolding complete**: 10 tests passing, patterns demonstrated
 - [ ] **Handoff documentation prepared**: Extension instructions for US-098 agent
-- [ ] **Test data namespacing established**: us098_* prefix convention documented
+- [ ] **Test data namespacing established**: us098\_\* prefix convention documented
 - [ ] **Time savings validated**: 30-40% reduction estimate confirmed
 - [ ] **US-098 agent review**: Scaffolding and patterns reviewed by US-098 implementation team
 - [ ] **Extension roadmap**: Clear path from 10 tests → 20-30 tests documented

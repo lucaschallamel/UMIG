@@ -100,6 +100,7 @@ CREATE TABLE system_configuration_scf (
 ```
 
 **CRITICAL NOTES**:
+
 - Column names: `scf_id`, `scf_key`, `scf_value`, `env_id` (NOT `id`, `key`, `value`, `environment`)
 - FK relationship: `env_id INTEGER` references `environments_env(env_id)`
 - Unique constraint: `UNIQUE(env_id, scf_key)` - one key per environment
@@ -112,6 +113,7 @@ CREATE TABLE system_configuration_scf (
 ### What Already Exists
 
 **SystemConfigurationRepository** (425 lines) provides:
+
 - `findActiveConfigurationsByEnvironment(Integer envId)`
 - `findConfigurationsByCategory(String category, Integer envId)`
 - `findConfigurationByKey(String key, Integer envId)`
@@ -123,6 +125,7 @@ CREATE TABLE system_configuration_scf (
 ### What Needs to be Built
 
 **ConfigurationService Utility Layer** - A service layer providing:
+
 - Environment detection (LOCAL, DEV, UAT, PROD)
 - Configuration retrieval with fallback hierarchy
 - Type-safe configuration access methods (getString, getInteger, getBoolean)
@@ -196,6 +199,7 @@ class ConfigurationService {
 4. Default: PROD environment → resolve to `env_id` for PROD (security-first fallback)
 
 **Type Safety Requirements** (ADR-031, ADR-043):
+
 ```groovy
 // MANDATORY: Explicit casting for environment resolution
 String envCode = System.getProperty('umig.environment') as String
@@ -209,12 +213,14 @@ Integer envId = resolveEnvironmentId(envCode as String)
 **Then** it should follow this hierarchy:
 
 1. **Environment-specific value** from database using `env_id` FK:
+
    ```groovy
    // Use SystemConfigurationRepository with INTEGER env_id
    repository.findConfigurationByKey(key, currentEnvId as Integer)
    ```
 
 2. **Global value** from database (env_id for 'GLOBAL' environment):
+
    ```groovy
    // Resolve 'GLOBAL' to its env_id, then query
    Integer globalEnvId = resolveEnvironmentId('GLOBAL')
@@ -222,6 +228,7 @@ Integer envId = resolveEnvironmentId(envCode as String)
    ```
 
 3. **.env file value** (LOCAL environment only):
+
    ```groovy
    // Only when currentEnvironment == 'LOCAL'
    fetchFromEnvFile(key as String)
@@ -308,6 +315,7 @@ class ConfigurationService {
 ```
 
 **Schema-First Development** (ADR-059):
+
 - ✅ Use actual column names: `scf_id`, `scf_key`, `scf_value`, `env_id`
 - ✅ Respect FK constraint: `env_id INTEGER FK to environments_env(env_id)`
 - ✅ Honor unique constraint: `UNIQUE(env_id, scf_key)`
@@ -967,11 +975,11 @@ INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, 
 
 ## ADR Compliance Matrix
 
-| ADR | Requirement | Implementation Status |
-|-----|-------------|----------------------|
+| ADR     | Requirement              | Implementation Status                            |
+| ------- | ------------------------ | ------------------------------------------------ |
 | ADR-031 | Type Safety Requirements | ✅ Mandatory explicit casting for all parameters |
-| ADR-036 | Repository Layer Pattern | ✅ Use existing SystemConfigurationRepository |
-| ADR-043 | PostgreSQL Type Casting | ✅ INTEGER env_id with explicit casting |
+| ADR-036 | Repository Layer Pattern | ✅ Use existing SystemConfigurationRepository    |
+| ADR-043 | PostgreSQL Type Casting  | ✅ INTEGER env_id with explicit casting          |
 | ADR-059 | Schema-First Development | ✅ Use actual schema, never modify to match code |
 
 ---

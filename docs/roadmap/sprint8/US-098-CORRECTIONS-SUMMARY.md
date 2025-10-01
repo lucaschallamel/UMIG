@@ -10,20 +10,21 @@
 
 ### 1. Schema Mismatches Corrected
 
-| Original (WRONG) | Corrected (RIGHT) | Impact |
-|------------------|-------------------|---------|
-| `id UUID` | `scf_id UUID` | Column name mismatch |
-| `key VARCHAR` | `scf_key VARCHAR(255)` | Column name mismatch |
-| `value TEXT` | `scf_value TEXT` | Column name mismatch |
-| `environment VARCHAR` | `env_id INTEGER FK` | Wrong data type + FK missing |
-| No FK constraint | `FK to environments_env(env_id)` | Referential integrity violated |
-| Missing audit fields | `created_by`, `created_at`, `updated_by`, `updated_at` | Audit trail incomplete |
+| Original (WRONG)      | Corrected (RIGHT)                                      | Impact                         |
+| --------------------- | ------------------------------------------------------ | ------------------------------ |
+| `id UUID`             | `scf_id UUID`                                          | Column name mismatch           |
+| `key VARCHAR`         | `scf_key VARCHAR(255)`                                 | Column name mismatch           |
+| `value TEXT`          | `scf_value TEXT`                                       | Column name mismatch           |
+| `environment VARCHAR` | `env_id INTEGER FK`                                    | Wrong data type + FK missing   |
+| No FK constraint      | `FK to environments_env(env_id)`                       | Referential integrity violated |
+| Missing audit fields  | `created_by`, `created_at`, `updated_by`, `updated_at` | Audit trail incomplete         |
 
 ### 2. Scope Clarifications
 
 **Original Problem**: Story implied building SystemConfigurationRepository from scratch
 
 **Correction**:
+
 - ✅ SystemConfigurationRepository **already exists** (425 lines, fully functional)
 - ✅ Story scope is **ConfigurationService utility layer ONLY**
 - ✅ Service layer delegates to existing repository
@@ -115,12 +116,13 @@ CREATE TABLE system_configuration_scf (
 
 ## Estimation Adjustment
 
-| Aspect | Original | Corrected | Justification |
-|--------|----------|-----------|---------------|
-| **Story Points** | 13 | 20 | +7 points for schema compliance complexity |
-| **Duration** | 2-3 weeks | 4-5 weeks | Realistic timeline with FK handling + type safety |
+| Aspect           | Original  | Corrected | Justification                                     |
+| ---------------- | --------- | --------- | ------------------------------------------------- |
+| **Story Points** | 13        | 20        | +7 points for schema compliance complexity        |
+| **Duration**     | 2-3 weeks | 4-5 weeks | Realistic timeline with FK handling + type safety |
 
 **Adjustment Breakdown**:
+
 - **+3 points**: FK relationship handling (env_id resolution, validation, caching)
 - **+2 points**: Type safety compliance (explicit casting for all parameters)
 - **+1 point**: Schema-first development constraints (code adapts to schema)
@@ -158,12 +160,12 @@ repository.createConfiguration([
 
 ## ADR Compliance Matrix
 
-| ADR | Requirement | Original Story | Corrected Story |
-|-----|-------------|----------------|-----------------|
-| **ADR-031** | Type Safety | ❌ Not mentioned | ✅ TR-6: Mandatory explicit casting |
-| **ADR-036** | Repository Pattern | ⚠️ Implied | ✅ Use existing SystemConfigurationRepository |
-| **ADR-043** | PostgreSQL Casting | ❌ Not mentioned | ✅ TR-7: INTEGER env_id with casting |
-| **ADR-059** | Schema-First | ❌ Violated | ✅ Use actual schema, never modify |
+| ADR         | Requirement        | Original Story   | Corrected Story                               |
+| ----------- | ------------------ | ---------------- | --------------------------------------------- |
+| **ADR-031** | Type Safety        | ❌ Not mentioned | ✅ TR-6: Mandatory explicit casting           |
+| **ADR-036** | Repository Pattern | ⚠️ Implied       | ✅ Use existing SystemConfigurationRepository |
+| **ADR-043** | PostgreSQL Casting | ❌ Not mentioned | ✅ TR-7: INTEGER env_id with casting          |
+| **ADR-059** | Schema-First       | ❌ Violated      | ✅ Use actual schema, never modify            |
 
 ---
 
@@ -198,6 +200,7 @@ repository.createConfiguration([
 ## Migration Path
 
 **From Original Story**:
+
 1. Review corrected schema structure (Section: Actual Database Schema)
 2. Implement environment ID resolution logic (AC-7, TR-7)
 3. Update all repository calls to use INTEGER env_id parameters
@@ -205,6 +208,7 @@ repository.createConfiguration([
 5. Test FK constraint handling and validation
 
 **Validation Checklist**:
+
 - [ ] All repository calls use `envId as Integer` (not VARCHAR env_code)
 - [ ] Environment resolution returns INTEGER env_id
 - [ ] Type casting applied: `key as String`, `envId as Integer`, `UUID.fromString(id as String)`

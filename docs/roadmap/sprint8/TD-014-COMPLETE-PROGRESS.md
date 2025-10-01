@@ -120,18 +120,241 @@ Total Progress:               6.0 of 14.0 points (43%)
 
 ##### 4. MigrationRepository (1.5 story points) - Most Complex
 
-- **Estimated Tests**: 40-50 scenarios
-- **Complexity**: High (hierarchical relationships, complex queries)
-- **Expected Coverage**: 90-95%
-- **Expected Size**: ~80KB (likely ISOLATED)
-- **Isolation Criteria**: File size + ≥3 static nested classes
+**Status**: Design complete, ready for implementation
+**Design Document**: See comprehensive test architecture below
+
+- **Estimated Tests**: 50 scenarios across 6 categories
+- **Complexity**: High (hierarchical relationships, complex queries, 29 methods)
+- **Expected Coverage**: 90-95% (26-28 of 29 methods)
+- **Expected Size**: 70-80KB (ISOLATED location required)
+- **Isolation Criteria**: File size >50KB + ADR-072 (>1900 line source file)
 - **Estimated Effort**: 12-16 hours
-- **Key Challenges**:
-  - Hierarchical data relationships (migrations → iterations → plans)
-  - Complex filtering with multiple joins
-  - Status lifecycle management
-  - Migration code generation
-  - Audit trail validation
+- **Source File**: `MigrationRepository.groovy` (1,925 lines, 29 public methods)
+
+**Key Challenges**:
+
+- Hierarchical data relationships (migrations → iterations → plans → sequences → phases)
+- Complex filtering with multiple joins (8 pagination methods)
+- Status lifecycle management (dual field pattern with enrichment)
+- 12 JOIN-heavy queries with computed counts
+- Transaction support with error collection
+- 5-level hierarchical structure navigation
+
+---
+
+#### MigrationRepository Comprehensive Test Architecture
+
+**Target Deliverable**:
+
+- **File**: `MigrationRepositoryComprehensiveTest.groovy`
+- **Location**: `/local-dev-setup/__tests__/groovy/isolated/repository/`
+- **Size**: 70-80KB (estimated)
+- **Architecture**: Self-contained with embedded MockSql, DatabaseUtil, and Repository
+
+**Method Inventory (29 methods)**:
+
+1. Core CRUD Operations (4 methods)
+   - `create(Map migrationData)`
+   - `findMigrationById(UUID migrationId)`
+   - `update(UUID migrationId, Map migrationData)`
+   - `delete(UUID migrationId)`
+
+2. Simple Retrieval (2 methods)
+   - `findAllMigrations()`
+   - `findAllMigrations(int pageNumber, int pageSize, String searchTerm, String sortField, String sortDirection)`
+
+3. Hierarchical Relationships (11 methods)
+   - `findIterationsByMigrationId(UUID migrationId)`
+   - `findIterationById(UUID iterationId)`
+   - `findPlanInstancesByIterationId(UUID iterationId)`
+   - `findSequencesByPlanInstanceId(UUID planInstanceId)`
+   - `findPhasesByPlanInstanceId(UUID planInstanceId)`
+   - `findPhasesBySequenceId(UUID sequenceId)`
+   - `findSequencesByIterationId(UUID iterationId)`
+   - `findPhasesByIterationId(UUID iterationId)`
+   - `createIteration(Map iterationData)`
+   - `updateIteration(UUID iterationId, Map iterationData)`
+   - `deleteIteration(UUID iterationId)`
+
+4. Advanced Filtering (6 methods)
+   - `findMigrationsByStatuses(List<String> statusNames, int pageNumber, int pageSize)`
+   - `findMigrationsByDateRange(Date startDate, Date endDate, String dateField, int pageNumber, int pageSize)`
+   - `findMigrationsByTeamAssignment(Integer teamId, int pageNumber, int pageSize)`
+   - `findMigrationsByOwner(Integer ownerId, int pageNumber, int pageSize)`
+   - `findMigrationsWithFilters(Map filters, int pageNumber, int pageSize, String sortField, String sortDirection)`
+   - `findIterationsWithFilters(Map filters, int page, int size, String sortField, String sortDirection)`
+
+5. Bulk Operations & Analytics (6 methods - Not covered in initial implementation)
+   - `bulkUpdateStatus(List<UUID> migrationIds, String newStatus, String reason)`
+   - `bulkExportMigrations(List<UUID> migrationIds, String format, boolean includeIterations)`
+   - `getDashboardSummary()`
+   - `getProgressAggregation(UUID migrationId, Date dateFrom, Date dateTo)`
+   - `getMetrics(String period, UUID migrationId)`
+   - `getStatusMetadata(Integer statusId)`
+
+**Mock Data Structure (15 entity collections)**:
+
+- **5 migrations**: Alpha, Beta, Gamma, Orphan, Search Test
+  - Coverage: All status types (PLANNING, ACTIVE, COMPLETED, ON_HOLD, CANCELLED)
+  - Edge cases: Null dates (Orphan), various migration types
+
+- **5 statuses**: Complete status lifecycle coverage with metadata
+
+- **3 users**: Admin, user1, user2 for ownership testing
+
+- **4 iterations**: Wave 1, Wave 2, Pilot, Completed
+  - Linked to migrations for hierarchical testing
+
+- **3 plan masters** + **3 plan instances**
+
+- **2 sequences** + **2 phases**: For relationship navigation
+
+- **2 teams** + **team assignments**: For team filtering
+
+**Query Routing Categories (7 types)**:
+
+1. Simple migration queries (findAll, findById)
+2. Paginated queries with search/sort
+3. Status filtering (single/multiple)
+4. Date range filtering (3 date fields: start_date, end_date, business_cutover_date)
+5. Hierarchical relationships (iterations→plans→sequences→phases)
+6. Count queries (pagination totals)
+7. Complex filters (team, owner, multi-filter)
+
+**Field Transformation Mappings**:
+
+*Migration Entity (16 fields)*:
+- `mig_id`, `usr_id_owner`, `mig_name`, `mig_description`, `mig_type`
+- `mig_start_date`, `mig_end_date`, `mig_business_cutover_date`
+- `created_by`, `created_at`, `updated_by`, `updated_at`
+- `mig_status` (transformed from `sts_name`)
+- `iteration_count`, `plan_count` (computed from joins)
+- `statusMetadata` (nested object: `{id, name, color, type}`)
+
+*Iteration Entity (13 fields)*:
+- `ite_id`, `mig_id`, `plm_id`, `itt_code`, `ite_name`, `ite_description`
+- `ite_static_cutover_date`, `ite_dynamic_cutover_date`
+- `created_by`, `created_at`, `updated_by`, `updated_at`
+- `ite_status` (transformed from status name)
+
+**Test Categories (50 tests)**:
+
+*Category A: CRUD Operations (10 tests)*
+- Create success with all fields (A1)
+- Create duplicate name - SQL state 23505 (A2)
+- Create invalid status name (A3)
+- Create invalid type (A4)
+- Create with default values (A5)
+- Find by ID with enrichment (A6)
+- Find by ID not found (A7)
+- Update partial fields (A8)
+- Delete success - no relationships (A9)
+- Delete FK violation - SQL state 23503 (A10)
+
+*Category B: Retrieval & Pagination (8 tests)*
+- Find all non-paginated with computed counts (B1)
+- Paginated first page (B2)
+- Paginated last page (B3)
+- Paginated beyond last page (B4)
+- Paginated with search - found (B5)
+- Paginated with search - not found (B6)
+- Paginated with sort - mig_name ASC (B7)
+- Paginated with sort - iteration_count DESC (B8)
+
+*Category C: Status Filtering (6 tests)*
+- Find by single status (C1)
+- Find by multiple statuses (C2)
+- Find by status - no results (C3)
+- Find by status - invalid status name (C4)
+- Status filtering with pagination (C5)
+- Empty status list (C6)
+
+*Category D: Date Range Filtering (6 tests)*
+- Date range - mig_start_date (D1)
+- Date range - mig_end_date (D2)
+- Date range - mig_business_cutover_date (D3)
+- Date range - invalid date field (D4)
+- Date range - null dates in records (D5)
+- Date range with pagination (D6)
+
+*Category E: Hierarchical Relationships (12 tests)*
+- Find iterations by migration ID - found (E1)
+- Find iterations by migration ID - not found (E2)
+- Find iteration by ID - found (E3)
+- Find plan instances by iteration ID (E4)
+- Find sequences by plan instance ID (E5)
+- Find phases by sequence ID (E6)
+- Find phases by plan instance ID (E7)
+- Find sequences by iteration ID (E8)
+- Find phases by iteration ID (E9)
+- Create iteration success (E10)
+- Update iteration partial fields (E11)
+- Delete iteration success (E12)
+
+*Category F: Validation & Edge Cases (8 tests)*
+- Null UUID parameter (F1)
+- Invalid UUID format (F2)
+- Negative page number (F3)
+- Page size >100 cap (F4)
+- Invalid sort field (F5)
+- Case-insensitive search (F6)
+- Empty string search (F7)
+- Special characters in search (F8)
+
+**Coverage Goals**:
+
+- **Target**: 90-95% method coverage (26-28 of 29 methods)
+- **Covered**: 26 methods in Categories A-F
+- **Not Covered**: 3 bulk/analytics methods (require additional infrastructure)
+  - `bulkUpdateStatus()`, `bulkExportMigrations()`, `getDashboardSummary()`
+  - `getProgressAggregation()`, `getMetrics()`
+
+**Performance Targets**:
+
+- Compilation: <10 seconds
+- Execution: <2 minutes for 50 tests
+- Memory: <512MB peak
+- File Size: 70-80KB (within target range)
+
+**Quality Checklist**:
+
+- [ ] TD-001 self-contained architecture (all dependencies embedded)
+- [ ] ADR-031 explicit type casting (all UUID/Integer/Date parameters)
+- [ ] ADR-072 isolated location (>1900 line source file)
+- [ ] 50 tests implemented across 6 categories
+- [ ] 90-95% method coverage achieved
+- [ ] SQL state error handling (23503, 23505)
+- [ ] Field transformation validated in all retrieval methods
+- [ ] 100% pass rate on execution
+
+**Implementation Sequence**:
+
+1. Create file skeleton with package, imports, test counters
+2. Implement EmbeddedMockSql with 15 data stores and 7 query routing categories
+3. Implement DatabaseUtil wrapper
+4. Implement MigrationRepository (29 methods embedded)
+5. Category A: CRUD Operations (10 tests)
+6. Category B: Retrieval & Pagination (8 tests)
+7. Category C: Status Filtering (6 tests)
+8. Category D: Date Range Filtering (6 tests)
+9. Category E: Hierarchical Relationships (12 tests)
+10. Category F: Validation & Edge Cases (8 tests)
+11. Run full suite and verify 100% pass rate
+12. Measure performance and optimize if needed
+13. Final validation against all quality criteria
+
+**Why MigrationRepository is Most Complex**:
+
+- 29 public methods (largest in TD-014 Week 2)
+- 5-level hierarchical structure (migrations → iterations → plans → sequences → phases)
+- 12 JOIN-heavy queries with computed counts
+- 8 pagination methods with advanced filtering
+- Transaction support with error collection
+- Dual status field pattern (backward compat + enhanced metadata)
+
+**Handoff Ready**: Complete design document with method inventory, mock data schemas, query routing architecture, field transformations, and 50 detailed test scenarios.
+
+---
 
 ##### 5. PlanRepository (1.0 story points)
 

@@ -74,42 +74,69 @@ class EnhancedEmailService {
         println "🔧 [EnhancedEmailService] ================== START sendStepStatusChangedNotificationWithUrl =================="
         
         // PHASE 2: Enrich stepInstance with complete data from new repository method
-        println "🔧 [EnhancedEmailService] ENRICHMENT: Fetching complete step data for email template"
+        println "🔧 [EnhancedEmailService] ENRICHMENT: Using existing StepRepository.findByInstanceIdAsDTO"
         try {
             // Explicit type casting per ADR-031 for type safety
             UUID stepInstanceId = stepInstance.sti_id instanceof UUID ?
                 stepInstance.sti_id as UUID :
                 UUID.fromString(stepInstance.sti_id.toString())
 
-            // Call static method directly on the class (not on instance)
-            // The method is static, so we call it directly on the class reference
-            println "🔧 [EnhancedEmailService] 🔍 DIAGNOSTIC: Calling getEnhancedStepInstanceForEmail with UUID: ${stepInstanceId}"
-            Map<String, Object> enrichedData = umig.repository.StepRepository.getEnhancedStepInstanceForEmail(stepInstanceId) as Map<String, Object>
-            println "🔧 [EnhancedEmailService] 🔍 DIAGNOSTIC: enrichedData = ${enrichedData ? 'NOT NULL' : 'NULL'}"
+            // Use EXISTING DTO method that already has comprehensive query with ALL data
+            println "🔧 [EnhancedEmailService] 🔍 Calling StepRepository.findByInstanceIdAsDTO with UUID: ${stepInstanceId}"
+            def stepRepository = new umig.repository.StepRepository()
+            // Explicit type casting per ADR-031 for static type checking
+            umig.dto.StepInstanceDTO enrichedDTO = stepRepository.findByInstanceIdAsDTO(stepInstanceId) as umig.dto.StepInstanceDTO
+            
+            if (enrichedDTO) {
+                println "🔧 [EnhancedEmailService] ✅ StepInstanceDTO retrieved successfully"
+                println "🔧 [EnhancedEmailService]   🔍 stepType: '${enrichedDTO.stepType}'"
+                println "🔧 [EnhancedEmailService]   🔍 stepNumber: ${enrichedDTO.stepNumber}"
+                
+                // Use DTO's computed stepCode property (format: BUS-031)
+                String stepCode = enrichedDTO.stepCode ?: ''
+                println "🔧 [EnhancedEmailService]   🔍 DTO stepCode: '${stepCode}'"
+                
+                // Build enriched data map with DTO properties
+                Map enrichedData = [
+                    step_code: stepCode,
+                    step_title: enrichedDTO.stepName,
+                    step_description: enrichedDTO.stepDescription,
+                    team_name: enrichedDTO.assignedTeamName,
+                    migration_code: enrichedDTO.migrationCode,
+                    iteration_code: enrichedDTO.iterationCode,
+                    sequence_name: enrichedDTO.sequenceName,
+                    phase_name: enrichedDTO.phaseName,
+                    instruction_count: enrichedDTO.instructionCount ?: 0,
+                    comment_count: enrichedDTO.comments?.size() ?: 0,
+                    step_status: enrichedDTO.stepStatus,
+                    // Duration field for Step Summary section (actualDuration with fallback to estimatedDuration)
+                    sti_duration_minutes: enrichedDTO.actualDuration ?: enrichedDTO.estimatedDuration ?: 0,
+                    // Environment and impacted teams for Step Summary section
+                    environment_name: enrichedDTO.environmentName ?: '',
+                    impacted_teams: enrichedDTO.impactedTeams ?: '',
+                    // Predecessor information for Step Summary section
+                    predecessor_code: enrichedDTO.predecessorCode ?: '',
+                    predecessor_name: enrichedDTO.predecessorName ?: ''
+                ]
 
-            if (enrichedData) {
-                println "🔧 [EnhancedEmailService] ✅ Enhanced data retrieved - DETAILED INSPECTION:"
-                println "🔧 [EnhancedEmailService]   🔍 step_code: '${enrichedData.step_code}' (empty=${enrichedData.step_code == '' || enrichedData.step_code == null})"
-                println "🔧 [EnhancedEmailService]   🔍 sti_name: '${enrichedData.sti_name}'"
-                println "🔧 [EnhancedEmailService]   🔍 environment_name: '${enrichedData.environment_name}'"
-                println "🔧 [EnhancedEmailService]   🔍 environment_role_name: '${enrichedData.environment_role_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 step_title: '${enrichedData.step_title}'"
                 println "🔧 [EnhancedEmailService]   🔍 team_name: '${enrichedData.team_name}'"
-                println "🔧 [EnhancedEmailService]   🔍 sti_duration_minutes: '${enrichedData.sti_duration_minutes}'"
-                println "🔧 [EnhancedEmailService]   🔍 Instructions count: ${(enrichedData.instructions as List)?.size() ?: 0}"
-                println "🔧 [EnhancedEmailService]   🔍 Comments count: ${(enrichedData.comments as List)?.size() ?: 0}"
-                println "🔧 [EnhancedEmailService]   🔍 Impacted teams count: ${(enrichedData.impacted_teams as List)?.size() ?: 0}"
-                println "🔧 [EnhancedEmailService]   🔍 ALL KEYS in enrichedData: ${enrichedData.keySet()}"
-
+                println "🔧 [EnhancedEmailService]   🔍 sti_duration_minutes: ${enrichedData.sti_duration_minutes}"
+                println "🔧 [EnhancedEmailService]   🔍 environment_name: '${enrichedData.environment_name}'"
+                println "🔧 [EnhancedEmailService]   🔍 impacted_teams: '${enrichedData.impacted_teams}'"
+                println "🔧 [EnhancedEmailService]   🔍 predecessor_code: '${enrichedData.predecessor_code}'"
+                println "🔧 [EnhancedEmailService]   🔍 instruction_count: ${enrichedData.instruction_count}"
+                println "🔧 [EnhancedEmailService]   🔍 comment_count: ${enrichedData.comment_count}"
+                
                 // Merge enriched data into stepInstance (enriched data takes precedence)
-                // Both must be cast as Map for proper merge operation
-                stepInstance = (enrichedData as Map) + (stepInstance as Map)
-                println "🔧 [EnhancedEmailService] ✅ Step instance enriched - AFTER MERGE step_code: '${stepInstance.step_code}'"
+                stepInstance = enrichedData + (stepInstance as Map)
+                println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
             } else {
-                println "🔧 [EnhancedEmailService] ⚠️ WARNING: Could not retrieve enhanced data (enrichedData is NULL), using original stepInstance"
+                println "🔧 [EnhancedEmailService] ⚠️ WARNING: StepInstanceDTO not found for ID: ${stepInstanceId}"
             }
         } catch (Exception enrichmentError) {
-            println "🔧 [EnhancedEmailService] ⚠️ WARNING: Data enrichment failed: ${enrichmentError.message}"
-            println "🔧 [EnhancedEmailService] Continuing with original stepInstance data"
+            println "🔧 [EnhancedEmailService] ⚠️ WARNING: DTO enrichment failed: ${enrichmentError.message}"
+            println "🔧 [EnhancedEmailService] Stack trace:"
             enrichmentError.printStackTrace()
         }
         
