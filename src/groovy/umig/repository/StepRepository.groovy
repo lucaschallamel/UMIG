@@ -3979,4 +3979,228 @@ class StepRepository {
             }
         }) as StepInstanceDTO
     }
+
+    /**
+     * Get complete step instance data for email rendering (TD-015 Critical Bug Fix)
+     *
+     * This method retrieves ALL 35+ fields required by email templates to prevent
+     * raw GSP syntax from appearing in production emails.
+     *
+     * CRITICAL: This method is the authoritative source for email data binding.
+     * It includes:
+     * - Core step fields (code, name, description, duration, status)
+     * - Contextual information (environment, team, predecessors, successors)
+     * - Rich data arrays (instructions with completion status, recent comments)
+     * - Migration/iteration context
+     * - Team relationships (assigned team + impacted teams)
+     *
+     * @param stepInstanceId UUID of the step instance
+     * @return Map with all fields needed by email templates
+     * @throws NotFoundException if step instance doesn't exist
+     */
+    Map getCompleteStepForEmail(UUID stepInstanceId) {
+        return DatabaseUtil.withSql { sql ->
+            // Step 1: Get complete step data with all joined relationships
+            def stepData = sql.firstRow('''
+                SELECT
+                    -- Core Step Instance Fields
+                    sti.sti_id,
+                    sti.sti_name,
+                    sti.sti_description,
+                    sti.sti_duration_minutes,
+                    sti.sti_status,
+
+                    -- Step Master Fields
+                    stm.stm_id,
+                    stm.stt_code,
+                    stm.stm_number,
+                    stm.stm_name as stm_name,
+                    stm.stm_description as stm_description,
+
+                    -- Environment Context
+                    env.env_name as environment_name,
+                    enr.enr_name as environment_role_name,
+
+                    -- Team Context (Assigned Team)
+                    team.tms_id as team_id,
+                    team.tms_name as team_name,
+                    team.tms_email as team_email,
+
+                    -- Predecessor Information
+                    pred.stt_code as predecessor_stt_code,
+                    pred.stm_number as predecessor_stm_number,
+                    pred.stm_name as predecessor_name,
+
+                    -- Successor Information (find steps that have THIS step as predecessor)
+                    succ.stt_code as successor_stt_code,
+                    succ.stm_number as successor_stm_number,
+                    succ.stm_name as successor_name,
+
+                    -- Migration/Iteration Context
+                    mig.mig_code,
+                    mig.mig_name as migration_name,
+                    mig.mig_description as migration_description,
+                    ite.ite_code,
+                    ite.ite_name as iteration_name,
+                    ite.ite_description as iteration_description,
+
+                    -- Plan/Sequence/Phase Context (for complete hierarchy)
+                    plm.plm_name as plan_name,
+                    sqm.sqm_name as sequence_name,
+                    phm.phm_name as phase_name
+
+                FROM steps_instance_sti sti
+
+                -- Join to master step
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+
+                -- Join to environment
+                LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
+                LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = sti.ite_id AND eei.enr_id = sti.enr_id
+                LEFT JOIN environments_env env ON eei.env_id = env.env_id
+
+                -- Join to assigned team
+                LEFT JOIN teams_tms team ON stm.tms_id_owner = team.tms_id
+
+                -- Join to predecessor step
+                LEFT JOIN steps_master_stm pred ON stm.stm_id_predecessor = pred.stm_id
+
+                -- Join to successor step (steps that reference THIS step as predecessor)
+                LEFT JOIN steps_master_stm succ ON succ.stm_id_predecessor = stm.stm_id
+
+                -- Join to hierarchy
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+
+                WHERE sti.sti_id = :stepInstanceId
+            ''', [stepInstanceId: stepInstanceId])
+
+            if (!stepData) {
+                throw new RuntimeException("Step instance not found: ${stepInstanceId}")
+            }
+
+            // Step 2: Get instructions with completion status
+            def instructions = sql.rows('''
+                SELECT
+                    ini.ini_id,
+                    inm.inm_body as ini_name,
+                    inm.inm_body as ini_description,
+                    CASE
+                        WHEN ini.ini_is_completed THEN 'COMPLETED'
+                        ELSE 'PENDING'
+                    END as ini_status,
+                    inm.inm_order as ini_order,
+                    ini.ini_completed_at,
+                    ini.usr_id_completed_by,
+                    inm.tms_id as instruction_team_id,
+                    tms.tms_name as instruction_team_name
+                FROM instructions_instance_ini ini
+                JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                WHERE ini.sti_id = :stepInstanceId
+                ORDER BY inm.inm_order
+            ''', [stepInstanceId: stepInstanceId])
+
+            // Step 3: Get recent comments (last 3)
+            def recentComments = sql.rows('''
+                SELECT
+                    u.usr_full_name as author_name,
+                    u.usr_code as author_username,
+                    c.created_at,
+                    c.cmt_text as comment_text
+                FROM comments_cmt c
+                JOIN users_usr u ON c.usr_id = u.usr_id
+                WHERE c.sti_id = :stepInstanceId
+                ORDER BY c.created_at DESC
+                LIMIT 3
+            ''', [stepInstanceId: stepInstanceId])
+
+            // Step 4: Get impacted teams
+            def impactedTeams = sql.rows('''
+                SELECT
+                    tms.tms_id,
+                    tms.tms_name,
+                    tms.tms_email
+                FROM steps_master_stm_x_teams_tms_impacted smti
+                JOIN teams_tms tms ON smti.tms_id = tms.tms_id
+                WHERE smti.stm_id = :stmId
+            ''', [stmId: stepData.stm_id])
+
+            // Step 5: Format step code (e.g., "AUT-003")
+            def stepCode = "${stepData.stt_code}-${String.format('%03d', stepData.stm_number as Integer)}"
+
+            // Step 6: Format predecessor code if exists
+            def predecessorCode = null
+            if (stepData.predecessor_stt_code && stepData.predecessor_stm_number) {
+                predecessorCode = "${stepData.predecessor_stt_code}-${String.format('%03d', stepData.predecessor_stm_number as Integer)}"
+            }
+
+            // Step 7: Format successor code if exists
+            def successorCode = null
+            if (stepData.successor_stt_code && stepData.successor_stm_number) {
+                successorCode = "${stepData.successor_stt_code}-${String.format('%03d', stepData.successor_stm_number as Integer)}"
+            }
+
+            // Step 8: Build complete map with ALL 35+ fields required by templates
+            return [
+                // Core Step Instance Fields (6 fields)
+                sti_id: stepData.sti_id,
+                sti_code: stepCode,
+                sti_name: stepData.sti_name ?: stepData.stm_name,
+                sti_description: stepData.sti_description ?: stepData.stm_description,
+                sti_duration_minutes: stepData.sti_duration_minutes ?: 0,
+                sti_status: stepData.sti_status,
+
+                // Contextual Information (6 fields)
+                environment_name: stepData.environment_name ?: 'Not assigned',
+                environment_role_name: stepData.environment_role_name,
+                team_id: stepData.team_id,
+                team_name: stepData.team_name ?: 'Unassigned',
+                team_email: stepData.team_email,
+
+                // Predecessor/Successor Information (6 fields)
+                predecessor_code: predecessorCode,
+                predecessor_name: stepData.predecessor_name,
+                successor_code: successorCode,
+                successor_name: stepData.successor_name,
+                has_predecessor: predecessorCode != null,
+                has_successor: successorCode != null,
+
+                // Migration/Iteration Context (6 fields)
+                migration_code: stepData.mig_code,
+                migration_name: stepData.migration_name,
+                migration_description: stepData.migration_description,
+                iteration_code: stepData.ite_code,
+                iteration_name: stepData.iteration_name,
+                iteration_description: stepData.iteration_description,
+
+                // Hierarchical Context (3 fields)
+                plan_name: stepData.plan_name,
+                sequence_name: stepData.sequence_name,
+                phase_name: stepData.phase_name,
+
+                // Rich Data Arrays (4 arrays)
+                instructions: instructions,
+                completedInstructions: instructions.findAll { it.ini_status == 'COMPLETED' },
+                pendingInstructions: instructions.findAll { it.ini_status == 'PENDING' },
+                recentComments: recentComments,
+
+                // Team Relationships (1 array)
+                impacted_teams: impactedTeams,
+
+                // Computed Metadata (4 fields)
+                total_instructions: instructions.size(),
+                completed_instruction_count: instructions.count { it.ini_status == 'COMPLETED' },
+                pending_instruction_count: instructions.count { it.ini_status == 'PENDING' },
+                instruction_completion_percentage: instructions.isEmpty() ? 0 :
+                    (instructions.count { it.ini_status == 'COMPLETED' } / instructions.size() * 100).round(0)
+            ]
+        }
+    }
 }

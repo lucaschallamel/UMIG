@@ -89,6 +89,32 @@ All ADRs are maintained in this single directory (`docs/adr/`) with a flat struc
 
 - **[ADR-055](ADR-055-multi-agent-security-collaboration-workflow-architecture.md)** - Multi-Agent Security Collaboration Workflow Architecture
 
+### Data Migration & Implementation Patterns (ADR-056 to ADR-063)
+
+- **[ADR-056](ADR-056-entity-migration-specification-pattern.md)** - Entity Migration Specification Pattern
+- **[ADR-057](ADR-057-javascript-module-loading-anti-pattern.md)** - JavaScript Module Loading Anti-Pattern
+- **[ADR-058](ADR-058-global-securityutils-access-pattern.md)** - Global SecurityUtils Access Pattern
+- **[ADR-059](ADR-059-sql-schema-first-development-principle.md)** - SQL Schema-First Development Principle
+- **[ADR-060](ADR-060-baseentitymanager-interface-compatibility-pattern.md)** - BaseEntityManager Interface Compatibility Pattern
+- **[ADR-061](ADR-061-stepview-rbac-security-implementation.md)** - StepView RBAC Security Implementation
+- **[ADR-062](ADR-062-Modal-Component-Render-Override.md)** - Modal Component Render Override
+- **[ADR-063](ADR-063-pagination-component-interaction-pattern.md)** - Pagination Component Interaction Pattern
+
+### Versioning & Security Architecture (ADR-064 to ADR-071)
+
+- **[ADR-064](ADR-064-umig-namespace-prefixing-confluence-isolation.md)** - UMIG Namespace Prefixing Confluence Isolation
+- **[ADR-065](ADR-065-Phased-Implementation-Strategy.md)** - Phased Implementation Strategy
+- **[ADR-066](ADR-066-UMIG-Comprehensive-Versioning-Strategy.md)** - UMIG Comprehensive Versioning Strategy
+- **[ADR-067](ADR-067-Session-Security-Enhancement.md)** - Session Security Enhancement
+- **[ADR-068](ADR-068-SecurityUtils-Enhancement.md)** - SecurityUtils Enhancement
+- **[ADR-069](ADR-069-Component-Security-Boundary-Enforcement.md)** - Component Security Boundary Enforcement
+- **[ADR-070](ADR-070-Component-Lifecycle-Security.md)** - Component Lifecycle Security
+- **[ADR-071](ADR-071-Privacy-First-Security-Architecture.md)** - Privacy-First Security Architecture
+
+### Testing Architecture (ADR-072)
+
+- **[ADR-072](ADR-072-dual-track-testing-strategy.md)** - Dual-Track Testing Strategy - Manual Groovy + Automated Jest Integration
+
 ## ADR Process
 
 All architectural decisions follow a standard template and are documented using the format defined in [template.md](template.md).
@@ -100,4 +126,4 @@ For comprehensive architectural guidance, also refer to:
 - **[UMIG Solution Architecture](../architecture/)** - Consolidated architectural documentation organized by TOGAF phases
 - **[Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)** - Current status of all architectural decisions
 
-## Total ADRs: 49 documented decisions
+## Total ADRs: 72 documented decisions
