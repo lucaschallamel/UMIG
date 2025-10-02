@@ -1,0 +1,486 @@
+{
+  "build": {
+    "phase": 3,
+    "startTime": "2025-09-25T14:18:25.522Z",
+    "endTime": null,
+    "artifactPaths": [
+      "/Users/lucaschallamel/Documents/GitHub/UMIG/build/umig-deployment-dev-2025-09-25T14-19-47.tar.gz"
+    ],
+    "errors": [],
+    "warnings": [],
+    "timestamp": "2025-09-25T14:19:47.890Z",
+    "duration": null,
+    "success": false,
+    "outputSize": 0
+  },
+  "project": {
+    "buildConfig": {
+      "sources": 5,
+      "excludePatterns": 0,
+      "includePatterns": 0,
+      "environments": [
+        "dev",
+        "uat",
+        "prod"
+      ]
+    }
+  },
+  "environment": {
+    "nodeVersion": "v24.3.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "hostname": "Lucass-MacBook-Air.local",
+    "user": "lucaschallamel",
+    "cwd": "/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup",
+    "pid": 97991,
+    "memory": {
+      "rss": 694616064,
+      "heapTotal": 309346304,
+      "heapUsed": 148702560,
+      "external": 12187655,
+      "arrayBuffers": 9933162
+    },
+    "cpus": 8,
+    "loadAverage": [
+      8.220703125,
+      8.37109375,
+      7.84619140625
+    ],
+    "uptime": 94785,
+    "timezone": "Europe/Zurich",
+    "locale": "en-US",
+    "variables": {}
+  },
+  "files": [],
+  "dependencies": {},
+  "git": {
+    "commit": "90fd95d07e9b910bd7a7cfe2a123c62307f0f6d4",
+    "shortCommit": "90fd95d07",
+    "branch": "feature/US-088-build-process",
+    "tag": null,
+    "remoteUrl": "https://github.com/lucaschallamel/UMIG.git",
+    "author": "Lucas C.",
+    "authorEmail": "lucas_challamel@yahoo.com",
+    "commitDate": "2025-09-25 13:39:14 +0200",
+    "commitMessage": "feat: US-088-B Database Version Manager Liquibase Integration - Complete (8 story points)",
+    "isDirty": true,
+    "stats": {
+      "totalCommits": 501,
+      "contributors": 0
+    }
+  },
+  "system": {
+    "os": {
+      "type": "Darwin",
+      "release": "25.0.0",
+      "version": "Darwin Kernel Version 25.0.0: Mon Aug 25 21:17:45 PDT 2025; root:xnu-12377.1.9~3/RELEASE_ARM64_T8103",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "memory": {
+      "total": 17179869184,
+      "free": 392314880,
+      "usage": {
+        "rss": 694910976,
+        "heapTotal": 309346304,
+        "heapUsed": 149389768,
+        "external": 12189271,
+        "arrayBuffers": 9934738
+      }
+    },
+    "network": {
+      "lo0": [
+        {
+          "address": "127.0.0.1",
+          "netmask": "255.0.0.0",
+          "family": "IPv4",
+          "mac": "00:00:00:00:00:00",
+          "internal": true,
+          "cidr": "127.0.0.1/8"
+        },
+        {
+          "address": "::1",
+          "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": true,
+          "cidr": "::1/128",
+          "scopeid": 0
+        },
+        {
+          "address": "fe80::1",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": true,
+          "cidr": "fe80::1/64",
+          "scopeid": 1
+        }
+      ],
+      "en0": [
+        {
+          "address": "fe80::1057:5f07:54eb:45a8",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "2e:d3:c7:cd:7c:55",
+          "internal": false,
+          "cidr": "fe80::1057:5f07:54eb:45a8/64",
+          "scopeid": 11
+        },
+        {
+          "address": "172.27.69.196",
+          "netmask": "255.255.252.0",
+          "family": "IPv4",
+          "mac": "2e:d3:c7:cd:7c:55",
+          "internal": false,
+          "cidr": "172.27.69.196/22"
+        }
+      ],
+      "awdl0": [
+        {
+          "address": "fe80::fcc2:20ff:fe07:f818",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "fe:c2:20:07:f8:18",
+          "internal": false,
+          "cidr": "fe80::fcc2:20ff:fe07:f818/64",
+          "scopeid": 13
+        }
+      ],
+      "llw0": [
+        {
+          "address": "fe80::fcc2:20ff:fe07:f818",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "fe:c2:20:07:f8:18",
+          "internal": false,
+          "cidr": "fe80::fcc2:20ff:fe07:f818/64",
+          "scopeid": 14
+        }
+      ],
+      "utun0": [
+        {
+          "address": "fe80::6d7a:97f2:b21f:4dd7",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::6d7a:97f2:b21f:4dd7/64",
+          "scopeid": 15
+        }
+      ],
+      "utun1": [
+        {
+          "address": "fe80::c1d4:d988:600f:5843",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::c1d4:d988:600f:5843/64",
+          "scopeid": 16
+        }
+      ],
+      "utun2": [
+        {
+          "address": "fe80::a77c:f4bf:7f36:57e6",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::a77c:f4bf:7f36:57e6/64",
+          "scopeid": 17
+        }
+      ],
+      "utun3": [
+        {
+          "address": "fe80::ce81:b1c:bd2c:69e",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::ce81:b1c:bd2c:69e/64",
+          "scopeid": 18
+        }
+      ],
+      "utun4": [
+        {
+          "address": "fe80::ad13:de88:857e:a0bd",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::ad13:de88:857e:a0bd/64",
+          "scopeid": 19
+        }
+      ],
+      "utun5": [
+        {
+          "address": "fe80::d8fb:e227:2022:7e0c",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::d8fb:e227:2022:7e0c/64",
+          "scopeid": 20
+        }
+      ],
+      "utun6": [
+        {
+          "address": "fe80::ac0:a419:5d0a:5d18",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::ac0:a419:5d0a:5d18/64",
+          "scopeid": 21
+        }
+      ],
+      "utun7": [
+        {
+          "address": "fe80::8809:4216:3b8c:6053",
+          "netmask": "ffff:ffff:ffff:ffff::",
+          "family": "IPv6",
+          "mac": "00:00:00:00:00:00",
+          "internal": false,
+          "cidr": "fe80::8809:4216:3b8c:6053/64",
+          "scopeid": 22
+        }
+      ]
+    },
+    "timestamp": "2025-09-25T14:19:47.871Z",
+    "buildTime": 1758809987871
+  },
+  "validation": {
+    "passed": true
+  },
+  "components": {
+    "summary": {
+      "totalComponents": 23,
+      "totalSize": 1402613,
+      "lastModified": "2025-09-25T13:36:31.533Z"
+    },
+    "details": [
+      {
+        "name": "DatabaseVersionManager.js",
+        "path": "src/groovy/umig/web/js/components/DatabaseVersionManager.js",
+        "size": 72137,
+        "lastModified": "2025-09-25T13:36:31.533Z",
+        "lines": 2045,
+        "checksum": "5900ea5f846ce245a80c094b02cd489b36af6b2792cfaed62b4b0d3b30e77cde",
+        "type": "EntityManager"
+      },
+      {
+        "name": "ComponentVersionTracker.js",
+        "path": "src/groovy/umig/web/js/components/ComponentVersionTracker.js",
+        "size": 117311,
+        "lastModified": "2025-09-25T12:03:23.761Z",
+        "lines": 2832,
+        "checksum": "9f220caab781f569cb81562d998bc5b73be7d9490e3636be8c5a9cec2f923eac",
+        "type": "EntityManager"
+      },
+      {
+        "name": "ModalComponent.js",
+        "path": "src/groovy/umig/web/js/components/ModalComponent.js",
+        "size": 98458,
+        "lastModified": "2025-09-25T10:30:40.068Z",
+        "lines": 3023,
+        "checksum": "92ebc4e73b1869c8c20a5db724cb2620f428d8f0e244e686c7f8e169152a2705",
+        "type": "Component"
+      },
+      {
+        "name": "SecurityUtils.js",
+        "path": "src/groovy/umig/web/js/components/SecurityUtils.js",
+        "size": 49241,
+        "lastModified": "2025-09-25T10:30:25.183Z",
+        "lines": 1610,
+        "checksum": "d787ca032b0d9cb0bbcbe18fddff4e5534cbf512b4ea3f63fed17cbbf07e8fc8",
+        "type": "EntityManager"
+      },
+      {
+        "name": "BaseComponent.js",
+        "path": "src/groovy/umig/web/js/components/BaseComponent.js",
+        "size": 18865,
+        "lastModified": "2025-09-25T10:16:43.130Z",
+        "lines": 702,
+        "checksum": "13cdde81115ae07b25f43596d75d0fe26334a8448f0dc239b895cb089ac20948",
+        "type": "JavaScript"
+      },
+      {
+        "name": "TeamsEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/teams/TeamsEntityManager.js",
+        "size": 137323,
+        "lastModified": "2025-09-25T05:07:23.482Z",
+        "lines": 4522,
+        "checksum": "8fc9f4b8bd6cfbf8c9ee3bba18766bc3f1e7d5f6dc46826b3a5dcd37d6af8104",
+        "type": "EntityManager"
+      },
+      {
+        "name": "UsersEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/users/UsersEntityManager.js",
+        "size": 89120,
+        "lastModified": "2025-09-25T05:07:23.482Z",
+        "lines": 3019,
+        "checksum": "d751ac3bedee76fa47d642d33927b2c38ddbda180ce26e7e6524937697f928e9",
+        "type": "EntityManager"
+      },
+      {
+        "name": "MigrationTypesEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/migration-types/MigrationTypesEntityManager.js",
+        "size": 77325,
+        "lastModified": "2025-09-25T05:07:23.481Z",
+        "lines": 2207,
+        "checksum": "187058a96548964d5d09a56ff0971aa4ea1de9eb024569acb865c59a53eb6b0f",
+        "type": "EntityManager"
+      },
+      {
+        "name": "MigrationsEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/migrations/MigrationsEntityManager.js",
+        "size": 37298,
+        "lastModified": "2025-09-25T05:07:23.481Z",
+        "lines": 1273,
+        "checksum": "cd1df7afa8ebbca4c0b261233b7b5cce71e9ed46e583953dedb4320135c6d1e3",
+        "type": "EntityManager"
+      },
+      {
+        "name": "ApplicationsEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/applications/ApplicationsEntityManager.js",
+        "size": 41306,
+        "lastModified": "2025-09-25T05:07:23.480Z",
+        "lines": 1189,
+        "checksum": "28f09096d124cc740f683ebb6e3c22cf1cd11e7f1a4df00e76845ac94f6bbd5c",
+        "type": "EntityManager"
+      },
+      {
+        "name": "EnvironmentsEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/environments/EnvironmentsEntityManager.js",
+        "size": 60857,
+        "lastModified": "2025-09-25T05:07:23.480Z",
+        "lines": 1933,
+        "checksum": "a8bad89c5a57c4ee0c68445433c0b2653f781e3fb2d37901c97d1c736a65b7df",
+        "type": "EntityManager"
+      },
+      {
+        "name": "IterationTypesEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/iteration-types/IterationTypesEntityManager.js",
+        "size": 119845,
+        "lastModified": "2025-09-25T05:07:23.480Z",
+        "lines": 3711,
+        "checksum": "de14753b51b1da7af28170a79a5d8a7b448aab4b48dc15299da9104ad5990be0",
+        "type": "EntityManager"
+      },
+      {
+        "name": "LabelsEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/labels/LabelsEntityManager.js",
+        "size": 62386,
+        "lastModified": "2025-09-25T05:07:23.480Z",
+        "lines": 1827,
+        "checksum": "d8ef2d149803b5abd2333cecccff04238fd757731aa7cf348d057ef117b1bcba",
+        "type": "EntityManager"
+      },
+      {
+        "name": "TableComponent.js",
+        "path": "src/groovy/umig/web/js/components/TableComponent.js",
+        "size": 75740,
+        "lastModified": "2025-09-25T05:07:23.479Z",
+        "lines": 2571,
+        "checksum": "775c53ccb8954caf64eb5ad72a0b8864ca347f99677a9a95029c9bb639537de3",
+        "type": "Component"
+      },
+      {
+        "name": "WelcomeComponent.js",
+        "path": "src/groovy/umig/web/js/components/WelcomeComponent.js",
+        "size": 31135,
+        "lastModified": "2025-09-25T05:07:23.479Z",
+        "lines": 1191,
+        "checksum": "da97faefef0cd3f85c354afa4ed0f5cc35bbcc98f4f254c4039fdefb35b22c9a",
+        "type": "Component"
+      },
+      {
+        "name": "BaseEntityManager.js",
+        "path": "src/groovy/umig/web/js/entities/BaseEntityManager.js",
+        "size": 121802,
+        "lastModified": "2025-09-25T05:07:23.479Z",
+        "lines": 3632,
+        "checksum": "e6260c740524e4f7aeeac5246cbbfd05f4e7eb5cb6f82921b17c865aafd0a5ae",
+        "type": "EntityManager"
+      },
+      {
+        "name": "EmailUtils.js",
+        "path": "src/groovy/umig/web/js/components/EmailUtils.js",
+        "size": 8593,
+        "lastModified": "2025-09-25T05:07:23.478Z",
+        "lines": 254,
+        "checksum": "f72384a1b36d90f15d1178badbd483a42f3712002b11abe2e1a79546bb1b0dd0",
+        "type": "Security"
+      },
+      {
+        "name": "PaginationComponent.js",
+        "path": "src/groovy/umig/web/js/components/PaginationComponent.js",
+        "size": 30358,
+        "lastModified": "2025-09-25T05:07:23.478Z",
+        "lines": 1088,
+        "checksum": "1912fb9a64a4edcd7c765a12344e3853da027a5a467f6da4cbcd2b940d586577",
+        "type": "Component"
+      },
+      {
+        "name": "ProductionLogger.js",
+        "path": "src/groovy/umig/web/js/components/ProductionLogger.js",
+        "size": 7599,
+        "lastModified": "2025-09-25T05:07:23.478Z",
+        "lines": 279,
+        "checksum": "539e28ac5d670daf4016c8ceed763a64cc548f6a996d2c9729b60da11edc2299",
+        "type": "JavaScript"
+      },
+      {
+        "name": "SecurityRequired.js",
+        "path": "src/groovy/umig/web/js/components/SecurityRequired.js",
+        "size": 6330,
+        "lastModified": "2025-09-25T05:07:23.478Z",
+        "lines": 263,
+        "checksum": "7e2d60d414d3d745407567b5c2be4802a443098da199d76faf7286548b5a6c85",
+        "type": "Security"
+      },
+      {
+        "name": "ColorPickerComponent.js",
+        "path": "src/groovy/umig/web/js/components/ColorPickerComponent.js",
+        "size": 23577,
+        "lastModified": "2025-09-25T05:07:23.477Z",
+        "lines": 890,
+        "checksum": "619245c1bf023d71c2db8e5ac12507978492dc67ebcbcda1aaf17893dcaefe34",
+        "type": "Component"
+      },
+      {
+        "name": "ComponentOrchestrator.js",
+        "path": "src/groovy/umig/web/js/components/ComponentOrchestrator.js",
+        "size": 94816,
+        "lastModified": "2025-09-25T05:07:23.477Z",
+        "lines": 3311,
+        "checksum": "70d6287740c6fa96f3ec14616daedc4c72d5e4b708913a915c9764885bbaac9c",
+        "type": "Orchestrator"
+      },
+      {
+        "name": "FilterComponent.js",
+        "path": "src/groovy/umig/web/js/components/FilterComponent.js",
+        "size": 21191,
+        "lastModified": "2025-09-19T03:40:47.939Z",
+        "lines": 836,
+        "checksum": "229bb0ba5d3bdfa8f44cffc2e216b6bbe7875605e3b5c15ea675ffd49440a908",
+        "type": "Component"
+      }
+    ]
+  },
+  "version": {
+    "version": "null-dev.null+null",
+    "baseVersion": null,
+    "buildNumber": null,
+    "gitCommit": null,
+    "gitBranch": "feature/US-088-build-process",
+    "timestamp": null,
+    "environment": "dev",
+    "buildDate": "25/09/2025",
+    "buildTime": "4:19:47 pm",
+    "nodeVersion": "v24.3.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  }
+}

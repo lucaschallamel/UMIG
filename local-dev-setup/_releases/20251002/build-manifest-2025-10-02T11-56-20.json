@@ -1,0 +1,37 @@
+{
+  "packageInfo": {
+    "name": "UMIG Deployment Package",
+    "version": "1.0.0-uat.20251002.1356+7a7f4c9c0",
+    "environment": "uat",
+    "buildDate": "02/10/2025, 01:56:20 pm",
+    "buildDuration": "unknown"
+  },
+  "contents": {
+    "umig": {
+      "files": 23,
+      "description": "Core ScriptRunner application with admin GUI components"
+    },
+    "database": {
+      "files": "36+",
+      "description": "Liquibase migrations and database assets"
+    },
+    "documentation": {
+      "files": "6+",
+      "description": "Deployment guides and setup instructions"
+    }
+  },
+  "deployment": {
+    "instructions": "See README.md for deployment steps",
+    "requirements": [
+      "ScriptRunner 9.21+",
+      "PostgreSQL 14+"
+    ],
+    "archiveSize": "1.09 MB"
+  },
+  "buildInfo": {
+    "gitCommit": "7a7f4c9c0",
+    "gitBranch": "main",
+    "nodeVersion": "v24.3.0",
+    "buildHost": "unknown"
+  }
+}
