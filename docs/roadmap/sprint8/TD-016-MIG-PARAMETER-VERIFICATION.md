@@ -10,9 +10,10 @@
 ## Executive Summary
 
 **CRITICAL FINDING**: The `mig` parameter is **ALREADY IMPLEMENTED** in the current codebase. The issue described in TD-016 Component 2 ("Missing `mig` parameter") appears to be either:
+
 1. Already fixed in a previous sprint
 2. A misdiagnosis of the actual problem
-3. An issue with parameter *passing* rather than parameter *inclusion*
+3. An issue with parameter _passing_ rather than parameter _inclusion_
 
 **Impact on TD-016**: Component 2 effort should be **reduced from 2 points to 0.5-1 point** (investigation + verification only).
 
@@ -51,6 +52,7 @@ static String buildStepViewUrl(UUID stepInstanceId, String migrationCode, String
 **Three email notification methods ALL pass migrationCode**:
 
 1. **Line 235** - Status changed notification:
+
 ```groovy
 stepViewUrl = UrlConstructionService.buildStepViewUrl(
     stepInstanceUuid,
@@ -60,6 +62,7 @@ stepViewUrl = UrlConstructionService.buildStepViewUrl(
 ```
 
 2. **Line 457** - Step opened notification:
+
 ```groovy
 stepViewUrl = UrlConstructionService.buildStepViewUrl(
     stepInstanceUuid,
@@ -69,6 +72,7 @@ stepViewUrl = UrlConstructionService.buildStepViewUrl(
 ```
 
 3. **Line 582** - Instruction completed notification:
+
 ```groovy
 stepViewUrl = UrlConstructionService.buildStepViewUrl(
     stepInstanceUuid,
@@ -124,21 +128,25 @@ assert result.contains('stepid=BUS-001')
 Given that the code CLEARLY includes the `mig` parameter, the issue described in TD-016 must be one of the following:
 
 ### Hypothesis 1: Already Fixed ✅ MOST LIKELY
+
 - TD-016 was written based on an older codebase state
 - The issue was already resolved during Sprint 7 work
 - TD-016 Component 2 is now obsolete
 
 ### Hypothesis 2: Parameter Source Issue
+
 - `migrationCode` variable might be **null or empty** when passed to the method
 - Issue is in the **calling code**, not the URL construction service
 - Need to trace where `migrationCode` originates (repository layer)
 
 ### Hypothesis 3: Confluence Page URL Handling
+
 - Parameter is included in the URL but not properly **consumed** by the Confluence macro
 - Issue is on the **frontend JavaScript side**, not backend
 - Macro needs to extract and use the `mig` parameter
 
 ### Hypothesis 4: Template URL vs Instance URL
+
 - The **template URL** (`buildStepViewUrlTemplate()`) might not include dynamic parameters
 - Issue only affects macro-based URL generation, not email notifications
 - Two different code paths serving different purposes
@@ -162,6 +170,7 @@ npm start
 ```
 
 **Expected Results**:
+
 - URL should include: `?pageId=XXXX&mig=YYYYY&ite=ZZZZZ&stepid=AAA-BBB`
 - Clicking URL should navigate correctly
 - If BOTH work → Component 2 is obsolete
@@ -193,13 +202,13 @@ urlBuilder.append("pages/viewpage.action?pageId=${pageId}")
 
 ### Story Point Adjustment
 
-| Component | Original | Revised | Change | Reason |
-|-----------|----------|---------|--------|--------|
-| Component 1 | 3 pts | 3 pts | 0 | No change |
-| Component 2 | 2 pts | 0.5 pts | **-1.5 pts** | Already implemented |
-| Component 3 | 2 pts | 2 pts | 0 | No change |
-| Component 4 | 1 pt | 1 pt | 0 | No change |
-| **TOTAL** | **8 pts** | **6.5 pts** | **-1.5 pts** | 19% reduction |
+| Component   | Original  | Revised     | Change       | Reason              |
+| ----------- | --------- | ----------- | ------------ | ------------------- |
+| Component 1 | 3 pts     | 3 pts       | 0            | No change           |
+| Component 2 | 2 pts     | 0.5 pts     | **-1.5 pts** | Already implemented |
+| Component 3 | 2 pts     | 2 pts       | 0            | No change           |
+| Component 4 | 1 pt      | 1 pt        | 0            | No change           |
+| **TOTAL**   | **8 pts** | **6.5 pts** | **-1.5 pts** | 19% reduction       |
 
 ### Timeline Impact
 

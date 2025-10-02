@@ -127,14 +127,15 @@
 - ✅ DatabaseUtil.withSql pattern throughout
 
 **Test Categories** (45 tests completed):
-  - Category A: CRUD Operations (10 tests)
-  - Category B: Pagination & Retrieval (8 tests)
-  - Category C: Hierarchical Relationships (12 tests)
-  - Category D: Status Filtering (3 tests)
-  - Category E: Date Range Filtering (3 tests)
-  - Category F: Validation (3 tests)
-  - Category G: SQL State Mapping (4 tests)
-  - Category H: JOIN NULL Edge Cases (2 tests)
+
+- Category A: CRUD Operations (10 tests)
+- Category B: Pagination & Retrieval (8 tests)
+- Category C: Hierarchical Relationships (12 tests)
+- Category D: Status Filtering (3 tests)
+- Category E: Date Range Filtering (3 tests)
+- Category F: Validation (3 tests)
+- Category G: SQL State Mapping (4 tests)
+- Category H: JOIN NULL Edge Cases (2 tests)
 
 **Test Scenarios** (45 tests completed):
 

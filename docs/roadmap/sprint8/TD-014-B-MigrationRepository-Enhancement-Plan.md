@@ -26,18 +26,21 @@
 #### **Category D: Status Filtering** (30 minutes)
 
 **D1: Get Migrations By Status** (10 min)
+
 - Location: Line 1954
 - Implementation: Test `getMigrationsByStatus('DRAFT')`
 - Expected: Return migrations with statusName='DRAFT'
 - Validation: Count matches, fields correct
 
 **D2: Get Migrations By Multiple Statuses** (10 min)
+
 - Location: Line 1963
 - Implementation: Test `getMigrationsByStatuses(['DRAFT', 'IN_PROGRESS'])`
 - Expected: Return migrations matching either status
 - Validation: Multiple status filtering works
 
 **D3: Count Migrations By Status** (10 min)
+
 - Location: Line 1971
 - Implementation: Test `countMigrationsByStatus('COMPLETED')`
 - Expected: Count of completed migrations
@@ -46,18 +49,21 @@
 #### **Category E: Date Range Filtering** (30 minutes)
 
 **E1: Get Migrations By Date Range** (10 min)
+
 - Location: Line 1975
 - Implementation: Test `getMigrationsByDateRange(startDate, endDate)`
 - Expected: Return migrations within date range
 - Validation: Date filtering accuracy
 
 **E2: Get Overdue Migrations** (10 min)
+
 - Location: Line 1983
 - Implementation: Test `getOverdueMigrations()`
 - Expected: Return migrations past target completion date
 - Validation: Overdue calculation correct
 
 **E3: Get Upcoming Migrations** (10 min)
+
 - Location: Line 1991
 - Implementation: Test `getUpcomingMigrations(days)`
 - Expected: Return migrations due within X days
@@ -66,18 +72,21 @@
 #### **Category F: Validation** (30 minutes)
 
 **F1: Migration Exists** (10 min)
+
 - Location: Line 1996
 - Implementation: Test `migrationExists(uuid)`
 - Expected: Return true/false based on existence
 - Validation: Existence check works
 
 **F2: Is Migration Name Unique** (15 min)
+
 - Location: Line 2004
 - Implementation: Test `isMigrationNameUnique(name, excludeId)`
 - Expected: Return true if name unique, false if duplicate
 - Validation: Uniqueness check includes exclusion logic
 
 **F3: Validate Migration Deletion** (5 min)
+
 - Location: Line 2012
 - Implementation: Test `validateMigrationDeletion(uuid)`
 - Expected: Return validation result with reasons
@@ -88,6 +97,7 @@
 ### **Phase 2: Add SQL State Mapping Tests** (2 hours)
 
 #### **G1: Foreign Key Constraint Violation (23503)** (30 min)
+
 - **Scenario**: Delete migration with dependent iterations
 - **Expected**: SQL state 23503 (foreign key violation)
 - **Implementation**:
@@ -100,6 +110,7 @@
   ```
 
 #### **G2: Unique Constraint Violation (23505)** (30 min)
+
 - **Scenario**: Create migration with duplicate name
 - **Expected**: SQL state 23505 (unique constraint violation)
 - **Implementation**:
@@ -112,6 +123,7 @@
   ```
 
 #### **G3: Update Foreign Key Constraint** (30 min)
+
 - **Scenario**: Update migration with invalid status_id
 - **Expected**: SQL state 23503 (FK violation on status)
 - **Implementation**:
@@ -123,6 +135,7 @@
   ```
 
 #### **G4: Cascade Delete Validation** (30 min)
+
 - **Scenario**: Soft delete migration, verify iterations unaffected
 - **Expected**: Iterations remain, migration marked inactive
 - **Implementation**:
@@ -139,6 +152,7 @@
 ### **Phase 3: Add JOIN NULL Edge Cases** (1 hour)
 
 #### **H1: Missing Status Reference** (30 min)
+
 - **Scenario**: Migration with NULL statusId or orphaned status
 - **Expected**: Handle gracefully, don't break JOIN
 - **Implementation**:
@@ -151,6 +165,7 @@
   ```
 
 #### **H2: Orphaned Iteration Records** (30 min)
+
 - **Scenario**: Iterations referencing deleted migration
 - **Expected**: Handle gracefully in hierarchy queries
 - **Implementation**:
@@ -168,6 +183,7 @@
 ### **Phase 4: Validation & Testing** (30 minutes)
 
 #### **Test Execution** (20 min)
+
 ```bash
 # Run complete test suite
 groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryComprehensiveTest.groovy
@@ -177,6 +193,7 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 ```
 
 #### **Coverage Validation** (10 min)
+
 - Verify all 29 methods covered
 - Confirm categories A-H complete
 - Validate quality compliance maintained
@@ -186,11 +203,13 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 ### **Phase 5: Documentation Update** (1 hour)
 
 #### **Update Test Inventory** (30 min)
+
 - Document all 55 tests by category
 - Update TD-014-B progress (MigrationRepository COMPLETE)
 - Update coverage metrics
 
 #### **Update Kickoff Note** (30 min)
+
 - Revise Day 1 plan (MigrationRepository done, not 20%)
 - Update Day 2 plan (move to LabelRepository)
 - Adjust timeline (4-5 days now 3-4 days)
@@ -237,6 +256,7 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 ## ✅ Success Criteria
 
 ### **Phase Completion**:
+
 - [x] Phase 1: 9 placeholder tests complete (D1-D3, E1-E3, F1-F3) ✅
 - [x] Phase 2: 4 SQL state mapping tests added (G1-G4) ✅
 - [x] Phase 3: 2 JOIN NULL edge case tests added (H1-H2) ✅
@@ -244,6 +264,7 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 - [x] Phase 5: Documentation updated ✅
 
 ### **Quality Gates**:
+
 - [x] All tests passing (100% pass rate)
 - [x] Coverage ≥95% (28-29 of 29 methods)
 - [x] TD-001 compliance maintained
@@ -252,6 +273,7 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 - [x] Quality score ≥9.5/10
 
 ### **Documentation**:
+
 - [x] Test inventory updated (55 tests categorized)
 - [x] TD-014-B progress updated (MigrationRepository COMPLETE)
 - [x] Day 1-2 plans revised
@@ -262,12 +284,14 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 ## 📊 Expected Outcomes
 
 **Before Enhancement**:
+
 - 39/50 tests (78%)
 - 8.3/10 quality score
 - 9 placeholder tests
 - Missing critical edge cases
 
 **After Enhancement**:
+
 - 45/45 tests (100% complete)
 - 9.5+/10 quality score ✅
 - 0 placeholder tests ✅
@@ -278,6 +302,7 @@ groovy local-dev-setup/__tests__/groovy/isolated/repository/MigrationRepositoryC
 **Note on Test Count**: Original plan estimated 55 tests, achieved all objectives with 45 tests through efficient test design that covered multiple scenarios per test without sacrificing coverage or quality.
 
 **Impact on TD-014-B**:
+
 - MigrationRepository: ✅ **COMPLETE** (was 0%, now 100%)
 - Story progress: 0% → 25% (MigrationRepository = 1.5 of 6.0 pts)
 - Remaining: 5 repositories (LabelRepository, PlanRepository, SequenceRepository, PhaseRepository, InstructionRepository)

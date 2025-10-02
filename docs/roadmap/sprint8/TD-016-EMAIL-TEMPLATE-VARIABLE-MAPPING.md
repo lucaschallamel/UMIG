@@ -12,6 +12,7 @@
 **CRITICAL FINDING**: Email templates have access to **56 variables**, not 35 as claimed in TD-016.
 
 **Breakdown**:
+
 - 35 fields from `StepRepository.getCompleteStepForEmail()`
 - 21 computed/derived variables in `EnhancedEmailService`
 - **Total**: 56 variables available in email templates
@@ -24,81 +25,81 @@
 
 ### Category 1: Core Step Data (10 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `stepInstance` | EnhancedEmailService | Object | Complete step object | `{{stepInstance}}` |
-| `step_code` | Computed from `sti_code` | String | "BUS-031" | `{{step_code}}` |
-| `step_title` | `stm_name` or `sti_name` | String | "Deploy Application" | `{{step_title}}` |
-| `step_description` | `stm_description` or `sti_description` | String | "Deploy app to prod" | `{{step_description}}` |
-| `step_duration` | `sti_duration_minutes` or `stm_duration_minutes` | Integer | 45 | `{{step_duration}}` |
-| `step_scope` | `stm_scope` | String | "Application" | `{{step_scope}}` |
-| `step_location` | `stm_location` | String | "Data Center 1" | `{{step_location}}` |
-| `oldStatus` | Method parameter | String | "PENDING" | `{{oldStatus}}` |
-| `newStatus` | Method parameter | String | "IN_PROGRESS" | `{{newStatus}}` |
-| `statusColor` | Computed from `newStatus` | String | "#28a745" | `{{statusColor}}` |
+| Variable           | Source                                           | Type    | Example              | Template Usage         |
+| ------------------ | ------------------------------------------------ | ------- | -------------------- | ---------------------- |
+| `stepInstance`     | EnhancedEmailService                             | Object  | Complete step object | `{{stepInstance}}`     |
+| `step_code`        | Computed from `sti_code`                         | String  | "BUS-031"            | `{{step_code}}`        |
+| `step_title`       | `stm_name` or `sti_name`                         | String  | "Deploy Application" | `{{step_title}}`       |
+| `step_description` | `stm_description` or `sti_description`           | String  | "Deploy app to prod" | `{{step_description}}` |
+| `step_duration`    | `sti_duration_minutes` or `stm_duration_minutes` | Integer | 45                   | `{{step_duration}}`    |
+| `step_scope`       | `stm_scope`                                      | String  | "Application"        | `{{step_scope}}`       |
+| `step_location`    | `stm_location`                                   | String  | "Data Center 1"      | `{{step_location}}`    |
+| `oldStatus`        | Method parameter                                 | String  | "PENDING"            | `{{oldStatus}}`        |
+| `newStatus`        | Method parameter                                 | String  | "IN_PROGRESS"        | `{{newStatus}}`        |
+| `statusColor`      | Computed from `newStatus`                        | String  | "#28a745"            | `{{statusColor}}`      |
 
 **Data Source**: `StepRepository.getCompleteStepForEmail()` lines 4035-4050
 
 ### Category 2: Status & Change Context (5 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `changedAt` | `new Date()` | String | "2025-10-01 14:30:00" | `{{changedAt}}` |
-| `changedBy` | `getUsernameById(userId)` | String | "jsmith" | `{{changedBy}}` |
-| `operationType` | Hardcoded | String | "STEP_STATUS_CHANGED" | `{{operationType}}` |
-| `changeContext` | Computed | String | "Status changed from..." | `{{changeContext}}` |
-| `statusBadgeHtml` | Computed helper | String | HTML badge | `{{statusBadgeHtml}}` |
+| Variable          | Source                    | Type   | Example                  | Template Usage        |
+| ----------------- | ------------------------- | ------ | ------------------------ | --------------------- |
+| `changedAt`       | `new Date()`              | String | "2025-10-01 14:30:00"    | `{{changedAt}}`       |
+| `changedBy`       | `getUsernameById(userId)` | String | "jsmith"                 | `{{changedBy}}`       |
+| `operationType`   | Hardcoded                 | String | "STEP_STATUS_CHANGED"    | `{{operationType}}`   |
+| `changeContext`   | Computed                  | String | "Status changed from..." | `{{changeContext}}`   |
+| `statusBadgeHtml` | Computed helper           | String | HTML badge               | `{{statusBadgeHtml}}` |
 
 **Data Source**: EnhancedEmailService lines 261-267, 333
 
 ### Category 3: URL & Navigation (6 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `stepViewUrl` | `UrlConstructionService.buildStepViewUrl()` | String | "http://localhost:8090/..." | `{{stepViewUrl}}` |
-| `contextualStepUrl` | Copy of `stepViewUrl` | String | Same as above | `{{contextualStepUrl}}` |
-| `hasStepViewUrl` | Boolean check | Boolean | true/false | `{{hasStepViewUrl}}` |
-| `migrationCode` | Method parameter | String | "MIG-2025-Q1" | `{{migrationCode}}` |
-| `iterationCode` | Method parameter | String | "ITER-001" | `{{iterationCode}}` |
-| `stepViewLinkHtml` | Computed helper | String | HTML link | `{{stepViewLinkHtml}}` |
+| Variable            | Source                                      | Type    | Example                     | Template Usage          |
+| ------------------- | ------------------------------------------- | ------- | --------------------------- | ----------------------- |
+| `stepViewUrl`       | `UrlConstructionService.buildStepViewUrl()` | String  | "http://localhost:8090/..." | `{{stepViewUrl}}`       |
+| `contextualStepUrl` | Copy of `stepViewUrl`                       | String  | Same as above               | `{{contextualStepUrl}}` |
+| `hasStepViewUrl`    | Boolean check                               | Boolean | true/false                  | `{{hasStepViewUrl}}`    |
+| `migrationCode`     | Method parameter                            | String  | "MIG-2025-Q1"               | `{{migrationCode}}`     |
+| `iterationCode`     | Method parameter                            | String  | "ITER-001"                  | `{{iterationCode}}`     |
+| `stepViewLinkHtml`  | Computed helper                             | String  | HTML link                   | `{{stepViewLinkHtml}}`  |
 
 **Data Source**: UrlConstructionService line 50, EnhancedEmailService lines 225-245, 331
 
 ### Category 4: Environment Context (5 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `environment_name` | `env.env_name` | String | "Production" | `{{environment_name}}` |
-| `environment_type` | `stepInstance.environment_type` | String | "PROD" | `{{environment_type}}` |
-| `environment_role_name` | `enr.enr_name` | String | "Target Server" | `{{environment_role_name}}` |
-| `target_environment` | Computed | String | "Target Server (Production)" | `{{target_environment}}` |
-| `environmentRowHtml` | Computed helper | String | HTML row | `{{environmentRowHtml}}` |
+| Variable                | Source                          | Type   | Example                      | Template Usage              |
+| ----------------------- | ------------------------------- | ------ | ---------------------------- | --------------------------- |
+| `environment_name`      | `env.env_name`                  | String | "Production"                 | `{{environment_name}}`      |
+| `environment_type`      | `stepInstance.environment_type` | String | "PROD"                       | `{{environment_type}}`      |
+| `environment_role_name` | `enr.enr_name`                  | String | "Target Server"              | `{{environment_role_name}}` |
+| `target_environment`    | Computed                        | String | "Target Server (Production)" | `{{target_environment}}`    |
+| `environmentRowHtml`    | Computed helper                 | String | HTML row                     | `{{environmentRowHtml}}`    |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4049-4051, EnhancedEmailService lines 276-281, 344-346
 
 ### Category 5: Team Context (7 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `team_name` | `team.tms_name` | String | "Infrastructure Team" | `{{team_name}}` |
-| `team_email` | `team.tms_email` | String | "infra@example.com" | `{{team_email}}` |
-| `impacted_teams` | Array from join table | String (CSV) | "Team1,Team2,Team3" | `{{impacted_teams}}` |
-| `impacted_teams_list` | Copy of `impacted_teams` | String | Same as above | `{{impacted_teams_list}}` |
-| `has_impacted_teams` | Boolean check | Boolean | true/false | `{{has_impacted_teams}}` |
-| `impacted_teams_count` | Computed | Integer | 3 | `{{impacted_teams_count}}` |
-| `teamRowHtml` | Computed helper | String | HTML row | `{{teamRowHtml}}` |
-| `impactedTeamsRowHtml` | Computed helper | String | HTML row | `{{impactedTeamsRowHtml}}` |
+| Variable               | Source                   | Type         | Example               | Template Usage             |
+| ---------------------- | ------------------------ | ------------ | --------------------- | -------------------------- |
+| `team_name`            | `team.tms_name`          | String       | "Infrastructure Team" | `{{team_name}}`            |
+| `team_email`           | `team.tms_email`         | String       | "infra@example.com"   | `{{team_email}}`           |
+| `impacted_teams`       | Array from join table    | String (CSV) | "Team1,Team2,Team3"   | `{{impacted_teams}}`       |
+| `impacted_teams_list`  | Copy of `impacted_teams` | String       | Same as above         | `{{impacted_teams_list}}`  |
+| `has_impacted_teams`   | Boolean check            | Boolean      | true/false            | `{{has_impacted_teams}}`   |
+| `impacted_teams_count` | Computed                 | Integer      | 3                     | `{{impacted_teams_count}}` |
+| `teamRowHtml`          | Computed helper          | String       | HTML row              | `{{teamRowHtml}}`          |
+| `impactedTeamsRowHtml` | Computed helper          | String       | HTML row              | `{{impactedTeamsRowHtml}}` |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4053-4056, 4141-4147, EnhancedEmailService lines 284-310, 332, 334
 
 ### Category 6: Predecessor/Successor (4 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `predecessor_code` | Computed from `pred` join | String | "BUS-030" | `{{predecessor_code}}` |
-| `predecessor_name` | `pred.stm_name` | String | "Prepare Environment" | `{{predecessor_name}}` |
-| `has_predecessor` | Boolean check | Boolean | true/false | `{{has_predecessor}}` |
-| `predecessorRowHtml` | Computed helper | String | HTML row | `{{predecessorRowHtml}}` |
+| Variable             | Source                    | Type    | Example               | Template Usage           |
+| -------------------- | ------------------------- | ------- | --------------------- | ------------------------ |
+| `predecessor_code`   | Computed from `pred` join | String  | "BUS-030"             | `{{predecessor_code}}`   |
+| `predecessor_name`   | `pred.stm_name`           | String  | "Prepare Environment" | `{{predecessor_name}}`   |
+| `has_predecessor`    | Boolean check             | Boolean | true/false            | `{{has_predecessor}}`    |
+| `predecessorRowHtml` | Computed helper           | String  | HTML row              | `{{predecessorRowHtml}}` |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4063-4075, 4166-4173, EnhancedEmailService lines 293-294, 340-341
 
@@ -106,18 +107,19 @@
 
 ### Category 7: Instructions (6 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `instructions` | Array from `instructions_instance_ini` | Array | `[{...}, {...}]` | `{{instructions}}` |
-| `instruction_count` | Array size | Integer | 5 | `{{instruction_count}}` |
-| `has_instructions` | Boolean check | Boolean | true/false | `{{has_instructions}}` |
-| `instructionsHtml` | `buildInstructionsHtml()` helper | String | HTML table | `{{instructionsHtml}}` |
-| `completedInstructions` | Filtered array | Array | Completed items | Via `stepInstance` |
-| `pendingInstructions` | Filtered array | Array | Pending items | Via `stepInstance` |
+| Variable                | Source                                 | Type    | Example          | Template Usage          |
+| ----------------------- | -------------------------------------- | ------- | ---------------- | ----------------------- |
+| `instructions`          | Array from `instructions_instance_ini` | Array   | `[{...}, {...}]` | `{{instructions}}`      |
+| `instruction_count`     | Array size                             | Integer | 5                | `{{instruction_count}}` |
+| `has_instructions`      | Boolean check                          | Boolean | true/false       | `{{has_instructions}}`  |
+| `instructionsHtml`      | `buildInstructionsHtml()` helper       | String  | HTML table       | `{{instructionsHtml}}`  |
+| `completedInstructions` | Filtered array                         | Array   | Completed items  | Via `stepInstance`      |
+| `pendingInstructions`   | Filtered array                         | Array   | Pending items    | Via `stepInstance`      |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4123-4138, EnhancedEmailService lines 297-299, 329
 
 **Instruction Object Fields** (5 fields per instruction):
+
 - `ini_id` (UUID)
 - `ini_name` (String) - from `inm_body`
 - `ini_description` (String) - from `inm_body`
@@ -130,17 +132,18 @@
 
 ### Category 8: Comments (6 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `comments` | Array from `comments_cmt` | Array | `[{...}, {...}]` | `{{comments}}` |
-| `comment_count` | Array size | Integer | 3 | `{{comment_count}}` |
-| `has_comments` | Boolean check | Boolean | true/false | `{{has_comments}}` |
-| `commentsHtml` | `buildCommentsHtml()` helper | String | HTML section | `{{commentsHtml}}` |
-| `recentComments` | Processed via `processCommentsForTemplate()` | Array | Last 3 comments | `{{recentComments}}` |
+| Variable         | Source                                       | Type    | Example          | Template Usage       |
+| ---------------- | -------------------------------------------- | ------- | ---------------- | -------------------- |
+| `comments`       | Array from `comments_cmt`                    | Array   | `[{...}, {...}]` | `{{comments}}`       |
+| `comment_count`  | Array size                                   | Integer | 3                | `{{comment_count}}`  |
+| `has_comments`   | Boolean check                                | Boolean | true/false       | `{{has_comments}}`   |
+| `commentsHtml`   | `buildCommentsHtml()` helper                 | String  | HTML section     | `{{commentsHtml}}`   |
+| `recentComments` | Processed via `processCommentsForTemplate()` | Array   | Last 3 comments  | `{{recentComments}}` |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4140-4152, EnhancedEmailService lines 302-304, 327, 330
 
 **Comment Object Fields** (4 fields per comment):
+
 - `author_name` (String) - from `usr_full_name`
 - `author_username` (String) - from `usr_code`
 - `created_at` (Timestamp)
@@ -150,42 +153,42 @@
 
 ### Category 9: Hierarchy Context (5 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `migration_name` | `mig.mig_name` | String | "Toronto Migration" | `{{migration_name}}` |
-| `iteration_name` | `ite.ite_name` | String | "Cutover Iteration 1" | `{{iteration_name}}` |
-| `plan_name` | `plm.plm_name` | String | "Application Plan" | `{{plan_name}}` |
-| `sequence_name` | `sqm.sqm_name` | String | "Deploy Sequence" | `{{sequence_name}}` |
-| `phase_name` | `phm.phm_name` | String | "Execution Phase" | `{{phase_name}}` |
-| `breadcrumb` | `buildBreadcrumb()` helper | String | "Toronto > ... > Phase" | `{{breadcrumb}}` |
+| Variable         | Source                     | Type   | Example                 | Template Usage       |
+| ---------------- | -------------------------- | ------ | ----------------------- | -------------------- |
+| `migration_name` | `mig.mig_name`             | String | "Toronto Migration"     | `{{migration_name}}` |
+| `iteration_name` | `ite.ite_name`             | String | "Cutover Iteration 1"   | `{{iteration_name}}` |
+| `plan_name`      | `plm.plm_name`             | String | "Application Plan"      | `{{plan_name}}`      |
+| `sequence_name`  | `sqm.sqm_name`             | String | "Deploy Sequence"       | `{{sequence_name}}`  |
+| `phase_name`     | `phm.phm_name`             | String | "Execution Phase"       | `{{phase_name}}`     |
+| `breadcrumb`     | `buildBreadcrumb()` helper | String | "Toronto > ... > Phase" | `{{breadcrumb}}`     |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4081-4119, EnhancedEmailService lines 313-317, 328
 
 ### Category 10: Operation Context (4 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `sourceView` | Hardcoded | String | "stepview" | `{{sourceView}}` |
-| `isDirectChange` | Hardcoded | Boolean | true | `{{isDirectChange}}` |
-| `isBulkOperation` | Hardcoded | Boolean | false | `{{isBulkOperation}}` |
+| Variable          | Source    | Type    | Example    | Template Usage        |
+| ----------------- | --------- | ------- | ---------- | --------------------- |
+| `sourceView`      | Hardcoded | String  | "stepview" | `{{sourceView}}`      |
+| `isDirectChange`  | Hardcoded | Boolean | true       | `{{isDirectChange}}`  |
+| `isBulkOperation` | Hardcoded | Boolean | false      | `{{isBulkOperation}}` |
 
 **Data Source**: EnhancedEmailService lines 321-323
 
 ### Category 11: Computed Metadata (4 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
-| `total_instructions` | Array size | Integer | 5 | Via `stepInstance` |
-| `completed_instruction_count` | Filtered count | Integer | 3 | Via `stepInstance` |
-| `pending_instruction_count` | Filtered count | Integer | 2 | Via `stepInstance` |
-| `instruction_completion_percentage` | Computed | Integer | 60 | Via `stepInstance` |
+| Variable                            | Source         | Type    | Example | Template Usage     |
+| ----------------------------------- | -------------- | ------- | ------- | ------------------ |
+| `total_instructions`                | Array size     | Integer | 5       | Via `stepInstance` |
+| `completed_instruction_count`       | Filtered count | Integer | 3       | Via `stepInstance` |
+| `pending_instruction_count`         | Filtered count | Integer | 2       | Via `stepInstance` |
+| `instruction_completion_percentage` | Computed       | Integer | 60      | Via `stepInstance` |
 
 **Data Source**: `getCompleteStepForEmail()` lines 4224-4233
 
 ### Category 12: Helper HTML Methods (4 variables)
 
-| Variable | Source | Type | Example | Template Usage |
-|----------|--------|------|---------|----------------|
+| Variable                 | Source                          | Type   | Example               | Template Usage               |
+| ------------------------ | ------------------------------- | ------ | --------------------- | ---------------------------- |
 | `durationAndEnvironment` | `buildDurationAndEnvironment()` | String | "45 min • Production" | `{{durationAndEnvironment}}` |
 
 **Data Source**: EnhancedEmailService line 330, helper method lines 990-1010
@@ -231,6 +234,7 @@ Email Template (*.gsp or inline HTML)
 ### ✅ All 35 Repository Fields Mapped
 
 **Core Step (6)**:
+
 - [x] sti_id
 - [x] sti_code (exposed as `step_code`)
 - [x] sti_name (exposed as `step_title`)
@@ -239,26 +243,31 @@ Email Template (*.gsp or inline HTML)
 - [x] sti_status (exposed as `newStatus`)
 
 **Environment (3)**:
+
 - [x] environment_name
 - [x] environment_role_name
 - [x] environment_type (implied)
 
 **Team (3)**:
+
 - [x] team_id
 - [x] team_name
 - [x] team_email
 
 **Predecessor (3)**:
+
 - [x] predecessor_code
 - [x] predecessor_name
 - [x] has_predecessor
 
 **Successor (3)**:
+
 - [x] successor_code
 - [x] successor_name
 - [x] has_successor
 
 **Migration/Iteration (6)**:
+
 - [x] migration_code
 - [x] migration_name
 - [x] migration_description
@@ -267,17 +276,20 @@ Email Template (*.gsp or inline HTML)
 - [x] iteration_description
 
 **Hierarchy (3)**:
+
 - [x] plan_name
 - [x] sequence_name
 - [x] phase_name
 
 **Collections (4)**:
+
 - [x] instructions (array)
 - [x] recentComments (array)
 - [x] impacted_teams (array)
 - [x] completedInstructions (array)
 
 **Metadata (4)**:
+
 - [x] total_instructions
 - [x] completed_instruction_count
 - [x] pending_instruction_count
@@ -286,6 +298,7 @@ Email Template (*.gsp or inline HTML)
 ### ✅ All 21 Computed Variables Mapped
 
 **Status & Change (5)**:
+
 - [x] changedAt
 - [x] changedBy
 - [x] operationType
@@ -293,16 +306,19 @@ Email Template (*.gsp or inline HTML)
 - [x] statusBadgeHtml
 
 **URLs (3)**:
+
 - [x] stepViewUrl
 - [x] contextualStepUrl
 - [x] stepViewLinkHtml
 
 **Operation Context (3)**:
+
 - [x] sourceView
 - [x] isDirectChange
 - [x] isBulkOperation
 
 **HTML Helpers (6)**:
+
 - [x] instructionsHtml
 - [x] commentsHtml
 - [x] breadcrumb
@@ -313,6 +329,7 @@ Email Template (*.gsp or inline HTML)
 - [x] durationAndEnvironment
 
 **Derived Counts (4)**:
+
 - [x] instruction_count
 - [x] comment_count
 - [x] has_instructions
@@ -323,12 +340,15 @@ Email Template (*.gsp or inline HTML)
 ## Critical Findings
 
 ### Finding 1: More Variables Than Documented
+
 **Claim**: "35 variables" (TD-016 line 32)
 **Reality**: 56 variables available in templates
 **Impact**: Documentation needs correction, but MORE capability than expected ✅
 
 ### Finding 2: All Helper Methods Implemented
+
 **Status**: ✅ COMPLETE
+
 - `buildInstructionsHtml()` - lines 914-946
 - `buildCommentsHtml()` - lines 955-983
 - `buildBreadcrumb()` - lines 880-900
@@ -338,12 +358,14 @@ Email Template (*.gsp or inline HTML)
 - `buildOptionalField()` - lines 1060-1075
 
 ### Finding 3: Repository Method Complete
+
 **Method**: `StepRepository.getCompleteStepForEmail()`
 **Location**: Lines 4032-4240
 **Status**: ✅ FULLY IMPLEMENTED
 **Fields**: All 35 fields present and mapped
 
 ### Finding 4: Template Variable Access Pattern
+
 **Syntax**: `{{variable_name}}` for direct access
 **Object Access**: `{{stepInstance.field_name}}` for nested access
 **Arrays**: Iteration supported via GSP syntax
@@ -353,24 +375,28 @@ Email Template (*.gsp or inline HTML)
 ## Recommendations for TD-016
 
 ### Component 1: StepRepository Enhancement
+
 **Status**: ✅ ALREADY COMPLETE
 **Evidence**: `getCompleteStepForEmail()` method exists with all 35 fields
 **Action**: Change from "implementation" to "verification and testing"
 **Effort Adjustment**: 3 points → 1 point (testing only)
 
 ### Component 2: Fix Broken Confluence Link
+
 **Status**: ✅ ALREADY COMPLETE (see TD-016-MIG-PARAMETER-VERIFICATION.md)
 **Evidence**: `mig` parameter present in UrlConstructionService line 73
 **Action**: Verification testing only
 **Effort Adjustment**: 2 points → 0.5 points
 
 ### Component 3: Email Integration & Audit Log
+
 **Status**: ⚠️ NEEDS VERIFICATION
 **Evidence**: Audit log calls present in code
 **Action**: Verify audit log entries created correctly
 **Effort**: 2 points (unchanged)
 
 ### Component 4: Multi-View Verification
+
 **Status**: 🔄 TO BE IMPLEMENTED
 **Evidence**: Test plan needed for both views
 **Action**: Manual testing from both StepView and IterationView
@@ -378,13 +404,13 @@ Email Template (*.gsp or inline HTML)
 
 ### Overall Story Point Adjustment
 
-| Component | Original | Revised | Change | Reason |
-|-----------|----------|---------|--------|--------|
-| Component 1 | 3 pts | 1 pt | **-2 pts** | Already implemented |
-| Component 2 | 2 pts | 0.5 pts | **-1.5 pts** | Already implemented |
-| Component 3 | 2 pts | 2 pts | 0 | No change |
-| Component 4 | 1 pt | 1 pt | 0 | No change |
-| **TOTAL** | **8 pts** | **4.5 pts** | **-3.5 pts** | 44% reduction |
+| Component   | Original  | Revised     | Change       | Reason              |
+| ----------- | --------- | ----------- | ------------ | ------------------- |
+| Component 1 | 3 pts     | 1 pt        | **-2 pts**   | Already implemented |
+| Component 2 | 2 pts     | 0.5 pts     | **-1.5 pts** | Already implemented |
+| Component 3 | 2 pts     | 2 pts       | 0            | No change           |
+| Component 4 | 1 pt      | 1 pt        | 0            | No change           |
+| **TOTAL**   | **8 pts** | **4.5 pts** | **-3.5 pts** | 44% reduction       |
 
 **New Timeline**: October 2 only (1 day vs 3 days)
 
@@ -428,18 +454,23 @@ Email Template (*.gsp or inline HTML)
 ### Variables by Data Type
 
 **Strings (30)**:
+
 - step_code, step_title, step_description, environment_name, team_name, migration_name, iteration_name, plan_name, sequence_name, phase_name, predecessor_code, predecessor_name, oldStatus, newStatus, statusColor, changedAt, changedBy, stepViewUrl, contextualStepUrl, migrationCode, iterationCode, impacted_teams, instructionsHtml, commentsHtml, breadcrumb, stepViewLinkHtml, statusBadgeHtml, teamRowHtml, impactedTeamsRowHtml, predecessorRowHtml, environmentRowHtml
 
 **Integers (6)**:
+
 - step_duration, instruction_count, comment_count, impacted_teams_count, total_instructions, completed_instruction_count, pending_instruction_count, instruction_completion_percentage
 
 **Booleans (6)**:
+
 - hasStepViewUrl, has_instructions, has_comments, has_impacted_teams, has_predecessor, isDirectChange, isBulkOperation
 
 **Arrays (5)**:
+
 - instructions, comments, recentComments, impacted_teams (in stepInstance), completedInstructions, pendingInstructions
 
 **Objects (1)**:
+
 - stepInstance (complete step object with all fields)
 
 ---

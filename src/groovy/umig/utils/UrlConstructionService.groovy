@@ -26,7 +26,7 @@ class UrlConstructionService {
         '^https?://[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$'
     )
     private static final Pattern PARAM_PATTERN = Pattern.compile(
-        '^[a-zA-Z0-9._\\-\\s]+$'  // Allow spaces for iteration names (\\s for all whitespace)
+        '^[a-zA-Z0-9._\\-:\\s]+$'  // Allow colons for migration codes, spaces for iteration names (\\s for all whitespace)
     )
     // More permissive pattern for page titles (allows spaces and common punctuation)
     private static final Pattern PAGE_TITLE_PATTERN = Pattern.compile(
@@ -69,12 +69,20 @@ class UrlConstructionService {
             }
             
             // Validate and sanitize parameters
+            println "🔍 [UrlConstructionService] BEFORE SANITIZATION:"
+            println "🔍 [UrlConstructionService]   migrationCode: ${migrationCode}"
+            println "🔍 [UrlConstructionService]   iterationCode: ${iterationCode}"
+            println "🔍 [UrlConstructionService]   stepDetails.step_code: ${stepDetails.step_code}"
+
             def sanitizedParams = sanitizeUrlParameters([
                 mig: migrationCode,
-                ite: iterationCode, 
+                ite: iterationCode,
                 stepid: stepDetails.step_code  // Fixed: use step_code (lowercase) from SQL query
             ])
-            
+
+            println "🔍 [UrlConstructionService] AFTER SANITIZATION:"
+            println "🔍 [UrlConstructionService]   sanitizedParams: ${sanitizedParams}"
+
             if (!sanitizedParams) {
                 println "UrlConstructionService: Parameter validation failed"
                 return null
@@ -101,20 +109,28 @@ class UrlConstructionService {
             
             // Add query parameters including pageId
             def allParams = [pageId: pageId] + sanitizedParams
+
+            println "🔍 [UrlConstructionService] URL CONSTRUCTION:"
+            println "🔍 [UrlConstructionService]   allParams: ${allParams}"
+
             def queryParams = allParams.collect { key, value ->
                 "${key}=${URLEncoder.encode(value as String, StandardCharsets.UTF_8.toString())}"
             }.join('&')
-            
+
+            println "🔍 [UrlConstructionService]   queryParams string: ${queryParams}"
+
             urlBuilder.append("?${queryParams}")
-            
+
             def constructedUrl = urlBuilder.toString()
-            
+
+            println "🔍 [UrlConstructionService]   FINAL URL: ${constructedUrl}"
+
             // Final validation
             if (!isValidUrl(constructedUrl)) {
                 println "UrlConstructionService: Final URL validation failed: ${constructedUrl}"
                 return null
             }
-            
+
             return constructedUrl
             
         } catch (Exception e) {

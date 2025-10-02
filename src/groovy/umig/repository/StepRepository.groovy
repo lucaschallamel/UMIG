@@ -1251,7 +1251,7 @@ class StepRepository {
             
             // Get instructions for this step instance with team information
             def instructions = sql.rows('''
-                SELECT 
+                SELECT
                     ini.ini_id,
                     ini.ini_is_completed,
                     ini.ini_completed_at,
@@ -1262,10 +1262,12 @@ class StepRepository {
                     inm.inm_duration_minutes,
                     inm.tms_id,
                     tms.tms_name as team_name,
-                    tms.tms_email as team_email
+                    tms.tms_email as team_email,
+                    ctm.ctm_code as control_code
                 FROM instructions_instance_ini ini
                 JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                 LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
                 WHERE ini.sti_id = :stepInstanceId
                 ORDER BY inm.inm_order
             ''', [stepInstanceId: stepInstanceId])
@@ -1350,7 +1352,8 @@ class StepRepository {
                         Duration: instruction.inm_duration_minutes,
                         TeamId: instruction.tms_id,
                         Team: instruction.team_name,
-                        TeamEmail: instruction.team_email
+                        TeamEmail: instruction.team_email,
+                        ControlCode: instruction.control_code  // BUGFIX: Include control code
                     ]
                 },
                 impactedTeams: impactedTeams,
@@ -1465,7 +1468,7 @@ class StepRepository {
             
             // Get instructions for this step instance with team information
             def instructions = sql.rows('''
-                SELECT 
+                SELECT
                     ini.ini_id,
                     ini.ini_is_completed,
                     ini.ini_completed_at,
@@ -1476,10 +1479,12 @@ class StepRepository {
                     inm.inm_duration_minutes,
                     inm.tms_id,
                     tms.tms_name as team_name,
-                    tms.tms_email as team_email
+                    tms.tms_email as team_email,
+                    ctm.ctm_code as control_code
                 FROM instructions_instance_ini ini
                 JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                 LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
                 WHERE ini.sti_id = :stiId
                 ORDER BY inm.inm_order
             ''', [stiId: stepInstance.sti_id])
@@ -1551,7 +1556,8 @@ class StepRepository {
                         CompletedBy: instruction.usr_id_completed_by,
                         TeamId: instruction.tms_id,
                         Team: instruction.team_name,
-                        TeamEmail: instruction.team_email
+                        TeamEmail: instruction.team_email,
+                        ControlCode: instruction.control_code
                     ]
                 },
                 impactedTeams: impactedTeams,
