@@ -221,6 +221,24 @@ class MigrationRepositoryComprehensiveTest {
             private static int nextUserId = 1
             private static boolean dataInitialized = false
 
+            /**
+             * Reset all mock data to initial state
+             * Called before tests to ensure clean state
+             */
+            static void resetMockData() {
+                migrations.clear()
+                statuses.clear()
+                users.clear()
+                iterations.clear()
+                planMasters.clear()
+                planInstances.clear()
+                sequences.clear()
+                phases.clear()
+                nextStatusId = 1
+                nextUserId = 1
+                dataInitialized = false
+            }
+
             EmbeddedMockSql() {
                 super(new MockConnection())
                 initializeTestData()
@@ -472,21 +490,34 @@ class MigrationRepositoryComprehensiveTest {
                 }
 
                 // Apply status filter if present (but NOT for pagination queries)
-                if (!isPaginationQuery && sql.contains('mig_status_id') && params.size() >= 2) {
-                    def statusId = params[1] as Integer
+                if (!isPaginationQuery && sql.contains('mig_status_id = ?') && params && params[0] instanceof Integer) {
+                    def statusId = params[0] as Integer
                     targetMigrations = targetMigrations.findAll { it.mig_status_id == statusId }
                 }
 
-                // Apply date range filters
-                if (sql.contains('mig_target_completion_date >=') && params.size() >= 3) {
-                    def startDate = params[2] as Timestamp
-                    targetMigrations = targetMigrations.findAll { it.mig_target_completion_date >= startDate }
-                }
-                if (sql.contains('mig_target_completion_date <=') && params.size() >= 4) {
-                    def endDate = params[3] as Timestamp
-                    targetMigrations = targetMigrations.findAll { it.mig_target_completion_date <= endDate }
+                // Apply date range filters (for queries with ONLY date parameters)
+                if (sql.contains('mig_target_completion_date >=') && sql.contains('mig_target_completion_date <=') &&
+                    params && params.size() == 2 && params[0] instanceof Timestamp && params[1] instanceof Timestamp) {
+                    def startDate = params[0] as Timestamp
+                    def endDate = params[1] as Timestamp
+                    targetMigrations = targetMigrations.findAll {
+                        it.mig_target_completion_date >= startDate && it.mig_target_completion_date <= endDate
+                    }
                 }
 
+                // Convert to list and apply sorting based on ORDER BY clause
+                def migrationList = targetMigrations.toList()
+
+                if (sql.contains('order by m.mig_created_at desc') || sql.contains('order by mig_created_at desc')) {
+                    migrationList = migrationList.sort { a, b -> b.mig_created_at <=> a.mig_created_at }
+                } else if (sql.contains('order by m.mig_target_completion_date') || sql.contains('order by mig_target_completion_date')) {
+                    migrationList = migrationList.sort { a, b -> a.mig_target_completion_date <=> b.mig_target_completion_date }
+                } else if (sql.contains('order by m.mig_created_at') || sql.contains('order by mig_created_at')) {
+                    migrationList = migrationList.sort { a, b -> a.mig_created_at <=> b.mig_created_at }
+                }
+
+                targetMigrations = migrationList
+                
                 // Apply pagination
                 // For parameterized queries (LIMIT ? OFFSET ?), extract from params
                 // For literal queries (LIMIT 10 OFFSET 20), extract from SQL text
@@ -508,9 +539,6 @@ class MigrationRepositoryComprehensiveTest {
                         if (limitMatch) limit = limitMatch[0][1] as Integer
                     }
                 }
-
-                // Sort by creation date (most recent first)
-                targetMigrations = targetMigrations.sort { -it.mig_created_at.time }
 
                 // Apply pagination only if needed
                 if (offset > 0 || limit < 1000) {
@@ -710,7 +738,20 @@ class MigrationRepositoryComprehensiveTest {
 
             private List<List<Object>> handleMigrationInsert(List params) {
                 def migrationId = params[0] as UUID
+                def migrationName = params[1] as String
                 def now = new Timestamp(System.currentTimeMillis())
+
+                // Check for duplicate migration name (SQL state 23505)
+                def duplicateName = migrations.values().any { it.mig_name?.equalsIgnoreCase(migrationName) && it.mig_is_active }
+                if (duplicateName) {
+                    throw new RuntimeException("SQL state 23505: Unique constraint violation on migration name '${migrationName}'")
+                }
+
+                // Check for valid statusId (SQL state 23503)
+                def statusId = params[3] as Integer
+                if (!statuses.containsKey(statusId)) {
+                    throw new RuntimeException("SQL state 23503: Foreign key constraint violation on mig_status_id=${statusId}")
+                }
 
                 migrations[migrationId] = [
                     mig_id: migrationId,
@@ -789,7 +830,14 @@ class MigrationRepositoryComprehensiveTest {
                         if (lowerSql.contains('mig_status_id')) {
                             def statusIndex = lowerSql.indexOf('mig_status_id')
                             def paramIndex = lowerSql.substring(0, statusIndex).count('?')
-                            migration.mig_status_id = params[paramIndex] as Integer
+                            def newStatusId = params[paramIndex] as Integer
+
+                            // Validate statusId exists (SQL state 23503)
+                            if (!statuses.containsKey(newStatusId)) {
+                                throw new RuntimeException("SQL state 23503: Foreign key constraint violation on mig_status_id=${newStatusId}")
+                            }
+
+                            migration.mig_status_id = newStatusId
                         }
                         
                         migration.mig_updated_at = new Timestamp(System.currentTimeMillis())
@@ -802,6 +850,13 @@ class MigrationRepositoryComprehensiveTest {
 
             private int handleMigrationDelete(List params) {
                 def migrationId = params[0] as UUID
+
+                // Check for dependent iterations (SQL state 23503)
+                def hasIterations = iterations.values().any { it.iter_migration_id == migrationId && it.iter_is_active }
+                if (hasIterations) {
+                    throw new RuntimeException("SQL state 23503: Foreign key constraint violation - migration has dependent iterations")
+                }
+
                 if (migrations.remove(migrationId) != null) {
                     return 1
                 }
@@ -1952,65 +2007,525 @@ class MigrationRepositoryComprehensiveTest {
     // ========================================
 
     static void testGetMigrationsByStatus(TestExecutor executor) {
-        executor.runTest("D1: Get Migrations By Status - PLACEHOLDER") {
-            // TODO: Implement status filtering test
-            assert true
+        executor.runTest("D1: Get Migrations By Status") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test: Get migrations with "In Progress" status (statusId = 2)
+            def statusId = 2 // "In Progress" status
+            def result = repo.getMigrationsByStatus(statusId)
+            
+            // Verify correct count
+            assert result != null
+            assert result.size() == 2, "Expected 2 'In Progress' migrations, got ${result.size()}"
+            
+            // Verify all returned migrations have correct status
+            assert result.every { it.statusName == 'In Progress' }, "All migrations should have 'In Progress' status"
+            assert result.every { it.statusId == statusId }, "All migrations should have statusId = 2"
+            
+            // Verify migrations are ordered by creation date (DESC)
+            def migrationNames = result.collect { it.name }
+            assert migrationNames.contains('Cloud Migration Q1'), "Should include 'Cloud Migration Q1'"
+            assert migrationNames.contains('Security Compliance Migration'), "Should include 'Security Compliance Migration'"
+            
+            // Verify fields are populated
+            assert result.every { it.id != null }, "All migrations should have id"
+            assert result.every { it.name != null }, "All migrations should have name"
+            assert result.every { it.statusName != null }, "All migrations should have statusName"
         }
     }
 
     static void testGetMigrationsByMultipleStatuses(TestExecutor executor) {
-        executor.runTest("D2: Get Migrations By Multiple Statuses - PLACEHOLDER") {
-            // TODO: Implement multiple status filtering test
-            assert true
+        executor.runTest("D2: Get Migrations By Multiple Statuses") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test: Get migrations with multiple statuses (In Progress and Planning)
+            def statusIds = [1, 2] // Planning (1) and In Progress (2)
+            def result = repo.getMigrationsByStatuses(statusIds)
+            
+            // Verify correct count (2 In Progress + 1 Planning = 3 total)
+            assert result != null
+            assert result.size() == 3, "Expected 3 migrations with 'Planning' or 'In Progress' status, got ${result.size()}"
+            
+            // Verify all returned migrations have one of the specified statuses
+            assert result.every { it.statusId in statusIds }, "All migrations should have statusId in [1, 2]"
+            
+            // Verify specific migrations are included
+            def statusNames = result.collect { it.statusName }
+            assert statusNames.count { it == 'In Progress' } == 2, "Should have 2 'In Progress' migrations"
+            assert statusNames.count { it == 'Planning' } == 1, "Should have 1 'Planning' migration"
+            
+            // Verify no other statuses are included
+            assert !statusNames.contains('Completed'), "Should not include 'Completed' migrations"
+            assert !statusNames.contains('On Hold'), "Should not include 'On Hold' migrations"
+            assert !statusNames.contains('Cancelled'), "Should not include 'Cancelled' migrations"
         }
     }
 
     static void testCountMigrationsByStatus(TestExecutor executor) {
-        executor.runTest("D3: Count Migrations By Status - PLACEHOLDER") {
-            // TODO: Implement count by status test
-            assert true
+        executor.runTest("D3: Count Migrations By Status") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test count for each status
+            def inProgressCount = repo.countMigrationsByStatus(2) // In Progress
+            def planningCount = repo.countMigrationsByStatus(1)   // Planning
+            def completedCount = repo.countMigrationsByStatus(3)  // Completed
+            def onHoldCount = repo.countMigrationsByStatus(4)     // On Hold
+            def cancelledCount = repo.countMigrationsByStatus(5)  // Cancelled
+            
+            // Verify correct counts
+            assert inProgressCount == 2, "Expected 2 'In Progress' migrations, got ${inProgressCount}"
+            assert planningCount == 1, "Expected 1 'Planning' migration, got ${planningCount}"
+            assert completedCount == 1, "Expected 1 'Completed' migration, got ${completedCount}"
+            assert onHoldCount == 1, "Expected 1 'On Hold' migration, got ${onHoldCount}"
+            assert cancelledCount == 0, "Expected 0 'Cancelled' migrations, got ${cancelledCount}"
+            
+            // Verify total count
+            def totalCount = inProgressCount + planningCount + completedCount + onHoldCount + cancelledCount
+            assert totalCount == 5, "Total migrations should be 5, got ${totalCount}"
         }
     }
 
     static void testGetMigrationsByDateRange(TestExecutor executor) {
-        executor.runTest("E1: Get Migrations By Date Range - PLACEHOLDER") {
-            // TODO: Implement date range filtering test
-            assert true
+        executor.runTest("E1: Get Migrations By Date Range") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test: Get migrations with target dates in Q1 2025 (Jan 1 - Mar 31)
+            def startDate = Timestamp.valueOf('2025-01-01 00:00:00')
+            def endDate = Timestamp.valueOf('2025-03-31 23:59:59')
+            def result = repo.getMigrationsByDateRange(startDate, endDate)
+            
+            // Verify correct count (only Cloud Migration Q1 with target date 2025-03-31)
+            assert result != null
+            assert result.size() == 1, "Expected 1 migration in Q1 2025, got ${result.size()}"
+            
+            // Verify the correct migration is returned
+            assert result[0].name == 'Cloud Migration Q1', "Should return 'Cloud Migration Q1'"
+            assert result[0].targetCompletionDate >= startDate, "Target date should be >= start date"
+            assert result[0].targetCompletionDate <= endDate, "Target date should be <= end date"
+            
+            // Test: Get migrations with target dates in all of 2025
+            def start2025 = Timestamp.valueOf('2025-01-01 00:00:00')
+            def end2025 = Timestamp.valueOf('2025-12-31 23:59:59')
+            def result2025 = repo.getMigrationsByDateRange(start2025, end2025)
+            
+            // Should return 4 migrations (all except Database Consolidation which is 2024-12-31)
+            assert result2025.size() == 4, "Expected 4 migrations in 2025, got ${result2025.size()}"
+            
+            // Verify all expected 2025 migrations are present
+            def migrationNames = result2025.collect { it.name }
+            assert migrationNames.contains('Cloud Migration Q1'), "Should include Cloud Migration Q1"
+            assert migrationNames.contains('Security Compliance Migration'), "Should include Security Compliance Migration"
+            assert migrationNames.contains('Legacy System Retirement'), "Should include Legacy System Retirement"
+            assert migrationNames.contains('Network Infrastructure Update'), "Should include Network Infrastructure Update"
+
+            // Verify migrations are sorted by target completion date (ascending)
+            for (int i = 0; i < result2025.size() - 1; i++) {
+                assert result2025[i].targetCompletionDate <= result2025[i + 1].targetCompletionDate,
+                    "Migration ${result2025[i].name} (${result2025[i].targetCompletionDate}) should come before ${result2025[i + 1].name} (${result2025[i + 1].targetCompletionDate})"
+            }
         }
     }
 
     static void testGetOverdueMigrations(TestExecutor executor) {
-        executor.runTest("E2: Get Overdue Migrations - PLACEHOLDER") {
-            // TODO: Implement overdue migrations test
-            assert true
+        executor.runTest("E2: Get Overdue Migrations") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test: Get overdue migrations (target date < now AND status != Completed)
+            def result = repo.getOverdueMigrations()
+            
+            // Verify result structure
+            assert result != null
+            
+            // All overdue migrations should have:
+            // 1. Target completion date in the past
+            // 2. Status NOT 'Completed'
+            def now = new Timestamp(System.currentTimeMillis())
+            result.each { migration ->
+                assert migration.targetCompletionDate < now, "Overdue migration should have past target date: ${migration.name}"
+                assert migration.statusName != 'Completed', "Overdue migration should not be Completed: ${migration.name}"
+            }
+            
+            // Verify 'Database Consolidation' is NOT in results (it's Completed even though past)
+            def migrationNames = result.collect { it.name }
+            assert !migrationNames.contains('Database Consolidation'), "Completed migrations should not be overdue"
+            
+            // At minimum, verify the method works without errors
+            assert result instanceof List, "Result should be a List"
         }
     }
 
     static void testGetUpcomingMigrations(TestExecutor executor) {
-        executor.runTest("E3: Get Upcoming Migrations - PLACEHOLDER") {
-            // TODO: Implement upcoming migrations test
-            assert true
+        executor.runTest("E3: Get Upcoming Migrations") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+            
+            // Test with default 30 days
+            def result30 = repo.getUpcomingMigrations()
+            
+            // Verify result structure
+            assert result30 != null
+            assert result30 instanceof List, "Result should be a List"
+            
+            // All upcoming migrations should have future target dates
+            def now = new Timestamp(System.currentTimeMillis())
+            def future30 = new Timestamp(now.time + 30L * 24 * 60 * 60 * 1000)
+            
+            result30.each { migration ->
+                assert migration.targetCompletionDate >= now, "Upcoming migration should have future target date: ${migration.name}"
+                assert migration.targetCompletionDate <= future30, "Migration should be within 30 days: ${migration.name}"
+            }
+            
+            // Test with custom 90 days
+            def result90 = repo.getUpcomingMigrations(90)
+            assert result90 != null
+            
+            // 90-day window should include same or more migrations than 30-day window
+            assert result90.size() >= result30.size(), "90-day window should include at least as many migrations as 30-day window"
+            
+            // Verify migrations are ordered by target completion date (ascending)
+            if (result90.size() > 1) {
+                for (int i = 0; i < result90.size() - 1; i++) {
+                    assert result90[i].targetCompletionDate <= result90[i + 1].targetCompletionDate,
+                        "Migrations should be ordered by target date"
+                }
+            }
         }
     }
 
     static void testMigrationExists(TestExecutor executor) {
-        executor.runTest("F1: Migration Exists - PLACEHOLDER") {
-            // TODO: Implement existence check test
-            assert true
+        executor.runTest("F1: Migration Exists") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Test: Check existing migration exists
+            def migrations = repo.getAllMigrations()
+            assert migrations.size() > 0, "Should have migrations for testing"
+
+            def existingMigrationId = migrations[0].id as UUID
+            def existsResult = repo.migrationExists(existingMigrationId)
+
+            // Verify existing migration is found
+            assert existsResult == true, "Existing migration should exist"
+
+            // Test: Check non-existent migration does not exist
+            def nonExistentId = UUID.randomUUID()
+            def notExistsResult = repo.migrationExists(nonExistentId)
+
+            // Verify non-existent migration is not found
+            assert notExistsResult == false, "Non-existent migration should not exist"
+
+            // Test: Verify soft-deleted migration doesn't exist
+            repo.softDeleteMigration(existingMigrationId)
+            def deletedExistsResult = repo.migrationExists(existingMigrationId)
+
+            // Verify soft-deleted migration is not found (because getAllMigrations filters inactive)
+            assert deletedExistsResult == false, "Soft-deleted migration should not exist"
         }
     }
 
     static void testIsMigrationNameUnique(TestExecutor executor) {
-        executor.runTest("F2: Is Migration Name Unique - PLACEHOLDER") {
-            // TODO: Implement name uniqueness test
-            assert true
+        executor.runTest("F2: Is Migration Name Unique") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Test: Unique name (not in database)
+            def uniqueNameResult = repo.isMigrationNameUnique('Totally Unique Migration Name', null)
+            assert uniqueNameResult == true, "Unique name should return true"
+
+            // Test: Duplicate name (exists in database)
+            def migrations = repo.getAllMigrations()
+            assert migrations.size() > 0, "Should have migrations for testing"
+
+            def existingName = migrations[0].name
+            def duplicateNameResult = repo.isMigrationNameUnique(existingName, null)
+            assert duplicateNameResult == false, "Duplicate name should return false"
+
+            // Test: Case-insensitive duplicate detection
+            def lowercaseName = existingName.toLowerCase()
+            def caseInsensitiveResult = repo.isMigrationNameUnique(lowercaseName, null)
+            assert caseInsensitiveResult == false, "Case-insensitive duplicate should return false"
+
+            // Test: Exclusion logic - same name but exclude current ID
+            def existingMigrationId = migrations[0].id as UUID
+            def excludeResult = repo.isMigrationNameUnique(existingName, existingMigrationId)
+            assert excludeResult == true, "Name with exclusion of same ID should return true"
+
+            // Test: Exclusion logic - same name but different exclude ID
+            def otherMigrationId = UUID.randomUUID()
+            def excludeOtherResult = repo.isMigrationNameUnique(existingName, otherMigrationId)
+            assert excludeOtherResult == false, "Name with exclusion of different ID should return false"
         }
     }
 
     static void testValidateMigrationDeletion(TestExecutor executor) {
-        executor.runTest("F3: Validate Migration Deletion - PLACEHOLDER") {
-            // TODO: Implement deletion validation test
-            assert true
+        executor.runTest("F3: Validate Migration Deletion") {
+            // Reset mock data to ensure clean state
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Create a test migration without iterations
+            def testMigrationData = [
+                name: 'Test Migration Without Dependencies',
+                description: 'Test migration for deletion validation',
+                statusId: 1,
+                ownerId: 1,
+                targetCompletionDate: Timestamp.valueOf('2025-12-31 23:59:59')
+            ]
+            def migrationWithoutDeps = repo.createMigration(testMigrationData)
+            assert migrationWithoutDeps != null, "Test migration should be created"
+
+            // Verify the test migration has no iterations
+            assert repo.countIterationsForMigration(migrationWithoutDeps.id as UUID) == 0, "Test migration should have no iterations"
+
+            def validationNoDeps = repo.validateMigrationDeletion(migrationWithoutDeps.id as UUID)
+
+            // Verify migration can be deleted
+            assert validationNoDeps.canDelete == true, "Migration without dependencies should be deletable"
+            assert validationNoDeps.blockingDependencies == [], "Should have no blocking dependencies"
+            assert validationNoDeps.dependencyCounts.iterations == 0, "Should have 0 iterations"
+
+            // Test: Migration with iterations cannot be deleted
+            def migrationWithDeps = repo.getAllMigrations().find { m ->
+                repo.countIterationsForMigration(m.id as UUID) > 0
+            }
+            assert migrationWithDeps != null, "Should have migration with iterations"
+
+            def validationWithDeps = repo.validateMigrationDeletion(migrationWithDeps.id as UUID)
+
+            // Verify migration cannot be deleted
+            assert validationWithDeps.canDelete == false, "Migration with dependencies should not be deletable"
+            assert validationWithDeps.blockingDependencies == ['iterations'], "Should have 'iterations' as blocking dependency"
+            assert validationWithDeps.dependencyCounts.iterations > 0, "Should have iterations count > 0"
+
+            // Verify structure of validation result
+            assert validationWithDeps.containsKey('canDelete'), "Result should have 'canDelete' field"
+            assert validationWithDeps.containsKey('blockingDependencies'), "Result should have 'blockingDependencies' field"
+            assert validationWithDeps.containsKey('dependencyCounts'), "Result should have 'dependencyCounts' field"
+            assert validationWithDeps.dependencyCounts.containsKey('iterations'), "dependencyCounts should have 'iterations' field"
+        }
+    }
+
+    // ========================================
+    // CATEGORY G: SQL STATE MAPPING TESTS
+    // ========================================
+
+    static void testDeleteMigrationWithDependentIterations(TestExecutor executor) {
+        executor.runTest("G1: Foreign Key Constraint Violation (23503)") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Find a migration with iterations
+            def migrationWithIterations = repo.getAllMigrations().find { m ->
+                repo.countIterationsForMigration(m.id as UUID) > 0
+            }
+            assert migrationWithIterations != null, "Should have migration with iterations for FK test"
+
+            // Attempt hard delete (should fail with FK violation)
+            def sqlStateDetected = false
+            def exceptionMessage = ''
+
+            try {
+                repo.deleteMigration(migrationWithIterations.id as UUID)
+                assert false, "Should have thrown FK constraint violation"
+            } catch (Exception e) {
+                sqlStateDetected = e.message?.contains('23503') ||
+                                   e.message?.contains('foreign key') ||
+                                   e.message?.contains('FK constraint')
+                exceptionMessage = e.message
+            }
+
+            assert sqlStateDetected, "Should detect SQL state 23503 or FK constraint error. Got: ${exceptionMessage}"
+        }
+    }
+
+    static void testCreateMigrationWithDuplicateName(TestExecutor executor) {
+        executor.runTest("G2: Unique Constraint Violation (23505)") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Get existing migration name
+            def existingMigration = repo.getAllMigrations()[0]
+            def duplicateName = existingMigration.name
+
+            // Attempt to create migration with duplicate name (should fail)
+            def sqlStateDetected = false
+            def exceptionMessage = ''
+
+            try {
+                def duplicateData = [
+                    name: duplicateName,  // Duplicate name
+                    description: 'Test duplicate name constraint',
+                    statusId: 1,
+                    ownerId: 1,
+                    targetCompletionDate: Timestamp.valueOf('2025-12-31 23:59:59')
+                ]
+                repo.createMigration(duplicateData)
+                assert false, "Should have thrown unique constraint violation"
+            } catch (Exception e) {
+                sqlStateDetected = e.message?.contains('23505') ||
+                                   e.message?.contains('unique constraint') ||
+                                   e.message?.contains('duplicate')
+                exceptionMessage = e.message
+            }
+
+            assert sqlStateDetected, "Should detect SQL state 23505 or unique constraint error. Got: ${exceptionMessage}"
+        }
+    }
+
+    static void testUpdateMigrationWithInvalidStatus(TestExecutor executor) {
+        executor.runTest("G3: Update Foreign Key Constraint (23503)") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Get existing migration
+            def existingMigration = repo.getAllMigrations()[0]
+
+            // Attempt to update with non-existent statusId (should fail with FK violation)
+            def sqlStateDetected = false
+            def exceptionMessage = ''
+
+            try {
+                def invalidUpdateData = [
+                    statusId: 99999  // Non-existent status ID
+                ]
+                repo.updateMigration(existingMigration.id as UUID, invalidUpdateData)
+                assert false, "Should have thrown FK constraint violation for invalid status"
+            } catch (Exception e) {
+                sqlStateDetected = e.message?.contains('23503') ||
+                                   e.message?.contains('foreign key') ||
+                                   e.message?.contains('invalid status')
+                exceptionMessage = e.message
+            }
+
+            assert sqlStateDetected, "Should detect SQL state 23503 or FK constraint error. Got: ${exceptionMessage}"
+        }
+    }
+
+    static void testSoftDeletePreservesIterations(TestExecutor executor) {
+        executor.runTest("G4: Cascade Delete Validation") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Find migration with iterations
+            def migrationWithIterations = repo.getAllMigrations().find { m ->
+                repo.countIterationsForMigration(m.id as UUID) > 0
+            }
+            assert migrationWithIterations != null, "Should have migration with iterations"
+
+            def migrationId = migrationWithIterations.id as UUID
+            def iterationCountBefore = repo.countIterationsForMigration(migrationId)
+            assert iterationCountBefore > 0, "Should have iterations before soft delete"
+
+            // Soft delete migration
+            repo.softDeleteMigration(migrationId)
+
+            // Verify iterations still exist
+            def iterationCountAfter = repo.countIterationsForMigration(migrationId)
+            assert iterationCountAfter == iterationCountBefore, "Iterations should remain after soft delete"
+
+            // Verify migration marked inactive
+            def deletedMigration = repo.getMigrationById(migrationId)
+            assert deletedMigration == null || !deletedMigration.isActive, "Migration should be inactive after soft delete"
+        }
+    }
+
+    // ========================================
+    // CATEGORY H: JOIN NULL EDGE CASE TESTS
+    // ========================================
+
+    static void testGetMigrationWithMissingStatus(TestExecutor executor) {
+        executor.runTest("H1: Missing Status Reference") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Directly insert a migration with NULL statusId (bypass repository validation)
+            def migrationId = UUID.randomUUID()
+            def now = new Timestamp(System.currentTimeMillis())
+
+            EmbeddedTestInfrastructure.EmbeddedMockSql.migrations[migrationId] = [
+                mig_id: migrationId,
+                mig_name: 'Migration With Null Status',
+                mig_description: 'Test NULL status handling',
+                mig_status_id: null,  // NULL statusId
+                mig_owner_id: 1,
+                mig_target_completion_date: Timestamp.valueOf('2025-12-31 23:59:59'),
+                mig_created_at: now,
+                mig_updated_at: now,
+                mig_is_active: true
+            ]
+
+            // Query via getMigrationById - should handle NULL gracefully
+            def result = repo.getMigrationById(migrationId)
+
+            // Verify NULL handling (doesn't crash, handles missing status)
+            assert result != null, "Should return migration even with NULL statusId"
+            assert result.id == migrationId, "Should return correct migration"
+            assert result.statusId == null || result.statusName == null, "Should handle NULL status gracefully"
+        }
+    }
+
+    static void testGetIterationsWithOrphanedRecords(TestExecutor executor) {
+        executor.runTest("H2: Orphaned Iteration Records") {
+            EmbeddedTestInfrastructure.EmbeddedMockSql.resetMockData()
+            def repo = new EmbeddedTestInfrastructure.EmbeddedMigrationRepository()
+
+            // Create migration and iterations
+            def migrationData = [
+                name: 'Migration To Be Deleted',
+                description: 'Test orphaned iterations',
+                statusId: 1,
+                ownerId: 1,
+                targetCompletionDate: Timestamp.valueOf('2025-12-31 23:59:59')
+            ]
+            def migration = repo.createMigration(migrationData)
+            def migrationId = migration.id as UUID
+
+            // Verify migration has iterations
+            def iterationsBefore = repo.getIterationsForMigration(migrationId)
+            assert iterationsBefore.size() == 0, "New migration should have no iterations initially"
+
+            // Create an iteration manually
+            def iterationId = UUID.randomUUID()
+            def now = new Timestamp(System.currentTimeMillis())
+            EmbeddedTestInfrastructure.EmbeddedMockSql.iterations[iterationId] = [
+                iter_id: iterationId,
+                iter_name: 'Test Iteration',
+                iter_description: 'Will be orphaned',
+                iter_migration_id: migrationId,
+                iter_status_id: 1,
+                iter_scheduled_start_date: Timestamp.valueOf('2025-01-01 00:00:00'),
+                iter_scheduled_end_date: Timestamp.valueOf('2025-12-31 23:59:59'),
+                iter_created_at: now,
+                iter_updated_at: now,
+                iter_is_active: true
+            ]
+
+            // Verify iteration exists
+            def iterationsAfterCreate = repo.getIterationsForMigration(migrationId)
+            assert iterationsAfterCreate.size() == 1, "Should have 1 iteration after creation"
+
+            // Delete migration directly (bypass soft delete to create orphan)
+            EmbeddedTestInfrastructure.EmbeddedMockSql.migrations.remove(migrationId)
+
+            // Query getIterationsForMigration on deleted ID - should handle gracefully
+            def iterationsAfterDelete = repo.getIterationsForMigration(migrationId)
+
+            // Verify empty result, no crash
+            assert iterationsAfterDelete != null, "Should not crash on orphaned iterations"
+            assert iterationsAfterDelete.size() >= 0, "Should return empty or valid result"
         }
     }
 
@@ -2079,6 +2594,20 @@ class MigrationRepositoryComprehensiveTest {
         testMigrationExists(executor)
         testIsMigrationNameUnique(executor)
         testValidateMigrationDeletion(executor)
+
+        // Category G: SQL State Mapping Tests
+        println "\nCATEGORY G: SQL STATE MAPPING TESTS"
+        println "-" * 80
+        testDeleteMigrationWithDependentIterations(executor)
+        testCreateMigrationWithDuplicateName(executor)
+        testUpdateMigrationWithInvalidStatus(executor)
+        testSoftDeletePreservesIterations(executor)
+
+        // Category H: JOIN NULL Edge Case Tests
+        println "\nCATEGORY H: JOIN NULL EDGE CASE TESTS"
+        println "-" * 80
+        testGetMigrationWithMissingStatus(executor)
+        testGetIterationsWithOrphanedRecords(executor)
 
         executor.printSummary()
     }

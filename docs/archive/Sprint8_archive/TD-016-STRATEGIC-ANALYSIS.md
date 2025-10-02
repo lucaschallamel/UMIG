@@ -850,7 +850,7 @@ With TD-016 Added (10 points):
 
 - [ ] Sprint 8: Accept risk for faster delivery
 - [ ] Sprint 9: Prioritize quality and lower risk (RECOMMENDED)
-- [ ] User decision: ******\_\_\_******
+- [ ] User decision: **\*\***\_\_\_**\*\***
 
 ---
 

@@ -4931,7 +4931,7 @@ class StepView {
                     <div class="col-num">${instruction.Order || index + 1}</div>
                     <div class="col-instruction">${instruction.Description || instruction.Instruction || "No description"}</div>
                     <div class="col-team">${instruction.Team || summary.AssignedTeam || "TBD"}</div>
-                    <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, "0")}`}</div>
+                    <div class="col-control">${instruction.Control || instruction.ControlCode || "-"}</div>
                     <div class="col-duration">${instruction.Duration ? `${instruction.Duration} min.` : instruction.EstimatedDuration ? `${instruction.EstimatedDuration} min.` : "5 min."}</div>
                     <div class="col-complete">
                         <input type="checkbox" 

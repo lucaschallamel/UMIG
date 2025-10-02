@@ -86,17 +86,57 @@ class EnhancedEmailService {
             def stepRepository = new umig.repository.StepRepository()
             // Explicit type casting per ADR-031 for static type checking
             umig.dto.StepInstanceDTO enrichedDTO = stepRepository.findByInstanceIdAsDTO(stepInstanceId) as umig.dto.StepInstanceDTO
-            
+
             if (enrichedDTO) {
                 println "🔧 [EnhancedEmailService] ✅ StepInstanceDTO retrieved successfully"
                 println "🔧 [EnhancedEmailService]   🔍 stepType: '${enrichedDTO.stepType}'"
                 println "🔧 [EnhancedEmailService]   🔍 stepNumber: ${enrichedDTO.stepNumber}"
-                
+
                 // Use DTO's computed stepCode property (format: BUS-031)
                 String stepCode = enrichedDTO.stepCode ?: ''
                 println "🔧 [EnhancedEmailService]   🔍 DTO stepCode: '${stepCode}'"
-                
-                // Build enriched data map with DTO properties
+
+                // TD-016-A: Fetch instructions array for email population
+                println "🔧 [EnhancedEmailService] TD-016-A: Fetching instructions array"
+                def instructions = DatabaseUtil.withSql { sql ->
+                    sql.rows('''
+                        SELECT
+                            ini.ini_id,
+                            inm.inm_body as ini_name,
+                            inm.inm_body as ini_description,
+                            inm.inm_duration_minutes as ini_duration_minutes,
+                            ini.ini_is_completed as completed,
+                            tms.tms_name as team_name,
+                            ctm.ctm_name as control_code
+                        FROM instructions_instance_ini ini
+                        JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                        LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                        LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
+                        WHERE ini.sti_id = :stepInstanceId
+                        ORDER BY inm.inm_order
+                    ''', [stepInstanceId: stepInstanceId])
+                }
+                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${instructions?.size() ?: 0} instructions"
+
+                // TD-016-A: Fetch comments array (last 3) for email population
+                println "🔧 [EnhancedEmailService] TD-016-A: Fetching comments array (last 3)"
+                def comments = DatabaseUtil.withSql { sql ->
+                    sql.rows('''
+                        SELECT
+                            sic.sic_id,
+                            sic.comment_body as comment_text,
+                            usr.usr_code as author_name,
+                            sic.created_at
+                        FROM step_instance_comments_sic sic
+                        LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
+                        WHERE sic.sti_id = :stepInstanceId
+                        ORDER BY sic.created_at DESC
+                        LIMIT 3
+                    ''', [stepInstanceId: stepInstanceId])
+                }
+                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${comments?.size() ?: 0} comments"
+
+                // Build enriched data map with DTO properties + instructions/comments arrays
                 Map enrichedData = [
                     step_code: stepCode,
                     step_title: enrichedDTO.stepName,
@@ -106,8 +146,8 @@ class EnhancedEmailService {
                     iteration_code: enrichedDTO.iterationCode,
                     sequence_name: enrichedDTO.sequenceName,
                     phase_name: enrichedDTO.phaseName,
-                    instruction_count: enrichedDTO.instructionCount ?: 0,
-                    comment_count: enrichedDTO.comments?.size() ?: 0,
+                    instruction_count: instructions?.size() ?: 0,
+                    comment_count: comments?.size() ?: 0,
                     step_status: enrichedDTO.stepStatus,
                     // Duration field for Step Summary section (actualDuration with fallback to estimatedDuration)
                     sti_duration_minutes: enrichedDTO.actualDuration ?: enrichedDTO.estimatedDuration ?: 0,
@@ -116,7 +156,10 @@ class EnhancedEmailService {
                     impacted_teams: enrichedDTO.impactedTeams ?: '',
                     // Predecessor information for Step Summary section
                     predecessor_code: enrichedDTO.predecessorCode ?: '',
-                    predecessor_name: enrichedDTO.predecessorName ?: ''
+                    predecessor_name: enrichedDTO.predecessorName ?: '',
+                    // TD-016-A: Add actual instructions and comments arrays
+                    instructions: instructions ?: [],
+                    comments: comments ?: []
                 ]
 
                 println "🔧 [EnhancedEmailService]   🔍 step_title: '${enrichedData.step_title}'"
@@ -127,7 +170,9 @@ class EnhancedEmailService {
                 println "🔧 [EnhancedEmailService]   🔍 predecessor_code: '${enrichedData.predecessor_code}'"
                 println "🔧 [EnhancedEmailService]   🔍 instruction_count: ${enrichedData.instruction_count}"
                 println "🔧 [EnhancedEmailService]   🔍 comment_count: ${enrichedData.comment_count}"
-                
+                println "🔧 [EnhancedEmailService] TD-016-A: instructions array size: ${(enrichedData.instructions as List).size()}"
+                println "🔧 [EnhancedEmailService] TD-016-A: comments array size: ${(enrichedData.comments as List).size()}"
+
                 // Merge enriched data into stepInstance (enriched data takes precedence)
                 stepInstance = enrichedData + (stepInstance as Map)
                 println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
@@ -355,42 +400,44 @@ class EnhancedEmailService {
                 println "🔧 [EnhancedEmailService] Template processing completed"
                 println "🔧 [EnhancedEmailService] Processed subject: ${processedSubject}"
 
-                // Send email
-                println "🔧 [EnhancedEmailService] STEP 5: Sending email"
+                // TD-016 Component 3: Send email with integrated audit logging
+                println "🔧 [EnhancedEmailService] STEP 5: Sending email with audit logging (TD-016 Component 3)"
                 println "🔧 [EnhancedEmailService] Subject: ${processedSubject}"
                 println "🔧 [EnhancedEmailService] Recipients: ${recipients}"
                 println "🔧 [EnhancedEmailService] Body length: ${processedBody?.length()} characters"
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
 
-                println "🔧 [EnhancedEmailService] ✅ Email sent result: ${emailSent}"
+                def emailParams = [
+                    to: recipients,
+                    subject: processedSubject,
+                    body: processedBody
+                ]
 
-                // Log the notification
-                println "🔧 [EnhancedEmailService] STEP 6: Processing results and audit logging"
-                if (emailSent) {
-                    println "🔧 [EnhancedEmailService] ✅ Email sent successfully - logging audit trail"
-                    AuditLogRepository.logEmailSent(
-                        sql,
-                        userId,
-                        UUID.fromString(stepInstance.sti_id as String),
-                        recipients,
-                        processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'STEP_STATUS_CHANGED_WITH_URL',
-                            step_name: stepInstance.sti_name,
-                            old_status: oldStatus,
-                            new_status: newStatus,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
-                    )
+                def additionalData = [
+                    notification_type: 'STEP_STATUS_CHANGED_WITH_URL',
+                    step_name: stepInstance.sti_name,
+                    old_status: oldStatus,
+                    new_status: newStatus,
+                    step_view_url: stepViewUrl,
+                    migration_code: migrationCode,
+                    iteration_code: iterationCode
+                ]
 
-                    // Status change already logged by StepRepository - no need to duplicate here
+                def result = sendEmailWithAudit(
+                    emailParams,
+                    userId,
+                    UUID.fromString(stepInstance.sti_id as String),
+                    template.emt_id as UUID,
+                    additionalData
+                )
 
-                    return [success: true, emailsSent: recipients.size(), message: "Step status change notification sent successfully"]
+                println "🔧 [EnhancedEmailService] ✅ Email with audit result: success=${result.success}, emailCount=${result.emailCount}"
+
+                // Status change already logged by StepRepository - no need to duplicate here
+
+                if (result.success) {
+                    return [success: true, emailsSent: result.emailCount, message: "Step status change notification sent successfully"]
                 } else {
-                    return [success: false, emailsSent: 0, message: "Email sending failed"]
+                    return [success: false, emailsSent: 0, message: result.error ?: "Email sending failed"]
                 }
                 
             } catch (Exception e) {
@@ -505,29 +552,32 @@ class EnhancedEmailService {
                 // Process template
                 def processedSubject = processTemplate(template.emt_subject as String, variables)
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
-                
-                // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
-                
-                // Log the notification
-                if (emailSent) {
-                    AuditLogRepository.logEmailSent(
-                        sql, 
-                        userId, 
-                        UUID.fromString(stepInstance.sti_id as String),
-                        recipients,
-                        processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'STEP_OPENED_WITH_URL',
-                            step_name: stepInstance.sti_name,
-                            migration_name: stepInstance.migration_name,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
-                    )
-                }
+
+                // TD-016 Component 3: Send email with integrated audit logging
+                def emailParams = [
+                    to: recipients,
+                    subject: processedSubject,
+                    body: processedBody
+                ]
+
+                def additionalData = [
+                    notification_type: 'STEP_OPENED_WITH_URL',
+                    step_name: stepInstance.sti_name,
+                    migration_name: stepInstance.migration_name,
+                    step_view_url: stepViewUrl,
+                    migration_code: migrationCode,
+                    iteration_code: iterationCode
+                ]
+
+                def result = sendEmailWithAudit(
+                    emailParams,
+                    userId,
+                    UUID.fromString(stepInstance.sti_id as String),
+                    template.emt_id as UUID,
+                    additionalData
+                )
+
+                // Note: sendEmailWithAudit handles both email sending and audit logging
                 
             } catch (Exception e) {
                 logError('sendStepOpenedNotificationWithUrl', e, [stepId: stepInstance.sti_id])
@@ -625,32 +675,35 @@ class EnhancedEmailService {
                 // Process template
                 def processedSubject = processTemplate(template.emt_subject as String, variables)
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
-                
-                // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
 
-                // Log the notification
-                if (emailSent) {
-                    AuditLogRepository.logEmailSent(
-                        sql,
-                        userId,
-                        UUID.fromString(instruction.ini_id as String),
-                        recipients,
-                        processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'INSTRUCTION_COMPLETED_WITH_URL',
-                            instruction_name: instruction.ini_name,
-                            step_name: stepInstance.sti_name,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
-                    )
+                // TD-016 Component 3: Send email with integrated audit logging
+                def emailParams = [
+                    to: recipients,
+                    subject: processedSubject,
+                    body: processedBody
+                ]
 
-                    return [success: true, emailsSent: recipients.size(), message: "Instruction completion notification sent successfully"]
+                def additionalData = [
+                    notification_type: 'INSTRUCTION_COMPLETED_WITH_URL',
+                    instruction_name: instruction.ini_name,
+                    step_name: stepInstance.sti_name,
+                    step_view_url: stepViewUrl,
+                    migration_code: migrationCode,
+                    iteration_code: iterationCode
+                ]
+
+                def result = sendEmailWithAudit(
+                    emailParams,
+                    userId,
+                    UUID.fromString(instruction.ini_id as String),
+                    template.emt_id as UUID,
+                    additionalData
+                )
+
+                if (result.success) {
+                    return [success: true, emailsSent: result.emailCount, message: "Instruction completion notification sent successfully"]
                 } else {
-                    return [success: false, emailsSent: 0, message: "Email sending failed for instruction completion"]
+                    return [success: false, emailsSent: 0, message: result.error ?: "Email sending failed for instruction completion"]
                 }
                 
             } catch (Exception e) {
@@ -813,7 +866,97 @@ class EnhancedEmailService {
             return false
         }
     }
-    
+
+    /**
+     * Send email with audit logging using existing AuditLogRepository (TD-016 Component 3 - Revised)
+     *
+     * Simplified implementation that reuses existing audit_log_aud infrastructure
+     * instead of creating duplicate email_audit_log_eal table.
+     *
+     * @param emailParams Map containing:
+     *   - to (String or List<String>): Email recipient(s)
+     *   - subject (String): Email subject line
+     *   - body (String): Email body HTML content
+     *
+     * @param userId User ID who triggered the email (nullable)
+     * @param entityId Entity ID related to the email (e.g., step_id)
+     * @param templateId Email template UUID used
+     * @param additionalData Optional additional context for audit log (default: [:])
+     *
+     * @return Map with:
+     *   - success (boolean): Overall success status
+     *   - emailCount (int): Number of emails attempted
+     *   - error (String, optional): Error message if failed
+     *
+     * @since Sprint 8 - TD-016 Component 3 (Revised)
+     */
+    static Map sendEmailWithAudit(Map emailParams, Integer userId, UUID entityId,
+                                   UUID templateId, Map additionalData = [:]) {
+        // Extract recipients (handle both String and List)
+        def recipients = emailParams.to instanceof List ?
+                        emailParams.to : [emailParams.to]
+        String subject = emailParams.subject as String
+
+        try {
+            // Send email using existing method
+            boolean sendSuccess = sendEmail(recipients, subject, emailParams.body as String)
+
+            if (sendSuccess) {
+                // Log success using EXISTING AuditLogRepository
+                DatabaseUtil.withSql { sql ->
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        entityId,
+                        recipients,
+                        subject,
+                        templateId,
+                        additionalData
+                    )
+                }
+
+                return [
+                    success: true,
+                    emailCount: recipients.size()
+                ]
+            } else {
+                // Log failure when send returns false
+                DatabaseUtil.withSql { sql ->
+                    AuditLogRepository.logEmailFailed(
+                        sql,
+                        userId,
+                        entityId,
+                        recipients,
+                        subject,
+                        'Email send returned false'
+                    )
+                }
+
+                return [
+                    success: false,
+                    emailCount: recipients.size(),
+                    error: 'Email send returned false'
+                ]
+            }
+
+        } catch (Exception e) {
+            // Log failure using EXISTING AuditLogRepository
+            DatabaseUtil.withSql { sql ->
+                AuditLogRepository.logEmailFailed(
+                    sql,
+                    userId,
+                    entityId,
+                    recipients,
+                    subject,
+                    e.message
+                )
+            }
+
+            // Re-throw to maintain existing error handling behavior
+            throw e
+        }
+    }
+
     /**
      * Process template with Groovy's SimpleTemplateEngine
      * Enhanced to handle URL construction variables
