@@ -96,45 +96,50 @@ class EnhancedEmailService {
                 String stepCode = enrichedDTO.stepCode ?: ''
                 println "🔧 [EnhancedEmailService]   🔍 DTO stepCode: '${stepCode}'"
 
-                // TD-016-A: Fetch instructions array for email population
-                println "🔧 [EnhancedEmailService] TD-016-A: Fetching instructions array"
-                def instructions = DatabaseUtil.withSql { sql ->
-                    sql.rows('''
+                // TD-017: Optimized single-query approach using JSON aggregation
+                println "🔧 [EnhancedEmailService] TD-017: Fetching instructions and comments (optimized)"
+                def queryResult = DatabaseUtil.withSql { sql ->
+                    sql.firstRow('''
+                        WITH instructions AS (
+                            SELECT
+                                ini.ini_id,
+                                inm.inm_body as ini_name,
+                                inm.inm_body as ini_description,
+                                inm.inm_duration_minutes as ini_duration_minutes,
+                                ini.ini_is_completed as completed,
+                                tms.tms_name as team_name,
+                                ctm.ctm_name as control_code,
+                                inm.inm_order
+                            FROM instructions_instance_ini ini
+                            JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                            LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                            LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
+                            WHERE ini.sti_id = :stepInstanceId
+                            ORDER BY inm.inm_order
+                        ),
+                        comments AS (
+                            SELECT
+                                sic.sic_id,
+                                sic.comment_body as comment_text,
+                                usr.usr_code as author_name,
+                                sic.created_at
+                            FROM step_instance_comments_sic sic
+                            LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
+                            WHERE sic.sti_id = :stepInstanceId
+                            ORDER BY sic.created_at DESC
+                            LIMIT 3
+                        )
                         SELECT
-                            ini.ini_id,
-                            inm.inm_body as ini_name,
-                            inm.inm_body as ini_description,
-                            inm.inm_duration_minutes as ini_duration_minutes,
-                            ini.ini_is_completed as completed,
-                            tms.tms_name as team_name,
-                            ctm.ctm_name as control_code
-                        FROM instructions_instance_ini ini
-                        JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
-                        LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
-                        LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
-                        WHERE ini.sti_id = :stepInstanceId
-                        ORDER BY inm.inm_order
-                    ''', [stepInstanceId: stepInstanceId])
+                            (SELECT COALESCE(json_agg(i.*), '[]'::json) FROM instructions i) AS instructions_json,
+                            (SELECT COALESCE(json_agg(c.*), '[]'::json) FROM comments c) AS comments_json
+                    ''', [stepInstanceId: stepInstanceId as String])
                 }
-                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${instructions?.size() ?: 0} instructions"
 
-                // TD-016-A: Fetch comments array (last 3) for email population
-                println "🔧 [EnhancedEmailService] TD-016-A: Fetching comments array (last 3)"
-                def comments = DatabaseUtil.withSql { sql ->
-                    sql.rows('''
-                        SELECT
-                            sic.sic_id,
-                            sic.comment_body as comment_text,
-                            usr.usr_code as author_name,
-                            sic.created_at
-                        FROM step_instance_comments_sic sic
-                        LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
-                        WHERE sic.sti_id = :stepInstanceId
-                        ORDER BY sic.created_at DESC
-                        LIMIT 3
-                    ''', [stepInstanceId: stepInstanceId])
-                }
-                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${comments?.size() ?: 0} comments"
+                // Parse JSON results to List<Map> (ADR-031: explicit type casting and typing)
+                List<Map> instructions = parseJsonArray(queryResult?.instructions_json as String)
+                List<Map> comments = parseJsonArray(queryResult?.comments_json as String)
+
+                println "🔧 [EnhancedEmailService] TD-017: Retrieved ${instructions?.size() ?: 0} instructions, ${comments?.size() ?: 0} comments"
 
                 // Build enriched data map with DTO properties + instructions/comments arrays
                 Map enrichedData = [
@@ -1581,6 +1586,36 @@ class EnhancedEmailService {
             return false
         } catch (Exception e) {
             return false
+        }
+    }
+
+    /**
+     * Parse JSON array string to List<Map> (TD-017)
+     *
+     * Handles null, empty, and invalid JSON gracefully.
+     * Never throws - returns empty list on errors.
+     * ADR-031 compliant (explicit type casting).
+     *
+     * @param jsonString Raw JSON string from PostgreSQL json_agg()
+     * @return List of Maps representing JSON objects, or empty list on errors
+     * @since TD-017 (Sprint 8)
+     */
+    private static List<Map> parseJsonArray(String jsonString) {
+        if (!jsonString) return []
+
+        try {
+            def slurper = new groovy.json.JsonSlurper()
+            def parsed = slurper.parseText(jsonString as String)
+
+            if (!(parsed instanceof List)) {
+                println "⚠️ parseJsonArray: Expected JSON array, got ${parsed?.class?.simpleName}"
+                return []
+            }
+
+            return (parsed as List).collect { it as Map }
+        } catch (Exception e) {
+            println "❌ parseJsonArray failed: ${e.message}"
+            return []
         }
     }
 
