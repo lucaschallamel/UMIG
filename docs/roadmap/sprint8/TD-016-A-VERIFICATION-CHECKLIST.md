@@ -54,7 +54,7 @@ ORDER BY inm.inm_order;
 
 **Expected Result**: [ ] Should return 1+ instructions for GON-7
 
-**Actual Result**: ****\_\_\_****
+**Actual Result**: \***\*\_\_\_\*\***
 
 ### 1.2 Check Step GON-7 Comments
 
@@ -75,7 +75,7 @@ ORDER BY sic.created_at DESC;
 
 **Expected Result**: [ ] Should return 1+ comments for GON-7
 
-**Actual Result**: ****\_\_\_****
+**Actual Result**: \***\*\_\_\_\*\***
 
 ### 1.3 Test Data Actions
 
@@ -332,8 +332,8 @@ Send 10 status change emails in rapid succession:
 
 ### 10.1 Technical Sign-Off
 
-**Verified by**: ********\_\_\_********
-**Date**: ********\_\_\_********
+**Verified by**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Date**: **\*\*\*\***\_\_\_**\*\*\*\***
 
 **Confirmation**:
 
@@ -345,8 +345,8 @@ Send 10 status change emails in rapid succession:
 
 ### 10.2 User Sign-Off
 
-**Verified by**: ********\_\_\_********
-**Date**: ********\_\_\_********
+**Verified by**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Date**: **\*\*\*\***\_\_\_**\*\*\*\***
 
 **Confirmation**:
 

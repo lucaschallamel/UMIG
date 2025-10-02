@@ -193,6 +193,7 @@ println "🔍 [UrlConstructionService]   FINAL URL: ${constructedUrl}"
    - Verify link opens correct Confluence page with step view component
 
 4. **Check Audit Log**:
+
    ```sql
    SELECT aud_action, step_view_url, migration_code, iteration_code
    FROM tbl_audit_log
