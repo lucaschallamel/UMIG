@@ -43,9 +43,14 @@
  * Provides withSql pattern for all database access
  */
 class EmbeddedDatabaseUtil {
-    static def withSql(Closure closure) {
-        def mockSql = new EmbeddedMockSql()
-        return closure.call(mockSql)
+    private static EmbeddedMockSql mockSql = new EmbeddedMockSql()
+
+    static <T> T withSql(Closure<T> closure) {
+        return closure.call(mockSql) as T
+    }
+    
+    static void resetMockData() {
+        mockSql.resetMockData()
     }
 }
 
@@ -162,8 +167,13 @@ class EmbeddedPhaseRepository {
 
     def findMasterPhasesWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
         EmbeddedDatabaseUtil.withSql { sql ->
-            pageNumber = Math.max(1, pageNumber)
-            pageSize = Math.min(100, Math.max(1, pageSize))
+            // Support both offset/limit (in filters) and pageNumber/pageSize (as params)
+            def offset = filters.offset != null ? (filters.offset as Integer) : (pageNumber - 1) * pageSize
+            def limit = filters.limit != null ? (filters.limit as Integer) : pageSize
+
+            // Ensure valid values
+            offset = Math.max(0, offset)
+            limit = Math.min(100, Math.max(1, limit))
 
             def whereConditions = []
             def params = []
@@ -184,6 +194,16 @@ class EmbeddedPhaseRepository {
                 params << UUID.fromString(filters.sqm_id as String)
             }
 
+            if (filters.createdAfter) {
+                whereConditions << "phm.created_at >= ?"
+                params << filters.createdAfter
+            }
+
+            if (filters.createdBefore) {
+                whereConditions << "phm.created_at < ?"
+                params << filters.createdBefore
+            }
+
             def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
 
             def totalCount = sql.firstRow("""
@@ -200,7 +220,6 @@ class EmbeddedPhaseRepository {
             }
             sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
 
-            def offset = (pageNumber - 1) * pageSize
             def phases = sql.rows("""
                 SELECT DISTINCT phm.*, sqm.sqm_name, sqm.plm_id, plm.plm_name, plm.tms_id
                 FROM phases_master_phm phm
@@ -208,7 +227,7 @@ class EmbeddedPhaseRepository {
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 ${whereClause}
                 ORDER BY phm.${sortField} ${sortDirection}
-                LIMIT ${pageSize} OFFSET ${offset}
+                LIMIT ${limit} OFFSET ${offset}
             """, params)
 
             return [
@@ -309,6 +328,23 @@ class EmbeddedPhaseRepository {
         }
     }
 
+    def deletePhaseInstance(UUID instanceId) {
+        EmbeddedDatabaseUtil.withSql { sql ->
+            // Check for step instances dependency
+            if (hasStepInstances(instanceId)) {
+                throw new IllegalStateException("Cannot delete phase instance with existing step instances")
+            }
+
+            // Delete the instance
+            sql.executeUpdate("""
+                DELETE FROM phases_instance_phi
+                WHERE phi_id = :instanceId
+            """, [instanceId: instanceId])
+
+            return true
+        }
+    }
+
     // ==================== UTILITY OPERATIONS ====================
 
     def reorderMasterPhases(UUID sequenceId, Map<UUID, Integer> phaseOrderMap) {
@@ -342,7 +378,15 @@ class EmbeddedPhaseRepository {
         }
     }
 
-    def hasCircularDependency(groovy.sql.Sql sql, UUID sequenceId, UUID candidatePredecessorId, UUID targetPhaseId = null) {
+    // Public wrapper for circular dependency check
+    def hasCircularDependency(UUID sequenceId, UUID candidatePredecessorId, UUID targetPhaseId = null) {
+        EmbeddedDatabaseUtil.withSql { sql ->
+            return hasCircularDependencyInternal(sql, sequenceId, candidatePredecessorId, targetPhaseId)
+        }
+    }
+
+    // Private implementation with sql parameter
+    private def hasCircularDependencyInternal(def sql, UUID sequenceId, UUID candidatePredecessorId, UUID targetPhaseId = null) {
         def result = sql.firstRow("""
             WITH RECURSIVE dependency_chain AS (
                 SELECT phm_id, predecessor_phm_id, 1 as depth, ARRAY[phm_id] as path
@@ -378,9 +422,18 @@ class EmbeddedPhaseRepository {
                 WHERE phm.sqm_id = :sequenceId
             """, [sequenceId: sequenceId])
 
+            // Get total instance count for all phases in this sequence
+            def instanceCountResult = sql.firstRow("""
+                SELECT COUNT(*) as total_instances
+                FROM phases_instance_phi phi
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                WHERE phm.sqm_id = :sequenceId
+            """, [sequenceId: sequenceId])
+
             return [
                 total_phases: stats.total_phases,
                 total_steps: stepCountResult?.total_steps ?: 0,
+                total_instances: instanceCountResult?.total_instances ?: 0,
                 first_created: stats.first_created,
                 last_updated: stats.last_updated,
                 sequence_type: 'master'
@@ -431,11 +484,15 @@ class EmbeddedPhaseRepository {
             created_at: row.created_at,
             updated_at: row.updated_at,
             master_name: row.master_name,
+            phm_name: row.phm_name ?: row.master_name,
             sqi_name: row.sqi_name,
             sqm_name: row.sqm_name,
             pli_name: row.pli_name,
             plm_name: row.plm_name,
             predecessor_name: row.predecessor_name,
+            statusName: row.sts_name,
+            statusDescription: row.sts_name ?: 'No status',
+            step_instance_count: row.step_instance_count ?: 0,
             statusMetadata: row.sts_id ? [
                 id: row.sts_id,
                 name: row.sts_name,
@@ -493,11 +550,57 @@ class EmbeddedPhaseRepository {
 
     def reorderMasterPhases(UUID sequenceId, UUID phaseId, Integer newOrder) {
         EmbeddedDatabaseUtil.withSql { sql ->
-            sql.executeUpdate("""
-                UPDATE phases_master_phm
-                SET phm_order = :newOrder, updated_by = 'system', updated_at = CURRENT_TIMESTAMP
-                WHERE phm_id = :phaseId AND sqm_id = :sequenceId
-            """, [newOrder: newOrder, phaseId: phaseId, sequenceId: sequenceId])
+            // Get all phases in sequence ordered by current order
+            def phases = sql.rows("SELECT phm_id, phm_order FROM phases_master_phm WHERE sqm_id = :sequenceId ORDER BY phm_order", 
+                                  [sequenceId: sequenceId])
+            
+            // Find current position of phase to move
+            def currentIndex = phases.findIndexOf { it.phm_id == phaseId }
+            if (currentIndex == -1) return false
+            
+            def currentOrder = phases[currentIndex].phm_order as Integer
+            
+            // Build order map for all phases
+            def orderMap = [:]
+            
+            if (newOrder < currentOrder) {
+                // Moving up: shift phases down between newOrder and currentOrder
+                phases.each { phase ->
+                    def order = phase.phm_order as Integer
+                    if (phase.phm_id == phaseId) {
+                        orderMap[phase.phm_id] = newOrder
+                    } else if (order >= newOrder && order < currentOrder) {
+                        orderMap[phase.phm_id] = order + 1
+                    } else {
+                        orderMap[phase.phm_id] = order
+                    }
+                }
+            } else if (newOrder > currentOrder) {
+                // Moving down: shift phases up between currentOrder and newOrder
+                phases.each { phase ->
+                    def order = phase.phm_order as Integer
+                    if (phase.phm_id == phaseId) {
+                        orderMap[phase.phm_id] = newOrder
+                    } else if (order > currentOrder && order <= newOrder) {
+                        orderMap[phase.phm_id] = order - 1
+                    } else {
+                        orderMap[phase.phm_id] = order
+                    }
+                }
+            } else {
+                // No change needed
+                return true
+            }
+            
+            // Apply updates
+            orderMap.each { pid, order ->
+                sql.executeUpdate("""
+                    UPDATE phases_master_phm
+                    SET phm_order = :newOrder, updated_by = 'system', updated_at = CURRENT_TIMESTAMP
+                    WHERE phm_id = :phaseId AND sqm_id = :sequenceId
+                """, [newOrder: order, phaseId: pid, sequenceId: sequenceId])
+            }
+            
             return true
         }
     }
@@ -566,7 +669,7 @@ class EmbeddedMockSql {
 
         // Initialize master plans
         masterPlans = [
-            [plm_id: 1, plm_name: 'Infrastructure Plan', plm_order: 1, tms_id: 1],
+            [plm_id: 1, plm_name: 'Technical Migration', plm_order: 1, tms_id: 1],
             [plm_id: 2, plm_name: 'Application Plan', plm_order: 2, tms_id: 2]
         ]
 
@@ -578,7 +681,7 @@ class EmbeddedMockSql {
 
         // Initialize master sequences
         masterSequences = [
-            [sqm_id: UUID.fromString('30000000-0000-0000-0000-000000000001'), sqm_name: 'Network Setup', sqm_order: 1, plm_id: 1],
+            [sqm_id: UUID.fromString('30000000-0000-0000-0000-000000000001'), sqm_name: 'Infrastructure Setup', sqm_order: 1, plm_id: 1],
             [sqm_id: UUID.fromString('30000000-0000-0000-0000-000000000002'), sqm_name: 'Database Migration', sqm_order: 2, plm_id: 2]
         ]
 
@@ -694,6 +797,18 @@ class EmbeddedMockSql {
     def rows(String query, Map params = [:]) {
         def queryUpper = query.toUpperCase()
 
+        // Handler: reorderMasterPhases / normalizePhaseOrder - get phases for reordering
+        if (queryUpper.contains('SELECT PHM_ID') &&
+            queryUpper.contains('FROM PHASES_MASTER_PHM') &&
+            queryUpper.contains('WHERE SQM_ID = :SEQUENCEID') &&
+            queryUpper.contains('ORDER BY PHM_ORDER')) {
+            def sequenceId = params.sequenceId as UUID
+            return masterPhases
+                .findAll { it.sqm_id == sequenceId }
+                .sort { it.phm_order }
+                .collect { new groovy.sql.GroovyRowResult([phm_id: it.phm_id, phm_order: it.phm_order]) }
+        }
+
         // findAllMasterPhases - basic list
         if (queryUpper.contains('SELECT PHM.*') &&
             queryUpper.contains('FROM PHASES_MASTER_PHM PHM') &&
@@ -732,7 +847,7 @@ class EmbeddedMockSql {
             def sequenceId = params.sequenceId as UUID
             def filteredPhases = masterPhases.findAll { it.sqm_id == sequenceId }
 
-            return filteredPhases.collect { phase ->
+            return filteredPhases.sort { it.phm_order }.collect { phase ->
                 def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
                 def predecessor = masterPhases.find { it.phm_id == phase.predecessor_phm_id }
 
@@ -759,30 +874,60 @@ class EmbeddedMockSql {
             queryUpper.contains('OFFSET')) {
 
             def filteredPhases = masterPhases
+            def paramIndex = 0
 
-            // Apply filters
-            if (params.containsKey('ownerId')) {
-                def ownerId = Integer.parseInt(params.get(params.size() - 3) as String)
-                filteredPhases = filteredPhases.findAll { phase ->
-                    def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
-                    def plan = masterPlans.find { it.plm_id == sequence?.plm_id }
-                    plan?.tms_id == ownerId
+            // Apply filters based on positional params (ArrayList converted to Map with numeric keys)
+            // Check if WHERE clause exists to determine if filters are present
+            if (queryUpper.contains('WHERE')) {
+                if (queryUpper.contains('PLM.TMS_ID = ?')) {
+                    def ownerId = params[paramIndex] as Integer
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { phase ->
+                        def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
+                        def plan = masterPlans.find { it.plm_id == sequence?.plm_id }
+                        plan?.tms_id == ownerId
+                    }
+                }
+
+                if (queryUpper.contains('PHM.PHM_NAME ILIKE ?')) {
+                    def searchTerm = params[paramIndex] as String
+                    paramIndex += 2 // both search params use same value
+                    def search = searchTerm?.toLowerCase()?.replace('%', '') ?: ''
+                    filteredPhases = filteredPhases.findAll { phase ->
+                        phase.phm_name.toLowerCase().contains(search) ||
+                        phase.phm_description?.toLowerCase()?.contains(search)
+                    }
+                }
+
+                if (queryUpper.contains('PHM.SQM_ID = ?')) {
+                    def sqmId = params[paramIndex] as UUID
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.sqm_id == sqmId }
+                }
+
+                if (queryUpper.contains('PHM.CREATED_AT >= ?')) {
+                    def createdAfter = params[paramIndex] as java.sql.Timestamp
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.created_at >= createdAfter }
+                }
+
+                if (queryUpper.contains('PHM.CREATED_AT < ?')) {
+                    def createdBefore = params[paramIndex] as java.sql.Timestamp
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.created_at < createdBefore }
                 }
             }
 
-            if (params.containsKey('search')) {
-                def searchTerm = params.get(params.size() - 2) as String
-                def search = searchTerm.toLowerCase().replace('%', '')
-                filteredPhases = filteredPhases.findAll { phase ->
-                    phase.phm_name.toLowerCase().contains(search) ||
-                    phase.phm_description?.toLowerCase()?.contains(search)
-                }
-            }
+            // Extract LIMIT and OFFSET from query string
+            def limitMatch = query =~ /LIMIT\s+(\d+)/
+            def offsetMatch = query =~ /OFFSET\s+(\d+)/
+            def limit = limitMatch ? Integer.parseInt(limitMatch[0][1]) : filteredPhases.size()
+            def offset = offsetMatch ? Integer.parseInt(offsetMatch[0][1]) : 0
 
-            if (params.containsKey('sqm_id')) {
-                def sqmId = UUID.fromString(params.get(params.size() - 1) as String)
-                filteredPhases = filteredPhases.findAll { it.sqm_id == sqmId }
-            }
+            // Apply pagination
+            def startIndex = Math.min(offset, filteredPhases.size())
+            def endIndex = Math.min(startIndex + limit, filteredPhases.size())
+            filteredPhases = filteredPhases[startIndex..<endIndex]
 
             return filteredPhases.collect { phase ->
                 def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
@@ -818,29 +963,47 @@ class EmbeddedMockSql {
         // Count query for pagination
         if (queryUpper.contains('SELECT COUNT(DISTINCT PHM.PHM_ID) AS TOTAL')) {
             def filteredPhases = masterPhases
+            def paramIndex = 0
 
-            // Apply same filters as data query
-            if (params.containsKey('ownerId')) {
-                def ownerId = Integer.parseInt(params.get(0) as String)
-                filteredPhases = filteredPhases.findAll { phase ->
-                    def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
-                    def plan = masterPlans.find { it.plm_id == sequence?.plm_id }
-                    plan?.tms_id == ownerId
+            // Apply same filters as data query using query structure detection
+            if (queryUpper.contains('WHERE')) {
+                if (queryUpper.contains('PLM.TMS_ID = ?')) {
+                    def ownerId = params[paramIndex] as Integer
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { phase ->
+                        def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
+                        def plan = masterPlans.find { it.plm_id == sequence?.plm_id }
+                        plan?.tms_id == ownerId
+                    }
                 }
-            }
 
-            if (params.containsKey('search')) {
-                def searchTerm = params.get(params.containsKey('ownerId') ? 1 : 0) as String
-                def search = searchTerm.toLowerCase().replace('%', '')
-                filteredPhases = filteredPhases.findAll { phase ->
-                    phase.phm_name.toLowerCase().contains(search) ||
-                    phase.phm_description?.toLowerCase()?.contains(search)
+                if (queryUpper.contains('PHM.PHM_NAME ILIKE ?')) {
+                    def searchTerm = params[paramIndex] as String
+                    paramIndex += 2 // both search params
+                    def search = searchTerm?.toLowerCase()?.replace('%', '') ?: ''
+                    filteredPhases = filteredPhases.findAll { phase ->
+                        phase.phm_name.toLowerCase().contains(search) ||
+                        phase.phm_description?.toLowerCase()?.contains(search)
+                    }
                 }
-            }
 
-            if (params.containsKey('sqm_id')) {
-                def sqmId = UUID.fromString(params.get(params.size() - 1) as String)
-                filteredPhases = filteredPhases.findAll { it.sqm_id == sqmId }
+                if (queryUpper.contains('PHM.SQM_ID = ?')) {
+                    def sqmId = params[paramIndex] as UUID
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.sqm_id == sqmId }
+                }
+
+                if (queryUpper.contains('PHM.CREATED_AT >= ?')) {
+                    def createdAfter = params[paramIndex] as java.sql.Timestamp
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.created_at >= createdAfter }
+                }
+
+                if (queryUpper.contains('PHM.CREATED_AT < ?')) {
+                    def createdBefore = params[paramIndex] as java.sql.Timestamp
+                    paramIndex++
+                    filteredPhases = filteredPhases.findAll { it.created_at < createdBefore }
+                }
             }
 
             return [new groovy.sql.GroovyRowResult([total: filteredPhases.size()])]
@@ -921,14 +1084,105 @@ class EmbeddedMockSql {
             return phases.collect { new groovy.sql.GroovyRowResult([phm_id: it.phm_id]) }
         }
 
+        // Handler: findPhaseInstances - hierarchical filtering with JOINs
+        if (queryUpper.contains('SELECT PHI.*') &&
+            queryUpper.contains('FROM PHASES_INSTANCE_PHI PHI') &&
+            queryUpper.contains('JOIN PHASES_MASTER_PHM PHM') &&
+            queryUpper.contains('JOIN SEQUENCES_INSTANCE_SQI SQI') &&
+            queryUpper.contains('JOIN SEQUENCES_MASTER_SQM SQM') &&
+            queryUpper.contains('JOIN PLANS_INSTANCE_PLI PLI') &&
+            queryUpper.contains('JOIN PLANS_MASTER_PLM PLM') &&
+            queryUpper.contains('JOIN ITERATIONS_ITR ITR') &&
+            queryUpper.contains('JOIN MIGRATIONS_MIG MIG') &&
+            queryUpper.contains('ORDER BY PHI.PHI_ORDER')) {
+
+            def filteredInstances = instancePhases
+
+            // Apply hierarchical filters
+            if (params.sqiId) {
+                filteredInstances = filteredInstances.findAll { it.sqi_id == params.sqiId }
+            }
+            if (params.pliId) {
+                // Filter by plan instance - need to check through sequence instance
+                filteredInstances = filteredInstances.findAll { instance ->
+                    def sequenceInstance = instanceSequences.find { it.sqi_id == instance.sqi_id }
+                    sequenceInstance?.pli_id == params.pliId
+                }
+            }
+            if (params.itrId) {
+                // Filter by iteration - need to check through plan instance → sequence instance
+                filteredInstances = filteredInstances.findAll { instance ->
+                    def sequenceInstance = instanceSequences.find { it.sqi_id == instance.sqi_id }
+                    def planInstance = instancePlans.find { it.pli_id == sequenceInstance?.pli_id }
+                    planInstance?.ite_id == params.itrId
+                }
+            }
+            if (params.migId) {
+                // Filter by migration - need to check through iteration → plan instance → sequence instance
+                filteredInstances = filteredInstances.findAll { instance ->
+                    def sequenceInstance = instanceSequences.find { it.sqi_id == instance.sqi_id }
+                    def planInstance = instancePlans.find { it.pli_id == sequenceInstance?.pli_id }
+                    def iteration = iterations.find { it.ite_id == planInstance?.ite_id }
+                    iteration?.mig_id == params.migId
+                }
+            }
+
+            // Enrich with hierarchical data
+            return filteredInstances.sort { it.phi_order }.collect { instance ->
+                def masterPhase = masterPhases.find { it.phm_id == instance.phm_id }
+                def sequenceInstance = instanceSequences.find { it.sqi_id == instance.sqi_id }
+                def masterSequence = masterSequences.find { it.sqm_id == sequenceInstance?.sqm_id }
+                def planInstance = instancePlans.find { it.pli_id == sequenceInstance?.pli_id }
+                def masterPlan = masterPlans.find { it.plm_id == planInstance?.plm_id }
+                def status = statuses.find { it.sts_id == instance.phi_status }
+                def predecessor = instancePhases.find { it.phi_id == instance.predecessor_phi_id }
+
+                new groovy.sql.GroovyRowResult([
+                    phi_id: instance.phi_id,
+                    sqi_id: instance.sqi_id,
+                    phm_id: instance.phm_id,
+                    phi_status: instance.phi_status,
+                    phi_name: instance.phi_name,
+                    phi_description: instance.phi_description,
+                    phi_order: instance.phi_order,
+                    predecessor_phi_id: instance.predecessor_phi_id,
+                    created_at: instance.created_at,
+                    updated_at: instance.updated_at,
+                    master_name: masterPhase?.phm_name,
+                    phm_name: masterPhase?.phm_name,
+                    sqi_name: sequenceInstance?.sqi_name,
+                    sqm_name: masterSequence?.sqm_name,
+                    pli_name: planInstance?.pli_name,
+                    plm_name: masterPlan?.plm_name,
+                    predecessor_name: predecessor?.phi_name,
+                    sts_id: status?.sts_id,
+                    sts_name: status?.sts_name,
+                    sts_color: status?.sts_color,
+                    step_instance_count: 1  // Mock: Phase instances have 1 step by default
+                ])
+            }
+        }
+
+        // Handler: hasStepInstances - COUNT step instances for phase
+        if (queryUpper.contains('SELECT COUNT(*)') &&
+            queryUpper.contains('FROM STEPS_INSTANCE_STI') &&
+            queryUpper.contains('WHERE PHI_ID = :INSTANCEID')) {
+            def instanceId = params.instanceId as UUID
+            def count = stepInstances.findAll { it.phi_id == instanceId }.size()
+            return [new groovy.sql.GroovyRowResult([count: count])]
+        }
+
         return []
     }
 
-    // Support positional parameters (ArrayList/List) - delegate to Map-based version
+    // Support positional parameters (ArrayList/List) - convert to Map with indices
     def rows(String query, ArrayList params) {
-        // For positional parameters, delegate to Map-based version with empty map
-        // The query handlers should handle the logic based on query structure
-        return rows(query, [:])
+        // Convert ArrayList to Map with numeric indices for handler access
+        def paramsMap = [:]
+        params.eachWithIndex { value, index ->
+            paramsMap[index] = value
+        }
+        return rows(query, paramsMap)
     }
 
     def rows(String query, List params) {
@@ -988,6 +1242,7 @@ class EmbeddedMockSql {
             def masterPlan = masterPlans.find { it.plm_id == planInstance?.plm_id }
             def status = statuses.find { it.sts_id == instance.phi_status }
             def predecessor = instancePhases.find { it.phi_id == instance.predecessor_phi_id }
+            def stepCount = 1  // Mock: Phase instances have 1 step by default
 
             return new groovy.sql.GroovyRowResult([
                 phi_id: instance.phi_id,
@@ -1001,6 +1256,7 @@ class EmbeddedMockSql {
                 created_at: instance.created_at,
                 updated_at: instance.updated_at,
                 master_name: masterPhase?.phm_name,
+                phm_name: masterPhase?.phm_name,
                 sqi_name: sequenceInstance?.sqi_name,
                 sqm_name: masterSequence?.sqm_name,
                 pli_name: planInstance?.pli_name,
@@ -1008,11 +1264,50 @@ class EmbeddedMockSql {
                 sts_id: status?.sts_id,
                 sts_name: status?.sts_name,
                 sts_color: status?.sts_color,
-                predecessor_name: predecessor?.phi_name
+                predecessor_name: predecessor?.phi_name,
+                step_instance_count: stepCount
             ])
         }
 
-        // Get master phase for createPhaseInstance
+        // findMasterPhaseById with full details (complex query with JOINs)
+        if (queryUpper.contains('SELECT PHM.*, SQM.SQM_NAME') &&
+            queryUpper.contains('FROM PHASES_MASTER_PHM PHM') &&
+            queryUpper.contains('JOIN SEQUENCES_MASTER_SQM') &&
+            queryUpper.contains('WHERE PHM.PHM_ID = :PHASEID')) {
+            def phaseId = params.phaseId as UUID
+            def phase = masterPhases.find { it.phm_id == phaseId }
+            if (!phase) return null
+            
+            def sequence = masterSequences.find { it.sqm_id == phase.sqm_id }
+            def plan = masterPlans.find { it.plm_id == sequence?.plm_id }
+            def team = teams.find { it.tms_id == plan?.tms_id }
+            def predecessor = masterPhases.find { it.phm_id == phase.predecessor_phm_id }
+            def stepCount = steps.count { it.phm_id == phase.phm_id }
+            def instanceCount = instancePhases.count { it.phm_id == phase.phm_id }
+            
+            return new groovy.sql.GroovyRowResult([
+                phm_id: phase.phm_id,
+                sqm_id: phase.sqm_id,
+                phm_name: phase.phm_name,
+                phm_description: phase.phm_description,
+                phm_order: phase.phm_order,
+                predecessor_phm_id: phase.predecessor_phm_id,
+                created_by: phase.created_by,
+                created_at: phase.created_at,
+                updated_by: phase.updated_by,
+                updated_at: phase.updated_at,
+                sqm_name: sequence?.sqm_name,
+                plm_id: plan?.plm_id,
+                plm_name: plan?.plm_name,
+                tms_id: plan?.tms_id,
+                tms_name: team?.tms_name,
+                predecessor_name: predecessor?.phm_name,
+                step_count: stepCount,
+                instance_count: instanceCount
+            ])
+        }
+        
+        // Get master phase for createPhaseInstance (simple query)
         if (queryUpper.contains('SELECT * FROM PHASES_MASTER_PHM') &&
             queryUpper.contains('WHERE PHM_ID = :PHASEID')) {
             def phaseId = params.phaseId as UUID
@@ -1020,10 +1315,92 @@ class EmbeddedMockSql {
             return phase ? new groovy.sql.GroovyRowResult(phase) : null
         }
 
+        // hasCircularDependency - CTE query to detect cycles
+        if (queryUpper.contains('WITH RECURSIVE DEPENDENCY_CHAIN AS') &&
+            queryUpper.contains('SELECT EXISTS') &&
+            queryUpper.contains('HAS_CYCLE')) {
+            def candidatePredecessorId = params.candidatePredecessorId as UUID
+            def sequenceId = params.sequenceId as UUID
+            def targetPhaseId = params.targetPhaseId as UUID
+
+            // Check if setting this predecessor would create a cycle
+            def hasCycle = false
+
+            // Self-reference is always a cycle
+            if (candidatePredecessorId == targetPhaseId) {
+                hasCycle = true
+            } else if (targetPhaseId != null && candidatePredecessorId != null) {
+                // Walk backwards from targetPhaseId through its predecessors
+                // If we encounter candidatePredecessorId, it's a cycle
+                def visited = [] as Set
+                def current = targetPhaseId
+
+                while (current != null && !visited.contains(current)) {
+                    visited.add(current)
+
+                    if (current == candidatePredecessorId) {
+                        hasCycle = true
+                        break
+                    }
+
+                    def phase = masterPhases.find { it.phm_id == current && it.sqm_id == sequenceId }
+                    current = phase?.predecessor_phm_id
+                }
+            }
+
+            return new groovy.sql.GroovyRowResult([has_cycle: hasCycle])
+        }
+
+        // getPhaseStatistics - COUNT total_steps query
+        if (queryUpper.contains('SELECT COUNT(*) AS TOTAL_STEPS') &&
+            queryUpper.contains('FROM STEPS_MASTER_STM STM') &&
+            queryUpper.contains('JOIN PHASES_MASTER_PHM PHM') &&
+            queryUpper.contains('WHERE PHM.SQM_ID = :SEQUENCEID')) {
+            def sequenceId = params.sequenceId as UUID
+
+            // Count all steps belonging to phases in this sequence
+            def phasesInSequence = masterPhases.findAll { it.sqm_id == sequenceId }
+            def phaseIds = phasesInSequence.collect { it.phm_id } as Set
+            def totalSteps = steps.count { phaseIds.contains(it.phm_id) }
+
+            return new groovy.sql.GroovyRowResult([total_steps: totalSteps])
+        }
+
+        // getPhaseStatistics - COUNT total_instances query
+        if (queryUpper.contains('SELECT COUNT(*) AS TOTAL_INSTANCES') &&
+            queryUpper.contains('FROM PHASES_INSTANCE_PHI PHI') &&
+            queryUpper.contains('JOIN PHASES_MASTER_PHM PHM') &&
+            queryUpper.contains('WHERE PHM.SQM_ID = :SEQUENCEID')) {
+            def sequenceId = params.sequenceId as UUID
+
+            // Count all phase instances belonging to phases in this sequence
+            def phasesInSequence = masterPhases.findAll { it.sqm_id == sequenceId }
+            def phaseIds = phasesInSequence.collect { it.phm_id } as Set
+            def totalInstances = instancePhases.count { phaseIds.contains(it.phm_id) }
+
+            return new groovy.sql.GroovyRowResult([total_instances: totalInstances])
+        }
+
         // INSERT returning phm_id for createMasterPhase
         if (queryUpper.contains('INSERT INTO PHASES_MASTER_PHM') &&
             queryUpper.contains('RETURNING PHM_ID')) {
             def newId = UUID.randomUUID()
+
+            // Add the new phase to mock data
+            def newPhase = [
+                phm_id: newId,
+                sqm_id: params.sqm_id,
+                phm_name: params.phm_name,
+                phm_description: params.phm_description,
+                phm_order: params.phm_order,
+                predecessor_phm_id: params.predecessor_phm_id,
+                created_by: 'system',
+                updated_by: 'system',
+                created_at: new Date(),
+                updated_at: new Date()
+            ]
+            masterPhases.add(newPhase)
+
             return new groovy.sql.GroovyRowResult([phm_id: newId])
         }
 
@@ -1063,9 +1440,12 @@ class EmbeddedMockSql {
 
     // Support positional parameters (ArrayList/List) - delegate to Map-based version
     def firstRow(String query, ArrayList params) {
-        // For positional parameters, try to delegate to rows() with empty map
-        // The query handlers should handle the logic based on query structure
-        def results = rows(query, [:])
+        // Convert ArrayList to Map with numeric indices for handler access
+        def paramsMap = [:]
+        params.eachWithIndex { value, index ->
+            paramsMap[index] = value
+        }
+        def results = rows(query, paramsMap)
         return results ? results[0] : null
     }
 
@@ -1094,7 +1474,21 @@ class EmbeddedMockSql {
             return 1
         }
 
-        // UPDATE master phase
+        // UPDATE master phase order during reordering (MUST COME BEFORE generic UPDATE)
+        if (queryUpper.contains('UPDATE PHASES_MASTER_PHM') &&
+            queryUpper.contains('SET PHM_ORDER = :NEWORDER') &&
+            queryUpper.contains('WHERE PHM_ID = :PHASEID')) {
+            def phaseId = params.phaseId
+            def phase = masterPhases.find { it.phm_id == phaseId }
+            if (phase) {
+                phase.phm_order = params.newOrder
+                phase.updated_at = new java.sql.Timestamp(System.currentTimeMillis())
+                return 1
+            }
+            return 0
+        }
+
+        // UPDATE master phase (generic - less specific)
         if (queryUpper.contains('UPDATE PHASES_MASTER_PHM') &&
             queryUpper.contains('WHERE PHM_ID = :PHASEID')) {
             def phaseId = params.phaseId
@@ -1105,20 +1499,6 @@ class EmbeddedMockSql {
                 if (params.containsKey('predecessor_phm_id')) phase.predecessor_phm_id = params.predecessor_phm_id
                 if (params.containsKey('phm_order')) phase.phm_order = params.phm_order
                 if (params.containsKey('sqm_id')) phase.sqm_id = params.sqm_id
-                phase.updated_at = new java.sql.Timestamp(System.currentTimeMillis())
-                return 1
-            }
-            return 0
-        }
-
-        // UPDATE master phase order during reordering
-        if (queryUpper.contains('UPDATE PHASES_MASTER_PHM') &&
-            queryUpper.contains('SET PHM_ORDER = :NEWORDER') &&
-            queryUpper.contains('WHERE PHM_ID = :PHASEID')) {
-            def phaseId = params.phaseId
-            def phase = masterPhases.find { it.phm_id == phaseId }
-            if (phase) {
-                phase.phm_order = params.newOrder
                 phase.updated_at = new java.sql.Timestamp(System.currentTimeMillis())
                 return 1
             }
@@ -1166,6 +1546,14 @@ class EmbeddedMockSql {
                 return 1
             }
             return 0
+        }
+
+        // DELETE phase instance
+        if (queryUpper.contains('DELETE FROM PHASES_INSTANCE_PHI') &&
+            queryUpper.contains('WHERE PHI_ID = :INSTANCEID')) {
+            def instanceId = params.instanceId as UUID
+            def removed = instancePhases.removeAll { it.phi_id == instanceId }
+            return removed ? 1 : 0
         }
 
         return 0
@@ -1384,6 +1772,7 @@ TestExecutor.runTest("A6: updateMasterPhase updates fields") {
 }
 
 // Category B: Instance Phase CRUD Operations
+EmbeddedDatabaseUtil.resetMockData()
 println "\nCategory B: Instance Phase CRUD Operations (5 tests)"
 println "${'-'*80}"
 
@@ -1519,6 +1908,7 @@ TestExecutor.runTest("B5: deletePhaseInstance dependency check") {
 }
 
 // Category C: Pagination & Filtering
+EmbeddedDatabaseUtil.resetMockData()
 println "\nCategory C: Pagination & Filtering (6 tests)"
 println "${'-'*80}"
 
@@ -1674,6 +2064,7 @@ TestExecutor.runTest("C6: findMasterPhasesWithFilters sort validation") {
 }
 
 // Category D: Hierarchical Filtering
+EmbeddedDatabaseUtil.resetMockData()
 println "\nCategory D: Hierarchical Filtering (5 tests)"
 println "${'-'*80}"
 
@@ -1784,6 +2175,7 @@ TestExecutor.runTest("D5: findPhaseInstances sequence instance level") {
 }
 
 // Category E: Edge Cases & Complex Operations
+EmbeddedDatabaseUtil.resetMockData()
 println "\nCategory E: Edge Cases & Complex Operations (4 tests)"
 println "${'-'*80}"
 

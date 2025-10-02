@@ -178,9 +178,12 @@ class EnhancedEmailService {
                 println "🔧 [EnhancedEmailService] TD-016-A: instructions array size: ${(enrichedData.instructions as List).size()}"
                 println "🔧 [EnhancedEmailService] TD-016-A: comments array size: ${(enrichedData.comments as List).size()}"
 
-                // Merge enriched data into stepInstance (enriched data takes precedence)
-                stepInstance = enrichedData + (stepInstance as Map)
+                // CRITICAL FIX: Merge enriched data into stepInstance (enriched data takes precedence)
+                // Right-hand map overrides left-hand map properties in Groovy
+                stepInstance = (stepInstance as Map) + enrichedData
                 println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
+                println "🔧 [EnhancedEmailService] ✅ Merged instructions count: ${(stepInstance.instructions as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] ✅ Merged comments count: ${(stepInstance.comments as List)?.size() ?: 0}"
             } else {
                 println "🔧 [EnhancedEmailService] ⚠️ WARNING: StepInstanceDTO not found for ID: ${stepInstanceId}"
             }
@@ -232,9 +235,9 @@ class EnhancedEmailService {
                 
                 // Get email template
                 println "🔧 [EnhancedEmailService] STEP 2: Getting email template"
-                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED_WITH_URL')
                 if (!template) {
-                    println "🔧 [EnhancedEmailService] ⚠️ WARNING: No active template found for STEP_STATUS_CHANGED - using fallback"
+                    println "🔧 [EnhancedEmailService] ⚠️ WARNING: No active template found for STEP_STATUS_CHANGED_WITH_URL - using fallback"
                     // For now, bypass database template requirement for testing
                     def testSubject = "[UMIG] Step Status Changed: ${stepInstance.sti_name}" as String
                     def testBody = "<html><body><h2>Step Status Changed</h2><p>Step: ${stepInstance.sti_name}</p><p>Status: ${oldStatus} to ${newStatus}</p></body></html>" as String
@@ -379,6 +382,19 @@ class EnhancedEmailService {
                     
                     // TD-015 Phase 3: Pre-processed variables for simplified templates (now using enriched data)
                     breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
+                ]
+
+                // CRITICAL DEBUG: Log data BEFORE calling helper methods
+                println "🔧 [EnhancedEmailService] DEBUG: About to build instructionsHtml"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.instructions = ${stepInstance?.instructions}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.instructions size = ${(stepInstance?.instructions as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.comments = ${stepInstance?.comments}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.comments size = ${(stepInstance?.comments as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.sti_duration_minutes = ${stepInstance?.sti_duration_minutes}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.environment_name = ${stepInstance?.environment_name}"
+
+                // Build HTML helper variables
+                variables.putAll([
                     instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
                     commentsHtml: buildCommentsHtml((stepInstance?.comments ?: []) as List),
                     durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
@@ -392,7 +408,15 @@ class EnhancedEmailService {
                         (stepInstance?.environment_name ?
                             "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})".toString() :
                             (stepInstance.environment_role_name ?: '')) as String)
-                ]
+                ])
+
+                // CRITICAL DEBUG: Log generated HTML variables
+                println "🔧 [EnhancedEmailService] DEBUG: Generated HTML variables:"
+                println "🔧 [EnhancedEmailService] DEBUG: instructionsHtml length = ${(variables.instructionsHtml as String)?.length() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: commentsHtml length = ${(variables.commentsHtml as String)?.length() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: durationAndEnvironment = '${variables.durationAndEnvironment}'"
+                println "🔧 [EnhancedEmailService] DEBUG: instructionsHtml preview = ${(variables.instructionsHtml as String)?.take(200)}"
+                println "🔧 [EnhancedEmailService] DEBUG: commentsHtml preview = ${(variables.commentsHtml as String)?.take(200)}"
 
                 println "🔧 [EnhancedEmailService] STEP 4: Processing email template"
                 println "🔧 [EnhancedEmailService] Template variables prepared: ${variables.keySet()}"
