@@ -306,13 +306,19 @@ class ConfigurationServiceSecurityTest {
                 "CONFIDENTIAL value should be '***REDACTED***' but got '${sanitizedValue}'"
 
             // Verify actual value is returned correctly to caller (not sanitized)
-            String actualValue = ConfigurationService.getString(testKey)
-            log.info("  Actual value returned to caller: ${actualValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String actualValue = ConfigurationService.getString(testKey)
+                log.info("  Actual value returned to caller: ${actualValue}")
 
-            assert actualValue == testValue,
-                "Actual value should be '${testValue}' but got '${actualValue}'"
+                assert actualValue == testValue,
+                    "Actual value should be '${testValue}' but got '${actualValue}'"
 
-            log.info("✅ Test 2.1 PASSED - Password values are redacted in logs but returned correctly to caller")
+                log.info("✅ Test 2.1 PASSED - Password values are redacted in logs but returned correctly to caller")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -347,13 +353,19 @@ class ConfigurationServiceSecurityTest {
                 "CONFIDENTIAL value should be '***REDACTED***' but got '${sanitizedValue}'"
 
             // Verify actual value is returned correctly to caller (not sanitized)
-            String actualValue = ConfigurationService.getString(testKey)
-            log.info("  Actual value returned to caller: ${actualValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String actualValue = ConfigurationService.getString(testKey)
+                log.info("  Actual value returned to caller: ${actualValue}")
 
-            assert actualValue == testValue,
-                "Actual value should be '${testValue}' but got '${actualValue}'"
+                assert actualValue == testValue,
+                    "Actual value should be '${testValue}' but got '${actualValue}'"
 
-            log.info("✅ Test 2.2 PASSED - Token values are redacted in logs but returned correctly to caller")
+                log.info("✅ Test 2.2 PASSED - Token values are redacted in logs but returned correctly to caller")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -388,13 +400,19 @@ class ConfigurationServiceSecurityTest {
                 "CONFIDENTIAL value should be '***REDACTED***' but got '${sanitizedValue}'"
 
             // Verify actual value is returned correctly to caller (not sanitized)
-            String actualValue = ConfigurationService.getString(testKey)
-            log.info("  Actual value returned to caller: ${actualValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String actualValue = ConfigurationService.getString(testKey)
+                log.info("  Actual value returned to caller: ${actualValue}")
 
-            assert actualValue == testValue,
-                "Actual value should be '${testValue}' but got '${actualValue}'"
+                assert actualValue == testValue,
+                    "Actual value should be '${testValue}' but got '${actualValue}'"
 
-            log.info("✅ Test 2.3 PASSED - API key values are redacted in logs but returned correctly to caller")
+                log.info("✅ Test 2.3 PASSED - API key values are redacted in logs but returned correctly to caller")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -437,13 +455,19 @@ class ConfigurationServiceSecurityTest {
                 "INTERNAL value should end with 'com' but got '${sanitizedValue}'"
 
             // Verify actual value is returned correctly to caller (not sanitized)
-            String actualValue = ConfigurationService.getString(testKey)
-            log.info("  Actual value returned to caller: ${actualValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String actualValue = ConfigurationService.getString(testKey)
+                log.info("  Actual value returned to caller: ${actualValue}")
 
-            assert actualValue == testValue,
-                "Actual value should be '${testValue}' but got '${actualValue}'"
+                assert actualValue == testValue,
+                    "Actual value should be '${testValue}' but got '${actualValue}'"
 
-            log.info("✅ Test 2.4 PASSED - INTERNAL values are partially masked in logs but returned correctly to caller")
+                log.info("✅ Test 2.4 PASSED - INTERNAL values are partially masked in logs but returned correctly to caller")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -478,13 +502,19 @@ class ConfigurationServiceSecurityTest {
                 "PUBLIC value should NOT be sanitized but got '${sanitizedValue}' instead of '${testValue}'"
 
             // Verify actual value is returned correctly to caller
-            String actualValue = ConfigurationService.getString(testKey)
-            log.info("  Actual value returned to caller: ${actualValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String actualValue = ConfigurationService.getString(testKey)
+                log.info("  Actual value returned to caller: ${actualValue}")
 
-            assert actualValue == testValue,
-                "Actual value should be '${testValue}' but got '${actualValue}'"
+                assert actualValue == testValue,
+                    "Actual value should be '${testValue}' but got '${actualValue}'"
 
-            log.info("✅ Test 2.5 PASSED - PUBLIC values are logged in full (no masking)")
+                log.info("✅ Test 2.5 PASSED - PUBLIC values are logged in full (no masking)")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -502,11 +532,17 @@ class ConfigurationServiceSecurityTest {
             String nonExistentKey = 'test.nonexistent.key.12345'
             log.info("  Test 1: Non-existent key")
 
-            String nullValue = ConfigurationService.getString(nonExistentKey)
-            log.info("  Non-existent key '${nonExistentKey}' returned: ${nullValue}")
+            // Set environment to DEV for ConfigurationService
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String nullValue = ConfigurationService.getString(nonExistentKey)
+                log.info("  Non-existent key '${nonExistentKey}' returned: ${nullValue}")
 
-            assert nullValue == null,
-                "Non-existent key should return null but got '${nullValue}'"
+                assert nullValue == null,
+                    "Non-existent key should return null but got '${nullValue}'"
+            } finally {
+                System.clearProperty('umig.environment')
+            }
 
             // Test 2: Sanitize null value (should return null, no NPE)
             log.info("  Test 2: Sanitizing null value")
@@ -561,8 +597,11 @@ class ConfigurationServiceSecurityTest {
             Integer devEnvId = resolveTestEnvironmentId('DEV')
             createTestConfiguration(repository, devEnvId, testKey, testValue)
 
-            // Retrieve configuration via ConfigurationService
-            String retrievedValue = ConfigurationService.getString(testKey)
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                // Retrieve configuration via ConfigurationService
+                String retrievedValue = ConfigurationService.getString(testKey)
             log.info("  Retrieved value: ${retrievedValue}")
 
             assert retrievedValue == testValue,
@@ -588,11 +627,15 @@ class ConfigurationServiceSecurityTest {
             }
 
             // Verify audit log entry structure (will be implemented in Step 1)
-            // Expected log format:
-            // "AUDIT: user={username}, key={key}, classification={classification},
-            //  value={sanitizedValue}, source={source}, success={success}, timestamp={timestamp}"
+                // Expected log format:
+                // "AUDIT: user={username}, key={key}, classification={classification},
+                //  value={sanitizedValue}, source={source}, success={success}, timestamp={timestamp}"
 
-            log.info("✅ Test 3.1 PASSED - Configuration access audit structure validated")
+                log.info("✅ Test 3.1 PASSED - Configuration access audit structure validated")
+            } finally {
+                // Clean up system property
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -615,38 +658,41 @@ class ConfigurationServiceSecurityTest {
             Integer devEnvId = resolveTestEnvironmentId('DEV')
             createTestConfiguration(repository, devEnvId, testKey, testValue)
 
-            // Clear cache to ensure first retrieval is from database
-            ConfigurationService.clearCache()
-
-            // First retrieval: Database access (cache miss)
-            log.info("  First retrieval (cache miss - database):")
-            String firstRetrieval = ConfigurationService.getString(testKey)
-            log.info("    Retrieved value: ${firstRetrieval}")
-
-            assert firstRetrieval == testValue,
-                "First retrieval should be '${testValue}' but got '${firstRetrieval}'"
-
-            // Classify the key
-            def classification = invokePrivateMethod('classifyConfigurationKey', testKey as String)
-
-            // Test first audit entry (database retrieval)
+            // Set environment to DEV for ConfigurationService
+            System.setProperty('umig.environment', 'DEV')
             try {
-                invokePrivateMethod('auditConfigurationAccess',
-                    testKey as String,
-                    testValue as String,
-                    classification,
-                    true as Boolean,
-                    'database' as String
-                )
-                log.info("    ✓ Database retrieval audit entry created")
-            } catch (NoSuchMethodException e) {
-                log.warn("    auditConfigurationAccess() not yet implemented - test structure validated")
-            }
+                // Clear cache to ensure first retrieval is from database
+                ConfigurationService.clearCache()
 
-            // Second retrieval: Cache access (cache hit)
-            log.info("  Second retrieval (cache hit):")
-            String secondRetrieval = ConfigurationService.getString(testKey)
-            log.info("    Retrieved value: ${secondRetrieval}")
+                // First retrieval: Database access (cache miss)
+                log.info("  First retrieval (cache miss - database):")
+                String firstRetrieval = ConfigurationService.getString(testKey)
+                log.info("    Retrieved value: ${firstRetrieval}")
+
+                assert firstRetrieval == testValue,
+                    "First retrieval should be '${testValue}' but got '${firstRetrieval}'"
+
+                // Classify the key
+                def classification = invokePrivateMethod('classifyConfigurationKey', testKey as String)
+
+                // Test first audit entry (database retrieval)
+                try {
+                    invokePrivateMethod('auditConfigurationAccess',
+                        testKey as String,
+                        testValue as String,
+                        classification,
+                        true as Boolean,
+                        'database' as String
+                    )
+                    log.info("    ✓ Database retrieval audit entry created")
+                } catch (NoSuchMethodException e) {
+                    log.warn("    auditConfigurationAccess() not yet implemented - test structure validated")
+                }
+
+                // Second retrieval: Cache access (cache hit)
+                log.info("  Second retrieval (cache hit):")
+                String secondRetrieval = ConfigurationService.getString(testKey)
+                log.info("    Retrieved value: ${secondRetrieval}")
 
             assert secondRetrieval == testValue,
                 "Second retrieval should be '${testValue}' but got '${secondRetrieval}'"
@@ -666,9 +712,12 @@ class ConfigurationServiceSecurityTest {
             }
 
             // Verify BOTH audit entries distinguish between cache hit vs database retrieval
-            log.info("  ✓ Both audit entries created with distinct sources (database vs cache)")
+                log.info("  ✓ Both audit entries created with distinct sources (database vs cache)")
 
-            log.info("✅ Test 3.2 PASSED - Cache hit and database retrieval audit entries validated")
+                log.info("✅ Test 3.2 PASSED - Cache hit and database retrieval audit entries validated")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -691,15 +740,18 @@ class ConfigurationServiceSecurityTest {
             Integer devEnvId = resolveTestEnvironmentId('DEV')
             createTestConfiguration(repository, devEnvId, testKey, testValue)
 
-            // Clear cache to force database retrieval
-            ConfigurationService.clearCache()
-            log.info("  Cache cleared - forcing database retrieval")
+            // Set environment to DEV for ConfigurationService
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                // Clear cache to force database retrieval
+                ConfigurationService.clearCache()
+                log.info("  Cache cleared - forcing database retrieval")
 
-            // Measure retrieval time
-            long startTime = System.currentTimeMillis()
+                // Measure retrieval time
+                long startTime = System.currentTimeMillis()
 
-            // Retrieve configuration via ConfigurationService (should be from database)
-            String retrievedValue = ConfigurationService.getString(testKey)
+                // Retrieve configuration via ConfigurationService (should be from database)
+                String retrievedValue = ConfigurationService.getString(testKey)
             log.info("  Retrieved value: ${retrievedValue}")
 
             long retrievalTime = System.currentTimeMillis() - startTime
@@ -723,11 +775,14 @@ class ConfigurationServiceSecurityTest {
                 log.info("  ✓ Database retrieval audit entry created")
                 log.info("  ✓ Audit entry shows source = 'database'")
                 log.info("  ✓ Audit includes retrieval time metrics (${retrievalTime}ms)")
-            } catch (NoSuchMethodException e) {
-                log.warn("  auditConfigurationAccess() not yet implemented - test structure validated")
-            }
+                } catch (NoSuchMethodException e) {
+                    log.warn("  auditConfigurationAccess() not yet implemented - test structure validated")
+                }
 
-            log.info("✅ Test 3.3 PASSED - Database retrieval audit entry with source indicator validated")
+                log.info("✅ Test 3.3 PASSED - Database retrieval audit entry with source indicator validated")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -761,42 +816,49 @@ class ConfigurationServiceSecurityTest {
 
             // Retrieve entire section via ConfigurationService
             log.info("  Retrieving section '${sectionPrefix}':")
-            Map<String, Object> section = ConfigurationService.getSection(sectionPrefix)
-            log.info("  Retrieved ${section.size()} items from section")
+            // Set environment to DEV for ConfigurationService to find the test configs
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                Map<String, Object> section = ConfigurationService.getSection(sectionPrefix)
+                log.info("  Retrieved ${section.size()} items from section")
 
-            assert section.size() == sectionKeys.size(),
-                "Section should contain ${sectionKeys.size()} items but got ${section.size()}"
+                assert section.size() == sectionKeys.size(),
+                    "Section should contain ${sectionKeys.size()} items but got ${section.size()}"
 
-            // Verify all expected keys are present
-            sectionKeys.keySet().each { expectedKey ->
-                assert section.containsKey(expectedKey),
-                    "Section should contain key '${expectedKey}'"
-            }
-
-            // Test audit entries for ALL configuration keys retrieved in section
-            log.info("  Verifying audit logs for ALL ${section.size()} configuration keys:")
-
-            section.each { key, value ->
-                def classification = invokePrivateMethod('classifyConfigurationKey', key as String)
-
-                try {
-                    invokePrivateMethod('auditConfigurationAccess',
-                        key as String,
-                        value as String,
-                        classification,
-                        true as Boolean,
-                        'section' as String  // source = section (batch retrieval)
-                    )
-                    log.info("    ✓ Audit entry for key: ${key}")
-                } catch (NoSuchMethodException e) {
-                    // Method not yet implemented - test structure validated
+                // Verify all expected keys are present (getSection strips prefix from keys)
+                sectionKeys.keySet().each { fullKey ->
+                    String shortKey = (fullKey as String).substring(sectionPrefix.length())
+                    assert section.containsKey(shortKey),
+                        "Section should contain key '${shortKey}' (from full key '${fullKey}')"
                 }
+
+                // Test audit entries for ALL configuration keys retrieved in section
+                log.info("  Verifying audit logs for ALL ${section.size()} configuration keys:")
+
+                section.each { key, value ->
+                    def classification = invokePrivateMethod('classifyConfigurationKey', key as String)
+
+                    try {
+                        invokePrivateMethod('auditConfigurationAccess',
+                            key as String,
+                            value as String,
+                            classification,
+                            true as Boolean,
+                            'section' as String  // source = section (batch retrieval)
+                        )
+                        log.info("    ✓ Audit entry for key: ${key}")
+                    } catch (NoSuchMethodException e) {
+                        // Method not yet implemented - test structure validated
+                    }
+                }
+
+                log.info("  ✓ Audit logs ALL ${section.size()} configuration keys in section")
+                log.info("  ✓ Audit shows batch retrieval (source='section') vs individual access")
+
+                log.info("✅ Test 3.4 PASSED - Section retrieval audit entries for all keys validated")
+            } finally {
+                System.clearProperty('umig.environment')
             }
-
-            log.info("  ✓ Audit logs ALL ${section.size()} configuration keys in section")
-            log.info("  ✓ Audit shows batch retrieval (source='section') vs individual access")
-
-            log.info("✅ Test 3.4 PASSED - Section retrieval audit entries for all keys validated")
         } finally {
             cleanupSecurityTestEnvironment()
         }
@@ -816,11 +878,17 @@ class ConfigurationServiceSecurityTest {
             log.info("  Attempting to retrieve non-existent key: ${nonExistentKey}")
 
             // Attempt to retrieve non-existent configuration
-            String result = ConfigurationService.getString(nonExistentKey)
-            log.info("  Result for non-existent key: ${result}")
+            // Set environment to DEV for ConfigurationService
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String result = ConfigurationService.getString(nonExistentKey)
+                log.info("  Result for non-existent key: ${result}")
 
-            assert result == null,
-                "Non-existent key should return null but got '${result}'"
+                assert result == null,
+                    "Non-existent key should return null but got '${result}'"
+            } finally {
+                System.clearProperty('umig.environment')
+            }
 
             // Classify the key
             def classification = invokePrivateMethod('classifyConfigurationKey', nonExistentKey as String)
@@ -846,14 +914,24 @@ class ConfigurationServiceSecurityTest {
 
             // Scenario 2: Empty key
             String emptyKey = ''
-            String emptyResult = ConfigurationService.getString(emptyKey)
-            log.info("    Empty key result: ${emptyResult}")
-            assert emptyResult == null, "Empty key should return null"
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String emptyResult = ConfigurationService.getString(emptyKey)
+                log.info("    Empty key result: ${emptyResult}")
+                assert emptyResult == null, "Empty key should return null"
+            } finally {
+                System.clearProperty('umig.environment')
+            }
 
             // Scenario 3: Invalid key format (if applicable)
             String invalidKey = 'test..double.dot..key'
-            String invalidResult = ConfigurationService.getString(invalidKey)
-            log.info("    Invalid key result: ${invalidResult}")
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String invalidResult = ConfigurationService.getString(invalidKey)
+                log.info("    Invalid key result: ${invalidResult}")
+            } finally {
+                System.clearProperty('umig.environment')
+            }
             // Result depends on implementation - just verify no exception
 
             log.info("  ✓ Failed accesses are tracked for security monitoring")
@@ -885,11 +963,17 @@ class ConfigurationServiceSecurityTest {
             log.info("  Scenario 1: Testing with authenticated user context")
 
             // Retrieve configuration
-            String retrievedValue = ConfigurationService.getString(testKey)
-            log.info("  Retrieved value: ${retrievedValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String retrievedValue = ConfigurationService.getString(testKey)
+                log.info("  Retrieved value: ${retrievedValue}")
 
-            assert retrievedValue == testValue,
-                "Retrieved value should be '${testValue}' but got '${retrievedValue}'"
+                assert retrievedValue == testValue,
+                    "Retrieved value should be '${testValue}' but got '${retrievedValue}'"
+            } finally {
+                System.clearProperty('umig.environment')
+            }
 
             // Classify the key
             def classification = invokePrivateMethod('classifyConfigurationKey', testKey as String)
@@ -961,16 +1045,22 @@ class ConfigurationServiceSecurityTest {
             Thread.sleep(100)
 
             // Retrieve configuration
-            String retrievedValue = ConfigurationService.getString(testKey)
-            log.info("  Retrieved value: ${retrievedValue}")
+            // Set environment to DEV for ConfigurationService to find the test config
+            System.setProperty('umig.environment', 'DEV')
+            try {
+                String retrievedValue = ConfigurationService.getString(testKey)
+                log.info("  Retrieved value: ${retrievedValue}")
 
-            // Record current time AFTER configuration retrieval
-            long endTime = System.currentTimeMillis()
-            Date endDate = new Date(endTime)
-            log.info("  End time: ${endDate.format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")}")
+                // Record current time AFTER configuration retrieval
+                long endTime = System.currentTimeMillis()
+                Date endDate = new Date(endTime)
+                log.info("  End time: ${endDate.format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")}")
 
-            assert retrievedValue == testValue,
-                "Retrieved value should be '${testValue}' but got '${retrievedValue}'"
+                assert retrievedValue == testValue,
+                    "Retrieved value should be '${testValue}' but got '${retrievedValue}'"
+            } finally {
+                System.clearProperty('umig.environment')
+            }
 
             // Classify the key
             def classification = invokePrivateMethod('classifyConfigurationKey', testKey as String)
@@ -1348,13 +1438,52 @@ class ConfigurationServiceSecurityTest {
     /**
      * Resolve test environment ID
      */
+    /**
+     * Resolve or create test environment ID.
+     * Ensures test environments exist, maintaining ADR-036 (self-contained tests).
+     * 
+     * US-098 Phase 3 Step 3: Test Environment Fix
+     */
     private static Integer resolveTestEnvironmentId(String envCode) {
         DatabaseUtil.withSql { sql ->
+            // Check if environment exists
             def row = sql.firstRow(
                 'SELECT env_id FROM environments_env WHERE UPPER(env_code) = UPPER(:envCode)',
                 [envCode: envCode]
             )
-            return row?.env_id as Integer
+            
+            if (row) {
+                return row.env_id as Integer
+            }
+            
+            // Create test environment if missing (ADR-036: self-contained tests)
+            def envName = envCode == 'DEV' ? 'Development' : 
+                         envCode == 'UAT' ? 'User Acceptance Testing' :
+                         envCode == 'PROD' ? 'Production' : envCode
+            
+            def insertSql = 'INSERT INTO environments_env (env_code, env_name, env_description, created_by, updated_by) VALUES (:envCode, :envName, :envDesc, \'integration_test\', \'integration_test\') RETURNING env_id'
+            
+            try {
+                def result = sql.firstRow(insertSql, [
+                    envCode: envCode as String,
+                    envName: envName as String,
+                    envDesc: ('Test environment for ' + envName) as String
+                ])
+                
+                log.info("Created test environment: ${envCode} (env_id=${result.env_id})")
+                return result.env_id as Integer
+            } catch (java.sql.SQLException e) {
+                // Handle race condition: environment created between SELECT and INSERT
+                if (e.getSQLState() == '23505') { // Unique constraint violation
+                    log.info("Environment ${envCode} already exists (created concurrently), fetching...")
+                    def existingRow = sql.firstRow(
+                        'SELECT env_id FROM environments_env WHERE UPPER(env_code) = UPPER(:envCode)',
+                        [envCode: envCode]
+                    )
+                    return existingRow.env_id as Integer
+                }
+                throw e
+            }
         }
     }
 

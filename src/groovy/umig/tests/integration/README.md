@@ -1,458 +1,225 @@
 # UMIG Integration Tests
 
-**Purpose**: Enterprise-grade integration testing framework with comprehensive validation standards and BaseIntegrationTest compliance for production-ready UMIG systems
+**Purpose**: Enterprise integration testing with BaseIntegrationTest (US-037) compliance and comprehensive validation standards
 
-## Key Components
+## Directory Structure
 
-- **BaseIntegrationTest Standard (US-037)** - Universal integration test infrastructure with standardized lifecycle
-- **Comprehensive Validation Standards** - Framework compliance, performance standards, coverage requirements
-- **API Test Suites** - Instructions, Sequences, Plans APIs with complete CRUD operations
-- **Data Import Testing** - US-034 reference implementation with 100% BaseIntegrationTest compliance
-- **Performance Monitoring** - Response time validation (<500ms API, <2s complex queries)
+```
+integration/
+├── README.md                              # This file
+├── INTEGRATION_TEST_VALIDATION_STANDARDS.md # 200+ line validation framework
+├── api/                                   # API integration tests (6 files)
+│   ├── InstructionsApiDeleteIntegrationTest.groovy
+│   ├── SequencesApiIntegrationTest.groovy
+│   ├── PhasesApiIntegrationTest.groovy
+│   └── [Other API tests]
+├── repositories/                          # Repository tests (1 file)
+│   └── RepositoryIntegrationTest.groovy
+├── AuthenticationHelper.groovy            # Secure credential management
+├── AuthenticationTest.groovy              # Authentication validation
+├── CrossApiIntegrationTest.groovy         # Cross-API workflows
+├── MigrationsApiBulkOperationsTest.groovy # Bulk operations
+├── ApplicationsApiIntegrationTest.groovy  # Application management
+├── EnvironmentsApiIntegrationTest.groovy  # Environment configuration
+├── TeamsApiIntegrationTest.groovy         # Team management
+└── [US-034 Data Import Tests]             # Import service validation
+    ├── ImportServiceIntegrationTest.groovy
+    ├── ImportOrchestrationIntegrationTest.groovy
+    ├── ImportProgressTrackingIntegrationTest.groovy
+    ├── ImportRollbackValidationTest.groovy
+    └── ImportFlowEndToEndTest.groovy
+```
 
-## Framework Compliance
+## Framework Standards
 
-- **BaseIntegrationTest adoption** - 95%+ compliance target across all integration test suites
-- **Authentication integration** - UserService with ADR-042 fallback hierarchy
-- **Database management** - Transaction handling, connection pooling, cleanup automation
-- **Error handling** - SQL state mapping (23503→400, 23505→409) with actionable messages
-- **Performance standards** - API response times, resource utilization, concurrent testing
+### BaseIntegrationTest (US-037)
+- **95%+ compliance target** - Universal integration test infrastructure
+- **Standardized lifecycle** - Setup, execution, teardown patterns
+- **Authentication integration** - UserService with ADR-042 fallback
+- **Database management** - Transaction handling, connection pooling
+- **Error handling** - SQL state mapping (23503→400, 23505→409)
 
-## Test Structure
-
-- **Complete hierarchy creation** - Migration → Iteration → Plan → Sequence → Phase → Step → Instruction
-- **Reverse order cleanup** - Foreign key constraint safe data cleanup
-- **Technology-prefixed commands** - npm run test:groovy:integration, test:js:integration
-- **Reference implementation** - US-034 Data Import Strategy as gold standard example
-
-## Validation Standards
-
-- **Essential reference** - INTEGRATION_TEST_VALIDATION_STANDARDS.md - Comprehensive 200+ line validation framework
-- **Quality gates** - 95%+ test success rate, 100% CRUD coverage, performance compliance
-- **Pre-test validation** - Environment readiness, dependency verification, cleanup protocols
+### Performance Standards
+- **API responses**: <500ms for standard endpoints
+- **Complex queries**: <2s for 3-table joins
+- **Large data operations**: <60s for bulk processing
+- **US-034 achievement**: 51ms (10x better than target)
 
 ## Quick Start
 
 ### Prerequisites
 
-1. **Environment Setup**
+```bash
+# 1. Start development stack
+cd local-dev-setup
+npm start
 
-   ```bash
-   # Ensure UMIG development stack is running
-   cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup
-   npm start
-   ```
+# 2. Verify credentials (.env file)
+cat local-dev-setup/.env | grep POSTMAN_AUTH
 
-2. **Credentials Configuration**
-   Verify `.env` file exists at `/local-dev-setup/.env`:
+# 3. Validate authentication
+groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
+```
 
-   ```env
-   POSTMAN_AUTH_USERNAME=admin
-   POSTMAN_AUTH_PASSWORD=Spaceop!13
-   ```
-
-3. **Verify Authentication**
-
-   ```bash
-   cd /Users/lucaschallamel/Documents/GitHub/UMIG
-   groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
-   ```
-
-   Expected output:
-
-   ```
-   ✅ All authentication tests passed
-   🎉 Authentication is properly configured!
-   ```
+Expected output: `✅ All authentication tests passed`
 
 ### Running Tests
 
 ```bash
-# Run all integration tests
-./src/groovy/umig/tests/run-integration-tests.sh
+# All integration tests
+npm run test:groovy:integration
 
-# Run specific test files
+# Specific test files
 groovy src/groovy/umig/tests/integration/CrossApiIntegrationTest.groovy
 groovy src/groovy/umig/tests/integration/MigrationsApiBulkOperationsTest.groovy
 
-# Run legacy tests (with XML parser fixes)
-groovy src/groovy/umig/tests/integration/PlansApiIntegrationTest.groovy
-groovy src/groovy/umig/tests/integration/SequencesApiIntegrationTest.groovy
+# US-034 data import tests
+groovy src/groovy/umig/tests/integration/ImportServiceIntegrationTest.groovy
 ```
+
+## Validation Standards
+
+**Essential Reference**: [`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./INTEGRATION_TEST_VALIDATION_STANDARDS.md)
+
+Comprehensive 200+ line framework covering:
+- **Framework compliance** - US-037 BaseIntegrationTest requirements (95%+ target)
+- **Performance standards** - Production-scale validation criteria
+- **Coverage requirements** - 95%+ comprehensive test coverage
+- **Quality metrics** - Success criteria and validation frameworks
+- **Reference implementation** - US-034 Data Import as gold standard
 
 ## Authentication Implementation
 
-### Security Requirements Met
+### Secure Credential Management
 
-- ✅ **No hard-coded credentials**: All credentials from external sources
-- ✅ **Environment variable support**: .env files and system environment variables
-- ✅ **Credential protection**: No credentials in logs or error messages
-- ✅ **HTTP Basic Auth**: Standard Base64 encoding implementation
-- ✅ **Fallback mechanisms**: Multiple credential sources supported
-
-### AuthenticationHelper.groovy
-
-Central utility for secure credential management:
+**AuthenticationHelper.groovy** - Zero hard-coded credentials:
 
 ```groovy
-// Usage in integration tests
 import AuthenticationHelper
 
 // Configure authenticated connection
 def connection = createAuthenticatedConnection(url, "POST", "application/json")
 
-// Helper method implementation
-private HttpURLConnection createAuthenticatedConnection(String url, String method, String contentType = null) {
-    def connection = new URL(url).openConnection() as HttpURLConnection
-    connection.requestMethod = method
-
-    // Add secure authentication
-    AuthenticationHelper.configureAuthentication(connection)
-
-    if (contentType) {
-        connection.setRequestProperty("Content-Type", contentType)
-    }
-
-    if (method in ['POST', 'PUT']) {
-        connection.doOutput = true
-    }
-
-    return connection
-}
+// Helper handles credentials from:
+// 1. .env file (local-dev-setup/.env)
+// 2. Environment variables (POSTMAN_AUTH_USERNAME/PASSWORD)
+// 3. System properties (test.auth.username/password)
 ```
 
-### Configuration Sources (Priority Order)
+**Security Standards Met**:
+- ✅ No hard-coded credentials
+- ✅ Environment variable support
+- ✅ Credential protection in logs
+- ✅ HTTP Basic Auth (Base64 encoding)
+- ✅ Fallback mechanisms
 
-1. **`.env` File**: `/local-dev-setup/.env`
-2. **Environment Variables**: `POSTMAN_AUTH_USERNAME`, `POSTMAN_AUTH_PASSWORD`
-3. **System Properties**: `test.auth.username`, `test.auth.password`
+## Test Data Management
 
-### Error Message Sanitization
+### Hierarchical Creation
+Complete hierarchy for realistic testing:
+- Migration → Iteration → Plan → Sequence → Phase → Step → Instruction
 
-Automatic credential protection in error messages:
+### Cleanup Pattern
+Reverse order cleanup (foreign key safe):
+1. Instructions (instances then masters)
+2. Steps → Phases → Sequences
+3. Plans → Iterations → Migrations
+4. Supporting entities (teams, users, etc.)
 
-```groovy
-// Original (DANGER): "Failed with password=Spaceop!13"
-// Sanitized (SAFE): "Failed with password=***"
-```
+### Test Isolation
+- 'test' user marker for test data identification
+- Independent test execution (no cross-contamination)
+- Automated cleanup after each test
 
-## Known Issues and Solutions
+## US-034 Data Import Testing
 
-### XML Parser Classpath Conflicts
+### Performance Excellence
+- **51ms** complex query execution (10x better than 500ms target)
+- **95%+ BaseIntegrationTest compliance** achieved
+- **Comprehensive coverage** - All import phases validated
 
-#### Issue
+### Import Phases Tested
+- CSV_TEAMS - Team data import
+- CSV_USERS - User data import
+- CSV_APPLICATIONS - Application import
+- CSV_ENVIRONMENTS - Environment import
+- JSON_STEPS - Step structure import
 
-Legacy tests using `@Grab` annotations experience XML parser conflicts:
+### Database Validation
+- Direct PostgreSQL verification
+- Staging table validation
+- Orchestration record verification
+- Progress tracking validation
 
-```
-java.lang.LinkageError: loader constraint violation for class org.apache.xerces.jaxp.SAXParserImpl
-```
+## Known Issues & Solutions
 
-#### Root Cause
+### XML Parser Conflicts (Legacy Tests)
 
-- HTTP Builder dependency transitively brings XML parser libraries
-- Classloader conflicts between Groovy RootLoader and JVM bootstrap loader
+**Issue**: LinkageError with SAXParserImpl in legacy @Grab tests
 
-#### Solution Implemented
-
-1. **Test Runner Configuration** (`run-integration-tests.sh`):
-
-   ```bash
-   # Force JDK built-in XML parsers
-   XML_PARSER_OPTS="-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl"
-   XML_PARSER_OPTS="$XML_PARSER_OPTS -Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl"
-   XML_PARSER_OPTS="$XML_PARSER_OPTS -Djavax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"
-
-   groovy $XML_PARSER_OPTS -cp "$JDBC_DRIVER_PATH" [test-file]
-   ```
-
-2. **Enhanced Dependency Exclusions**:
-
-   ```groovy
-   @GrabConfig(systemClassLoader=true)
-   @Grab('org.postgresql:postgresql:42.7.3')
-   @GrabExclude('xml-apis:xml-apis')
-   @GrabExclude('xerces:xercesImpl')
-   @GrabExclude('xml-resolver:xml-resolver')
-   @GrabExclude('xalan:xalan')
-   @GrabExclude('commons-logging:commons-logging')
-   @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
-   ```
-
-## US-034 Data Import Testing Patterns
-
-### Overview
-
-US-034 introduced comprehensive data import capabilities with CSV/JSON support, orchestration, progress tracking, and rollback mechanisms. The testing framework validates all aspects of the import system including performance targets.
-
-### Key Testing Achievements
-
-- **Performance Excellence**: 51ms complex query execution (10x better than 500ms target)
-- **US-037 Compliance**: 95%+ BaseIntegrationTest framework compliance achieved
-- **Comprehensive Coverage**: All import phases validated (CSV_TEAMS, CSV_USERS, CSV_APPLICATIONS, CSV_ENVIRONMENTS, JSON_STEPS)
-- **Database Validation**: Direct PostgreSQL verification of staging tables and orchestration records
-
-### Testing Lessons Learned
-
-#### 1. Database Connection Best Practices
-
-- **Use Correct Database**: umig_app_db (NOT confluence_db)
-- **Credentials**: umig_app_user with password 123456
-- **Connection Pattern**: Always verify database context before testing
-
-#### 2. NodeJS Test Runner Integration
-
-- **Preferred Method**: Use IntegrationTestRunner.js for consistent environment setup
-- **Alternative**: Direct Groovy execution for isolated test debugging
-- **Environment**: Ensure .env.example is properly configured with test credentials
-
-#### 3. Table Structure Validation
-
-- **Reference Source**: Always check liquibase migration files (e.g., 030_extend_staging_tables.sql)
-- **Staging Tables**: stg_steps, stg_step_instructions for data staging
-- **Orchestration Tables**: stg_import_orchestrations_ior, stg_import_progress_tracking_ipt
-- **Batch Management**: import_batches_imb for transaction control
-
-#### 4. Performance Testing Patterns
-
-```groovy
-// Example: Complex 3-table join performance test
-def startTime = System.currentTimeMillis()
-def query = """
-    SELECT ior.*, ipt.*, imb.*
-    FROM stg_import_orchestrations_ior ior
-    LEFT JOIN stg_import_progress_tracking_ipt ipt ON ior.ior_id = ipt.ior_id
-    LEFT JOIN import_batches_imb imb ON ior.ior_id = imb.ior_id
-    WHERE ior.orchestration_status IN ('PENDING', 'IN_PROGRESS')
-    ORDER BY ior.created_at DESC
-"""
-def results = sql.rows(query)
-def executionTime = System.currentTimeMillis() - startTime
-assert executionTime < 500 // Target: <500ms
-```
-
-#### 5. Import Workflow Testing
-
-- **Phase Sequencing**: Validate entity dependencies (teams → users → applications → environments → steps)
-- **Progress Tracking**: Monitor real-time status updates during import execution
-- **Rollback Testing**: Verify transactional integrity and cleanup on failure
-- **Batch Size Optimization**: Test with various batch sizes (100, 500, 1000 records)
-
-### Integration with US-037 BaseIntegrationTest Framework
-
-All US-034 tests follow the standardized BaseIntegrationTest patterns:
-
-- Setup/teardown lifecycle management
-- Consistent authentication handling
-- Standardized error reporting
-- Performance metrics collection
-- Test data isolation
-
-## Validation Standards
-
-### Integration Test Validation Standards
-
-**📊 Comprehensive Standards Document**: [`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./INTEGRATION_TEST_VALIDATION_STANDARDS.md)
-
-This document provides:
-
-- **Validation Framework**: Complete standards for integration test suite validation
-- **Framework Compliance**: US-037 BaseIntegrationTest compliance requirements (95%+ target)
-- **Performance Standards**: Production-scale performance validation criteria
-- **Reference Implementation**: US-034 Data Import Strategy as a complete example
-- **Quality Metrics**: Coverage requirements, success criteria, and compliance checklists
-
-**Use this document when**:
-
-- Developing new integration test suites
-- Validating existing test coverage
-- Establishing quality gates for integration testing
-- Creating validation reports for user stories
-
-## Test Files and Structure
-
-### Current Test Files
-
-#### Modern Pattern (ADR-036 Compliant)
-
-```
-AuthenticationHelper.groovy               # Secure credential management utility
-AuthenticationTest.groovy                 # Authentication validation test
-CrossApiIntegrationTest.groovy           # Cross-API workflow validation
-MigrationsApiBulkOperationsTest.groovy   # Bulk operations testing
-ApplicationsApiIntegrationTest.groovy    # Application management tests
-EnvironmentsApiIntegrationTest.groovy    # Environment configuration tests
-TeamsApiIntegrationTest.groovy           # Team management tests
-```
-
-#### US-034 Data Import Tests (NEW - Sprint 6)
-
-```
-ImportServiceIntegrationTest.groovy      # Core import service validation
-ImportOrchestrationIntegrationTest.groovy # Orchestration and progress tracking
-ImportProgressTrackingIntegrationTest.groovy # Real-time progress monitoring
-ImportRollbackValidationTest.groovy      # Rollback mechanism testing
-ImportFlowEndToEndTest.groovy           # Complete import workflow E2E tests
-```
-
-#### Legacy Pattern (Being Migrated)
-
-```
-PlansApiIntegrationTest.groovy           # Plan management (with @Grab)
-SequencesApiIntegrationTest.groovy       # Sequence operations (with @Grab)
-PhasesApiIntegrationTest.groovy          # Phase management (with @Grab)
-ControlsApiIntegrationTest.groovy        # Control point tests (with @Grab)
-InstructionsApiIntegrationTestWorking.groovy # Instructions (with @Grab)
-stepViewApiIntegrationTest.groovy        # Step view validation (with @Grab)
-```
-
-### Migration Pattern: Legacy to ADR-036
-
-#### Legacy Pattern (Problematic)
-
-```groovy
-@GrabConfig(systemClassLoader=true)
-@Grab('org.postgresql:postgresql:42.7.3')
-@Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
-
-import groovyx.net.http.RESTClient
-// External dependencies, XML parser conflicts
-```
-
-#### ADR-036 Pattern (Recommended)
-
-```groovy
-package umig.tests.integration
-
-import groovy.json.JsonSlurper
-import groovy.json.JsonBuilder
-import umig.utils.DatabaseUtil
-
-// Zero external dependencies, no classpath conflicts
-// Uses ScriptRunner's built-in capabilities
-```
-
-## Troubleshooting
-
-### Authentication Issues
-
-#### "Authentication credentials not available"
-
+**Solution**: Test runner uses XML_PARSER_OPTS:
 ```bash
-# Check .env file exists
-ls -la /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/.env
-
-# Verify credentials are set
-grep POSTMAN_AUTH /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/.env
+XML_PARSER_OPTS="-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl"
 ```
 
-#### "403 Forbidden" responses
+**Modern Approach**: Use ADR-036 pattern (zero external dependencies)
 
-```bash
-# Test authentication directly
-groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
+### Database Connection
 
-# Manual verification with curl
-curl -u admin:Spaceop!13 http://localhost:8090/rest/scriptrunner/latest/custom/teams
-```
-
-#### Debug Mode
-
-Add to AuthenticationHelper for debugging (remove in production):
-
+**Correct**: Use `localhost` hostname
 ```groovy
-println "Loading credentials from: ${envFile?.absolutePath}"
-println "Username found: ${username != null}"
-println "Password found: ${password != null}"
+def dbUrl = "jdbc:postgresql://localhost:5432/umig_app_db"  // ✅
 ```
 
-### XML Parser Issues
+**Wrong**: Use `postgres` hostname (fails in tests)
 
-#### Symptoms
+## ADR Compliance
 
-- LinkageError with SAXParserImpl
-- ClassLoader constraint violations
-- XML processing failures in legacy tests
-
-#### Solutions
-
-1. Ensure test runner uses XML_PARSER_OPTS
-2. Add comprehensive @GrabExclude annotations
-3. Consider migrating to ADR-036 pattern
-
-## Security and Compliance
-
-### Security Standards
-
-- **OWASP Secure Coding Practices**: Credential management principles
-- **CWE-798 Prevention**: No credentials in source code
-- **Information Disclosure**: Proper error handling without exposing sensitive data
-- **HTTP Security**: Standard Basic Auth implementation
-
-### ADR Compliance
-
-- **ADR-036**: Pure Groovy implementation pattern
+- **ADR-036**: Pure Groovy implementation (no external REST clients)
 - **ADR-026**: Specific SQL query validation
 - **ADR-031**: Type safety with explicit casting
 - **ADR-030**: Hierarchical filtering patterns
+- **ADR-042**: Dual authentication (session + fallback)
 
-### Best Practices Implemented
+## Adding New Integration Tests
 
-1. **Credential Storage**: Git-ignored .env files
-2. **Runtime Loading**: Credentials loaded only when needed
-3. **Error Sanitization**: Automatic credential masking
-4. **Consistent Patterns**: Reusable authentication helpers
+1. **Follow BaseIntegrationTest pattern** (US-037 standard)
+2. **Use localhost for database** connections
+3. **Implement proper cleanup** (reverse order)
+4. **Reference validation standards** document
+5. **Test against live database** (not mocked)
+6. **Validate performance** against targets
+7. **Include authentication** via AuthenticationHelper
 
-## Technical References
+## Troubleshooting
 
-### Implementation Timeline
+### Authentication Failures
 
-- **2025-08-18**: Authentication implementation completed
-- **2025-08-18**: XML parser conflict resolution
-- **2025-08-18**: Documentation consolidation
+```bash
+# Check .env file
+ls -la local-dev-setup/.env
+grep POSTMAN_AUTH local-dev-setup/.env
 
-### Related ADRs
+# Test authentication
+groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
 
-- ADR-036: Pure Groovy testing framework
-- ADR-026: Specific SQL query validation
-- ADR-031: Type safety requirements
-- ADR-030: Hierarchical filtering patterns
-
-### Utility Scripts
-
-```
-UpdateIntegrationTestsAuthentication.groovy  # Mass update utility for remaining tests
-run-all-integration-tests.sh                # Batch test runner with authentication
+# Manual verification
+curl -u admin:Spaceop!13 http://localhost:8090/rest/scriptrunner/latest/custom/teams
 ```
 
-### Next Steps
+### Database Connection Issues
 
-#### For Developers
+```bash
+# Check PostgreSQL container
+podman ps | grep postgres
+podman logs umig_postgres
 
-1. Use `AuthenticationTest.groovy` to validate setup
-2. Apply `createAuthenticatedConnection()` pattern for new tests
-3. Follow ADR-036 pattern for new integration tests
-
-#### For Production
-
-1. Consider enterprise secret management integration
-2. Implement audit logging for authentication events
-3. Migrate remaining legacy tests to ADR-036 pattern
-
-## Summary
-
-The UMIG integration test suite provides:
-
-- **Secure Authentication**: Zero hard-coded credentials with environment-based configuration
-- **XML Parser Resolution**: JDK parser configuration eliminates classpath conflicts
-- **Comprehensive Coverage**: Cross-API workflows, bulk operations, and entity management
-- **ADR Compliance**: Following established architectural decisions
-- **Migration Path**: Clear pattern for modernizing legacy tests
-
-All integration tests now authenticate properly, eliminating 403 Forbidden errors while maintaining the highest security standards.
+# Verify connection
+groovy src/groovy/umig/tests/diagnostics/testDatabaseConnection.groovy
+```
 
 ---
 
-_Last Updated: August 18, 2025_  
-_Version: 2.0 (Consolidated)_  
-_Status: ✅ Production Ready_
+**Version**: 2.0 | **Updated**: September 26, 2025 (Sprint 8)
+**Key Features**: BaseIntegrationTest compliance, US-034 reference implementation
+**Performance**: 51ms complex queries (10x target exceeded)

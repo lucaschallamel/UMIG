@@ -1,0 +1,477 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:035_us098_phase4_batch1_revised splitStatements:true endDelimiter:;
+--comment: US-098 Phase 4 Batch 1 REVISED - Non-Credential Infrastructure Configurations
+--comment: Architecture Pivot: Exclude ALL credentials (database, SMTP passwords, API tokens)
+--comment: Focus: Infrastructure settings, performance configs, feature flags WITHOUT secrets
+--comment: Date: 2025-10-02
+--comment: Risk Assessment: Plain text storage accepted for this phase (no encryption)
+
+-- ============================================================================
+-- BATCH 1 REVISED: NON-CREDENTIAL CONFIGURATIONS (18 configs)
+-- ============================================================================
+-- Excluded from this batch: Database credentials (handled by ScriptRunner resource pool)
+-- Included: SMTP infrastructure (host/port), API URLs, timeouts, batch sizes, feature flags
+
+-- ============================================================================
+-- CATEGORY 1: SMTP INFRASTRUCTURE (4 configs) - NO PASSWORDS
+-- ============================================================================
+
+-- 1.1 SMTP Host Configuration
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: MailHog test server
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.host',
+    'infrastructure',
+    'umig_mailhog',
+    'SMTP server hostname for email delivery (DEV: MailHog test server)',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Production SMTP server (placeholder - update before deployment)
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.host',
+    'infrastructure',
+    'smtp.example.com',
+    'SMTP server hostname for email delivery (PROD: REPLACE with actual SMTP server)',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 1.2 SMTP Port Configuration
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: MailHog port
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.port',
+    'infrastructure',
+    '1025',
+    'SMTP server port (DEV: 1025 for MailHog, PROD: typically 587 for TLS)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Standard SMTP submission port
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.port',
+    'infrastructure',
+    '587',
+    'SMTP server port (587 = standard TLS submission port)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 1.3 SMTP Authentication Enabled
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: No auth for MailHog
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.auth.enabled',
+    'general',
+    'false',
+    'Enable SMTP authentication (DEV: false for MailHog, PROD: typically true)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Auth required
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.auth.enabled',
+    'general',
+    'true',
+    'Enable SMTP authentication (required for production SMTP servers)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 1.4 SMTP STARTTLS Enabled
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: No TLS for MailHog
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.starttls.enabled',
+    'general',
+    'false',
+    'Enable STARTTLS encryption (DEV: false for MailHog, PROD: true for security)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: TLS required for security
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.starttls.enabled',
+    'general',
+    'true',
+    'Enable STARTTLS encryption (required for production email security)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- CATEGORY 2: API URLS (2 configs)
+-- ============================================================================
+
+-- 2.1 Confluence Base URL
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Local Confluence
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'confluence.base.url',
+    'infrastructure',
+    'http://localhost:8090',
+    'Confluence base URL for API calls (DEV: local container)',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Production Confluence (placeholder - update before deployment)
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'confluence.base.url',
+    'infrastructure',
+    'https://confluence.example.com',
+    'Confluence base URL for API calls (PROD: REPLACE with actual Confluence URL)',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- CATEGORY 3: TIMEOUTS (4 configs)
+-- ============================================================================
+
+-- 3.1 SMTP Connection Timeout
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Short timeout for fast feedback
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.connection.timeout.ms',
+    'performance',
+    '5000',
+    'SMTP connection timeout in milliseconds (DEV: 5s, PROD: 15s for slower networks)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Longer timeout for reliability
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.connection.timeout.ms',
+    'performance',
+    '15000',
+    'SMTP connection timeout in milliseconds (15s for production reliability)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 3.2 SMTP Operation Timeout
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Short operation timeout
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'email.smtp.timeout.ms',
+    'performance',
+    '5000',
+    'SMTP operation timeout in milliseconds (DEV: 5s, PROD: 30s for large emails)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Longer timeout for large emails
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'email.smtp.timeout.ms',
+    'performance',
+    '30000',
+    'SMTP operation timeout in milliseconds (30s for large email attachments)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- CATEGORY 4: BATCH SIZES (4 configs)
+-- ============================================================================
+
+-- 4.1 Import Maximum Batch Size
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Conservative batch size
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'import.batch.max.size',
+    'performance',
+    '1000',
+    'Maximum import batch size (DEV: 1000, PROD: 5000 with more resources)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Larger batch size for performance
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'import.batch.max.size',
+    'performance',
+    '5000',
+    'Maximum import batch size (5000 for production with sufficient memory)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 4.2 API Pagination Default Size
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Small page size for testing
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'api.pagination.default.size',
+    'performance',
+    '50',
+    'Default pagination size for API responses (DEV: 50, PROD: 100)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Larger page size for efficiency
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'api.pagination.default.size',
+    'performance',
+    '100',
+    'Default pagination size for API responses (100 for production efficiency)',
+    true,
+    true,
+    'INTEGER',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- CATEGORY 5: FEATURE FLAGS (4 configs)
+-- ============================================================================
+
+-- 5.1 Import Email Notifications Enabled
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Disabled to avoid spam
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'import.email.notifications.enabled',
+    'general',
+    'false',
+    'Enable email notifications for import events (DEV: false to avoid spam)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Enabled for stakeholders
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'import.email.notifications.enabled',
+    'general',
+    'true',
+    'Enable email notifications for import events (PROD: true for stakeholder awareness)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 5.2 Import Performance Monitoring Enabled
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Always monitor in development
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'DEV' LIMIT 1),
+    'import.monitoring.performance.enabled',
+    'general',
+    'true',
+    'Enable performance monitoring for import operations (DEV: always enabled)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Enabled but can be toggled if overhead concerns
+(
+    (SELECT env_id FROM environment_env WHERE env_name = 'PROD' LIMIT 1),
+    'import.monitoring.performance.enabled',
+    'general',
+    'true',
+    'Enable performance monitoring for import operations (PROD: can disable if overhead issues)',
+    true,
+    true,
+    'BOOLEAN',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- VERIFICATION QUERIES (Execute after migration to verify data integrity)
+-- ============================================================================
+
+-- Verification Query 1: Count by category
+-- Expected: infrastructure=6, performance=8, general=4, Total=18
+SELECT
+    scf_category,
+    COUNT(*) AS config_count,
+    COUNT(DISTINCT scf_key) AS unique_keys
+FROM system_configuration_scf
+WHERE created_by = 'US-098-migration'
+GROUP BY scf_category
+ORDER BY scf_category;
+
+-- Verification Query 2: Count by environment
+-- Expected: DEV=9, PROD=9, Total=18
+SELECT
+    e.env_name,
+    COUNT(*) AS config_count
+FROM system_configuration_scf scf
+JOIN environment_env e ON scf.env_id = e.env_id
+WHERE scf.created_by = 'US-098-migration'
+GROUP BY e.env_name
+ORDER BY e.env_name;
+
+-- Verification Query 3: Security check - NO credentials should be present
+-- Expected: 0 rows (all configs should have category != 'security')
+SELECT
+    scf_key,
+    scf_category,
+    '❌ UNEXPECTED CREDENTIAL CONFIG' AS issue
+FROM system_configuration_scf
+WHERE created_by = 'US-098-migration'
+  AND scf_category = 'security';
+
+-- Verification Query 4: Overall health check
+-- Expected: total_configs=18, infrastructure_count=6, performance_count=8, general_count=4
+SELECT
+    COUNT(*) AS total_configs,
+    SUM(CASE WHEN scf_category = 'infrastructure' THEN 1 ELSE 0 END) AS infrastructure_count,
+    SUM(CASE WHEN scf_category = 'performance' THEN 1 ELSE 0 END) AS performance_count,
+    SUM(CASE WHEN scf_category = 'general' THEN 1 ELSE 0 END) AS general_count,
+    CASE
+        WHEN COUNT(*) = 18
+         AND SUM(CASE WHEN scf_category = 'infrastructure' THEN 1 ELSE 0 END) = 6
+         AND SUM(CASE WHEN scf_category = 'performance' THEN 1 ELSE 0 END) = 8
+         AND SUM(CASE WHEN scf_category = 'general' THEN 1 ELSE 0 END) = 4
+        THEN '✅ ALL CHECKS PASSED'
+        ELSE '❌ VERIFICATION FAILED'
+    END AS overall_status
+FROM system_configuration_scf
+WHERE created_by = 'US-098-migration';
+
+-- Verification Query 5: List all migrated configs
+-- Expected: 18 rows showing all configurations
+SELECT
+    e.env_name,
+    scf.scf_key,
+    scf.scf_category,
+    scf.scf_value,
+    scf.scf_data_type
+FROM system_configuration_scf scf
+JOIN environment_env e ON scf.env_id = e.env_id
+WHERE scf.created_by = 'US-098-migration'
+ORDER BY scf.scf_category, scf.scf_key, e.env_name;
+
+-- ============================================================================
+-- ROLLBACK PROCEDURE (If needed)
+-- ============================================================================
+-- To rollback this migration:
+-- DELETE FROM system_configuration_scf WHERE created_by = 'US-098-migration';
+--
+-- Then verify:
+-- SELECT COUNT(*) FROM system_configuration_scf WHERE created_by = 'US-098-migration';
+-- Expected: 0 rows
+-- ============================================================================
+
+--rollback DELETE FROM system_configuration_scf WHERE created_by = 'US-098-migration';

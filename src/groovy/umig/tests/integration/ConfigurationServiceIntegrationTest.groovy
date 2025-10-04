@@ -965,13 +965,52 @@ class ConfigurationServiceIntegrationTest {
     /**
      * Resolve environment code to env_id for test setup
      */
+    /**
+     * Resolve or create test environment ID.
+     * Ensures test environments exist, maintaining ADR-036 (self-contained tests).
+     * 
+     * US-098 Phase 3 Step 3: Test Environment Fix
+     */
     private static Integer resolveTestEnvironmentId(String envCode) {
-        return DatabaseUtil.withSql { sql ->
+        DatabaseUtil.withSql { sql ->
+            // Check if environment exists
             def row = sql.firstRow(
                 'SELECT env_id FROM environments_env WHERE UPPER(env_code) = UPPER(:envCode)',
                 [envCode: envCode]
             )
-            return row ? (row.env_id as Integer) : null
+            
+            if (row) {
+                return row.env_id as Integer
+            }
+            
+            // Create test environment if missing (ADR-036: self-contained tests)
+            def envName = envCode == 'DEV' ? 'Development' : 
+                         envCode == 'UAT' ? 'User Acceptance Testing' :
+                         envCode == 'PROD' ? 'Production' : envCode
+            
+            def insertSql = 'INSERT INTO environments_env (env_code, env_name, env_description, created_by, updated_by) VALUES (:envCode, :envName, :envDesc, \'integration_test\', \'integration_test\') RETURNING env_id'
+            
+            try {
+                def result = sql.firstRow(insertSql, [
+                    envCode: envCode as String,
+                    envName: envName as String,
+                    envDesc: ('Test environment for ' + envName) as String
+                ])
+                
+                log.info("Created test environment: ${envCode} (env_id=${result.env_id})")
+                return result.env_id as Integer
+            } catch (java.sql.SQLException e) {
+                // Handle race condition: environment created between SELECT and INSERT
+                if (e.getSQLState() == '23505') { // Unique constraint violation
+                    log.info("Environment ${envCode} already exists (created concurrently), fetching...")
+                    def existingRow = sql.firstRow(
+                        'SELECT env_id FROM environments_env WHERE UPPER(env_code) = UPPER(:envCode)',
+                        [envCode: envCode]
+                    )
+                    return existingRow.env_id as Integer
+                }
+                throw e
+            }
         }
     }
 

@@ -37,6 +37,137 @@ class ConfigurationService {
     }
 
     /**
+     * Security classification levels for configuration keys.
+     * 
+     * Classification determines how values are handled in logs and audit trails:
+     * - PUBLIC: No sensitive data, safe to log in full
+     * - INTERNAL: Infrastructure configs (hosts, ports), partial masking in logs
+     * - CONFIDENTIAL: Credentials and secrets, complete redaction required
+     * 
+     * US-098 Phase 3: Security Hardening
+     */
+    private static enum SecurityClassification {
+        PUBLIC,      // Default, no sensitive patterns detected
+        INTERNAL,    // Infrastructure configuration (host, port, url, path)
+        CONFIDENTIAL // Credentials (password, token, key, secret, credential)
+    }
+
+    /**
+     * Classify configuration key based on pattern matching.
+     * 
+     * Classification Logic:
+     * 1. CONFIDENTIAL (highest priority): password, token, key, secret, credential
+     * 2. INTERNAL: host, port, url, path
+     * 3. PUBLIC (default): Everything else
+     * 
+     * @param key Configuration key to classify
+     * @return SecurityClassification level for the key
+     * US-098 Phase 3 Step 1
+     */
+    private static SecurityClassification classifyConfigurationKey(String key) {
+        if (!key) {
+            return SecurityClassification.PUBLIC
+        }
+
+        String lowerKey = key.toLowerCase()
+
+        // CONFIDENTIAL patterns (highest priority)
+        if (lowerKey.contains('password') || lowerKey.contains('token') || 
+            lowerKey.contains('key') || lowerKey.contains('secret') || 
+            lowerKey.contains('credential')) {
+            return SecurityClassification.CONFIDENTIAL
+        }
+
+        // INTERNAL patterns
+        if (lowerKey.contains('host') || lowerKey.contains('port') || 
+            lowerKey.contains('url') || lowerKey.contains('path')) {
+            return SecurityClassification.INTERNAL
+        }
+
+        // PUBLIC (default)
+        return SecurityClassification.PUBLIC
+    }
+
+    /**
+     * Sanitize configuration value based on classification level.
+     * 
+     * Sanitization Strategy:
+     * - CONFIDENTIAL: Complete redaction (***REDACTED***)
+     * - INTERNAL: Partial masking (show 20% at start/end, mask middle)
+     * - PUBLIC: No sanitization (return as-is)
+     * 
+     * @param key Configuration key (used for classification context)
+     * @param value Configuration value to sanitize
+     * @param classification Security classification level
+     * @return Sanitized value safe for logging
+     * US-098 Phase 3 Step 1
+     */
+    private static String sanitizeValue(String key, String value, SecurityClassification classification) {
+        if (!value) {
+            return value
+        }
+
+        switch (classification) {
+            case SecurityClassification.CONFIDENTIAL:
+                // Complete redaction for credentials
+                return '***REDACTED***'
+
+            case SecurityClassification.INTERNAL:
+                // Partial masking for infrastructure configs
+                if (value.length() <= 5) {
+                    // Too short to mask effectively, return as-is
+                    return value
+                }
+
+                // Show 20% at start and end, mask middle
+                int showChars = Math.max(1, (int)(value.length() * 0.2))
+                String start = value.substring(0, showChars)
+                String end = value.substring(value.length() - showChars)
+                return "${start}*****${end}"
+
+            case SecurityClassification.PUBLIC:
+            default:
+                // No sanitization needed
+                return value
+        }
+    }
+
+    /**
+     * Audit configuration access with security-aware logging.
+     * 
+     * Audit Log Format:
+     * AUDIT: user={username}, key={key}, classification={level}, 
+     *        value={sanitized}, source={database|environment|default}, 
+     *        success={true|false}, timestamp={ISO-8601}
+     * 
+     * @param key Configuration key accessed
+     * @param value Configuration value (will be sanitized)
+     * @param classification Security classification level
+     * @param success Whether access was successful
+     * @param source Source of configuration value (database, environment, default)
+     * US-098 Phase 3 Step 2
+     */
+    private static void auditConfigurationAccess(String key, String value, SecurityClassification classification, 
+                                                  boolean success, String source = 'database') {
+        String sanitizedValue = sanitizeValue(key, value, classification)
+        
+        // Get username from UserService.getCurrentUserContext() with system fallback
+        String username = 'system'
+        try {
+            def userContext = umig.service.UserService.getCurrentUserContext()
+            username = (userContext as Map)?.confluenceUsername as String ?: 'system'
+        } catch (Exception e) {
+            // Fallback to 'system' if UserService unavailable (e.g., unit tests)
+            log.debug("UserService unavailable for audit, using 'system': ${e.message}")
+        }
+        
+        String timestamp = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+
+        log.info("AUDIT: user=${username}, key=${key}, classification=${classification}, " +
+                 "value=${sanitizedValue}, source=${source}, success=${success}, timestamp=${timestamp}")
+    }
+
+    /**
      * Retrieve string configuration value with fallback hierarchy.
      *
      * Fallback order:
@@ -55,12 +186,16 @@ class ConfigurationService {
             return defaultValue
         }
 
+        // US-098 Phase 3: Classify configuration key for security
+        SecurityClassification classification = classifyConfigurationKey(key)
+
         String cacheKey = "${key}:${getCurrentEnvironment()}"
 
         // Check cache first
         CachedValue cached = configCache.get(cacheKey)
         if (cached != null && !cached.isExpired()) {
             log.debug("Cache hit for key: ${cacheKey}")
+            auditConfigurationAccess(key, cached.value, classification, true, 'cache')
             return cached.value
         }
 
@@ -73,7 +208,8 @@ class ConfigurationService {
             if (config?.scf_value) {
                 String value = config.scf_value as String
                 configCache.put(cacheKey, new CachedValue(value))
-                log.debug("Found environment-specific config: ${key} = ${value} (env_id=${envId})")
+                log.debug("Found environment-specific config: ${key} = ${sanitizeValue(key, value, classification)} (env_id=${envId})")
+                auditConfigurationAccess(key, value, classification, true, 'database')
                 return value
             }
         } catch (Exception e) {
@@ -88,7 +224,8 @@ class ConfigurationService {
             if (config?.scf_value) {
                 String value = config.scf_value as String
                 configCache.put(cacheKey, new CachedValue(value))
-                log.debug("Found global config: ${key} = ${value}")
+                log.debug("Found global config: ${key} = ${sanitizeValue(key, value, classification)}")
+                auditConfigurationAccess(key, value, classification, true, 'database')
                 return value
             }
         } catch (Exception e) {
@@ -101,13 +238,15 @@ class ConfigurationService {
             String envKey = (key as String).toUpperCase().replace('.', '_')
             String envValue = System.getenv(envKey)
             if (envValue) {
-                log.debug("Found system env variable: ${envKey} = ${envValue}")
+                log.debug("Found system env variable: ${envKey} = ${sanitizeValue(key, envValue, classification)}")
+                auditConfigurationAccess(key, envValue, classification, true, 'environment')
                 return envValue
             }
         }
 
         // Tier 4: Default value
-        log.debug("Using default value for ${key}: ${defaultValue}")
+        log.debug("Using default value for ${key}: ${sanitizeValue(key, defaultValue, classification)}")
+        auditConfigurationAccess(key, defaultValue, classification, defaultValue != null, 'default')
         return defaultValue
     }
 
@@ -119,6 +258,8 @@ class ConfigurationService {
      * @return Integer configuration value or defaultValue
      */
     static Integer getInteger(String key, Integer defaultValue = null) {
+        // US-098 Phase 3: Classification done in getString(), audit parsing results
+        SecurityClassification classification = classifyConfigurationKey(key)
         String value = getString(key, null)
 
         if (value == null) {
@@ -126,9 +267,12 @@ class ConfigurationService {
         }
 
         try {
-            return Integer.parseInt(value as String)
+            Integer result = Integer.parseInt(value as String)
+            auditConfigurationAccess(key, value, classification, true, 'parsed')
+            return result
         } catch (NumberFormatException e) {
             log.error("Failed to parse integer for key ${key}: ${value}", e)
+            auditConfigurationAccess(key, value, classification, false, 'parse-error')
             return defaultValue
         }
     }
@@ -143,6 +287,8 @@ class ConfigurationService {
      * @return Boolean configuration value or defaultValue
      */
     static Boolean getBoolean(String key, Boolean defaultValue = false) {
+        // US-098 Phase 3: Classification done in getString(), audit parsing results
+        SecurityClassification classification = classifyConfigurationKey(key)
         String value = getString(key, null)
 
         if (value == null) {
@@ -153,11 +299,14 @@ class ConfigurationService {
 
         // Handle various boolean representations
         if (normalized in ['true', 'yes', '1', 'on', 'enabled']) {
+            auditConfigurationAccess(key, value, classification, true, 'parsed')
             return true
         } else if (normalized in ['false', 'no', '0', 'off', 'disabled']) {
+            auditConfigurationAccess(key, value, classification, true, 'parsed')
             return false
         } else {
             log.warn("Invalid boolean value for key ${key}: ${value}, using default: ${defaultValue}")
+            auditConfigurationAccess(key, value, classification, false, 'parse-error')
             return defaultValue
         }
     }
@@ -190,9 +339,16 @@ class ConfigurationService {
                 def configMap = config as Map
                 String fullKey = configMap.scf_key as String
                 if (fullKey.startsWith(sectionPrefix)) {
+                    // US-098 Phase 3: Classify and audit each section entry
+                    SecurityClassification classification = classifyConfigurationKey(fullKey)
+                    String value = configMap.scf_value as String
+                    
                     // Remove prefix for cleaner keys
                     String shortKey = fullKey.substring(sectionPrefix.length())
-                    result.put(shortKey, configMap.scf_value)
+                    result.put(shortKey, value)
+                    
+                    // Audit each configuration access
+                    auditConfigurationAccess(fullKey, value, classification, true, 'section-query')
                 }
             }
 
@@ -201,6 +357,8 @@ class ConfigurationService {
 
         } catch (Exception e) {
             log.error("Failed to retrieve section ${sectionPrefix}: ${e.message}", e)
+            // Audit the failed section query
+            auditConfigurationAccess(sectionPrefix, null, SecurityClassification.PUBLIC, false, 'section-error')
             return [:]
         }
     }

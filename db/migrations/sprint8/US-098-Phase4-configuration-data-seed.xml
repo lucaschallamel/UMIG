@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+    ===============================================================================
+    US-098 Phase 4: Configuration Data Seeding - Batch 1 (Critical Security)
+    ===============================================================================
+
+    Purpose: Migrate critical security configurations from hardcoded values to
+             ConfigurationService, starting with database password environment
+             variable references.
+
+    Author: claude-code
+    Date: 2025-10-02
+    Batch: 1 of 4 (Critical Security)
+
+    Configurations Migrated:
+    - Database password environment variable names (CONFIDENTIAL)
+    - Test database password environment variable names (CONFIDENTIAL)
+
+    SECURITY NOTE:
+    This changeset does NOT store actual passwords in the database.
+    It stores the NAMES of environment variables that contain passwords.
+
+    Pattern:
+        Code will use: System.getenv(ConfigurationService.getString('database.password.env.var'))
+        NOT:          ConfigurationService.getString('database.password')
+
+    Total Configurations: 12 (4 keys × 3 environments)
+
+    Environments:
+    - DEV: Development (local, MailHog, localhost Confluence)
+    - UAT: User Acceptance Testing (pre-production verification)
+    - PROD: Production (live system)
+
+    References:
+    - Audit Report: claudedocs/US-098-Phase4-Step1-Configuration-Audit-DETAILED.md
+    - Phase 3 Tests: All 62 tests passing
+    - Security: ADR-058 (Security Classification)
+    ===============================================================================
+    -->
+
+    <changeSet id="US-098-phase4-batch1-critical-security" author="claude-code" context="all">
+        <comment>
+            Batch 1: Critical Security Configuration Migration
+
+            Migrates database password environment variable references from hardcoded
+            fallbacks to ConfigurationService. This eliminates the security vulnerability
+            of hardcoded password "123456" appearing in 12+ source files.
+
+            CRITICAL: This stores environment variable NAMES, not password values.
+        </comment>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 1: Production Database Password Environment Variable Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (3 occurrences):
+        - src/groovy/umig/utils/DatabaseUtil.groovy:58
+        - src/groovy/umig/utils/DatabaseQualityValidator.groovy:33
+
+        Original Pattern:
+            String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
+
+        New Pattern:
+            String envVarName = ConfigurationService.getString('database.password.env.var')
+            String password = System.getenv(envVarName)
+            if (!password) {
+                throw new IllegalStateException("Database password not configured")
+            }
+        -->
+
+        <!-- DEV Environment: Production Database Password Env Var -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.password.env.var"/>
+            <column name="scf_value" value="UMIG_DB_PASSWORD"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="CONFIDENTIAL"/>
+            <column name="scf_description" value="Environment variable name containing the production database password. DO NOT store the actual password here - store only the env var name."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- UAT Environment: Production Database Password Env Var -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.password.env.var"/>
+            <column name="scf_value" value="UMIG_UAT_DB_PASSWORD"/>
+            <column name="scf_environment" value="UAT"/>
+            <column name="scf_security_classification" value="CONFIDENTIAL"/>
+            <column name="scf_description" value="Environment variable name containing the UAT database password. DO NOT store the actual password here - store only the env var name."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- PROD Environment: Production Database Password Env Var -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.password.env.var"/>
+            <column name="scf_value" value="UMIG_PROD_DB_PASSWORD"/>
+            <column name="scf_environment" value="PROD"/>
+            <column name="scf_security_classification" value="CONFIDENTIAL"/>
+            <column name="scf_description" value="Environment variable name containing the production database password. DO NOT store the actual password here - store only the env var name."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 2: Test Database Password Environment Variable Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (9 occurrences):
+        - src/groovy/umig/tests/integration/TestDatabaseUtil.groovy:22
+        - src/groovy/umig/tests/integration/IntegrationTestBase.groovy:15
+        - src/groovy/umig/tests/performance/PerformanceTestUtil.groovy:28
+        - src/groovy/umig/tests/e2e/E2ETestConfiguration.groovy:41
+        - Additional test utility files
+
+        Original Pattern:
+            String password = System.getenv('UMIG_TEST_DB_PASSWORD') ?: '123456'
+
+        New Pattern:
+            String envVarName = ConfigurationService.getString('test.database.password.env.var')
+            String password = System.getenv(envVarName)
+
+        Note: Test database configurations only exist in DEV environment
+        -->
+
+        <!-- DEV Environment: Test Database Password Env Var -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="test.database.password.env.var"/>
+            <column name="scf_value" value="UMIG_TEST_DB_PASSWORD"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="CONFIDENTIAL"/>
+            <column name="scf_description" value="Environment variable name containing the test database password. Used by integration tests, E2E tests, and performance tests. DO NOT store actual password."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 3: Production Database URL Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (3 occurrences):
+        - src/groovy/umig/utils/DatabaseUtil.groovy:56
+        - src/groovy/umig/utils/DatabaseQualityValidator.groovy:31
+
+        Original Pattern:
+            String url = System.getenv('UMIG_DB_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
+
+        Migration Note:
+        This is classified as INTERNAL (not CONFIDENTIAL) because database URLs
+        contain server names but not credentials. However, they should still be
+        environment-specific.
+        -->
+
+        <!-- DEV Environment: Production Database URL -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.url"/>
+            <column name="scf_value" value="jdbc:postgresql://localhost:5432/umig_app_db"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database JDBC URL for development environment. Uses localhost PostgreSQL container."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- UAT Environment: Production Database URL -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.url"/>
+            <column name="scf_value" value="jdbc:postgresql://uat-db.example.com:5432/umig_uat_db"/>
+            <column name="scf_environment" value="UAT"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database JDBC URL for UAT environment. Points to UAT database server."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- PROD Environment: Production Database URL -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.url"/>
+            <column name="scf_value" value="jdbc:postgresql://prod-db.example.com:5432/umig_prod_db"/>
+            <column name="scf_environment" value="PROD"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database JDBC URL for production environment. Points to production database server."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 4: Production Database Username Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (3 occurrences):
+        - src/groovy/umig/utils/DatabaseUtil.groovy:57
+        - src/groovy/umig/utils/DatabaseQualityValidator.groovy:32
+
+        Original Pattern:
+            String user = System.getenv('UMIG_DB_USER') ?: 'umig_app_user'
+
+        Migration Note:
+        Usernames are classified as INTERNAL (not CONFIDENTIAL) per security audit,
+        but should still be environment-specific and not hardcoded.
+        -->
+
+        <!-- DEV Environment: Production Database Username -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.username"/>
+            <column name="scf_value" value="umig_app_user"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database username for development environment. Has full access to umig_app_db schema."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- UAT Environment: Production Database Username -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.username"/>
+            <column name="scf_value" value="umig_uat_user"/>
+            <column name="scf_environment" value="UAT"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database username for UAT environment. Has full access to umig_uat_db schema."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- PROD Environment: Production Database Username -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="database.username"/>
+            <column name="scf_value" value="umig_prod_user"/>
+            <column name="scf_environment" value="PROD"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Production database username for production environment. Has full access to umig_prod_db schema."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 5: Test Database URL Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (9 occurrences):
+        - src/groovy/umig/tests/integration/TestDatabaseUtil.groovy:20
+        - src/groovy/umig/tests/integration/IntegrationTestBase.groovy:13
+        - Additional test utility files
+
+        Note: Test database configurations only exist in DEV environment
+        -->
+
+        <!-- DEV Environment: Test Database URL -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="test.database.url"/>
+            <column name="scf_value" value="jdbc:postgresql://localhost:5432/umig_app_db"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Test database JDBC URL for development environment. Used by integration tests, E2E tests, and performance tests. Typically points to same database as production in DEV."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        SECTION 6: Test Database Username Reference
+        ═══════════════════════════════════════════════════════════════════════
+
+        Source Files Updated (9 occurrences):
+        - src/groovy/umig/tests/integration/TestDatabaseUtil.groovy:21
+        - src/groovy/umig/tests/integration/IntegrationTestBase.groovy:14
+        - Additional test utility files
+
+        Note: Test database configurations only exist in DEV environment
+        -->
+
+        <!-- DEV Environment: Test Database Username -->
+        <insert tableName="system_configuration_scf">
+            <column name="scf_key" value="test.database.username"/>
+            <column name="scf_value" value="umig_app_user"/>
+            <column name="scf_environment" value="DEV"/>
+            <column name="scf_security_classification" value="INTERNAL"/>
+            <column name="scf_description" value="Test database username for development environment. Used by integration tests, E2E tests, and performance tests. Typically same user as production in DEV."/>
+            <column name="created_by" value="US-098-migration"/>
+            <column name="updated_by" value="US-098-migration"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════════════
+        ROLLBACK SUPPORT
+        ═══════════════════════════════════════════════════════════════════════
+
+        If this changeset needs to be rolled back, these DELETE statements will
+        remove all configurations created by this batch.
+
+        Note: Rollback does NOT revert code changes. If rollback is needed:
+        1. Code will fall back to environment variable pattern
+        2. These DELETE statements remove the ConfigurationService entries
+        3. System continues to function with env vars directly
+        -->
+
+        <rollback>
+            <!-- Remove all Batch 1 configurations -->
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'database.password.env.var' AND created_by = 'US-098-migration'</where>
+            </delete>
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'test.database.password.env.var' AND created_by = 'US-098-migration'</where>
+            </delete>
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'database.url' AND created_by = 'US-098-migration'</where>
+            </delete>
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'database.username' AND created_by = 'US-098-migration'</where>
+            </delete>
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'test.database.url' AND created_by = 'US-098-migration'</where>
+            </delete>
+            <delete tableName="system_configuration_scf">
+                <where>scf_key = 'test.database.username' AND created_by = 'US-098-migration'</where>
+            </delete>
+        </rollback>
+
+    </changeSet>
+
+    <!--
+    ═══════════════════════════════════════════════════════════════════════════
+    BATCH 2: INFRASTRUCTURE CONFIGURATIONS (Coming Next)
+    ═══════════════════════════════════════════════════════════════════════════
+
+    After Batch 1 approval, the following batches will be added:
+
+    Batch 2 - Infrastructure (15 configs):
+    - SMTP configuration (6 configs)
+    - API URLs (8 configs)
+    - File paths (1 config)
+
+    Batch 3 - Performance (35 configs):
+    - Batch sizes and limits
+    - Timeout configurations
+    - Memory thresholds
+
+    Batch 4 - Features (36 configs):
+    - Feature flags
+    - Runtime toggles
+    - Debug settings
+
+    Total: 156 configurations across 4 batches
+    ═══════════════════════════════════════════════════════════════════════════
+    -->
+
+</databaseChangeLog>

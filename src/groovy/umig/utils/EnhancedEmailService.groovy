@@ -98,6 +98,9 @@ class EnhancedEmailService {
 
                 // TD-017: Optimized single-query approach using JSON aggregation
                 println "🔧 [EnhancedEmailService] TD-017: Fetching instructions and comments (optimized)"
+                println "🔍 [VERBOSE] stepInstanceId param: ${stepInstanceId}"
+                println "🔍 [VERBOSE] stepInstanceId type: ${stepInstanceId?.getClass()?.name}"
+
                 def queryResult = DatabaseUtil.withSql { sql ->
                     sql.firstRow('''
                         WITH instructions AS (
@@ -114,7 +117,7 @@ class EnhancedEmailService {
                             JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                             LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
                             LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
-                            WHERE ini.sti_id = :stepInstanceId
+                            WHERE ini.sti_id = :stepInstanceId::uuid
                             ORDER BY inm.inm_order
                         ),
                         comments AS (
@@ -125,19 +128,36 @@ class EnhancedEmailService {
                                 sic.created_at
                             FROM step_instance_comments_sic sic
                             LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
-                            WHERE sic.sti_id = :stepInstanceId
+                            WHERE sic.sti_id = :stepInstanceId::uuid
                             ORDER BY sic.created_at DESC
                             LIMIT 3
                         )
                         SELECT
-                            (SELECT COALESCE(json_agg(i.*), '[]'::json) FROM instructions i) AS instructions_json,
-                            (SELECT COALESCE(json_agg(c.*), '[]'::json) FROM comments c) AS comments_json
+                            (SELECT COALESCE(json_agg(i.*)::text, '[]') FROM instructions i) AS instructions_json,
+                            (SELECT COALESCE(json_agg(c.*)::text, '[]') FROM comments c) AS comments_json
                     ''', [stepInstanceId: stepInstanceId as String])
                 }
 
+                println "🔍 [VERBOSE] Query executed, result received"
+                println "🔍 [VERBOSE] queryResult type: ${queryResult?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult keys: ${queryResult?.keySet()}"
+                println "🔍 [VERBOSE] queryResult.instructions_json TYPE: ${queryResult?.instructions_json?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult.instructions_json VALUE (first 500 chars): ${(queryResult?.instructions_json as String)?.take(500)}"
+                println "🔍 [VERBOSE] queryResult.comments_json TYPE: ${queryResult?.comments_json?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult.comments_json VALUE (first 500 chars): ${(queryResult?.comments_json as String)?.take(500)}"
+
                 // Parse JSON results to List<Map> (ADR-031: explicit type casting and typing)
+                println "🔍 [VERBOSE] About to parse instructions JSON..."
                 List<Map> instructions = parseJsonArray(queryResult?.instructions_json as String)
+                println "🔍 [VERBOSE] parseJsonArray OUTPUT for instructions: ${instructions}"
+                println "🔍 [VERBOSE] instructions size: ${instructions?.size()}"
+                println "🔍 [VERBOSE] instructions first item: ${instructions?.first()}"
+
+                println "🔍 [VERBOSE] About to parse comments JSON..."
                 List<Map> comments = parseJsonArray(queryResult?.comments_json as String)
+                println "🔍 [VERBOSE] parseJsonArray OUTPUT for comments: ${comments}"
+                println "🔍 [VERBOSE] comments size: ${comments?.size()}"
+                println "🔍 [VERBOSE] comments first item: ${comments?.first()}"
 
                 println "🔧 [EnhancedEmailService] TD-017: Retrieved ${instructions?.size() ?: 0} instructions, ${comments?.size() ?: 0} comments"
 
@@ -177,10 +197,21 @@ class EnhancedEmailService {
                 println "🔧 [EnhancedEmailService]   🔍 comment_count: ${enrichedData.comment_count}"
                 println "🔧 [EnhancedEmailService] TD-016-A: instructions array size: ${(enrichedData.instructions as List).size()}"
                 println "🔧 [EnhancedEmailService] TD-016-A: comments array size: ${(enrichedData.comments as List).size()}"
+                println "🔍 [VERBOSE] enrichedData.instructions content: ${enrichedData.instructions}"
+                println "🔍 [VERBOSE] enrichedData.comments content: ${enrichedData.comments}"
 
                 // CRITICAL FIX: Merge enriched data into stepInstance (enriched data takes precedence)
                 // Right-hand map overrides left-hand map properties in Groovy
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, keys: ${stepInstance?.keySet()}"
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, has instructions?: ${stepInstance?.containsKey('instructions')}"
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, instructions value: ${stepInstance?.instructions}"
+
                 stepInstance = (stepInstance as Map) + enrichedData
+
+                println "🔍 [VERBOSE] stepInstance AFTER merge, keys: ${stepInstance?.keySet()}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, has instructions?: ${stepInstance?.containsKey('instructions')}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, instructions value: ${stepInstance?.instructions}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, instructions type: ${stepInstance?.instructions?.getClass()?.name}"
                 println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
                 println "🔧 [EnhancedEmailService] ✅ Merged instructions count: ${(stepInstance.instructions as List)?.size() ?: 0}"
                 println "🔧 [EnhancedEmailService] ✅ Merged comments count: ${(stepInstance.comments as List)?.size() ?: 0}"
@@ -1084,11 +1115,19 @@ class EnhancedEmailService {
      * @return HTML string with <tr> rows for each instruction
      */
     private static String buildInstructionsHtml(List instructions) {
+        println "🔍 [VERBOSE] buildInstructionsHtml called"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT: ${instructions}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT type: ${instructions?.getClass()?.name}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT size: ${instructions?.size()}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT isEmpty: ${instructions?.isEmpty()}"
+
         // Empty collection fallback
         if (!instructions || instructions.isEmpty()) {
+            println "🔍 [VERBOSE] buildInstructionsHtml: No instructions, returning fallback message"
             return '<tr><td colspan="5" style="text-align:center; color:#6c757d; padding:20px;">No instructions defined for this step.</td></tr>'
         }
 
+        println "🔍 [VERBOSE] buildInstructionsHtml: Processing ${instructions.size()} instructions"
         def html = new StringBuilder()
         instructions.eachWithIndex { instruction, index ->
             // Cast to Map for safe property access
@@ -1125,11 +1164,19 @@ class EnhancedEmailService {
      * @return HTML string with comment card divs (max 3)
      */
     private static String buildCommentsHtml(List comments) {
+        println "🔍 [VERBOSE] buildCommentsHtml called"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT: ${comments}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT type: ${comments?.getClass()?.name}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT size: ${comments?.size()}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT isEmpty: ${comments?.isEmpty()}"
+
         // Empty collection fallback
         if (!comments || comments.isEmpty()) {
+            println "🔍 [VERBOSE] buildCommentsHtml: No comments, returning fallback message"
             return '<p style="color:#6c757d; text-align:center; padding:20px;">No comments yet. Be the first to add your insights!</p>'
         }
 
+        println "🔍 [VERBOSE] buildCommentsHtml: Processing ${comments.size()} comments"
         def html = new StringBuilder()
         comments.take(3).eachWithIndex { comment, index ->
             // Cast to Map for safe property access

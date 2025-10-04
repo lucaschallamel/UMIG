@@ -1,48 +1,50 @@
 # API Tests
 
-**Purpose**: Comprehensive validation of REST API endpoints, responses, and functionality across UMIG system components
+**Purpose**: Comprehensive REST API endpoint validation, contracts, and functionality testing
 
-## Key Components
+## Files
 
-- **MigrationApiIntegrationTest.groovy** - Migration API endpoint integration tests
-- **PlansApiUnitTest.groovy** - Unit tests for plans API functionality with simplified variants
-- **stepViewApiUnitTest.groovy** - Step view API validation and unit testing
-- **checkUserEndpoint.groovy** - User endpoint functionality validation
-- **API validation scripts** - Phases and sequences endpoint validation tests
+```
+apis/
+├── README.md                       # This file (includes Groovy development guide)
+├── MigrationApiIntegrationTest.groovy
+├── PlansApiUnitTest.groovy
+├── PlansApiUnitTestSimplified.groovy
+├── stepViewApiUnitTest.groovy
+├── checkUserEndpoint.groovy
+└── [Other API validation scripts]
+```
 
-## Test Coverage
+## Test Scope
 
-- **Endpoint validation** - API responses with expected data formats and HTTP status codes
-- **Contract maintenance** - API version compatibility and interface stability
-- **Authentication testing** - User authentication and authorization functionality
-- **Response format validation** - Data model changes and API response consistency
+### API Validation
+- **Endpoint responses** - HTTP status codes and data formats
+- **Contract maintenance** - API version compatibility
+- **Authentication** - User authentication and authorization
+- **Response formats** - Data model consistency
 
-## Usage Patterns
+### Key Patterns
+- **CustomEndpointDelegate** - All REST endpoints use @BaseScript annotation
+- **DatabaseUtil.withSql** - Safe database access with lifecycle management
+- **Type safety** - Explicit casting with 'as' keyword
+- **Path parameters** - getAdditionalPath method for URL segments
 
-- **CustomEndpointDelegate pattern** - All REST endpoints using @BaseScript annotation
-- **DatabaseUtil.withSql** - Safe database access with connection lifecycle management
-- **Static type checking** - Explicit casting with 'as' keyword for IDE compatibility
-- **Path parameter handling** - getAdditionalPath method for URL segment extraction
+## Usage
 
----
+```bash
+# Run API tests
+npm run test:apis
 
-# Groovy Development Guidelines for UMIG
+# Individual test execution
+groovy MigrationApiIntegrationTest.groovy
+groovy PlansApiUnitTest.groovy
+```
 
-This document outlines the key coding conventions, patterns, and workarounds for developing Groovy scripts within the ScriptRunner for Confluence environment for the UMIG project.
+## Groovy Development Guidelines for UMIG
 
-## 1. REST Endpoints
+### 1. REST Endpoints (MANDATORY Pattern)
 
-All REST endpoints **must** be implemented using the `CustomEndpointDelegate` pattern. This is the only pattern that has proven to be stable and compile correctly in our environment.
-
-**Key Requirements:**
-
-- Annotate the script with `@BaseScript CustomEndpointDelegate delegate`.
-- Define endpoints as methods named after the resource (e.g., `plans`, `teams`).
-- The method must accept `httpMethod`, `request`, and `binding` as arguments.
-- The method must return a `javax.ws.rs.core.Response` object.
-- Secure endpoints by default by including `groups: ["confluence-users"]`.
-
-**Example:**
+All REST endpoints MUST use `CustomEndpointDelegate`:
 
 ```groovy
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
@@ -51,18 +53,23 @@ import groovy.transform.BaseScript
 @BaseScript CustomEndpointDelegate delegate
 
 plans(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
-    // ... implementation
-    return Response.ok(/* payload */).build()
+    // Implementation
+    return Response.ok(payload).build()
 }
 ```
 
-For more details, see `ADR-011-ScriptRunner-REST-Endpoint-Configuration.md`.
+**Key Requirements**:
+- `@BaseScript CustomEndpointDelegate delegate` annotation
+- Method named after resource (e.g., `plans`, `teams`)
+- Accepts `httpMethod`, `request`, `binding` arguments
+- Returns `javax.ws.rs.core.Response` object
+- Secure by default: `groups: ["confluence-users"]`
 
-## 2. Database Access
+**Reference**: ADR-011-ScriptRunner-REST-Endpoint-Configuration.md
 
-All database access **must** be performed using the `withSql` pattern provided by `com.umig.utils.DatabaseUtil`. This pattern is the correct, safe, and idiomatic way to handle database connections in ScriptRunner. It automatically manages the connection lifecycle (opening and closing) and is fully compatible with the IDE's static type checker.
+### 2. Database Access (MANDATORY Pattern)
 
-**Correct Usage:**
+ALL database access MUST use `DatabaseUtil.withSql`:
 
 ```groovy
 // In DatabaseUtil.groovy
@@ -76,30 +83,24 @@ class DatabaseUtil {
     }
 }
 
-// In a repository class
+// In repository class
 def findAllTeams() {
     DatabaseUtil.withSql { sql ->
-        // Thanks to @ClosureParams, the 'sql' variable is correctly typed as groovy.sql.Sql
         return sql.rows('SELECT * FROM teams_tms')
     }
 }
 ```
 
-**Why this pattern?**
+**Why**:
+- **Safe**: Prevents connection leaks
+- **IDE-Friendly**: Resolves static analysis warnings
+- **Correct**: Officially recommended by Adaptavist
 
-- **Safe:** It prevents connection leaks by ensuring the database connection is always closed correctly, even if errors occur.
-- **IDE-Friendly:** It resolves all static analysis warnings in the IDE.
-- **Correct:** It is the officially recommended approach by Adaptavist for database interactions.
+### 3. Type Safety
 
-## 3. Handling Static Type Checking
-
-The Groovy static type checker in IntelliJ can be aggressive and may not always correctly infer types from the ScriptRunner environment. When you are certain of an object's type at runtime, but the IDE reports an error, use an explicit cast with the `as` keyword.
-
-**Example:**
+Use explicit casts with `as` keyword when IDE type checker is incorrect:
 
 ```groovy
-// When a database query returns a generated ID (e.g., with RETURNING), the static checker
-// may infer it as Object. Cast it to the correct type (e.g., UUID, Long) before use.
 def result = sql.firstRow("INSERT ... RETURNING mig_id")
 if (result?.mig_id) {
     def typedId = result.mig_id as UUID
@@ -107,16 +108,25 @@ if (result?.mig_id) {
 }
 ```
 
-## 4. Path Parameters
+### 4. Path Parameters
 
-To retrieve additional path segments from a URL (e.g., the `123` in `/rest/scriptrunner/latest/custom/plans/123`), use the `getAdditionalPath` helper method provided by the delegate.
-
-**Example:**
+Use `getAdditionalPath` for URL path segments:
 
 ```groovy
 def path = getAdditionalPath(request) // Returns "/123"
 if (path) {
     def planId = path.substring(1) as Integer
-    // ... use planId
+    // Use planId
 }
 ```
+
+## ADR Compliance
+
+- **ADR-011**: CustomEndpointDelegate pattern for all REST endpoints
+- **ADR-026**: Specific SQL query validation
+- **ADR-031**: Explicit type casting
+- **ADR-036**: Pure Groovy implementation
+
+---
+
+**Updated**: September 26, 2025 | **Version**: 2.0

@@ -1,24 +1,70 @@
 # Environment Validation Tests
 
-**Purpose**: Environment-specific configuration validation and association testing within the UMIG system for deployment readiness
+**Purpose**: Environment-specific configuration validation and association testing for deployment readiness
 
-## Key Components
+## Files
 
-- **checkCutoverProdEnvironments.groovy** - Production cutover environment configuration validation
-- **checkEnvironmentAssociations.groovy** - Environment associations and relationship testing
-- **checkLabelAssociations.groovy** - Label associations with environments validation
-- **compareEnvironmentAssignments.groovy** - Environment assignment comparison across contexts
+```
+environment/
+├── README.md                          # This file
+├── checkCutoverProdEnvironments.groovy # Production cutover validation
+├── checkEnvironmentAssociations.groovy # Environment relationship testing
+├── checkLabelAssociations.groovy      # Label association validation
+└── compareEnvironmentAssignments.groovy # Assignment comparison
+```
 
-## Validation Areas
+## Validation Categories
 
-- **Environment configurations** - Correctness and consistency validation
-- **Environment associations** - Proper maintenance and relationship integrity
-- **Production cutover environments** - Correct configuration for production deployments
-- **Label associations** - Accuracy and completeness of environment labeling
+### Environment Configurations
+- **Production cutover** - Verify production environment setup
+- **Environment associations** - Validate entity relationships
+- **Label associations** - Confirm labeling accuracy
+- **Assignment comparison** - Cross-context consistency checks
 
 ## Usage
 
-- **Pre-deployment validation** - Environment-related functionality verification before deployments
-- **Issue investigation** - Environment-specific problem diagnosis and resolution
-- **Configuration verification** - Environment setup and association correctness
-- **Production readiness** - Cutover environment preparation and validation
+```bash
+# Production cutover validation
+groovy checkCutoverProdEnvironments.groovy
+
+# Association testing
+groovy checkEnvironmentAssociations.groovy
+groovy checkLabelAssociations.groovy
+
+# Assignment comparison
+groovy compareEnvironmentAssignments.groovy
+```
+
+## Validation Scenarios
+
+### Pre-Deployment
+- Environment configuration correctness
+- Association integrity across migrations
+- Label completeness for production environments
+- Assignment consistency validation
+
+### Troubleshooting
+- Environment-specific issue diagnosis
+- Relationship integrity verification
+- Configuration problem resolution
+- Production readiness assessment
+
+## Expected Checks
+
+- ✅ All production environments correctly configured
+- ✅ Environment associations properly maintained
+- ✅ Labels accurately assigned to environments
+- ✅ Assignments consistent across migration contexts
+- ✅ No orphaned or misconfigured environments
+
+## Integration
+
+Used for:
+- Pre-deployment validation workflows
+- Production cutover preparation
+- Environment configuration audits
+- Deployment readiness gates
+
+---
+
+**Updated**: September 26, 2025 | **Version**: 1.0
