@@ -17,7 +17,7 @@ npm run generate-data:erase  # Generate test data with reset
 ### Core Directories
 
 - **scripts/** - Development and operational scripts (orchestration, testing, utilities)
-- ****tests**/** - Jest testing framework (unit, integration, e2e, security)
+- \***\*tests**/\*\* - Jest testing framework (unit, integration, e2e, security)
 - **liquibase/** - Database migrations and schema management
 - **data-utils/** - CSV templates, data importers, and archives
 - **infrastructure/** - Backup, restore, and upgrade utilities

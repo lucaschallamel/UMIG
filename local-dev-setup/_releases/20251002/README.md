@@ -29,6 +29,7 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 ## 🚀 Quick Deployment
 
 ### Prerequisites
+
 - **ScriptRunner**: Version 9.21.0 or higher
 - **PostgreSQL**: Version 14 or higher
 - **Confluence**: Compatible with your ScriptRunner version
@@ -36,6 +37,7 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 ### Deployment Steps
 
 1. **Extract Package**
+
    ```bash
    tar -xzf umig-deployment-uat-*.tar.gz
    cd umig-deployment/
@@ -65,5 +67,5 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 
 ---
 
-*Package generated: Thursday 2 October 2025 at 01:56 pm*
-*Build System: UMIG Build Orchestrator vv24.3.0*
+_Package generated: Thursday 2 October 2025 at 01:56 pm_
+_Build System: UMIG Build Orchestrator vv24.3.0_

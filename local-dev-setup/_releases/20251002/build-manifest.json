@@ -18,11 +18,7 @@
       "sources": 5,
       "excludePatterns": 0,
       "includePatterns": 0,
-      "environments": [
-        "dev",
-        "uat",
-        "prod"
-      ]
+      "environments": ["dev", "uat", "prod"]
     }
   },
   "environment": {
@@ -41,11 +37,7 @@
       "arrayBuffers": 9933162
     },
     "cpus": 8,
-    "loadAverage": [
-      8.220703125,
-      8.37109375,
-      7.84619140625
-    ],
+    "loadAverage": [8.220703125, 8.37109375, 7.84619140625],
     "uptime": 94785,
     "timezone": "Europe/Zurich",
     "locale": "en-US",

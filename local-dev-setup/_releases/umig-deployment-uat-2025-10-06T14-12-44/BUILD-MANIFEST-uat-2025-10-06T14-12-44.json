@@ -22,10 +22,7 @@
   },
   "deployment": {
     "instructions": "See README.md for deployment steps",
-    "requirements": [
-      "ScriptRunner 9.21+",
-      "PostgreSQL 14+"
-    ],
+    "requirements": ["ScriptRunner 9.21+", "PostgreSQL 14+"],
     "archiveSize": "160 Bytes"
   },
   "buildInfo": {
