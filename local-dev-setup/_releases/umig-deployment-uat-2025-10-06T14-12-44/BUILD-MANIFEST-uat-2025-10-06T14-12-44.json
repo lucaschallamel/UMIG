@@ -1,0 +1,37 @@
+{
+  "packageInfo": {
+    "name": "UMIG Deployment Package",
+    "version": "1.0.0-uat.20251006.1612+494cf7f18",
+    "environment": "uat",
+    "buildDate": "06/10/2025, 04:12:45 pm",
+    "buildDuration": "unknown"
+  },
+  "contents": {
+    "umig": {
+      "files": 23,
+      "description": "Core ScriptRunner application with admin GUI components"
+    },
+    "database": {
+      "files": "36+",
+      "description": "Liquibase migrations and database assets"
+    },
+    "documentation": {
+      "files": "6+",
+      "description": "Deployment guides and setup instructions"
+    }
+  },
+  "deployment": {
+    "instructions": "See README.md for deployment steps",
+    "requirements": [
+      "ScriptRunner 9.21+",
+      "PostgreSQL 14+"
+    ],
+    "archiveSize": "160 Bytes"
+  },
+  "buildInfo": {
+    "gitCommit": "494cf7f18",
+    "gitBranch": "feature/sprint8-us-098-configuration-management-system",
+    "nodeVersion": "v24.3.0",
+    "buildHost": "unknown"
+  }
+}

@@ -1601,8 +1601,8 @@ Migration 035 inserted DEV-specific SMTP overrides into the database that should
 
 **Test Session Information**:
 
-- **Tester Name**: ******************\_\_\_******************
-- **Date Tested**: ******************\_\_\_******************
+- **Tester Name**: ********\*\*********\_\_\_********\*\*********
+- **Date Tested**: ********\*\*********\_\_\_********\*\*********
 - **Environment**:
   - [ ] DEV (localhost:8090)
   - [ ] UAT
@@ -1643,11 +1643,11 @@ Migration 035 inserted DEV-specific SMTP overrides into the database that should
 
 ```
 
-**Tester Signature**: ******************\_\_\_******************
+**Tester Signature**: ********\*\*********\_\_\_********\*\*********
 
-**Date**: ******************\_\_\_******************
+**Date**: ********\*\*********\_\_\_********\*\*********
 
-**Approved By** _(if applicable)_: ******************\_\_\_******************
+**Approved By** _(if applicable)_: ********\*\*********\_\_\_********\*\*********
 
 ---
 
