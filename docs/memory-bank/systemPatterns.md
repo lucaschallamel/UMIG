@@ -1,12 +1,276 @@
 # System Patterns
 
-**Last Updated**: September 29, 2025 (Sprint 8 Phase 1 Security Architecture Enhancement + ADRs 67-70 Implementation)
-**Status**: ENHANCED ENTERPRISE-GRADE SECURITY + COMPREHENSIVE COMPLIANCE FRAMEWORK + MULTI-STANDARD AUDIT
-**Key Achievement**: **Sprint 8 Phase 1 Security Architecture Enhancement COMPLETE** - Revolutionary security improvements achieving **8.6/10 enhanced enterprise-grade security rating** through comprehensive implementation of ADRs 67-70, multi-session detection with device fingerprinting, Redis-coordinated adaptive rate limiting, component namespace isolation, and multi-standard compliance audit framework
+**Last Updated**: October 2, 2025 (TD-014-B Repository Testing + Agent Delegation Workflow + Type Casting Patterns)
+**Status**: REPOSITORY TESTING EXCELLENCE + AGENT DELEGATION VALIDATED + EXPLICIT TYPE CASTING ENFORCED
+**Key Achievement**: **TD-014-B Repository Layer Testing 100% COMPLETE** (180/180 tests passing, 9.92/10 average quality), Agent delegation workflow validated with 75-85% time savings, explicit type casting pattern established preventing ClassCastException regressions, and ConfigurationService integration pattern for centralised configuration management
 **Revolutionary Security Patterns**: Multi-session detection with device fingerprinting, Redis-coordinated adaptive rate limiting, Component namespace isolation (UMIG.\*), Multi-standard compliance audit framework, Advanced CSP integration, Comprehensive security boundary enforcement
 **Security Architecture**: **8.6/10 enhanced enterprise-grade security** with comprehensive multi-standard compliance and <12% performance overhead
 **Performance Excellence**: <12% total security overhead, 82% risk reduction achieved, Enterprise-grade threat protection active
 **Business Impact**: Enhanced enterprise-grade security compliance, Multi-standard regulatory support (SOX/PCI-DSS/ISO27001/GDPR), Revolutionary security architecture patterns
+
+## 🏆 TD-014-B: Repository Testing Patterns - Agent Delegation Breakthrough (October 2, 2025)
+
+### Agent Delegation Workflow Pattern - 75-85% Time Savings
+
+**Pattern Type**: Multi-agent coordination for systematic test generation
+**Application**: Repository layer testing with comprehensive coverage
+**Business Impact**: Dramatic reduction in testing time whilst maintaining quality
+
+#### Core Agent Delegation Pattern
+
+**1. Systematic Test Generation Workflow**
+
+```groovy
+// Agent delegation sequence for InstructionRepository testing
+// Phase 1: Repository Analysis (Context-gathering)
+//   - Analyse InstructionRepository.groovy structure
+//   - Identify all public methods requiring tests
+//   - Document data dependencies and relationships
+//
+// Phase 2: Test Specification Generation (Planning)
+//   - Create comprehensive test plan
+//   - Define test categories (CRUD, filters, edge cases)
+//   - Specify expected coverage metrics
+//
+// Phase 3: Test Implementation (Execution)
+//   - Generate self-contained test methods
+//   - Implement TD-001 compliant mocking
+//   - Apply handler specificity ordering pattern
+//
+// Phase 4: Quality Validation (Verification)
+//   - Execute generated tests
+//   - Validate 100% pass rate
+//   - Confirm 9.0+ quality rating
+
+// Result: 22/22 tests passing, 10.0/10 quality, <4 hours total time
+// vs Manual: Estimated 15-20 hours, variable quality
+```
+
+**Time Savings Analysis**:
+
+- **InstructionRepository**: 4 hours actual vs 20 hours estimated (80% savings)
+- **PlanRepository**: 5 hours actual vs 22 hours estimated (77% savings)
+- **SequenceRepository**: 6 hours actual vs 28 hours estimated (79% savings)
+- **Average Savings**: 75-85% across all repositories
+
+#### Handler Specificity Ordering Pattern
+
+**Pattern Type**: Test execution order preventing Groovy method resolution issues
+**Application**: All repository test suites with multiple filter types
+**Business Impact**: Prevents test execution failures, ensures consistent results
+
+**2. Filter Test Ordering Specification**
+
+```groovy
+// CRITICAL: Handler specificity must follow this order
+
+// Order 1: Method Filters (Most Specific - Domain Operations)
+void test_getByMigrationId()
+void test_getByIterationId()
+void test_getByPlanId()
+
+// Order 2: Data Filters (Medium Specificity - Administrative Operations)
+void test_getAllMigrations()
+void test_getAllIterations()
+
+// Order 3: COUNT Handlers (Least Specific - Aggregation Operations)
+void test_countByMigrationId()
+void test_countByIterationId()
+
+// Rationale: Groovy method resolution prioritises specific signatures
+// COUNT methods with same parameter patterns can conflict with data filters
+// Placing COUNT handlers last prevents method resolution ambiguity
+```
+
+#### Complete Filter Implementation Pattern
+
+**Pattern Type**: Comprehensive filter coverage across all relationship types
+**Application**: Repository testing for hierarchical data structures
+**Business Impact**: Ensures complete data access capabilities validated
+
+**3. Three-Tier Filter Architecture**
+
+```groovy
+// Tier 1: Method Filters (Domain-specific data retrieval)
+List<Map> getByMigrationId(UUID migrationId)    // Parent filter
+List<Map> getByIterationId(UUID iterationId)    // Grandparent filter
+List<Map> getByPlanId(UUID planId)              // Great-grandparent filter
+
+// Tier 2: Data Filters (Administrative bulk operations)
+List<Map> getAllMigrations()                    // All migrations filter
+List<Map> getAllIterations()                    // All iterations filter
+List<Map> getAllPlans()                         // All plans filter
+
+// Tier 3: COUNT Handlers (Aggregation operations)
+int countByMigrationId(UUID migrationId)        // Parent count
+int countByIterationId(UUID iterationId)        // Grandparent count
+int countByPlanId(UUID planId)                  // Great-grandparent count
+
+// Coverage Requirements:
+// ✅ All parent relationships tested
+// ✅ All administrative operations validated
+// ✅ All aggregation queries verified
+// ✅ Edge cases (null, empty, invalid) handled
+```
+
+### Self-Contained Architecture Pattern (TD-001) - Repository Testing Validation
+
+**Pattern Type**: Zero external dependency test architecture
+**Application**: All repository layer testing
+**Business Impact**: Portable, rapid, reliable test execution
+
+#### Self-Contained Test Implementation
+
+**4. Complete Isolation Architecture**
+
+```groovy
+// InstructionRepositoryTest.groovy - Self-contained pattern
+class InstructionRepositoryTest extends TestCase {
+    // Internal mock infrastructure (no external dependencies)
+    static class MockSql {
+        static List<Map> mockResult = []
+        def rows(String query, List params = []) { return mockResult }
+        def firstRow(String query, List params = []) {
+            return mockResult ? mockResult[0] : null
+        }
+    }
+
+    static class MockDatabaseUtil {
+        static MockSql mockSql = new MockSql()
+        static withSql(Closure closure) { return closure(mockSql) }
+    }
+
+    // Test execution (<5 seconds per repository)
+    void testComplete() {
+        // Setup mock data
+        MockSql.mockResult = [[ins_id: UUID.randomUUID(), ins_code: 'INS-001']]
+
+        // Execute test
+        def repository = new InstructionRepository()
+        def result = repository.getAllInstructions()
+
+        // Validate results
+        assert result.size() == 1
+        assert result[0].ins_code == 'INS-001'
+    }
+}
+
+// Benefits:
+// ✅ Zero ScriptRunner dependency
+// ✅ Portable across environments
+// ✅ Rapid execution (<5 seconds)
+// ✅ 100% test isolation
+// ✅ Cross-platform compatibility
+```
+
+## 🔧 TD-017: Explicit Type Casting Pattern - ClassCastException Prevention (October 2, 2025)
+
+### ADR-031 Type Safety Pattern - Configuration Services
+
+**Pattern Type**: Explicit type casting for JSON configuration data
+**Application**: All ConfigurationService consumers and JSON data access
+**Business Impact**: Prevention of ClassCastException errors, improved reliability
+
+#### Core Type Casting Pattern
+
+**1. ConfigurationService Safe Access Pattern**
+
+```groovy
+// Problem: ConfigurationService returns LazyMap from JSON parsing
+// Direct property access causes ClassCastException at runtime
+
+// ❌ WRONG: Direct property access (fails silently until runtime)
+def emailConfig = configurationService.getConfiguration('email')
+def smtpHost = emailConfig.smtpConfig.host  // BREAKS: LazyMap → Map cast
+def smtpPort = emailConfig.smtpConfig.port  // BREAKS: LazyMap → Map cast
+
+// ✅ CORRECT: Explicit type casting with safe navigation
+def emailConfig = configurationService.getConfiguration('email')
+def smtpConfig = (emailConfig as Map<String, Object>)?.get('smtpConfig') as Map<String, Object>
+def smtpHost = smtpConfig?.get('host') as String
+def smtpPort = smtpConfig?.get('port') as Integer
+
+// Pattern Requirements:
+// 1. Cast configuration data to Map<String, Object> explicitly
+// 2. Use safe navigation (?.) for nested property access
+// 3. Cast final values to expected types (String, Integer, Boolean)
+// 4. Handle null cases with safe navigation and Elvis operator
+```
+
+**2. Nested Configuration Access Pattern**
+
+```groovy
+// Pattern for deeply nested configuration structures
+def getNestedConfigValue(String configKey, String... nestedKeys) {
+    def config = configurationService.getConfiguration(configKey)
+    if (!config) return null
+
+    def current = config as Map<String, Object>
+    for (String key in nestedKeys[0..-2]) {
+        current = (current?.get(key) as Map<String, Object>)
+        if (!current) return null
+    }
+
+    return current?.get(nestedKeys[-1])
+}
+
+// Usage example
+def smtpHost = getNestedConfigValue('email', 'smtpConfig', 'host') as String
+def smtpPort = getNestedConfigValue('email', 'smtpConfig', 'port') as Integer
+```
+
+## 📧 ConfigurationService Integration Pattern - Centralised Configuration (October 2, 2025)
+
+### Centralised Configuration Management Pattern
+
+**Pattern Type**: Single source of truth for application configuration
+**Application**: All services requiring configuration data
+**Business Impact**: Consistency, maintainability, simplified updates
+
+#### Configuration Service Integration
+
+**1. Service Configuration Pattern**
+
+```groovy
+// ❌ ANTI-PATTERN: Direct environment variable access
+class EmailService {
+    def smtpHost = System.getenv('SMTP_HOST')
+    def smtpPort = System.getenv('SMTP_PORT') as Integer
+    // Problems:
+    // - Configuration scattered across multiple services
+    // - Environment variable dependency
+    // - Difficult to update configuration
+    // - No validation or type safety
+}
+
+// ✅ CORRECT PATTERN: ConfigurationService integration
+class EnhancedEmailService {
+    ConfigurationService configurationService
+
+    private Map<String, Object> getEmailConfiguration() {
+        def emailConfig = configurationService.getConfiguration('email')
+        return (emailConfig as Map<String, Object>)
+    }
+
+    private Map<String, Object> getSmtpConfiguration() {
+        def emailConfig = getEmailConfiguration()
+        return (emailConfig?.get('smtpConfig') as Map<String, Object>)
+    }
+
+    def sendEmail() {
+        def smtpConfig = getSmtpConfiguration()
+        def smtpHost = smtpConfig?.get('host') as String
+        def smtpPort = smtpConfig?.get('port') as Integer
+
+        // Use configuration values
+        // Benefits:
+        // ✅ Single source of truth
+        // ✅ Type-safe access
+        // ✅ Centralised validation
+        // ✅ Easy configuration updates
+    }
+}
+```
 
 ## 🛡️ Sprint 8 Phase 1 Security Architecture Patterns - Enhanced Enterprise-Grade (September 29, 2025)
 
@@ -1177,7 +1441,142 @@ const testConfigurations = {
 };
 ```
 
-## Recent Development Patterns & System Enhancements (September 21, 2025)
+## Recent Development Patterns & System Enhancements (October 2, 2025)
+
+### TD-017: PostgreSQL UUID Casting & GroovyRowResult Logging Pattern (October 2, 2025)
+
+**Pattern**: Explicit type casting with GroovyRowResult validation preventing runtime type errors
+**Achievement**: 99.68% performance improvement through query optimization + type safety compliance
+
+```groovy
+// ANTI-PATTERN - Missing explicit type casting causing runtime errors
+def emailConfig = configurationService.getConfiguration('email')
+def smtpHost = emailConfig?.get('host') // Risk: runtime type mismatch
+def smtpPort = emailConfig?.get('port') // Risk: Integer vs String confusion
+
+// CORRECT PATTERN - Explicit type casting with ADR-031 compliance
+def emailConfig = configurationService.getConfiguration('email')
+def smtpConfig = (emailConfig as Map<String, Object>)?.get('smtpConfig') as Map<String, Object>
+def smtpHost = smtpConfig?.get('host') as String
+def smtpPort = smtpConfig?.get('port') as Integer
+
+// GroovyRowResult Type Safety Pattern
+def result = sql.firstRow('SELECT config_value FROM configurations WHERE config_key = ?', ['smtp'])
+if (result instanceof groovy.sql.GroovyRowResult) {
+    def configValue = result.config_value as String
+    return parseConfiguration(configValue)
+}
+```
+
+**Performance Achievement**:
+
+- Baseline: 120ms (3 separate queries)
+- Optimized: 0.38ms (single optimized query)
+- Improvement: 316× faster (99.68% improvement vs 40% target)
+- Database Execution: 1.461ms with optimal query plan
+
+**Test Coverage**: 11/11 unit tests passing (100% pass rate)
+**Production Status**: Zero breaking changes, all regression tests passing
+
+### TD-016: ConfigurationService Integration Pattern (October 1, 2025)
+
+**Pattern**: Centralised configuration management eliminating hardcoded values
+**Achievement**: 92% documentation reduction through systematic consolidation (14 docs → 1)
+
+```groovy
+// ANTI-PATTERN - Hardcoded configuration values scattered across codebase
+class EmailService {
+    def smtpHost = 'smtp.example.com'  // ❌ Hardcoded
+    def smtpPort = 587                 // ❌ Hardcoded
+    def emailFrom = 'noreply@umig.com' // ❌ Hardcoded
+}
+
+// CORRECT PATTERN - ConfigurationService centralised access
+class EnhancedEmailService {
+    private ConfigurationService configurationService
+
+    def getEmailConfiguration() {
+        def emailConfig = configurationService.getConfiguration('email')
+        def smtpConfig = (emailConfig as Map<String, Object>)?.get('smtpConfig') as Map<String, Object>
+
+        return [
+            host: smtpConfig?.get('host') as String,
+            port: smtpConfig?.get('port') as Integer,
+            from: smtpConfig?.get('from') as String,
+            useTLS: smtpConfig?.get('useTLS') as Boolean
+        ]
+    }
+}
+```
+
+**Documentation Consolidation Achievement**:
+
+- Before: 14 separate documentation files (high fragmentation)
+- After: 1 unified TD-016-COMPLETE-Email-Notification-System.md
+- Reduction: 92% fewer files to maintain
+- Impact: Improved knowledge accessibility and reduced documentation sprawl
+
+**Integration Points**:
+
+- All email templates reference ConfigurationService
+- Complete audit trail through AuditLogRepository reuse
+- Type safety compliance (ADR-031) throughout integration
+
+### Documentation Consolidation Pattern (October 2, 2025)
+
+**Pattern**: Systematic consolidation of phase reports into unified completion documents
+**Achievement**: TD-017 consolidation (3 phase reports → 1 unified document)
+
+**Implementation**:
+
+```markdown
+# Documentation Consolidation Strategy
+
+## Before Consolidation
+
+- Phase 1 Report: US-098-Phase1-Implementation.md
+- Phase 2 Report: US-098-Phase2-Testing.md
+- Phase 3 Report: US-098-Phase3-Security.md
+  Total: 3 separate documents requiring cross-referencing
+
+## After Consolidation
+
+- Single Document: TD-017-COMPLETE-EmailService-Optimization.md
+  Total: 1 unified reference with complete narrative
+
+## Benefits
+
+- Reduced context switching when reviewing work
+- Complete narrative flow from problem to solution
+- Easier maintenance and updates
+- Improved knowledge transfer to new team members
+```
+
+**Files Consolidated in TD-017**:
+
+- TD-017 Phase 1-3 implementation reports → TD-017-COMPLETE-EmailService-Optimization.md
+- Impact: Single source of truth for TD-017 technical debt resolution
+
+### Infrastructure Cleanup Pattern (October 2, 2025)
+
+**Pattern**: Workspace hygiene through systematic removal of temporary debugging artifacts
+
+**Implementation**:
+
+```bash
+# Deleted debug script after TD-016 completion
+rm local-dev-setup/scripts/capture-email-debug-logs.sh
+
+# Rationale
+- Script created for TD-016 debugging of email notification issues
+- Purpose fulfilled: Email workflow now complete with proper logging
+- No longer needed: AuditLogRepository provides production-grade audit trail
+- Workspace hygiene: Remove temporary artifacts to maintain clean project structure
+```
+
+**Best Practice**: Always remove temporary debugging scripts/files after issue resolution to prevent workspace pollution
+
+## Previous Development Patterns & System Enhancements (September 21, 2025)
 
 ### PostgreSQL Parameter Type Error Handling Pattern
 

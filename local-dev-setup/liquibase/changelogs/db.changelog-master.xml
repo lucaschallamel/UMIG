@@ -39,6 +39,7 @@
     <include file="032_bulk_operation_email_templates.sql" relativeToChangelogFile="true"/>
     <include file="033_td015_consolidate_canonical_email_templates.sql" relativeToChangelogFile="true"/>
     <include file="034_td015_simplify_email_templates.sql" relativeToChangelogFile="true"/>
+    <include file="035_us098_phase4_batch1_revised.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

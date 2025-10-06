@@ -13,14 +13,24 @@ const ENVIRONMENTS = [
   {
     name: "DEV",
     env_id: 1,
-    description: "Development environment (created by migration)",
+    description: "Development environment (created by migration 022)",
   },
-  { name: "PROD", env_id: 2, description: "Production environment" },
-  { name: "EV1", env_id: 3, description: "Environment 1" },
-  { name: "EV2", env_id: 4, description: "Environment 2" },
-  { name: "EV3", env_id: 5, description: "Environment 3" },
-  { name: "EV4", env_id: 6, description: "Environment 4" },
-  { name: "EV5", env_id: 7, description: "Environment 5" },
+  {
+    name: "PROD",
+    env_id: 2,
+    description: "Production environment (created by migration 035)",
+  },
+  {
+    name: "UAT",
+    env_id: 3,
+    description:
+      "User Acceptance Testing environment (created by migration 035)",
+  },
+  { name: "EV1", env_id: 4, description: "Environment 1" },
+  { name: "EV2", env_id: 5, description: "Environment 2" },
+  { name: "EV3", env_id: 6, description: "Environment 3" },
+  { name: "EV4", env_id: 7, description: "Environment 4" },
+  { name: "EV5", env_id: 8, description: "Environment 5" },
 ];
 
 function randomDateInRange(startStr, endStr) {

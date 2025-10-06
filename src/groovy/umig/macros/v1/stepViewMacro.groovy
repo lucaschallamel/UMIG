@@ -14,6 +14,7 @@
 import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
 import com.atlassian.confluence.user.ConfluenceUser
 import umig.repository.UserRepository
+import umig.service.ConfigurationService
 
 // Get current user context
 def currentConfluenceUser = AuthenticatedUserThreadLocal.get() as ConfluenceUser
@@ -75,8 +76,12 @@ if (System.getProperty('confluence.dev.mode') == 'true' && roleParam in ['PILOT'
 }
 */
 
-// Use the same pattern as iterationViewMacro for consistency
-def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
+// US-098 Phase 5: Migrated to ConfigurationService with 4-tier hierarchy
+// 1. Database (environment-specific) - UAT/PROD
+// 2. Database (global)
+// 3. Environment variable - DEV (.env file)
+// 4. Default value - Fallback
+def webRoot = ConfigurationService.getString('umig.web.root', '/rest/scriptrunner/latest/custom/web')
 
 return """
 <!-- Include the iteration view CSS for consistent styling -->

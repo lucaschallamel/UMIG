@@ -4,54 +4,57 @@ import { client } from "../lib/db.js";
 /**
  * Environment Generator - Smart Preservation Pattern
  *
- * CRITICAL DEPENDENCY: This generator depends on migration 022 which creates:
- * - DEV environment (env_id=1, env_code='DEV', env_name='Development')
- * - System configuration entries linked to env_id=1
+ * CRITICAL DEPENDENCIES:
+ * - Migration 022 creates: DEV environment (env_id=1, env_code='DEV')
+ * - Migration 035 creates: PROD (env_id=2), UAT (env_id=3) + 21 system configurations
  *
  * PRESERVATION STRATEGY:
  * - NEVER truncate environments_env table (would break foreign key constraints)
- * - DELETE only non-DEV environments (env_id != 1) for clean regeneration
- * - SKIP creation of DEV environment (use existing env_id=1)
+ * - DELETE only generator-created environments (env_id NOT IN (1,2,3)) for clean regeneration
+ * - SKIP creation of DEV/PROD/UAT environments (use existing from migrations)
  * - PRESERVE all migration-created data while enabling generator flexibility
  *
  * This pattern prevents foreign key violations while allowing repeatable generation.
  */
 
 /**
- * Selectively erases generator-created environments while preserving system-created ones.
- * Preserves DEV environment (env_id=1) created by migration 022.
+ * Selectively erases generator-created environments while preserving migration-created ones.
+ * Preserves DEV (env_id=1) from migration 022, PROD/UAT (env_id=2,3) from migration 035.
  * @param {object} client - The PostgreSQL client.
  */
 async function eraseEnvironmentsTable(client) {
   console.log("Erasing generator-created environments and associations...");
 
   try {
-    // First, remove join table associations for non-DEV environments
+    // First, remove join table associations for generator-created environments only
+    // Preserve migration-created environments: DEV (1), PROD (2), UAT (3)
     await client.query(`
       DELETE FROM environments_env_x_applications_app 
-      WHERE env_id != 1
+      WHERE env_id NOT IN (1, 2, 3)
     `);
     console.log(
-      "  - Removed application associations for non-DEV environments",
+      "  - Removed application associations for generator-created environments",
     );
 
     await client.query(`
       DELETE FROM environments_env_x_iterations_ite 
-      WHERE env_id != 1
-    `);
-    console.log("  - Removed iteration associations for non-DEV environments");
-
-    // Delete generator-created environments (preserve DEV with env_id=1 from migration 022)
-    const deleteResult = await client.query(`
-      DELETE FROM environments_env 
-      WHERE env_id != 1
+      WHERE env_id NOT IN (1, 2, 3)
     `);
     console.log(
-      `  - Deleted ${deleteResult.rowCount} generator-created environments (preserved DEV from migration)`,
+      "  - Removed iteration associations for generator-created environments",
+    );
+
+    // Delete generator-created environments (preserve DEV, PROD, UAT from migrations)
+    const deleteResult = await client.query(`
+      DELETE FROM environments_env 
+      WHERE env_id NOT IN (1, 2, 3)
+    `);
+    console.log(
+      `  - Deleted ${deleteResult.rowCount} generator-created environments (preserved DEV/PROD/UAT from migrations)`,
     );
 
     console.log(
-      "Finished erasing generator-created environments (DEV environment preserved).",
+      "Finished erasing generator-created environments (DEV/PROD/UAT environments preserved).",
     );
   } catch (error) {
     console.error(`Error erasing environments table: ${error}`);
@@ -61,7 +64,9 @@ async function eraseEnvironmentsTable(client) {
 
 /**
  * Generates all environments from the config file and links them to apps and iterations.
- * DEPENDENCY: Migration 022 creates DEV environment (env_id=1) which must be preserved.
+ * DEPENDENCIES:
+ * - Migration 022 creates DEV environment (env_id=1)
+ * - Migration 035 creates PROD/UAT environments (env_id=2,3)
  * Now follows specific rules for iteration types.
  * @param {Array<object>} environments - Array of environment objects to create.
  * @param {object} options - Generation options, e.g., { reset: boolean }.
@@ -73,27 +78,35 @@ async function generateAllEnvironments(environments, options = {}) {
 
   console.log("Generating environments...");
 
-  // Verify DEV environment exists (created by migration 022)
-  const devCheck = await client.query(
-    "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+  // Verify migration-created environments exist (DEV from 022, PROD/UAT from 035)
+  const migrationEnvCheck = await client.query(
+    "SELECT env_id, env_code FROM environments_env WHERE env_id IN (1, 2, 3) ORDER BY env_id",
   );
-  if (devCheck.rows.length === 0) {
+  if (migrationEnvCheck.rows.length < 3) {
     throw new Error(
-      "DEV environment (env_id=1) not found. Please ensure migration 022 has been executed.",
+      "Migration-created environments not found. Expected DEV (env_id=1), PROD (env_id=2), UAT (env_id=3). Please ensure migrations 022 and 035 have been executed.",
     );
   }
-  console.log(`  ✓ Verified DEV environment exists (created by migration 022)`);
+  console.log(
+    `  ✓ Verified ${migrationEnvCheck.rows.length} migration-created environments exist:`,
+    migrationEnvCheck.rows
+      .map((r) => `${r.env_code} (env_id=${r.env_id})`)
+      .join(", "),
+  );
 
   // Create environments and store mapping by name
-  // Skip DEV environment (env_id=1) as it's already created by migration 022
+  // Skip migration-created environments: DEV (022), PROD/UAT (035)
   const envByName = {};
+  const MIGRATION_ENV_NAMES = ["DEV", "PROD", "UAT"];
+  const MIGRATION_ENV_IDS = { DEV: 1, PROD: 2, UAT: 3 };
+
   for (const env of environments) {
-    // Skip DEV environment - it's created by migration 022
-    if (env.name === "DEV") {
+    // Skip migration-created environments
+    if (MIGRATION_ENV_NAMES.includes(env.name)) {
       console.log(
-        `  - Skipping ${env.name} environment (preserved from migration 022)`,
+        `  - Skipping ${env.name} environment (preserved from migration)`,
       );
-      envByName[env.name] = 1; // DEV always has env_id = 1 from migration
+      envByName[env.name] = MIGRATION_ENV_IDS[env.name];
       continue;
     }
 
@@ -137,18 +150,23 @@ async function generateAllEnvironments(environments, options = {}) {
     });
   }
 
-  // Final safety check: Ensure DEV environment is always available for linking
-  if (!envByName["DEV"]) {
-    const devFinalCheck = await client.query(
-      "SELECT env_id FROM environments_env WHERE env_id = 1",
-    );
-    if (devFinalCheck.rows.length > 0) {
-      envByName["DEV"] = 1;
-      console.log("  ✓ Added DEV environment to mapping (env_id=1)");
-    } else {
-      throw new Error(
-        "CRITICAL: DEV environment (env_id=1) missing - migration 022 may not have run",
+  // Final safety check: Ensure all migration-created environments are available for linking
+  for (const envName of MIGRATION_ENV_NAMES) {
+    if (!envByName[envName]) {
+      const envCheck = await client.query(
+        "SELECT env_id FROM environments_env WHERE env_id = $1",
+        [MIGRATION_ENV_IDS[envName]],
       );
+      if (envCheck.rows.length > 0) {
+        envByName[envName] = MIGRATION_ENV_IDS[envName];
+        console.log(
+          `  ✓ Added ${envName} environment to mapping (env_id=${MIGRATION_ENV_IDS[envName]})`,
+        );
+      } else {
+        throw new Error(
+          `CRITICAL: ${envName} environment (env_id=${MIGRATION_ENV_IDS[envName]}) missing - migrations may not have run`,
+        );
+      }
     }
   }
 

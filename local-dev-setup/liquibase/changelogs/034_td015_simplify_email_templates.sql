@@ -1,3 +1,8 @@
+--liquibase formatted sql
+
+--changeset lucas.challamel:034_td015_simplify_email_templates
+--comment: TD-015: Simplify Email Templates - Replace GSP scriptlets (<% %>) with ${} variable substitution. All conditionals and loops pre-processed in EnhancedEmailService.groovy. Enables reliable GStringTemplateEngine processing.
+
 -- ======================================================================================
 -- TD-015: Simplify Email Templates (Remove GSP Scriptlets)
 -- ======================================================================================
@@ -19,8 +24,6 @@
 -- Rollback:
 --   This migration includes rollback scripts to restore original GSP-based templates
 -- ======================================================================================
-
-BEGIN;
 
 -- ======================================================================================
 -- 1. STEP_STATUS_CHANGED Template
@@ -391,8 +394,6 @@ WHERE emt_type = 'ITERATION_EVENT'
 -- ORDER BY emt_type;
 
 -- Expected result: All templates should show scriptlet_count = 0 after migration
-
-COMMIT;
 
 -- ======================================================================================
 -- ROLLBACK SCRIPT

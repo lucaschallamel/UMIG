@@ -52,6 +52,20 @@ class EnhancedEmailService {
     // Default from address for UMIG notifications
     private static final String DEFAULT_FROM_ADDRESS = 'umig-system@company.com'
 
+    // Confluence MailServerManager for SMTP configuration (US-098 Phase 5)
+    private static ConfluenceMailServerManager mailServerManager
+
+    // Static initialization block for MailServerManager
+    static {
+        try {
+            mailServerManager = ComponentLocator.getComponent(ConfluenceMailServerManager.class) as ConfluenceMailServerManager
+            println "✅ EnhancedEmailService: MailServerManager initialized successfully"
+        } catch (Exception e) {
+            println "⚠️ EnhancedEmailService: Failed to initialize MailServerManager: ${e.message}"
+            println "   Emails will fail until Confluence SMTP is configured"
+        }
+    }
+
     // Template caching for performance optimization (copied from EmailService)
     private static final Map<String, groovy.text.Template> TEMPLATE_CACHE = new ConcurrentHashMap<>()
     private static final GStringTemplateEngine TEMPLATE_ENGINE = new GStringTemplateEngine()
@@ -96,45 +110,70 @@ class EnhancedEmailService {
                 String stepCode = enrichedDTO.stepCode ?: ''
                 println "🔧 [EnhancedEmailService]   🔍 DTO stepCode: '${stepCode}'"
 
-                // TD-016-A: Fetch instructions array for email population
-                println "🔧 [EnhancedEmailService] TD-016-A: Fetching instructions array"
-                def instructions = DatabaseUtil.withSql { sql ->
-                    sql.rows('''
-                        SELECT
-                            ini.ini_id,
-                            inm.inm_body as ini_name,
-                            inm.inm_body as ini_description,
-                            inm.inm_duration_minutes as ini_duration_minutes,
-                            ini.ini_is_completed as completed,
-                            tms.tms_name as team_name,
-                            ctm.ctm_name as control_code
-                        FROM instructions_instance_ini ini
-                        JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
-                        LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
-                        LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
-                        WHERE ini.sti_id = :stepInstanceId
-                        ORDER BY inm.inm_order
-                    ''', [stepInstanceId: stepInstanceId])
-                }
-                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${instructions?.size() ?: 0} instructions"
+                // TD-017: Optimized single-query approach using JSON aggregation
+                println "🔧 [EnhancedEmailService] TD-017: Fetching instructions and comments (optimized)"
+                println "🔍 [VERBOSE] stepInstanceId param: ${stepInstanceId}"
+                println "🔍 [VERBOSE] stepInstanceId type: ${stepInstanceId?.getClass()?.name}"
 
-                // TD-016-A: Fetch comments array (last 3) for email population
-                println "🔧 [EnhancedEmailService] TD-016-A: Fetching comments array (last 3)"
-                def comments = DatabaseUtil.withSql { sql ->
-                    sql.rows('''
+                def queryResult = DatabaseUtil.withSql { sql ->
+                    sql.firstRow('''
+                        WITH instructions AS (
+                            SELECT
+                                ini.ini_id,
+                                inm.inm_body as ini_name,
+                                inm.inm_body as ini_description,
+                                inm.inm_duration_minutes as ini_duration_minutes,
+                                ini.ini_is_completed as completed,
+                                tms.tms_name as team_name,
+                                ctm.ctm_name as control_code,
+                                inm.inm_order
+                            FROM instructions_instance_ini ini
+                            JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                            LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
+                            LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
+                            WHERE ini.sti_id = :stepInstanceId::uuid
+                            ORDER BY inm.inm_order
+                        ),
+                        comments AS (
+                            SELECT
+                                sic.sic_id,
+                                sic.comment_body as comment_text,
+                                usr.usr_code as author_name,
+                                sic.created_at
+                            FROM step_instance_comments_sic sic
+                            LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
+                            WHERE sic.sti_id = :stepInstanceId::uuid
+                            ORDER BY sic.created_at DESC
+                            LIMIT 3
+                        )
                         SELECT
-                            sic.sic_id,
-                            sic.comment_body as comment_text,
-                            usr.usr_code as author_name,
-                            sic.created_at
-                        FROM step_instance_comments_sic sic
-                        LEFT JOIN users_usr usr ON sic.created_by = usr.usr_id
-                        WHERE sic.sti_id = :stepInstanceId
-                        ORDER BY sic.created_at DESC
-                        LIMIT 3
-                    ''', [stepInstanceId: stepInstanceId])
+                            (SELECT COALESCE(json_agg(i.*)::text, '[]') FROM instructions i) AS instructions_json,
+                            (SELECT COALESCE(json_agg(c.*)::text, '[]') FROM comments c) AS comments_json
+                    ''', [stepInstanceId: stepInstanceId as String])
                 }
-                println "🔧 [EnhancedEmailService] TD-016-A: Retrieved ${comments?.size() ?: 0} comments"
+
+                println "🔍 [VERBOSE] Query executed, result received"
+                println "🔍 [VERBOSE] queryResult type: ${queryResult?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult keys: ${queryResult?.keySet()}"
+                println "🔍 [VERBOSE] queryResult.instructions_json TYPE: ${queryResult?.instructions_json?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult.instructions_json VALUE (first 500 chars): ${(queryResult?.instructions_json as String)?.take(500)}"
+                println "🔍 [VERBOSE] queryResult.comments_json TYPE: ${queryResult?.comments_json?.getClass()?.name}"
+                println "🔍 [VERBOSE] queryResult.comments_json VALUE (first 500 chars): ${(queryResult?.comments_json as String)?.take(500)}"
+
+                // Parse JSON results to List<Map> (ADR-031: explicit type casting and typing)
+                println "🔍 [VERBOSE] About to parse instructions JSON..."
+                List<Map> instructions = parseJsonArray(queryResult?.instructions_json as String)
+                println "🔍 [VERBOSE] parseJsonArray OUTPUT for instructions: ${instructions}"
+                println "🔍 [VERBOSE] instructions size: ${instructions?.size()}"
+                println "🔍 [VERBOSE] instructions first item: ${instructions?.first()}"
+
+                println "🔍 [VERBOSE] About to parse comments JSON..."
+                List<Map> comments = parseJsonArray(queryResult?.comments_json as String)
+                println "🔍 [VERBOSE] parseJsonArray OUTPUT for comments: ${comments}"
+                println "🔍 [VERBOSE] comments size: ${comments?.size()}"
+                println "🔍 [VERBOSE] comments first item: ${comments?.first()}"
+
+                println "🔧 [EnhancedEmailService] TD-017: Retrieved ${instructions?.size() ?: 0} instructions, ${comments?.size() ?: 0} comments"
 
                 // Build enriched data map with DTO properties + instructions/comments arrays
                 Map enrichedData = [
@@ -172,10 +211,24 @@ class EnhancedEmailService {
                 println "🔧 [EnhancedEmailService]   🔍 comment_count: ${enrichedData.comment_count}"
                 println "🔧 [EnhancedEmailService] TD-016-A: instructions array size: ${(enrichedData.instructions as List).size()}"
                 println "🔧 [EnhancedEmailService] TD-016-A: comments array size: ${(enrichedData.comments as List).size()}"
+                println "🔍 [VERBOSE] enrichedData.instructions content: ${enrichedData.instructions}"
+                println "🔍 [VERBOSE] enrichedData.comments content: ${enrichedData.comments}"
 
-                // Merge enriched data into stepInstance (enriched data takes precedence)
-                stepInstance = enrichedData + (stepInstance as Map)
+                // CRITICAL FIX: Merge enriched data into stepInstance (enriched data takes precedence)
+                // Right-hand map overrides left-hand map properties in Groovy
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, keys: ${stepInstance?.keySet()}"
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, has instructions?: ${stepInstance?.containsKey('instructions')}"
+                println "🔍 [VERBOSE] stepInstance BEFORE merge, instructions value: ${stepInstance?.instructions}"
+
+                stepInstance = (stepInstance as Map) + enrichedData
+
+                println "🔍 [VERBOSE] stepInstance AFTER merge, keys: ${stepInstance?.keySet()}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, has instructions?: ${stepInstance?.containsKey('instructions')}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, instructions value: ${stepInstance?.instructions}"
+                println "🔍 [VERBOSE] stepInstance AFTER merge, instructions type: ${stepInstance?.instructions?.getClass()?.name}"
                 println "🔧 [EnhancedEmailService] ✅ Step instance enriched - step_code: '${stepInstance.step_code}'"
+                println "🔧 [EnhancedEmailService] ✅ Merged instructions count: ${(stepInstance.instructions as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] ✅ Merged comments count: ${(stepInstance.comments as List)?.size() ?: 0}"
             } else {
                 println "🔧 [EnhancedEmailService] ⚠️ WARNING: StepInstanceDTO not found for ID: ${stepInstanceId}"
             }
@@ -227,9 +280,9 @@ class EnhancedEmailService {
                 
                 // Get email template
                 println "🔧 [EnhancedEmailService] STEP 2: Getting email template"
-                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED_WITH_URL')
                 if (!template) {
-                    println "🔧 [EnhancedEmailService] ⚠️ WARNING: No active template found for STEP_STATUS_CHANGED - using fallback"
+                    println "🔧 [EnhancedEmailService] ⚠️ WARNING: No active template found for STEP_STATUS_CHANGED_WITH_URL - using fallback"
                     // For now, bypass database template requirement for testing
                     def testSubject = "[UMIG] Step Status Changed: ${stepInstance.sti_name}" as String
                     def testBody = "<html><body><h2>Step Status Changed</h2><p>Step: ${stepInstance.sti_name}</p><p>Status: ${oldStatus} to ${newStatus}</p></body></html>" as String
@@ -374,6 +427,19 @@ class EnhancedEmailService {
                     
                     // TD-015 Phase 3: Pre-processed variables for simplified templates (now using enriched data)
                     breadcrumb: buildBreadcrumb(migrationCode, iterationCode, stepInstance),
+                ]
+
+                // CRITICAL DEBUG: Log data BEFORE calling helper methods
+                println "🔧 [EnhancedEmailService] DEBUG: About to build instructionsHtml"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.instructions = ${stepInstance?.instructions}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.instructions size = ${(stepInstance?.instructions as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.comments = ${stepInstance?.comments}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.comments size = ${(stepInstance?.comments as List)?.size() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.sti_duration_minutes = ${stepInstance?.sti_duration_minutes}"
+                println "🔧 [EnhancedEmailService] DEBUG: stepInstance.environment_name = ${stepInstance?.environment_name}"
+
+                // Build HTML helper variables
+                variables.putAll([
                     instructionsHtml: buildInstructionsHtml((stepInstance?.instructions ?: []) as List),
                     commentsHtml: buildCommentsHtml((stepInstance?.comments ?: []) as List),
                     durationAndEnvironment: buildDurationAndEnvironment(stepInstance),
@@ -387,7 +453,15 @@ class EnhancedEmailService {
                         (stepInstance?.environment_name ?
                             "${stepInstance.environment_role_name ?: ''} (${stepInstance.environment_name})".toString() :
                             (stepInstance.environment_role_name ?: '')) as String)
-                ]
+                ])
+
+                // CRITICAL DEBUG: Log generated HTML variables
+                println "🔧 [EnhancedEmailService] DEBUG: Generated HTML variables:"
+                println "🔧 [EnhancedEmailService] DEBUG: instructionsHtml length = ${(variables.instructionsHtml as String)?.length() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: commentsHtml length = ${(variables.commentsHtml as String)?.length() ?: 0}"
+                println "🔧 [EnhancedEmailService] DEBUG: durationAndEnvironment = '${variables.durationAndEnvironment}'"
+                println "🔧 [EnhancedEmailService] DEBUG: instructionsHtml preview = ${(variables.instructionsHtml as String)?.take(200)}"
+                println "🔧 [EnhancedEmailService] DEBUG: commentsHtml preview = ${(variables.commentsHtml as String)?.take(200)}"
 
                 println "🔧 [EnhancedEmailService] STEP 4: Processing email template"
                 println "🔧 [EnhancedEmailService] Template variables prepared: ${variables.keySet()}"
@@ -772,98 +846,173 @@ class EnhancedEmailService {
     }
 
     /**
-     * Send email via MailHog for development environment
+     * Send email via Confluence MailServerManager API (US-098 Phase 5)
+     *
+     * Replaces hardcoded MailHog configuration with dynamic SMTP retrieval from Confluence.
+     * Applies ConfigurationService overrides for auth, TLS, and timeouts.
+     *
+     * @param recipients List of email addresses
+     * @param subject Email subject line
+     * @param body Email body (HTML content)
+     * @return true if all emails sent successfully, false otherwise
      */
     private static boolean sendEmailViaMailHog(List<String> recipients, String subject, String body) {
         try {
-            println "🚨 [CRITICAL DEBUG] EnhancedEmailService.sendEmailViaMailHog() - ENTRY POINT"
-            println "🚨 [CRITICAL DEBUG] MailHog sending starting (development mode)"
-            println "🚨 [CRITICAL DEBUG] Recipients to process: ${recipients}"
-            println "🚨 [CRITICAL DEBUG] Recipients count: ${recipients?.size()}"
-            println "🚨 [CRITICAL DEBUG] Subject: ${subject}"
-            println "🚨 [CRITICAL DEBUG] Body preview: ${body?.take(200)}..."
+            println "📧 [EnhancedEmailService] Sending email via MailServerManager"
+            println "📧 Recipients: ${recipients.size()}"
+            println "📧 Subject: ${subject}"
 
-            // MailHog SMTP configuration
-            Properties props = new Properties()
-            props.put("mail.smtp.host", "umig_mailhog")
-            props.put("mail.smtp.port", "1025")
-            props.put("mail.smtp.auth", "false")
-            props.put("mail.smtp.starttls.enable", "false")
-            props.put("mail.smtp.connectiontimeout", "5000")
-            props.put("mail.smtp.timeout", "5000")
+            // Validate SMTP configuration
+            SMTPMailServer mailServer = validateSMTPConfiguration()
 
-            println "🚨 [CRITICAL DEBUG] SMTP properties configured for umig_mailhog:1025"
-            println "🚨 [CRITICAL DEBUG] SMTP host: umig_mailhog"
-            println "🚨 [CRITICAL DEBUG] SMTP port: 1025"
-            println "🚨 [CRITICAL DEBUG] SMTP auth: false"
-
-            // Create session
-            println "🚨 [CRITICAL DEBUG] About to create JavaMail session..."
-            Session session = Session.getInstance(props)
-            println "🚨 [CRITICAL DEBUG] ✅ JavaMail session created successfully"
-            println "🚨 [CRITICAL DEBUG] Session properties: ${session.getProperties()}"
+            // Build JavaMail session with ConfigurationService overrides
+            Session session = buildEmailSession(mailServer)
 
             // Send to each recipient
             boolean allSent = true
-            println "🚨 [CRITICAL DEBUG] Starting to process ${recipients.size()} recipients"
             recipients.each { recipient ->
                 try {
-                    println "🚨 [CRITICAL DEBUG] === Processing recipient: ${recipient} ==="
-                    println "🚨 [CRITICAL DEBUG] Creating MimeMessage..."
+                    println "📧 Processing recipient: ${recipient}"
+
                     MimeMessage message = new MimeMessage(session)
-                    println "🚨 [CRITICAL DEBUG] ✅ MimeMessage created"
-
-                    println "🚨 [CRITICAL DEBUG] Setting FROM address: ${DEFAULT_FROM_ADDRESS}"
-                    message.setFrom(new InternetAddress(DEFAULT_FROM_ADDRESS))
-                    println "🚨 [CRITICAL DEBUG] ✅ FROM address set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting TO address: ${recipient}"
+                    message.setFrom(new InternetAddress(mailServer.getDefaultFrom() ?: DEFAULT_FROM_ADDRESS))
                     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
-                    println "🚨 [CRITICAL DEBUG] ✅ TO address set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting subject: ${subject}"
                     message.setSubject(subject, "UTF-8")
-                    println "🚨 [CRITICAL DEBUG] ✅ Subject set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting content (${body?.length()} chars)"
                     message.setContent(body, "text/html; charset=utf-8")
-                    println "🚨 [CRITICAL DEBUG] ✅ Content set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting sent date"
                     message.setSentDate(new Date())
-                    println "🚨 [CRITICAL DEBUG] ✅ Sent date set"
-
-                    println "🚨 [CRITICAL DEBUG] === ABOUT TO SEND MESSAGE VIA Transport.send() ==="
-                    println "🚨 [CRITICAL DEBUG] Message details:"
-                    println "🚨 [CRITICAL DEBUG]   - From: ${message.getFrom()}"
-                    println "🚨 [CRITICAL DEBUG]   - To: ${message.getAllRecipients()}"
-                    println "🚨 [CRITICAL DEBUG]   - Subject: ${message.getSubject()}"
 
                     Transport.send(message)
-                    println "🚨 [CRITICAL DEBUG] ✅✅✅ Transport.send() COMPLETED SUCCESSFULLY for ${recipient}"
+                    println "✅ Email sent successfully to ${recipient}"
+
                 } catch (Exception e) {
-                    println "🚨 [CRITICAL DEBUG] ❌❌❌ FAILED to send email to ${recipient}"
-                    println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
-                    println "🚨 [CRITICAL DEBUG] Exception message: ${e.message}"
-                    println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
-                    println "🚨 [CRITICAL DEBUG] Full stack trace:"
+                    println "❌ Failed to send email to ${recipient}: ${e.message}"
                     e.printStackTrace()
                     allSent = false
                 }
             }
 
-            println "🚨 [CRITICAL DEBUG] === EMAIL PROCESSING COMPLETED ==="
-            println "🚨 [CRITICAL DEBUG] All emails processed. Overall success: ${allSent}"
-            println "🚨 [CRITICAL DEBUG] Returning result: ${allSent}"
+            println "📧 Email processing completed. Success: ${allSent}"
             return allSent
 
         } catch (Exception e) {
-            println "🚨 [CRITICAL DEBUG] ❌❌❌ FATAL ERROR in sendEmailViaMailHog: ${e.message}"
-            println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
-            println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
-            println "🚨 [CRITICAL DEBUG] Full stack trace:"
+            println "❌ FATAL ERROR in sendEmailViaMailHog: ${e.message}"
             e.printStackTrace()
             return false
+        }
+    }
+
+    /**
+     * Validate Confluence SMTP configuration exists (US-098 Phase 5)
+     *
+     * @return SMTPMailServer instance from Confluence
+     * @throws IllegalStateException if no SMTP server configured
+     */
+    private static SMTPMailServer validateSMTPConfiguration() {
+        if (!mailServerManager) {
+            String errorMsg = "MailServerManager not initialized. Confluence integration failed."
+            println "❌ ${errorMsg}"
+            throw new IllegalStateException(errorMsg)
+        }
+
+        SMTPMailServer mailServer = mailServerManager.getDefaultSMTPMailServer()
+
+        if (!mailServer) {
+            String errorMsg = "No SMTP server configured in Confluence. " +
+                            "Please configure in Confluence Admin → Mail Servers"
+            println "❌ ${errorMsg}"
+            throw new IllegalStateException(errorMsg)
+        }
+
+        println "✅ Using SMTP server: ${mailServer.getHostname()}:${mailServer.getPort()}"
+        return mailServer
+    }
+
+    /**
+     * Build JavaMail session with Confluence settings and ConfigurationService overrides (US-098 Phase 5)
+     *
+     * @param mailServer Confluence SMTP mail server
+     * @return Configured JavaMail session
+     */
+    private static Session buildEmailSession(SMTPMailServer mailServer) {
+        Properties props = new Properties()
+
+        // Base configuration from Confluence MailServerManager
+        props.put("mail.smtp.host", mailServer.getHostname())
+        props.put("mail.smtp.port", String.valueOf(mailServer.getPort()))
+
+        println "📧 Base SMTP config: ${mailServer.getHostname()}:${mailServer.getPort()}"
+
+        // Apply ConfigurationService overrides
+        applyConfigurationOverrides(props)
+
+        // Create authenticator if SMTP server requires authentication
+        Authenticator auth = null
+        if (mailServer.getUsername()) {
+            println "🔐 Creating authenticator for user: ${mailServer.getUsername()}"
+            auth = new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                        mailServer.getUsername(),
+                        mailServer.getPassword()
+                    )
+                }
+            }
+        } else {
+            println "🔓 No authentication required (username not configured)"
+        }
+
+        // Create session with or without authentication
+        return auth ? Session.getInstance(props, auth) : Session.getInstance(props)
+    }
+
+    /**
+     * Apply ConfigurationService overrides to JavaMail properties (US-098 Phase 5)
+     *
+     * Retrieves application-level SMTP overrides from Migration 035 configurations:
+     * - email.smtp.auth.enabled (DEV: false, PROD: true)
+     * - email.smtp.starttls.enabled (DEV: false, PROD: true)
+     * - email.smtp.connection.timeout.ms (DEV: 5000, PROD: 15000)
+     * - email.smtp.timeout.ms (DEV: 5000, PROD: 30000)
+     *
+     * @param props JavaMail properties to modify
+     */
+    private static void applyConfigurationOverrides(Properties props) {
+        try {
+            // Lazy load ConfigurationService to avoid circular dependencies
+            def configService = new umig.service.ConfigurationService()
+
+            // Authentication override
+            Boolean authEnabled = configService.getBoolean("email.smtp.auth.enabled")
+            if (authEnabled != null) {
+                props.put("mail.smtp.auth", String.valueOf(authEnabled))
+                println "📧 Applied auth override: ${authEnabled}"
+            }
+
+            // STARTTLS override
+            Boolean tlsEnabled = configService.getBoolean("email.smtp.starttls.enabled")
+            if (tlsEnabled != null) {
+                props.put("mail.smtp.starttls.enable", String.valueOf(tlsEnabled))
+                println "📧 Applied TLS override: ${tlsEnabled}"
+            }
+
+            // Connection timeout
+            String connectionTimeout = configService.getString("email.smtp.connection.timeout.ms")
+            if (connectionTimeout) {
+                props.put("mail.smtp.connectiontimeout", connectionTimeout)
+                println "📧 Applied connection timeout: ${connectionTimeout}ms"
+            }
+
+            // Operation timeout
+            String operationTimeout = configService.getString("email.smtp.timeout.ms")
+            if (operationTimeout) {
+                props.put("mail.smtp.timeout", operationTimeout)
+                println "📧 Applied operation timeout: ${operationTimeout}ms"
+            }
+
+        } catch (Exception e) {
+            println "⚠️ Failed to apply ConfigurationService overrides: ${e.message}"
+            println "⚠️ Using Confluence defaults only"
+            // Continue with Confluence defaults - not fatal
         }
     }
 
@@ -977,18 +1126,47 @@ class EnhancedEmailService {
         try {
             // Use GStringTemplateEngine for simple ${variable} substitution
             // Note: All <% %> scriptlets must be removed from templates
+            println "🔧 [processTemplate] Starting template processing (${templateText?.length() ?: 0} chars)"
+            println "🔧 [processTemplate] Variables provided: ${variables?.keySet()}"
+
             def engine = new groovy.text.GStringTemplateEngine()
+
+            println "🔧 [processTemplate] Creating template..."
             def template = engine.createTemplate(templateText)
-            def result = template.make(variables).toString()
+
+            println "🔧 [processTemplate] Applying variables (make binding)..."
+            // FIX: Convert complex objects to safe values for template engine
+            //  - Keep Maps and Lists as-is (template may iterate over them)
+            //  - Convert other objects to String to avoid GString evaluation issues
+            def safeVariables = variables.collectEntries { k, v ->
+                def safeValue
+                if (v == null) {
+                    safeValue = ''
+                } else if (v instanceof Map || v instanceof List) {
+                    safeValue = v  // Keep collections as-is for template iteration
+                } else if (v instanceof String) {
+                    safeValue = v  // Keep strings as-is
+                } else {
+                    safeValue = v.toString()  // Convert other objects to string
+                }
+                [k, safeValue]
+            }
+            println "🔧 [processTemplate] Safe variables created (${safeVariables.size()} entries)"
+
+            def result = template.make(safeVariables).toString()
 
             println "✅ Template processed successfully (${result.length()} characters)"
             return result
 
         } catch (Exception e) {
-            println "❌ Template processing error: ${e.message}"
+            println "❌ Template processing error: ${e.class.name}: ${e.message}"
             println "   Template variables available: ${variables?.keySet()}"
+            println "   Template length: ${templateText?.length() ?: 0}"
+            println "   First 200 chars of template: ${templateText?.take(200)}"
             e.printStackTrace()
-            return templateText  // Fallback only on error
+
+            // CRITICAL: Do NOT return raw template - throw exception to alert caller
+            throw new RuntimeException("Template processing failed: ${e.message}", e)
         }
     }
 
@@ -1055,11 +1233,19 @@ class EnhancedEmailService {
      * @return HTML string with <tr> rows for each instruction
      */
     private static String buildInstructionsHtml(List instructions) {
+        println "🔍 [VERBOSE] buildInstructionsHtml called"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT: ${instructions}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT type: ${instructions?.getClass()?.name}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT size: ${instructions?.size()}"
+        println "🔍 [VERBOSE] buildInstructionsHtml INPUT isEmpty: ${instructions?.isEmpty()}"
+
         // Empty collection fallback
         if (!instructions || instructions.isEmpty()) {
+            println "🔍 [VERBOSE] buildInstructionsHtml: No instructions, returning fallback message"
             return '<tr><td colspan="5" style="text-align:center; color:#6c757d; padding:20px;">No instructions defined for this step.</td></tr>'
         }
 
+        println "🔍 [VERBOSE] buildInstructionsHtml: Processing ${instructions.size()} instructions"
         def html = new StringBuilder()
         instructions.eachWithIndex { instruction, index ->
             // Cast to Map for safe property access
@@ -1096,11 +1282,19 @@ class EnhancedEmailService {
      * @return HTML string with comment card divs (max 3)
      */
     private static String buildCommentsHtml(List comments) {
+        println "🔍 [VERBOSE] buildCommentsHtml called"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT: ${comments}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT type: ${comments?.getClass()?.name}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT size: ${comments?.size()}"
+        println "🔍 [VERBOSE] buildCommentsHtml INPUT isEmpty: ${comments?.isEmpty()}"
+
         // Empty collection fallback
         if (!comments || comments.isEmpty()) {
+            println "🔍 [VERBOSE] buildCommentsHtml: No comments, returning fallback message"
             return '<p style="color:#6c757d; text-align:center; padding:20px;">No comments yet. Be the first to add your insights!</p>'
         }
 
+        println "🔍 [VERBOSE] buildCommentsHtml: Processing ${comments.size()} comments"
         def html = new StringBuilder()
         comments.take(3).eachWithIndex { comment, index ->
             // Cast to Map for safe property access
@@ -1354,21 +1548,56 @@ class EnhancedEmailService {
     }
     
     /**
+     * Check SMTP availability for health monitoring (US-098 Phase 5)
+     *
+     * @return true if SMTP configured and available, false otherwise
+     */
+    static boolean checkSMTPHealth() {
+        try {
+            if (!mailServerManager) {
+                println "⚠️ SMTP health check: MailServerManager not initialized"
+                return false
+            }
+
+            SMTPMailServer mailServer = mailServerManager.getDefaultSMTPMailServer()
+            boolean isHealthy = mailServer != null
+
+            if (isHealthy) {
+                println "✅ SMTP health check: OK (${mailServer.getHostname()}:${mailServer.getPort()})"
+            } else {
+                println "⚠️ SMTP health check: No SMTP server configured in Confluence"
+            }
+
+            return isHealthy
+
+        } catch (Exception e) {
+            println "⚠️ SMTP health check failed: ${e.message}"
+            return false
+        }
+    }
+
+    /**
      * Health check for monitoring URL construction capabilities
      */
     static Map healthCheck() {
         try {
             def urlServiceHealth = UrlConstructionService.healthCheck()
             def configHealth = urlServiceHealth.status == 'healthy'
-            
+            def smtpHealth = checkSMTPHealth()
+
             return [
                 service: 'EnhancedEmailService',
-                status: configHealth ? 'healthy' : 'degraded',
+                status: (configHealth && smtpHealth) ? 'healthy' : 'degraded',
                 urlConstruction: urlServiceHealth,
+                smtp: [
+                    configured: smtpHealth,
+                    mailServerManager: mailServerManager ? 'initialized' : 'not initialized'
+                ],
                 capabilities: [
                     dynamicUrls: configHealth,
                     emailTemplates: true,
-                    auditLogging: true
+                    auditLogging: true,
+                    smtpIntegration: smtpHealth
                 ],
                 timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             ]
@@ -1581,6 +1810,36 @@ class EnhancedEmailService {
             return false
         } catch (Exception e) {
             return false
+        }
+    }
+
+    /**
+     * Parse JSON array string to List<Map> (TD-017)
+     *
+     * Handles null, empty, and invalid JSON gracefully.
+     * Never throws - returns empty list on errors.
+     * ADR-031 compliant (explicit type casting).
+     *
+     * @param jsonString Raw JSON string from PostgreSQL json_agg()
+     * @return List of Maps representing JSON objects, or empty list on errors
+     * @since TD-017 (Sprint 8)
+     */
+    private static List<Map> parseJsonArray(String jsonString) {
+        if (!jsonString) return []
+
+        try {
+            def slurper = new groovy.json.JsonSlurper()
+            def parsed = slurper.parseText(jsonString as String)
+
+            if (!(parsed instanceof List)) {
+                println "⚠️ parseJsonArray: Expected JSON array, got ${parsed?.class?.simpleName}"
+                return []
+            }
+
+            return (parsed as List).collect { it as Map }
+        } catch (Exception e) {
+            println "❌ parseJsonArray failed: ${e.message}"
+            return []
         }
     }
 

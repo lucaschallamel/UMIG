@@ -266,6 +266,8 @@ Component compatibility information including:
 
 **COMPLETED**: 2025-09-25 | **Branch**: feature/US-088-build-process | **Status**: Phase 1 Complete
 
+**⚠️ NOTE**: Phase 1 packaging structure was further refined in **TD-020: Revise Build Packaging Structure** (Sprint 8). See `/docs/roadmap/sprint8/TD-020-revise-build-packaging.md` for deployment folder improvements including timestamped folders, uncompressed manifests, and compressed source archives.
+
 ### Implementation Results (Phase 1)
 
 **Core Infrastructure Delivered**:
@@ -988,8 +990,8 @@ const VersionManager = {
 **Business Stakeholder**: Product Owner
 **Architecture Reviewer**: Solution Architect (ADR-066 integration)
 **Created**: 2025-07-16
-**Last Updated**: 2025-09-25 (Phase 1 Complete, Phase 2 Planning)
-**Status**: Phase 1 Complete ✅ | Phase 2 Ready for Implementation ⏳
+**Last Updated**: 2025-10-06 (TD-020 cross-reference added, Phase 1 refined)
+**Status**: Phase 1 Complete ✅ (refined by TD-020) | Phase 2 Ready for Implementation ⏳
 
 ---
 
@@ -1039,6 +1041,16 @@ This comprehensive approach ensures UMIG deployments are traceable, reliable, an
 - **Build Commands** - `npm run build:uat`, `build:dev`, `build:prod`
 - **Performance** - Sub-second builds, 85.5% compression, 1.29MB archives
 - **Quality** - 164 test files excluded, zero test files in production builds
+
+### 📦 Related Work
+
+**Sprint 8 Refinements**:
+
+- **TD-020**: Revise Build Packaging Structure - Iterative improvement on Phase 1 packaging
+  - Deployment folder structure instead of single archive
+  - Timestamped deployment folders with uncompressed manifests
+  - Compressed source archives excluding test files
+  - See `/docs/roadmap/sprint8/TD-020-revise-build-packaging.md`
 
 ### ⏳ Phase 2 Ready (3 Story Points Remaining)
 

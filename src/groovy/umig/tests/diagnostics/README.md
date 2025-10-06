@@ -1,24 +1,65 @@
-# Infrastructure Diagnostics Tests
+# Infrastructure Diagnostics
 
-**Purpose**: Core infrastructure component validation and system health checks for UMIG development environment
+**Purpose**: Core infrastructure validation and system health monitoring
 
-## Key Components
+## Files
 
-- **testDatabaseConnection.groovy** - Database connectivity and connection health validation
-- **Infrastructure validation** - Core component accessibility and system readiness checks
-- **System health monitoring** - Comprehensive health check capabilities and dependency validation
-- **Deployment readiness** - Infrastructure validation for production deployment preparation
+```
+diagnostics/
+├── README.md                   # This file
+└── testDatabaseConnection.groovy # Database connectivity validation
+```
 
-## Validation Areas
+## Test Coverage
 
-- **Database connectivity** - PostgreSQL connection health and accessibility verification
-- **Infrastructure components** - Core system dependencies and service availability
-- **System health checks** - Comprehensive health monitoring and status validation
-- **Development readiness** - Environment validation before development work
+### Database Connectivity
+
+- **PostgreSQL connection** - Verify database accessibility and health
+- **Connection parameters** - Validate credentials and configuration
+- **Query execution** - Test basic query capabilities
+- **Performance** - Measure connection establishment time
 
 ## Usage
 
-- **Pre-development validation** - Verify system health before starting development activities
-- **Infrastructure troubleshooting** - Diagnose and resolve infrastructure component issues
-- **Deployment validation** - Confirm deployment readiness and system dependency availability
-- **Continuous monitoring** - Regular system health and dependency status validation
+```bash
+# Test database connectivity
+groovy src/groovy/umig/tests/diagnostics/testDatabaseConnection.groovy
+
+# Via NPM (recommended)
+npm run test:diagnostics
+```
+
+### Pre-Test Validation
+
+- Development stack running (`npm start`)
+- PostgreSQL container healthy (`podman ps`)
+- `.env` file configured with database credentials
+
+## Validation Areas
+
+- **Database accessibility** - PostgreSQL server reachability
+- **Credential validation** - Authentication and authorization
+- **Connection performance** - Establishment time <1s
+- **Query execution** - Basic SELECT operations
+
+## Expected Output
+
+```
+✅ Database connection successful
+✅ PostgreSQL version: 14.x
+✅ Connection time: <1s
+✅ Query execution: OK
+```
+
+## Integration
+
+Used for:
+
+- Pre-development environment checks
+- Deployment readiness validation
+- Infrastructure troubleshooting
+- Continuous health monitoring
+
+---
+
+**Updated**: September 26, 2025 | **Version**: 1.0

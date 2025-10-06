@@ -2,6 +2,7 @@ package umig.api.v2.web
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import groovy.transform.BaseScript
+import umig.service.ConfigurationService
 
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
@@ -17,14 +18,21 @@ import javax.ws.rs.core.Response
  *
  * Serves static assets (CSS, JS, images, etc.) for UMIG macros and SPA.
  *
- * The root directory is configurable via the UMIG_WEB_ROOT environment variable.
- * If not set, defaults to the production scripts directory.
+ * US-098 Phase 5E: Uses separate filesystem path configuration
+ * - umig.web.filesystem.root: File system path for serving static files
+ * - umig.web.root: URL path for macro resource loading (NOT used here)
  *
- * Example usage:
- *   export UMIG_WEB_ROOT=/Users/youruser/Documents/GitHub/UMIG/src/groovy/umig/web
- *   (or set in your container environment)
+ * Configuration hierarchy:
+ * 1. Database (environment-specific)
+ * 2. Database (global)
+ * 3. Environment variable - UMIG_WEB_FILESYSTEM_ROOT
+ * 4. Default value - Fallback path
+ *
+ * Example usage (DEV):
+ *   export UMIG_WEB_FILESYSTEM_ROOT=/Users/youruser/Documents/GitHub/UMIG/src/groovy/umig/web
+ *   (or set in local-dev-setup/.env file)
  */
-def webRootDir = new File(System.getenv('UMIG_WEB_ROOT') ?: '/var/atlassian/application-data/confluence/scripts/umig/web')
+def webRootDir = new File(ConfigurationService.getString('umig.web.filesystem.root', '/var/atlassian/application-data/confluence/scripts/umig/web'))
 
 def mimeTypes = [
     'css' : 'text/css',

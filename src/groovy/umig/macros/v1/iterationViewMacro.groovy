@@ -5,6 +5,7 @@
 import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
 import com.atlassian.user.User
 import umig.utils.UrlConstructionService
+import umig.service.ConfigurationService
 import groovy.json.JsonBuilder
 
 // Get the current Confluence user context
@@ -13,7 +14,12 @@ String confluenceUsername = currentUser?.getName() ?: ""
 String confluenceFullName = currentUser?.getFullName() ?: ""
 String confluenceEmail = currentUser?.getEmail() ?: ""
 
-def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
+// US-098 Phase 5: Migrated to ConfigurationService with 4-tier hierarchy
+// 1. Database (environment-specific) - UAT/PROD
+// 2. Database (global)
+// 3. Environment variable - DEV (.env file)
+// 4. Default value - Fallback
+def webRoot = ConfigurationService.getString('umig.web.root', '/rest/scriptrunner/latest/custom/web')
 
 // Get URL configuration for StepView using the UrlConstructionService
 def urlConfig = UrlConstructionService.getUrlConfigurationForEnvironment()
