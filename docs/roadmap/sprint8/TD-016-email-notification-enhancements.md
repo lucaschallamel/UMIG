@@ -38,7 +38,7 @@
 **Deliverables from Prerequisites**:
 
 - TD-016-MIG-PARAMETER-VERIFICATION.md (242 lines)
-- TD-016-EMAIL-TEMPLATE-VARIABLE-MAPPING.md (483 lines)
+- TD-016-EMAIL-TEMPLATE-VARIABLE-MAPPING.md (483 lines) → **Archived**: See TD-016-COMPLETE-Email-Notification-System.md, Addendum section
 - TD-016-TD-014-B-COORDINATION-ANALYSIS (memory)
 - Enhanced test plan: 16 → 22 unit tests
 - Comprehensive manual testing checklist (35+ checkpoints)

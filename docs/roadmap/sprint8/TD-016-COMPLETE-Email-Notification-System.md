@@ -1142,3 +1142,180 @@ docs/roadmap/sprint8/archive/TD-016/
 **Total Source Documents**: 14 files
 **Consolidation Time**: 3 hours
 **Archive Savings**: ~15,000 lines consolidated to single reference document
+
+---
+
+## Addendum: Post-Completion Bug Fix & Variable Documentation
+
+**Added**: 2025-10-06
+**Source**: Consolidated from TD-016-email-template-population-fix.md and TD-016-EMAIL-TEMPLATE-VARIABLE-MAPPING.md
+
+This addendum captures critical post-completion work including a bug fix for email template population and comprehensive variable documentation that exceeded original scope.
+
+### Post-Completion Bug Discovery (October 2, 2025)
+
+After TD-016 completion, email notifications were discovered to be displaying empty sections despite correct template configuration. This critical bug required immediate investigation and resolution.
+
+**Root Cause**: Map merge precedence error at `EnhancedEmailService.groovy:182`
+
+**The Bug**:
+
+```groovy
+// Line 182 - WRONG (enrichedData values get overridden)
+stepInstance = enrichedData + (stepInstance as Map)
+```
+
+**The Fix**:
+
+```groovy
+// Line 183 - CORRECT (enrichedData values take precedence)
+stepInstance = (stepInstance as Map) + enrichedData
+```
+
+**Impact**: In Groovy's map addition, the right-hand map takes precedence. The original code placed `stepInstance` on the right, causing its null/empty values to override enrichedData's populated arrays for instructions, comments, duration, and environment.
+
+**Resolution Actions**:
+
+1. Fixed map merge order (1-line change)
+2. Added comprehensive debug logging (35 lines)
+3. Refactored variable building for better debugging visibility
+4. Documented data flow from TD-017 query through template rendering
+
+**Status**: ✅ RESOLVED - Full email notification functionality restored
+
+### Variable System Enhancement (October 1, 2025)
+
+**Discovery**: System provides **65 variables**, not 56 as documented (16% more capability)
+
+**Breakdown**:
+
+- 35 fields from `StepRepository.getCompleteStepForEmail()`
+- 21 computed/derived variables in `EnhancedEmailService`
+- 9 HTML helper variables (bonus discovery)
+
+**Complete Variable Categories**:
+
+1. Core Step Data (10 variables)
+2. Status & Change Context (5 variables)
+3. URL & Navigation (6 variables)
+4. Environment Context (5 variables)
+5. Team Context (8 variables)
+6. Predecessor/Successor (4 variables)
+7. Instructions (6 variables)
+8. Comments (5 variables)
+9. Hierarchy Context (6 variables)
+10. Operation Context (3 variables)
+11. Computed Metadata (4 variables)
+12. Helper HTML Methods (9 variables)
+
+**Most Commonly Used Variables** (Top 10):
+
+1. `step_code` - "BUS-031"
+2. `step_title` - "Deploy Application"
+3. `newStatus` - "IN_PROGRESS"
+4. `stepViewUrl` - Clickable link with mig parameter
+5. `team_name` - "Infrastructure Team"
+6. `environment_name` - "Production"
+7. `instructionsHtml` - Pre-formatted table
+8. `commentsHtml` - Pre-formatted section
+9. `migration_name` - "Toronto Migration"
+10. `iteration_name` - "Cutover Iteration 1"
+
+### Data Flow (Complete Picture)
+
+```
+StepRepository.getCompleteStepForEmail(stepInstanceId)
+    ↓
+    SQL Query (lines 4035-4119) - Single optimized query
+    ├─ Core step data (steps_instance_sti, steps_master_stm)
+    ├─ Environment (environment_roles_enr, environments_env)
+    ├─ Team (teams_tms)
+    ├─ Predecessor/Successor (steps_master_stm self-joins)
+    ├─ Hierarchy (phases, sequences, plans, iterations, migrations)
+    ├─ Instructions (instructions_instance_ini - JSON aggregated)
+    ├─ Comments (comments_cmt - JSON aggregated, LIMIT 3)
+    └─ Impacted Teams (steps_master_stm_x_teams_tms_impacted)
+    ↓
+    Return Map with 35 fields
+    ↓
+EnhancedEmailService.sendStepStatusChangedNotificationWithUrl()
+    ↓
+    Parse JSON arrays (instructions, comments)
+    ↓
+    Build enrichedData map (lines 145-168)
+    ↓
+    CRITICAL: Correct merge order (line 183)
+    stepInstance = (stepInstance as Map) + enrichedData
+    ↓
+    Compute variables (lines 257-350)
+    ├─ URL construction (UrlConstructionService)
+    ├─ Status colors and badges
+    ├─ Helper HTML (buildInstructionsHtml, buildCommentsHtml, etc.)
+    ├─ Operation context (sourceView, isDirectChange, etc.)
+    └─ Formatted strings (breadcrumb, changeContext, etc.)
+    ↓
+    65 total variables available to email template
+    ↓
+Email Template (*.gsp or inline HTML)
+    └─ Access via {{variable_name}} syntax
+```
+
+### Lessons Learned from Bug Fix
+
+1. **Silent Failures Are Harder to Debug**: Map merge quietly discarded data without errors
+2. **Groovy Map Semantics**: Non-obvious precedence in `+` operator caught experienced developers
+3. **Comprehensive Logging Critical**: Added 35 lines of debug logging revealed data flow issues
+4. **Template Type Fixes Can Mask Underlying Problems**: Fixing template type was necessary but insufficient
+5. **Helper Methods Can Hide Upstream Issues**: Methods worked correctly but received bad input
+
+### Prevention Measures
+
+**Code Review Checklist**:
+
+- [ ] Verify Groovy map merge direction (enriched data should override base data)
+- [ ] Add debug logging before and after critical merge operations
+- [ ] Test email templates with actual database data, not mocks
+- [ ] Log array sizes before and after merge operations
+
+**Testing Standards**:
+
+- [ ] Visual email testing in MailHog for all notification types
+- [ ] Integration tests that verify enrichment data flows to templates
+- [ ] Regression tests for map merge operations
+
+### Cross-References
+
+**Related Technical Debt**:
+
+- **TD-015**: Email template helper methods (Phase 3 implementation)
+- **TD-017**: Database query optimization (JSON aggregation, LIMIT 3 comments)
+- **TD-018**: Email template security hardening
+- **TD-019**: Email notification performance optimization
+
+**Related ADRs**:
+
+- **ADR-031**: Type Safety Patterns (explicit casting throughout)
+- **ADR-067**: Email Service Security Architecture
+- **ADR-068**: Email Template Variable Injection Controls
+- **ADR-069**: Email Notification Audit Logging
+- **ADR-070**: Email Service Rate Limiting
+
+### Final Status
+
+**Bug Fix**: ✅ RESOLVED (October 2, 2025)
+
+- Map merge corrected
+- Debug logging added
+- Data flow verified end-to-end
+
+**Variable Documentation**: ✅ COMPLETE (October 1, 2025)
+
+- All 65 variables catalogued
+- 12 categories mapped
+- Usage examples provided
+
+**Deployment Readiness**: ✅ READY
+
+- Manual testing procedures documented
+- Verification steps defined
+- Audit trail confirmed operational

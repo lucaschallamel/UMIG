@@ -52,6 +52,20 @@ class EnhancedEmailService {
     // Default from address for UMIG notifications
     private static final String DEFAULT_FROM_ADDRESS = 'umig-system@company.com'
 
+    // Confluence MailServerManager for SMTP configuration (US-098 Phase 5)
+    private static ConfluenceMailServerManager mailServerManager
+
+    // Static initialization block for MailServerManager
+    static {
+        try {
+            mailServerManager = ComponentLocator.getComponent(ConfluenceMailServerManager.class) as ConfluenceMailServerManager
+            println "✅ EnhancedEmailService: MailServerManager initialized successfully"
+        } catch (Exception e) {
+            println "⚠️ EnhancedEmailService: Failed to initialize MailServerManager: ${e.message}"
+            println "   Emails will fail until Confluence SMTP is configured"
+        }
+    }
+
     // Template caching for performance optimization (copied from EmailService)
     private static final Map<String, groovy.text.Template> TEMPLATE_CACHE = new ConcurrentHashMap<>()
     private static final GStringTemplateEngine TEMPLATE_ENGINE = new GStringTemplateEngine()
@@ -832,98 +846,173 @@ class EnhancedEmailService {
     }
 
     /**
-     * Send email via MailHog for development environment
+     * Send email via Confluence MailServerManager API (US-098 Phase 5)
+     *
+     * Replaces hardcoded MailHog configuration with dynamic SMTP retrieval from Confluence.
+     * Applies ConfigurationService overrides for auth, TLS, and timeouts.
+     *
+     * @param recipients List of email addresses
+     * @param subject Email subject line
+     * @param body Email body (HTML content)
+     * @return true if all emails sent successfully, false otherwise
      */
     private static boolean sendEmailViaMailHog(List<String> recipients, String subject, String body) {
         try {
-            println "🚨 [CRITICAL DEBUG] EnhancedEmailService.sendEmailViaMailHog() - ENTRY POINT"
-            println "🚨 [CRITICAL DEBUG] MailHog sending starting (development mode)"
-            println "🚨 [CRITICAL DEBUG] Recipients to process: ${recipients}"
-            println "🚨 [CRITICAL DEBUG] Recipients count: ${recipients?.size()}"
-            println "🚨 [CRITICAL DEBUG] Subject: ${subject}"
-            println "🚨 [CRITICAL DEBUG] Body preview: ${body?.take(200)}..."
+            println "📧 [EnhancedEmailService] Sending email via MailServerManager"
+            println "📧 Recipients: ${recipients.size()}"
+            println "📧 Subject: ${subject}"
 
-            // MailHog SMTP configuration
-            Properties props = new Properties()
-            props.put("mail.smtp.host", "umig_mailhog")
-            props.put("mail.smtp.port", "1025")
-            props.put("mail.smtp.auth", "false")
-            props.put("mail.smtp.starttls.enable", "false")
-            props.put("mail.smtp.connectiontimeout", "5000")
-            props.put("mail.smtp.timeout", "5000")
+            // Validate SMTP configuration
+            SMTPMailServer mailServer = validateSMTPConfiguration()
 
-            println "🚨 [CRITICAL DEBUG] SMTP properties configured for umig_mailhog:1025"
-            println "🚨 [CRITICAL DEBUG] SMTP host: umig_mailhog"
-            println "🚨 [CRITICAL DEBUG] SMTP port: 1025"
-            println "🚨 [CRITICAL DEBUG] SMTP auth: false"
-
-            // Create session
-            println "🚨 [CRITICAL DEBUG] About to create JavaMail session..."
-            Session session = Session.getInstance(props)
-            println "🚨 [CRITICAL DEBUG] ✅ JavaMail session created successfully"
-            println "🚨 [CRITICAL DEBUG] Session properties: ${session.getProperties()}"
+            // Build JavaMail session with ConfigurationService overrides
+            Session session = buildEmailSession(mailServer)
 
             // Send to each recipient
             boolean allSent = true
-            println "🚨 [CRITICAL DEBUG] Starting to process ${recipients.size()} recipients"
             recipients.each { recipient ->
                 try {
-                    println "🚨 [CRITICAL DEBUG] === Processing recipient: ${recipient} ==="
-                    println "🚨 [CRITICAL DEBUG] Creating MimeMessage..."
+                    println "📧 Processing recipient: ${recipient}"
+
                     MimeMessage message = new MimeMessage(session)
-                    println "🚨 [CRITICAL DEBUG] ✅ MimeMessage created"
-
-                    println "🚨 [CRITICAL DEBUG] Setting FROM address: ${DEFAULT_FROM_ADDRESS}"
-                    message.setFrom(new InternetAddress(DEFAULT_FROM_ADDRESS))
-                    println "🚨 [CRITICAL DEBUG] ✅ FROM address set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting TO address: ${recipient}"
+                    message.setFrom(new InternetAddress(mailServer.getDefaultFrom() ?: DEFAULT_FROM_ADDRESS))
                     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
-                    println "🚨 [CRITICAL DEBUG] ✅ TO address set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting subject: ${subject}"
                     message.setSubject(subject, "UTF-8")
-                    println "🚨 [CRITICAL DEBUG] ✅ Subject set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting content (${body?.length()} chars)"
                     message.setContent(body, "text/html; charset=utf-8")
-                    println "🚨 [CRITICAL DEBUG] ✅ Content set"
-
-                    println "🚨 [CRITICAL DEBUG] Setting sent date"
                     message.setSentDate(new Date())
-                    println "🚨 [CRITICAL DEBUG] ✅ Sent date set"
-
-                    println "🚨 [CRITICAL DEBUG] === ABOUT TO SEND MESSAGE VIA Transport.send() ==="
-                    println "🚨 [CRITICAL DEBUG] Message details:"
-                    println "🚨 [CRITICAL DEBUG]   - From: ${message.getFrom()}"
-                    println "🚨 [CRITICAL DEBUG]   - To: ${message.getAllRecipients()}"
-                    println "🚨 [CRITICAL DEBUG]   - Subject: ${message.getSubject()}"
 
                     Transport.send(message)
-                    println "🚨 [CRITICAL DEBUG] ✅✅✅ Transport.send() COMPLETED SUCCESSFULLY for ${recipient}"
+                    println "✅ Email sent successfully to ${recipient}"
+
                 } catch (Exception e) {
-                    println "🚨 [CRITICAL DEBUG] ❌❌❌ FAILED to send email to ${recipient}"
-                    println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
-                    println "🚨 [CRITICAL DEBUG] Exception message: ${e.message}"
-                    println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
-                    println "🚨 [CRITICAL DEBUG] Full stack trace:"
+                    println "❌ Failed to send email to ${recipient}: ${e.message}"
                     e.printStackTrace()
                     allSent = false
                 }
             }
 
-            println "🚨 [CRITICAL DEBUG] === EMAIL PROCESSING COMPLETED ==="
-            println "🚨 [CRITICAL DEBUG] All emails processed. Overall success: ${allSent}"
-            println "🚨 [CRITICAL DEBUG] Returning result: ${allSent}"
+            println "📧 Email processing completed. Success: ${allSent}"
             return allSent
 
         } catch (Exception e) {
-            println "🚨 [CRITICAL DEBUG] ❌❌❌ FATAL ERROR in sendEmailViaMailHog: ${e.message}"
-            println "🚨 [CRITICAL DEBUG] Exception type: ${e.getClass().name}"
-            println "🚨 [CRITICAL DEBUG] Exception cause: ${e.getCause()?.message ?: 'None'}"
-            println "🚨 [CRITICAL DEBUG] Full stack trace:"
+            println "❌ FATAL ERROR in sendEmailViaMailHog: ${e.message}"
             e.printStackTrace()
             return false
+        }
+    }
+
+    /**
+     * Validate Confluence SMTP configuration exists (US-098 Phase 5)
+     *
+     * @return SMTPMailServer instance from Confluence
+     * @throws IllegalStateException if no SMTP server configured
+     */
+    private static SMTPMailServer validateSMTPConfiguration() {
+        if (!mailServerManager) {
+            String errorMsg = "MailServerManager not initialized. Confluence integration failed."
+            println "❌ ${errorMsg}"
+            throw new IllegalStateException(errorMsg)
+        }
+
+        SMTPMailServer mailServer = mailServerManager.getDefaultSMTPMailServer()
+
+        if (!mailServer) {
+            String errorMsg = "No SMTP server configured in Confluence. " +
+                            "Please configure in Confluence Admin → Mail Servers"
+            println "❌ ${errorMsg}"
+            throw new IllegalStateException(errorMsg)
+        }
+
+        println "✅ Using SMTP server: ${mailServer.getHostname()}:${mailServer.getPort()}"
+        return mailServer
+    }
+
+    /**
+     * Build JavaMail session with Confluence settings and ConfigurationService overrides (US-098 Phase 5)
+     *
+     * @param mailServer Confluence SMTP mail server
+     * @return Configured JavaMail session
+     */
+    private static Session buildEmailSession(SMTPMailServer mailServer) {
+        Properties props = new Properties()
+
+        // Base configuration from Confluence MailServerManager
+        props.put("mail.smtp.host", mailServer.getHostname())
+        props.put("mail.smtp.port", String.valueOf(mailServer.getPort()))
+
+        println "📧 Base SMTP config: ${mailServer.getHostname()}:${mailServer.getPort()}"
+
+        // Apply ConfigurationService overrides
+        applyConfigurationOverrides(props)
+
+        // Create authenticator if SMTP server requires authentication
+        Authenticator auth = null
+        if (mailServer.getUsername()) {
+            println "🔐 Creating authenticator for user: ${mailServer.getUsername()}"
+            auth = new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                        mailServer.getUsername(),
+                        mailServer.getPassword()
+                    )
+                }
+            }
+        } else {
+            println "🔓 No authentication required (username not configured)"
+        }
+
+        // Create session with or without authentication
+        return auth ? Session.getInstance(props, auth) : Session.getInstance(props)
+    }
+
+    /**
+     * Apply ConfigurationService overrides to JavaMail properties (US-098 Phase 5)
+     *
+     * Retrieves application-level SMTP overrides from Migration 035 configurations:
+     * - email.smtp.auth.enabled (DEV: false, PROD: true)
+     * - email.smtp.starttls.enabled (DEV: false, PROD: true)
+     * - email.smtp.connection.timeout.ms (DEV: 5000, PROD: 15000)
+     * - email.smtp.timeout.ms (DEV: 5000, PROD: 30000)
+     *
+     * @param props JavaMail properties to modify
+     */
+    private static void applyConfigurationOverrides(Properties props) {
+        try {
+            // Lazy load ConfigurationService to avoid circular dependencies
+            def configService = new umig.service.ConfigurationService()
+
+            // Authentication override
+            Boolean authEnabled = configService.getBoolean("email.smtp.auth.enabled")
+            if (authEnabled != null) {
+                props.put("mail.smtp.auth", String.valueOf(authEnabled))
+                println "📧 Applied auth override: ${authEnabled}"
+            }
+
+            // STARTTLS override
+            Boolean tlsEnabled = configService.getBoolean("email.smtp.starttls.enabled")
+            if (tlsEnabled != null) {
+                props.put("mail.smtp.starttls.enable", String.valueOf(tlsEnabled))
+                println "📧 Applied TLS override: ${tlsEnabled}"
+            }
+
+            // Connection timeout
+            String connectionTimeout = configService.getString("email.smtp.connection.timeout.ms")
+            if (connectionTimeout) {
+                props.put("mail.smtp.connectiontimeout", connectionTimeout)
+                println "📧 Applied connection timeout: ${connectionTimeout}ms"
+            }
+
+            // Operation timeout
+            String operationTimeout = configService.getString("email.smtp.timeout.ms")
+            if (operationTimeout) {
+                props.put("mail.smtp.timeout", operationTimeout)
+                println "📧 Applied operation timeout: ${operationTimeout}ms"
+            }
+
+        } catch (Exception e) {
+            println "⚠️ Failed to apply ConfigurationService overrides: ${e.message}"
+            println "⚠️ Using Confluence defaults only"
+            // Continue with Confluence defaults - not fatal
         }
     }
 
@@ -1037,18 +1126,47 @@ class EnhancedEmailService {
         try {
             // Use GStringTemplateEngine for simple ${variable} substitution
             // Note: All <% %> scriptlets must be removed from templates
+            println "🔧 [processTemplate] Starting template processing (${templateText?.length() ?: 0} chars)"
+            println "🔧 [processTemplate] Variables provided: ${variables?.keySet()}"
+
             def engine = new groovy.text.GStringTemplateEngine()
+
+            println "🔧 [processTemplate] Creating template..."
             def template = engine.createTemplate(templateText)
-            def result = template.make(variables).toString()
+
+            println "🔧 [processTemplate] Applying variables (make binding)..."
+            // FIX: Convert complex objects to safe values for template engine
+            //  - Keep Maps and Lists as-is (template may iterate over them)
+            //  - Convert other objects to String to avoid GString evaluation issues
+            def safeVariables = variables.collectEntries { k, v ->
+                def safeValue
+                if (v == null) {
+                    safeValue = ''
+                } else if (v instanceof Map || v instanceof List) {
+                    safeValue = v  // Keep collections as-is for template iteration
+                } else if (v instanceof String) {
+                    safeValue = v  // Keep strings as-is
+                } else {
+                    safeValue = v.toString()  // Convert other objects to string
+                }
+                [k, safeValue]
+            }
+            println "🔧 [processTemplate] Safe variables created (${safeVariables.size()} entries)"
+
+            def result = template.make(safeVariables).toString()
 
             println "✅ Template processed successfully (${result.length()} characters)"
             return result
 
         } catch (Exception e) {
-            println "❌ Template processing error: ${e.message}"
+            println "❌ Template processing error: ${e.class.name}: ${e.message}"
             println "   Template variables available: ${variables?.keySet()}"
+            println "   Template length: ${templateText?.length() ?: 0}"
+            println "   First 200 chars of template: ${templateText?.take(200)}"
             e.printStackTrace()
-            return templateText  // Fallback only on error
+
+            // CRITICAL: Do NOT return raw template - throw exception to alert caller
+            throw new RuntimeException("Template processing failed: ${e.message}", e)
         }
     }
 
@@ -1430,21 +1548,56 @@ class EnhancedEmailService {
     }
     
     /**
+     * Check SMTP availability for health monitoring (US-098 Phase 5)
+     *
+     * @return true if SMTP configured and available, false otherwise
+     */
+    static boolean checkSMTPHealth() {
+        try {
+            if (!mailServerManager) {
+                println "⚠️ SMTP health check: MailServerManager not initialized"
+                return false
+            }
+
+            SMTPMailServer mailServer = mailServerManager.getDefaultSMTPMailServer()
+            boolean isHealthy = mailServer != null
+
+            if (isHealthy) {
+                println "✅ SMTP health check: OK (${mailServer.getHostname()}:${mailServer.getPort()})"
+            } else {
+                println "⚠️ SMTP health check: No SMTP server configured in Confluence"
+            }
+
+            return isHealthy
+
+        } catch (Exception e) {
+            println "⚠️ SMTP health check failed: ${e.message}"
+            return false
+        }
+    }
+
+    /**
      * Health check for monitoring URL construction capabilities
      */
     static Map healthCheck() {
         try {
             def urlServiceHealth = UrlConstructionService.healthCheck()
             def configHealth = urlServiceHealth.status == 'healthy'
-            
+            def smtpHealth = checkSMTPHealth()
+
             return [
                 service: 'EnhancedEmailService',
-                status: configHealth ? 'healthy' : 'degraded',
+                status: (configHealth && smtpHealth) ? 'healthy' : 'degraded',
                 urlConstruction: urlServiceHealth,
+                smtp: [
+                    configured: smtpHealth,
+                    mailServerManager: mailServerManager ? 'initialized' : 'not initialized'
+                ],
                 capabilities: [
                     dynamicUrls: configHealth,
                     emailTemplates: true,
-                    auditLogging: true
+                    auditLogging: true,
+                    smtpIntegration: smtpHealth
                 ],
                 timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             ]

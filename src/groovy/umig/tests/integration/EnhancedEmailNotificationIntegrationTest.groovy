@@ -373,12 +373,15 @@ class EnhancedEmailNotificationIntegrationTest extends Specification {
     private UUID insertTestSequence(Sql sql, UUID planId) {
         def sequenceId = UUID.randomUUID()
         def masterSequenceId = UUID.randomUUID()
-        
-        // Insert master sequence first
+
+        // Get the master plan ID from the plan instance
+        def masterPlanId = sql.firstRow("SELECT plm_id FROM plans_instance_pli WHERE pli_id = ?", [planId])?.plm_id
+
+        // Insert master sequence first with required plm_id and sqm_order
         sql.execute("""
-            INSERT INTO sequences_master_sqm (sqm_id, sqm_name, sqm_description, created_by)
-            VALUES (?, 'Test Sequence Master', 'Test sequence description', 'test')
-        """, [masterSequenceId])
+            INSERT INTO sequences_master_sqm (sqm_id, plm_id, sqm_order, sqm_name, sqm_description, created_by)
+            VALUES (?, ?, 1, 'Test Sequence Master', 'Test sequence description', 'test')
+        """, [masterSequenceId, masterPlanId])
         
         // Insert sequence instance
         sql.execute("""

@@ -27,11 +27,11 @@ VALUES
 ON CONFLICT (env_id) DO NOTHING;
 
 -- ============================================================================
--- BATCH 1 REVISED: NON-CREDENTIAL CONFIGURATIONS (27 configs)
+-- BATCH 1 REVISED: NON-CREDENTIAL CONFIGURATIONS (30 configs)
 -- ============================================================================
 -- Architecture: Confluence MailServerManager API manages SMTP infrastructure (host/port)
 -- Excluded: Database credentials (ScriptRunner), SMTP infrastructure (Confluence)
--- Included: Application behavior configs, API URLs, timeouts, batch sizes, feature flags, stepview macro location
+-- Included: Application behavior configs, API URLs, timeouts, batch sizes, feature flags, web filesystem paths, stepview macro location
 
 -- ============================================================================
 -- CATEGORY 1: SMTP APPLICATION BEHAVIOR (4 configs)
@@ -470,7 +470,110 @@ INSERT INTO system_configuration_scf (
 );
 
 -- ============================================================================
--- CATEGORY 6: STEPVIEW MACRO LOCATION (6 configs - DEV from migration 022)
+-- CATEGORY 6: WEB RESOURCES INFRASTRUCTURE (6 configs)
+-- ============================================================================
+-- NOTE: Two-tier web path configuration (US-098 Phase 5E):
+-- 1. umig.web.root: URL path for macro/client access (all environments)
+-- 2. umig.web.filesystem.root: Filesystem path for WebApi file serving (all environments)
+-- DEV uses .env file (Tier 3 fallback), UAT/PROD use database (Tier 1)
+
+-- 6.1 UMIG Web Root Path
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: ScriptRunner custom endpoint (US-098 Phase 5E: Changed to URL path for macro consistency)
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'DEV' LIMIT 1),
+    'umig.web.root',
+    'infrastructure',
+    '/rest/scriptrunner/latest/custom/web',
+    'Root path for UMIG web resources - DEV uses URL path for macro consistency',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- UAT: ScriptRunner custom endpoint
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'UAT' LIMIT 1),
+    'umig.web.root',
+    'infrastructure',
+    '/rest/scriptrunner/latest/custom/web',
+    'Root path for UMIG web resources - UAT uses ScriptRunner endpoint',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: ScriptRunner custom endpoint
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'PROD' LIMIT 1),
+    'umig.web.root',
+    'infrastructure',
+    '/rest/scriptrunner/latest/custom/web',
+    'Root path for UMIG web resources - PROD uses ScriptRunner endpoint',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- 6.2 UMIG Web Filesystem Root Path (US-098 Phase 5E)
+-- NOTE: Separation of filesystem path from URL path for WebApi file serving
+-- URL path (umig.web.root) is for macro and client access
+-- Filesystem path (umig.web.filesystem.root) is for WebApi to locate actual files
+INSERT INTO system_configuration_scf (
+    env_id, scf_key, scf_category, scf_value, scf_description,
+    scf_is_active, scf_is_system_managed, scf_data_type,
+    created_by, updated_by
+) VALUES
+-- DEV: Local container filesystem path
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'DEV' LIMIT 1),
+    'umig.web.filesystem.root',
+    'infrastructure',
+    '/var/atlassian/application-data/confluence/scripts/umig/web',
+    'File system path for WebApi to serve static files - DEV container path',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- UAT: Production UAT filesystem path
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'UAT' LIMIT 1),
+    'umig.web.filesystem.root',
+    'infrastructure',
+    '/appli/confluence/application-data/scripts/umig/web',
+    'File system path for WebApi to serve static files - UAT production path',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+),
+-- PROD: Production filesystem path
+(
+    (SELECT env_id FROM environments_env WHERE env_code = 'PROD' LIMIT 1),
+    'umig.web.filesystem.root',
+    'infrastructure',
+    '/appli/confluence/application-data/scripts/umig/web',
+    'File system path for WebApi to serve static files - PROD production path',
+    true,
+    true,
+    'STRING',
+    'US-098-migration',
+    'US-098-migration'
+);
+
+-- ============================================================================
+-- CATEGORY 7: STEPVIEW MACRO LOCATION (6 configs - DEV from migration 022)
 -- ============================================================================
 -- NOTE: These configurations define the Confluence page where the stepView macro
 -- is embedded for each environment. The macro provides a web-based interface for
@@ -587,7 +690,7 @@ INSERT INTO system_configuration_scf (
 -- ============================================================================
 
 -- Verification Query 1: Count by category
--- Expected: infrastructure=3, performance=12, general=6, MACRO_LOCATION=6, Total=27
+-- Expected: infrastructure=6, performance=12, general=6, MACRO_LOCATION=6, Total=30
 SELECT
     scf_category,
     COUNT(*) AS config_count,
@@ -598,7 +701,7 @@ GROUP BY scf_category
 ORDER BY scf_category;
 
 -- Verification Query 2: Count by environment
--- Expected: DEV=7, UAT=10, PROD=10, Total=27
+-- Expected: DEV=8, UAT=11, PROD=11, Total=30
 SELECT
     e.env_name,
     COUNT(*) AS config_count
@@ -619,7 +722,7 @@ WHERE created_by = 'US-098-migration'
   AND scf_category = 'security';
 
 -- Verification Query 4: Overall health check
--- Expected: total_configs=27, infrastructure_count=3, performance_count=12, general_count=6, macro_location_count=6
+-- Expected: total_configs=30, infrastructure_count=6, performance_count=12, general_count=6, macro_location_count=6
 SELECT
     COUNT(*) AS total_configs,
     SUM(CASE WHEN scf_category = 'infrastructure' THEN 1 ELSE 0 END) AS infrastructure_count,
@@ -627,8 +730,8 @@ SELECT
     SUM(CASE WHEN scf_category = 'general' THEN 1 ELSE 0 END) AS general_count,
     SUM(CASE WHEN scf_category = 'MACRO_LOCATION' THEN 1 ELSE 0 END) AS macro_location_count,
     CASE
-        WHEN COUNT(*) = 27
-         AND SUM(CASE WHEN scf_category = 'infrastructure' THEN 1 ELSE 0 END) = 3
+        WHEN COUNT(*) = 30
+         AND SUM(CASE WHEN scf_category = 'infrastructure' THEN 1 ELSE 0 END) = 6
          AND SUM(CASE WHEN scf_category = 'performance' THEN 1 ELSE 0 END) = 12
          AND SUM(CASE WHEN scf_category = 'general' THEN 1 ELSE 0 END) = 6
          AND SUM(CASE WHEN scf_category = 'MACRO_LOCATION' THEN 1 ELSE 0 END) = 6
@@ -639,7 +742,7 @@ FROM system_configuration_scf
 WHERE created_by = 'US-098-migration';
 
 -- Verification Query 5: List all migrated configs
--- Expected: 27 rows showing all configurations
+-- Expected: 30 rows showing all configurations
 SELECT
     e.env_name,
     scf.scf_key,

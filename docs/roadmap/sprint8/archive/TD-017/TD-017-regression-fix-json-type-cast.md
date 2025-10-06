@@ -1,4 +1,8 @@
-# TD-017 Regression Fix - PostgreSQL JSON Type Cast
+# 📋 ARCHIVED: TD-017 Regression Fix - PostgreSQL JSON Type Cast
+
+**ARCHIVE NOTICE**: This document has been consolidated into `TD-017-COMPLETE-EmailService-Optimization.md` as of 2025-10-06. Retained for historical reference only. See the complete document for full context and final implementation details.
+
+---
 
 **Status**: ✅ FIXED
 **Date**: October 2, 2025

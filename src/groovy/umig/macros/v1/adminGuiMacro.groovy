@@ -2,6 +2,7 @@ package umig.macros
 
 import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
 import com.atlassian.user.User
+import umig.service.ConfigurationService
 
 /**
  * Admin GUI Macro — UMIG Project
@@ -15,6 +16,12 @@ import com.atlassian.user.User
  * - Role-based access control (SUPERADMIN, ADMIN, PILOT)
  * - Full CRUD operations for core entities
  * - SPA-style interface with dynamic content loading
+ *
+ * US-098 Phase 5E: Migrated to ConfigurationService with 4-tier hierarchy:
+ * 1. Database (environment-specific) - UAT/PROD use '/rest/scriptrunner/latest/custom/web'
+ * 2. Database (global)
+ * 3. Environment variable - DEV uses .env file UMIG_WEB_ROOT
+ * 4. Default value - Fallback to '/rest/scriptrunner/latest/custom/web'
  */
 
 // Get the current Confluence user context
@@ -23,8 +30,8 @@ String confluenceUsername = currentUser?.getName() ?: ""
 String confluenceFullName = currentUser?.getFullName() ?: ""
 String confluenceEmail = currentUser?.getEmail() ?: ""
 
-// Base path for web resources (CSS/JS)
-def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
+// Base path for web resources (CSS/JS) - US-098 Phase 5E migration
+def webResourcesPath = ConfigurationService.getString('umig.web.root', '/rest/scriptrunner/latest/custom/web')
 
 // Version string for JavaScript files (update when deploying changes)
 // Using a stable version instead of System.currentTimeMillis() for better caching

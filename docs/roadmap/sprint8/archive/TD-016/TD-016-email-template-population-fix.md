@@ -1,5 +1,8 @@
 # TD-016: Email Template Population Fix
 
+> **📋 ARCHIVED**: This document has been consolidated into `/docs/roadmap/sprint8/TD-016-COMPLETE-Email-Notification-System.md` as of 2025-10-06.
+> Retained for historical reference only.
+
 **Date**: 2025-10-02
 **Status**: ✅ FIXED - Root Cause Identified and Resolved
 **Severity**: CRITICAL - Core email notification feature broken

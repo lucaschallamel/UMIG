@@ -1,4 +1,8 @@
-# TD-017 Regression Fix - Verification Report
+# 📋 ARCHIVED: TD-017 Regression Fix - Verification Report
+
+**ARCHIVE NOTICE**: This document has been consolidated into `TD-017-COMPLETE-EmailService-Optimization.md` as of 2025-10-06. Retained for historical reference only. See the complete document for full verification results and production readiness confirmation.
+
+---
 
 **Date**: 2025-10-02 14:58:41
 **Test Step**: 6002fedd-40a0-4168-992e-1144aad4ddc9 (VAL-22)

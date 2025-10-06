@@ -242,89 +242,171 @@ export class BuildOrchestrator {
   }
 
   /**
-   * Phase 2: Focused deployment packaging with structured organization
+   * Phase 2: Deployment folder structure creation with compressed source archive
+   * TD-020: Creates timestamped deployment folder with uncompressed assets and compressed source
    * @private
    */
   async executePhase2() {
     this.buildState.phase = 2;
 
     if (this.options.verbose) {
-      console.log(chalk.blue("📦 Phase 2: Focused Deployment Packaging"));
+      console.log(
+        chalk.blue("📦 Phase 2: Deployment Folder Creation (TD-020)"),
+      );
     }
 
     try {
+      // Generate ISO 8601 timestamp for consistent naming
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/:/g, "-")
+        .slice(0, 19); // Format: YYYY-MM-DDTHH-MM-SS
+
+      // Create build directories first
       console.log(chalk.blue("  📁 Creating build directories..."));
-      // Create build directories
       await this.createBuildDirectories();
       console.log(chalk.gray("    ✓ Build directories created successfully"));
 
-      console.log(chalk.blue("  📦 Packaging source code..."));
-      // Phase 2 now just creates the package structure without deployment metadata
-      // Metadata will be added in Phase 3 for better integration
-      const deploymentArtifacts = await this.sourcePackager.packageSource();
+      // Create timestamped deployment folder
+      const deploymentFolderName = `umig-deployment-${this.options.environment}-${timestamp}`;
+      const outputDir = path.resolve(
+        __dirname,
+        "../../../",
+        this.config.build.outputDirectory,
+      );
+      const deploymentFolderPath = path.join(outputDir, deploymentFolderName);
+
+      console.log(
+        chalk.blue(`  📁 Creating deployment folder: ${deploymentFolderName}`),
+      );
+      await fs.mkdir(deploymentFolderPath, { recursive: true });
+      console.log(chalk.gray("    ✓ Deployment folder created successfully"));
+
+      // Copy uncompressed database folder to deployment folder root
+      console.log(
+        chalk.blue("  🗄️  Copying database assets (uncompressed)..."),
+      );
+      const projectRoot = path.resolve(__dirname, "../../..");
+      const dbSourcePath = path.join(projectRoot, "local-dev-setup/liquibase");
+      const dbDestPath = path.join(deploymentFolderPath, "database");
+
+      await fs.mkdir(dbDestPath, { recursive: true });
+      await this.copyDirectory(dbSourcePath, dbDestPath);
+      console.log(chalk.gray("    ✓ Database assets copied successfully"));
+
+      // Copy uncompressed documentation folder to deployment folder root
+      console.log(chalk.blue("  📄 Copying documentation (uncompressed)..."));
+      const docsSourcePath = path.join(projectRoot, "docs");
+      const docsDestPath = path.join(deploymentFolderPath, "documentation");
+
+      await fs.mkdir(docsDestPath, { recursive: true });
+      await this.copyDirectory(docsSourcePath, docsDestPath);
+      console.log(chalk.gray("    ✓ Documentation copied successfully"));
+
+      // Create compressed source archive inside deployment folder
+      console.log(chalk.blue("  📦 Creating compressed source archive..."));
+      const sourceArchiveName = `umig-src-${this.options.environment}-${timestamp}.tar.gz`;
+      const sourceArchivePath = path.join(
+        deploymentFolderPath,
+        sourceArchiveName,
+      );
+
+      // Package UMIG source code (excluding tests) into tar.gz
+      await tar.create(
+        {
+          gzip: true,
+          file: sourceArchivePath,
+          cwd: path.join(projectRoot, "src/groovy"),
+          filter: (filePath) => {
+            // Exclude tests directory (maintains US-088 Phase 1 pattern)
+            return !filePath.includes("umig/tests");
+          },
+        },
+        ["umig/"],
+      );
+
+      const archiveStats = await fs.stat(sourceArchivePath);
+      const archiveSizeMB = (archiveStats.size / (1024 * 1024)).toFixed(2);
       console.log(
         chalk.gray(
-          `    ✓ Source packaging completed: ${deploymentArtifacts.length} artifacts`,
+          `    ✓ Source archive created: ${sourceArchiveName} (${archiveSizeMB} MB)`,
         ),
       );
-      this.buildState.artifactPaths.push(...deploymentArtifacts);
 
-      // Package additional database artifacts if legacy mode is enabled
-      if (this.shouldIncludeLegacyDatabasePackaging()) {
-        console.log(chalk.blue("  🗄️  Packaging legacy database artifacts..."));
-        const dbArtifacts = await this.sourcePackager.packageDatabase();
-        console.log(
-          chalk.gray(
-            `    ✓ Database packaging completed: ${dbArtifacts.length} artifacts`,
-          ),
-        );
-        this.buildState.artifactPaths.push(...dbArtifacts);
-      } else {
-        console.log(
-          chalk.gray(
-            "    ℹ️  Legacy database packaging skipped for this environment",
-          ),
-        );
-      }
+      // Track deployment folder as the primary artifact
+      this.buildState.artifactPaths.push(deploymentFolderPath);
+
+      // Store timestamp and deployment folder for Phase 3 metadata generation
+      this.buildState.timestamp = timestamp;
+      this.buildState.deploymentFolder = deploymentFolderPath;
 
       if (this.options.verbose) {
         console.log(
           chalk.green(
-            `✓ Phase 2 completed: ${deploymentArtifacts.length} deployment artifacts created`,
+            `✓ Phase 2 completed: Deployment folder created at ${deploymentFolderPath}`,
           ),
         );
       }
     } catch (error) {
-      console.error(
-        chalk.red(`❌ Phase 2 error at step: ${this.buildState.phase}`),
-      );
-      console.error(chalk.red(`Error details: ${error.message}`));
+      console.error(chalk.red(`❌ Phase 2 error: ${error.message}`));
       if (error.stack && this.options.verbose) {
         console.error(chalk.gray("Stack trace:"), error.stack);
       }
-      throw new Error(`Phase 2 deployment packaging failed: ${error.message}`);
+      throw new Error(
+        `Phase 2 deployment folder creation failed: ${error.message}`,
+      );
     }
   }
 
   /**
-   * Phase 3: Version management and metadata generation with deployment integration
+   * Helper method to recursively copy directories
+   * TD-020: Used for copying database/ and documentation/ folders uncompressed
+   * @private
+   */
+  async copyDirectory(source, destination) {
+    const entries = await fs.readdir(source, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const sourcePath = path.join(source, entry.name);
+      const destPath = path.join(destination, entry.name);
+
+      if (entry.isDirectory()) {
+        await fs.mkdir(destPath, { recursive: true });
+        await this.copyDirectory(sourcePath, destPath);
+      } else {
+        await fs.copyFile(sourcePath, destPath);
+      }
+    }
+  }
+
+  /**
+   * Phase 3: Version management and metadata generation at deployment folder root
+   * TD-020: Places BUILD manifests directly at deployment folder root (uncompressed)
    * @private
    */
   async executePhase3() {
     this.buildState.phase = 3;
 
     if (this.options.verbose) {
-      console.log(chalk.blue("📄 Phase 3: Version and Metadata Generation"));
+      console.log(chalk.blue("📄 Phase 3: Metadata Generation (TD-020)"));
     }
 
     try {
+      // Ensure we have deployment folder from Phase 2
+      if (!this.buildState.deploymentFolder || !this.buildState.timestamp) {
+        throw new Error("Deployment folder not created in Phase 2");
+      }
+
+      console.log(chalk.blue("  📋 Generating version metadata..."));
       // Generate version information with proper initialization
       this.versionManager.initialize();
       const versionInfo = this.versionManager.generateVersionMetadata(
         this.options.environment,
       );
+      console.log(chalk.gray("    ✓ Version metadata generated"));
 
-      // Generate simplified deployment manifest
+      console.log(chalk.blue("  📋 Generating BUILD manifests..."));
+      // Generate deployment manifest
       const deploymentManifest =
         this.metadataGenerator.generateDeploymentManifest(
           this.buildState,
@@ -338,67 +420,29 @@ export class BuildOrchestrator {
         this.options.environment,
       );
 
-      // Add metadata directly to existing deployment archives (avoid re-packaging loop)
-      if (this.buildState.artifactPaths.length > 0) {
-        if (this.options.verbose) {
-          console.log(
-            chalk.blue(
-              "    📋 Integrating deployment metadata into existing package...",
-            ),
-          );
-        }
+      // TD-020: Export manifests directly to deployment folder root
+      const timestamp = this.buildState.timestamp;
+      const deploymentFolder = this.buildState.deploymentFolder;
 
-        // Add metadata to each existing deployment artifact
-        const enhancedArtifacts = [];
-        for (const artifactPath of this.buildState.artifactPaths) {
-          // Only enhance tar.gz deployment packages, skip other artifacts
-          if (
-            artifactPath.includes("deployment") &&
-            artifactPath.endsWith(".tar.gz")
-          ) {
-            const enhancedPath = await this.addMetadataToExistingArchive(
-              artifactPath,
-              deploymentManifest,
-              deploymentReadme,
-            );
-            enhancedArtifacts.push(enhancedPath);
-          } else {
-            // Keep other artifacts unchanged (separate manifest files, etc.)
-            enhancedArtifacts.push(artifactPath);
-          }
-        }
-
-        // Update the artifact paths with enhanced versions
-        this.buildState.artifactPaths = enhancedArtifacts;
-      }
-
-      // Also export metadata separately for build system reference
-      const outputDir = path.resolve(
-        __dirname,
-        "../../../",
-        this.config.build.outputDirectory,
+      // Write BUILD-MANIFEST at deployment folder root
+      const manifestFilename = `BUILD-MANIFEST-${this.options.environment}-${timestamp}.json`;
+      const manifestPath = path.join(deploymentFolder, manifestFilename);
+      await fs.writeFile(
+        manifestPath,
+        JSON.stringify(deploymentManifest, null, 2),
+        "utf8",
       );
-      const separateManifestResult =
-        this.metadataGenerator.exportDeploymentManifest(
-          outputDir,
-          deploymentManifest,
-        );
-      const separateReadmeResult =
-        this.metadataGenerator.exportDeploymentReadme(
-          outputDir,
-          deploymentReadme,
-        );
+      console.log(chalk.gray(`    ✓ Created ${manifestFilename}`));
 
-      // Track these as additional artifacts (not for deployment but for reference)
-      this.buildState.artifactPaths.push(
-        separateManifestResult.path,
-        separateReadmeResult.path,
-      );
+      // Write DEPLOYMENT-README at deployment folder root
+      const readmePath = path.join(deploymentFolder, "DEPLOYMENT-README.md");
+      await fs.writeFile(readmePath, deploymentReadme, "utf8");
+      console.log(chalk.gray("    ✓ Created DEPLOYMENT-README.md"));
 
       if (this.options.verbose) {
         console.log(
           chalk.green(
-            "✓ Phase 3 completed: Deployment manifest and README integrated into package",
+            "✓ Phase 3 completed: BUILD manifests placed at deployment folder root",
           ),
         );
       }
