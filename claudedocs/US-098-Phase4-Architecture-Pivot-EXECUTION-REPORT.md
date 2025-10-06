@@ -15,8 +15,9 @@
 **Problem Identified**: Original Batch 1 approach (storing environment variable NAMES) was fundamentally incompatible with UAT/PROD deployment model where ScriptRunner provides database access via pre-configured resource pool with NO environment variables.
 
 **User Decision**:
+
 1. ❌ **EXCLUDE** database credentials from ConfigurationService entirely
-2. ⏭️  **DEFER** encryption implementation to Sprint 9+ (30-40 hour complexity)
+2. ⏭️ **DEFER** encryption implementation to Sprint 9+ (30-40 hour complexity)
 3. ✅ **ACCEPT** plain text credential storage risk with comprehensive mitigations
 4. ✅ **REVISE** Batch 1 to include only non-credential configurations
 5. ✅ **CREATE** Batch 2 for SMTP credentials with risk documentation
@@ -29,13 +30,13 @@
 
 ### 🎯 **5 Core Deliverables Created**
 
-| # | Deliverable | File Path | Status | Purpose |
-|---|-------------|-----------|--------|---------|
-| **1** | Rollback Verification Report | (Inline - See below) | ✅ COMPLETE | Confirmed no incorrect data to clean up |
-| **2** | Revised Batch 1 Migration | `local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql` | ✅ COMPLETE | Non-credential configs (18 total) |
-| **3** | Batch 2 Credential Migration | `local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql` | ✅ COMPLETE | SMTP credentials plain text (4 total) |
-| **4** | Security Risk Assessment | `claudedocs/US-098-Phase4-Security-Risk-Assessment.md` | ✅ COMPLETE | Comprehensive risk documentation |
-| **5** | Revised Migration Execution Plan | `claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan-REVISED.md` | ✅ COMPLETE | Updated execution roadmap |
+| #     | Deliverable                      | File Path                                                                                | Status      | Purpose                                 |
+| ----- | -------------------------------- | ---------------------------------------------------------------------------------------- | ----------- | --------------------------------------- |
+| **1** | Rollback Verification Report     | (Inline - See below)                                                                     | ✅ COMPLETE | Confirmed no incorrect data to clean up |
+| **2** | Revised Batch 1 Migration        | `local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql`               | ✅ COMPLETE | Non-credential configs (18 total)       |
+| **3** | Batch 2 Credential Migration     | `local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql` | ✅ COMPLETE | SMTP credentials plain text (4 total)   |
+| **4** | Security Risk Assessment         | `claudedocs/US-098-Phase4-Security-Risk-Assessment.md`                                   | ✅ COMPLETE | Comprehensive risk documentation        |
+| **5** | Revised Migration Execution Plan | `claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan-REVISED.md`                     | ✅ COMPLETE | Updated execution roadmap               |
 
 ---
 
@@ -44,6 +45,7 @@
 ### Database State Verification
 
 **Query Executed**:
+
 ```sql
 SELECT scf_id, scf_key, scf_category, scf_value
 FROM system_configuration_scf
@@ -54,6 +56,7 @@ ORDER BY scf_key;
 **Result**: `0 rows` (empty result set)
 
 **Latest Migration Confirmed**:
+
 ```
 Changeset ID: 034_td015_simplify_email_templates
 Date Executed: 2025-10-02 14:04:48
@@ -65,6 +68,7 @@ Status: Successfully applied
 ✅ **NO ROLLBACK NEEDED** - Batch 1 migration was NEVER applied
 
 **Clean State Confirmed**:
+
 - No rows with `created_by = 'US-098-migration'`
 - System configuration table clean and ready
 - No incorrect data to remove
@@ -84,11 +88,11 @@ Status: Successfully applied
 
 ### Configuration Breakdown
 
-| Category | Count | Config Keys |
-|----------|-------|-------------|
-| **Infrastructure** | 6 | email.smtp.host (2), email.smtp.port (2), confluence.base.url (2) |
-| **Performance** | 8 | email.smtp.connection.timeout.ms (2), email.smtp.timeout.ms (2), import.batch.max.size (2), api.pagination.default.size (2) |
-| **General** | 4 | email.smtp.auth.enabled (2), email.smtp.starttls.enabled (2), import.email.notifications.enabled (2), import.monitoring.performance.enabled (2) |
+| Category           | Count | Config Keys                                                                                                                                     |
+| ------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Infrastructure** | 6     | email.smtp.host (2), email.smtp.port (2), confluence.base.url (2)                                                                               |
+| **Performance**    | 8     | email.smtp.connection.timeout.ms (2), email.smtp.timeout.ms (2), import.batch.max.size (2), api.pagination.default.size (2)                     |
+| **General**        | 4     | email.smtp.auth.enabled (2), email.smtp.starttls.enabled (2), import.email.notifications.enabled (2), import.monitoring.performance.enabled (2) |
 
 ### Key Features
 
@@ -123,19 +127,19 @@ Status: Successfully applied
 **Size**: ~18 KB
 **Changeset ID**: `036_us098_phase4_batch2_credentials_plaintext`
 **Configurations**: 4 total (2 DEV + 2 PROD)
-**Security Classification**: ⚠️  ALL configs are category = 'security'
+**Security Classification**: ⚠️ ALL configs are category = 'security'
 
 ### Configuration Breakdown
 
-| Credential Type | Config Key | DEV Value | PROD Value | Sensitivity |
-|-----------------|------------|-----------|------------|-------------|
-| **SMTP Password** | email.smtp.password | `not-required-mailhog` | `REPLACE_WITH_REAL_SMTP_PASSWORD` | CRITICAL |
-| **SMTP Username** | email.smtp.username | `not-required-mailhog` | `smtp-user@example.com` | HIGH |
+| Credential Type   | Config Key          | DEV Value              | PROD Value                        | Sensitivity |
+| ----------------- | ------------------- | ---------------------- | --------------------------------- | ----------- |
+| **SMTP Password** | email.smtp.password | `not-required-mailhog` | `REPLACE_WITH_REAL_SMTP_PASSWORD` | CRITICAL    |
+| **SMTP Username** | email.smtp.username | `not-required-mailhog` | `smtp-user@example.com`           | HIGH        |
 
 ### Key Features
 
-⚠️  **PLAIN TEXT STORAGE** - Credentials stored unencrypted in `scf_value` column
-⚠️  **PLACEHOLDER VALUES** - PROD configs have obvious placeholders requiring replacement
+⚠️ **PLAIN TEXT STORAGE** - Credentials stored unencrypted in `scf_value` column
+⚠️ **PLACEHOLDER VALUES** - PROD configs have obvious placeholders requiring replacement
 ✅ **Audit Log Sanitization** - Passwords show as `***REDACTED***` in logs
 ✅ **Security Category** - All configs marked 'security' for future encryption upgrade
 ✅ **Pre-Deployment Checklist** - Mandatory steps before production deployment
@@ -193,14 +197,14 @@ Status: Successfully applied
 
 ### Risk Matrix Summary
 
-| Risk ID | Description | Likelihood | Impact | Severity | Mitigation |
-|---------|-------------|------------|--------|----------|------------|
-| **R-001** | DB user access to credentials | HIGH | HIGH | CRITICAL | Partial (RLS) |
-| **R-002** | Credentials in backups | HIGH | HIGH | CRITICAL | None |
-| **R-003** | Credentials in audit logs | MEDIUM | HIGH | HIGH | Implemented |
-| **R-004** | Database compromise | MEDIUM | CRITICAL | CRITICAL | Partial |
-| **R-005** | Credentials in migration files | LOW | MEDIUM | MEDIUM | Mitigated |
-| **R-006** | Credentials in git history | LOW | CRITICAL | HIGH | Prevention |
+| Risk ID   | Description                    | Likelihood | Impact   | Severity | Mitigation    |
+| --------- | ------------------------------ | ---------- | -------- | -------- | ------------- |
+| **R-001** | DB user access to credentials  | HIGH       | HIGH     | CRITICAL | Partial (RLS) |
+| **R-002** | Credentials in backups         | HIGH       | HIGH     | CRITICAL | None          |
+| **R-003** | Credentials in audit logs      | MEDIUM     | HIGH     | HIGH     | Implemented   |
+| **R-004** | Database compromise            | MEDIUM     | CRITICAL | CRITICAL | Partial       |
+| **R-005** | Credentials in migration files | LOW        | MEDIUM   | MEDIUM   | Mitigated     |
+| **R-006** | Credentials in git history     | LOW        | CRITICAL | HIGH     | Prevention    |
 
 ### Key Acceptance Conditions
 
@@ -225,6 +229,7 @@ Status: Successfully applied
 ### Future Enhancement Roadmap
 
 **Sprint 9 (Estimated 38-47 hours)**:
+
 1. **Phase 1**: Foundation (12-15 hours) - pgcrypto extension, encrypted columns, key management
 2. **Phase 2**: Migration (8-10 hours) - Plain text → encrypted storage
 3. **Phase 3**: Validation (10-12 hours) - Testing, key rotation, disaster recovery
@@ -254,15 +259,15 @@ Status: Successfully applied
 
 ### Key Changes from Original Plan
 
-| Aspect | Original | Revised | Reason |
-|--------|----------|---------|--------|
-| Database Credentials | Store env var NAMES | ❌ EXCLUDED | UAT/PROD compatibility |
-| Encryption | Implement now | ⏭️  Deferred to Sprint 9+ | Timeline (30-40 hours) |
-| Credential Storage | Encrypted from start | ✅ Plain text accepted | Risk acceptance |
-| Batch 1 Scope | 12 database configs | ✅ 18 non-credential configs | Revised scope |
-| Batch 2 Scope | Not defined | ✅ 4 SMTP credential configs | New batch |
-| Total Configs | 156 identified | ✅ 22 in Phase 4 | Phased approach |
-| Timeline | 2-3 hours Batch 1 | ✅ 1-1.5 hours both | Faster without encryption |
+| Aspect               | Original             | Revised                      | Reason                    |
+| -------------------- | -------------------- | ---------------------------- | ------------------------- |
+| Database Credentials | Store env var NAMES  | ❌ EXCLUDED                  | UAT/PROD compatibility    |
+| Encryption           | Implement now        | ⏭️ Deferred to Sprint 9+     | Timeline (30-40 hours)    |
+| Credential Storage   | Encrypted from start | ✅ Plain text accepted       | Risk acceptance           |
+| Batch 1 Scope        | 12 database configs  | ✅ 18 non-credential configs | Revised scope             |
+| Batch 2 Scope        | Not defined          | ✅ 4 SMTP credential configs | New batch                 |
+| Total Configs        | 156 identified       | ✅ 22 in Phase 4             | Phased approach           |
+| Timeline             | 2-3 hours Batch 1    | ✅ 1-1.5 hours both          | Faster without encryption |
 
 ### Master Verification Query Included
 
@@ -285,11 +290,11 @@ Status: Successfully applied
 
 ### Total Configurations in Phase 4
 
-| Batch | Config Count | Unique Keys | Environments | Categories | Credentials? |
-|-------|--------------|-------------|--------------|------------|--------------|
-| **Batch 1** | 18 | 9 | DEV (9), PROD (9) | infrastructure (6), performance (8), general (4) | ❌ NO |
-| **Batch 2** | 4 | 2 | DEV (2), PROD (2) | security (4) | ✅ YES (plain text) |
-| **Total** | 22 | 11 | DEV (11), PROD (11) | 4 categories | 4 credentials |
+| Batch       | Config Count | Unique Keys | Environments        | Categories                                       | Credentials?        |
+| ----------- | ------------ | ----------- | ------------------- | ------------------------------------------------ | ------------------- |
+| **Batch 1** | 18           | 9           | DEV (9), PROD (9)   | infrastructure (6), performance (8), general (4) | ❌ NO               |
+| **Batch 2** | 4            | 2           | DEV (2), PROD (2)   | security (4)                                     | ✅ YES (plain text) |
+| **Total**   | 22           | 11          | DEV (11), PROD (11) | 4 categories                                     | 4 credentials       |
 
 ### Remaining Configurations (Future Phases)
 
@@ -298,6 +303,7 @@ Status: Successfully applied
 **Remaining**: 134 configurations (86%)
 
 **Future Batches** (Estimated):
+
 - Batch 3: Performance configurations (~35 configs) - Sprint 9
 - Batch 4: Feature flags (~36 configs) - Sprint 9
 - Batch 5: Test environment configurations (~58 configs) - Sprint 10
@@ -496,13 +502,13 @@ Status: Successfully applied
 
 ### Complete File Manifest
 
-| # | File Path | Size | Purpose | Status |
-|---|-----------|------|---------|--------|
-| 1 | `/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql` | ~16 KB | Batch 1 non-credential migration | ✅ READY |
-| 2 | `/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql` | ~18 KB | Batch 2 credential migration | ✅ READY |
-| 3 | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Security-Risk-Assessment.md` | ~25 KB | Comprehensive risk documentation | ✅ APPROVED |
-| 4 | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan-REVISED.md` | ~20 KB | Revised execution plan | ✅ APPROVED |
-| 5 | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Architecture-Pivot-EXECUTION-REPORT.md` | ~18 KB | This status report | ✅ COMPLETE |
+| #   | File Path                                                                                                                            | Size   | Purpose                          | Status      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | -------------------------------- | ----------- |
+| 1   | `/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql`               | ~16 KB | Batch 1 non-credential migration | ✅ READY    |
+| 2   | `/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql` | ~18 KB | Batch 2 credential migration     | ✅ READY    |
+| 3   | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Security-Risk-Assessment.md`                                   | ~25 KB | Comprehensive risk documentation | ✅ APPROVED |
+| 4   | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan-REVISED.md`                     | ~20 KB | Revised execution plan           | ✅ APPROVED |
+| 5   | `/Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Architecture-Pivot-EXECUTION-REPORT.md`                        | ~18 KB | This status report               | ✅ COMPLETE |
 
 **Total Documentation**: ~97 KB across 5 files
 **Total Configurations**: 22 (18 Batch 1 + 4 Batch 2)
@@ -555,6 +561,7 @@ Status: Successfully applied
 **Status**: ✅ **ARCHITECTURE PIVOT COMPLETE - ALL DELIVERABLES READY**
 
 **Key Achievements**:
+
 1. ✅ Identified and corrected fundamental architecture flaw (database credential approach)
 2. ✅ Created revised Batch 1 migration (18 non-credential configs)
 3. ✅ Created Batch 2 credential migration (4 SMTP configs with plain text acceptance)
@@ -564,16 +571,18 @@ Status: Successfully applied
 7. ✅ Established clear path forward (Sprint 9 encryption implementation)
 
 **Risk Profile**:
+
 - **Current Risk**: MEDIUM (plain text storage with mitigations)
 - **Accepted By**: Lucas Challamel (Project Owner)
 - **Mitigation**: Comprehensive audit logging, access control, monitoring
 - **Future Risk**: LOW (after Sprint 9 encryption implementation)
 
 **Timeline**:
+
 - **Phase 4 Pivot**: ✅ Complete (~2 hours)
 - **Phase 4 Execution**: ⏳ Pending user approval (~1-1.5 hours)
 - **Phase 4 Code Migration**: ⏳ Future (~4-6 hours)
-- **Phase 5 Encryption**: ⏭️  Sprint 9+ (~38-47 hours)
+- **Phase 5 Encryption**: ⏭️ Sprint 9+ (~38-47 hours)
 
 **Next Action**: **USER APPROVAL REQUIRED** to proceed with migration execution
 
@@ -594,12 +603,14 @@ Status: Successfully applied
 ## Quick Reference: File Paths
 
 ### Migration Files (Execute These)
+
 ```
 /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql
 /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql
 ```
 
 ### Documentation Files (Review These)
+
 ```
 /Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Security-Risk-Assessment.md
 /Users/lucaschallamel/Documents/GitHub/UMIG/claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan-REVISED.md
@@ -607,6 +618,7 @@ Status: Successfully applied
 ```
 
 ### Execution Commands (Copy These)
+
 ```bash
 # From project root
 cd local-dev-setup

@@ -16,6 +16,7 @@ environment/
 ## Validation Categories
 
 ### Environment Configurations
+
 - **Production cutover** - Verify production environment setup
 - **Environment associations** - Validate entity relationships
 - **Label associations** - Confirm labeling accuracy
@@ -38,12 +39,14 @@ groovy compareEnvironmentAssignments.groovy
 ## Validation Scenarios
 
 ### Pre-Deployment
+
 - Environment configuration correctness
 - Association integrity across migrations
 - Label completeness for production environments
 - Assignment consistency validation
 
 ### Troubleshooting
+
 - Environment-specific issue diagnosis
 - Relationship integrity verification
 - Configuration problem resolution
@@ -60,6 +63,7 @@ groovy compareEnvironmentAssignments.groovy
 ## Integration
 
 Used for:
+
 - Pre-deployment validation workflows
 - Production cutover preparation
 - Environment configuration audits

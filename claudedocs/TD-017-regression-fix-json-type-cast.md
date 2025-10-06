@@ -17,12 +17,14 @@ TD-017 Email Service Query Optimization introduced a regression where emails sho
 ### The Problem
 
 **Symptoms**:
+
 - Emails showing "No instructions defined" and "No comments yet"
 - Database queries executing successfully
 - Debug logs showing 0 instructions/comments despite data existing
 - Issue only present in TD-017 branch, not on main branch
 
 **Root Cause**:
+
 ```sql
 -- BROKEN (TD-017 original):
 (SELECT COALESCE(json_agg(i.*), '[]'::json) FROM instructions i) AS instructions_json
@@ -31,6 +33,7 @@ TD-017 Email Service Query Optimization introduced a regression where emails sho
 PostgreSQL `json_agg()` returns **JSON type** objects, not text strings.
 
 When JDBC transfers these to Groovy and code casts with `as String`:
+
 ```groovy
 def jsonString = queryResult.instructions_json as String
 ```
@@ -38,6 +41,7 @@ def jsonString = queryResult.instructions_json as String
 The JSON type object gets converted to an **invalid JSON string representation** instead of proper JSON text.
 
 This causes `parseJsonArray()` to fail silently:
+
 ```groovy
 def slurper = new JsonSlurper()
 def parsed = slurper.parseText(jsonString as String)  // Fails silently, returns []
@@ -46,11 +50,13 @@ def parsed = slurper.parseText(jsonString as String)  // Fails silently, returns
 ### Why TD-017 Exposed This
 
 **Main Branch (Working)**:
+
 - Used 2 separate queries returning `sql.rows()`
 - JDBC directly converted result rows to Groovy Maps
 - No JSON aggregation involved
 
 **TD-017 (Broken)**:
+
 - Optimized to 1 query with CTEs and `json_agg()`
 - JSON type objects require explicit `::text` conversion
 - JDBC doesn't automatically convert JSON type to valid JSON strings
@@ -77,6 +83,7 @@ SELECT
 ```
 
 **Changes**:
+
 1. Added `::text` cast after `json_agg()` to convert JSON type to text
 2. Changed COALESCE fallback from `'[]'::json` to `'[]'` (already text literal)
 
@@ -93,9 +100,11 @@ graph LR
 ```
 
 **Without `::text`**:
+
 - PostgreSQL → JSON type object → JDBC → Invalid string → Parse fails → Empty array
 
 **With `::text`**:
+
 - PostgreSQL → Valid JSON string → JDBC → Valid string → Parse succeeds → Populated array
 
 ---
@@ -103,6 +112,7 @@ graph LR
 ## Sequential Bug Fixes Applied
 
 ### Bug #1: Wrong Template Type (Line 238)
+
 ```groovy
 // BEFORE:
 def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
@@ -112,6 +122,7 @@ def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGE
 ```
 
 ### Bug #2: Map Merge Order (Line 183)
+
 ```groovy
 // BEFORE (enriched data overwritten):
 stepInstance = enrichedData + (stepInstance as Map)
@@ -121,6 +132,7 @@ stepInstance = (stepInstance as Map) + enrichedData
 ```
 
 ### Bug #3: Type Checking Errors (Lines 415-419)
+
 ```groovy
 // BEFORE:
 println "instructionsHtml length = ${variables.instructionsHtml?.length()}"
@@ -130,6 +142,7 @@ println "instructionsHtml length = ${(variables.instructionsHtml as String)?.len
 ```
 
 ### Bug #4: JSON Type Cast (Lines 133-134) - **CRITICAL**
+
 ```sql
 -- BEFORE:
 json_agg(i.*) AS instructions_json
@@ -145,18 +158,22 @@ json_agg(i.*)::text AS instructions_json
 ### Test Results
 
 **Test 1**: Direct SQL with `::text` cast
+
 - ✅ Returns valid JSON string
 - ✅ PostgreSQL properly converts JSON type to text
 
 **Test 2**: `parseJsonArray()` with valid JSON
+
 - ✅ Successfully parses JSON string to List<Map>
 - ✅ Handles nested objects and arrays correctly
 
 **Test 3**: JSON type without `::text` (broken scenario)
+
 - ⚠️ Demonstrates the original problem
 - ⚠️ Shows why `::text` cast is necessary
 
 **Test 4**: Full enrichment flow
+
 - ✅ Complete query execution verified
 - ✅ Instructions and comments properly parsed
 
@@ -175,15 +192,18 @@ json_agg(i.*)::text AS instructions_json
 ## Performance Impact
 
 **TD-017 Performance Benefits PRESERVED**:
+
 - Still 1 query instead of 2 (99.60% improvement maintained)
 - `::text` cast is zero-cost in PostgreSQL
 - No additional network round trips
 - No change to execution plan
 
 **Before TD-017**:
+
 - 2 queries: ~120ms average
 
 **After TD-017 with Fix**:
+
 - 1 query with `::text`: ~0.48ms average
 - 250× faster than original
 - Fix adds <0.01ms overhead
@@ -194,23 +214,26 @@ json_agg(i.*)::text AS instructions_json
 
 ### PostgreSQL Type System
 
-| Type | JDBC Transfer | Groovy Cast | Result |
-|------|---------------|-------------|--------|
-| `text` | ✅ String | ✅ String | ✅ Valid JSON |
-| `json` | ⚠️ PGobject | ⚠️ toString() | ❌ Invalid JSON |
-| `json::text` | ✅ String | ✅ String | ✅ Valid JSON |
+| Type         | JDBC Transfer | Groovy Cast   | Result          |
+| ------------ | ------------- | ------------- | --------------- |
+| `text`       | ✅ String     | ✅ String     | ✅ Valid JSON   |
+| `json`       | ⚠️ PGobject   | ⚠️ toString() | ❌ Invalid JSON |
+| `json::text` | ✅ String     | ✅ String     | ✅ Valid JSON   |
 
 ### ADR Compliance
 
 **ADR-031**: Explicit Type Casting
+
 - ✅ All parameters explicitly cast: `stepInstanceId as String`
 - ✅ Result types explicitly declared: `List<Map> instructions`
 
 **ADR-043**: Type Safety Standards
+
 - ✅ Static type checking satisfied with `as String` casts
 - ✅ All map operations properly typed
 
 **ADR-059**: Database Schema Authority
+
 - ✅ Fixed code to match PostgreSQL behavior
 - ✅ No schema changes required
 
@@ -219,6 +242,7 @@ json_agg(i.*)::text AS instructions_json
 ## Files Modified
 
 ### Primary Fix
+
 1. **`src/groovy/umig/utils/EnhancedEmailService.groovy`**
    - Lines 133-134: Added `::text` cast to `json_agg()`
    - Lines 139-140: Type safety with `as String` casts
@@ -228,6 +252,7 @@ json_agg(i.*)::text AS instructions_json
    - Lines 415-419: Type checking error fixes
 
 ### Supporting Files
+
 2. **`local-dev-setup/liquibase/changelogs/034_td015_simplify_email_templates.sql`**
    - Added Liquibase canonical headers
    - Removed manual transaction control
@@ -245,16 +270,19 @@ json_agg(i.*)::text AS instructions_json
 ## Lessons Learned
 
 ### PostgreSQL JSON Handling
+
 1. **JSON vs Text**: PostgreSQL `json` type ≠ JSON string
 2. **Always Cast**: Use `::text` when transferring JSON via JDBC
 3. **Type Awareness**: Different JDBC drivers handle JSON types differently
 
 ### Groovy Type System
+
 1. **Explicit Casting**: Always cast database results explicitly
 2. **ADR Compliance**: Follow ADR-031/043 for type safety
 3. **Debug Early**: Add debug logging during development
 
 ### Testing Strategy
+
 1. **Cross-Branch Testing**: Always test against main branch
 2. **Type-Specific Tests**: Test PostgreSQL type conversions explicitly
 3. **Integration Testing**: End-to-end flows catch JDBC issues
@@ -264,12 +292,14 @@ json_agg(i.*)::text AS instructions_json
 ## Recommendations
 
 ### Immediate Actions
+
 1. ✅ Deploy fix to development environment
 2. ⏳ Test email functionality with step status changes
 3. ⏳ Verify debug logs show correct instruction/comment counts
 4. ⏳ Confirm MailHog shows populated email sections
 
 ### Future Prevention
+
 1. **Standard Pattern**: Document `::text` pattern for all `json_agg()` usage
 2. **Code Review Checklist**: Check PostgreSQL JSON type handling
 3. **Integration Tests**: Add tests for JDBC type conversions

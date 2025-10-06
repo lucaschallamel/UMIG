@@ -26,12 +26,14 @@
 **Objective**: Eliminate hardcoded database passwords ("123456") from 12+ source files by migrating database connection configurations to ConfigurationService.
 
 **Scope**:
+
 - 12 configuration values
 - 4 configuration keys (6 total keys including test configs)
 - 3 environments (DEV, UAT, PROD)
 - 2 security classifications (CONFIDENTIAL, INTERNAL)
 
 **Impact**:
+
 - **Security**: Eliminates critical vulnerability of hardcoded passwords
 - **Operations**: Enables environment-specific database connections
 - **Compliance**: Meets security audit requirements
@@ -115,6 +117,7 @@
 **Action**: Execute Liquibase migration to seed configuration data
 
 **Commands**:
+
 ```bash
 # From local-dev-setup/ directory
 npm run liquibase:update
@@ -124,12 +127,14 @@ liquibase --changeLogFile=db/migrations/changelog-master.xml update
 ```
 
 **Expected Outcome**:
+
 - Liquibase reports successful changeset application
 - 12 INSERT statements executed
 - No errors or warnings
 - Changeset ID `US-098-phase4-batch1-critical-security` recorded in DATABASECHANGELOG
 
 **Verification Command**:
+
 ```sql
 -- Verify changeset was applied
 SELECT * FROM DATABASECHANGELOG
@@ -137,6 +142,7 @@ WHERE ID = 'US-098-phase4-batch1-critical-security';
 ```
 
 **Failure Handling**:
+
 - If Liquibase fails: Review error message, fix issue, retry
 - If duplicate key errors: Check if changeset already applied
 - If table not found: Verify schema is up to date
@@ -152,6 +158,7 @@ WHERE ID = 'US-098-phase4-batch1-critical-security';
 **Critical Queries** (run in order):
 
 1. **Quick Health Check**:
+
 ```sql
 -- Query 12: Overall status check
 SELECT
@@ -172,6 +179,7 @@ WHERE created_by = 'US-098-migration';
 **Expected Result**: `✅ ALL CHECKS PASSED`
 
 2. **Security Violation Check** (CRITICAL):
+
 ```sql
 -- Query 5: Verify no actual passwords in database
 SELECT
@@ -195,6 +203,7 @@ WHERE created_by = 'US-098-migration'
 **If ANY rows returned**: STOP IMMEDIATELY and execute rollback
 
 3. **Environment Distribution Check**:
+
 ```sql
 -- Query 2: Count configurations per environment
 SELECT
@@ -219,11 +228,13 @@ ORDER BY scf_environment;
 ```
 
 **Expected Results**:
+
 - DEV: 6 configurations ✅ PASS
 - UAT: 3 configurations ✅ PASS
 - PROD: 3 configurations ✅ PASS
 
 **Failure Handling**:
+
 - If verification fails: Do NOT proceed to code changes
 - Review `claudedocs/US-098-Phase4-Step2-Migration-Execution-Plan.md` rollback section
 - Execute rollback procedure
@@ -234,6 +245,7 @@ ORDER BY scf_environment;
 ### Step 3: Code Changes (NOT YET - AWAIT APPROVAL)
 
 **⚠️ IMPORTANT**: Do NOT make code changes until:
+
 1. Liquibase changeset successfully applied
 2. All verification queries pass
 3. User explicitly approves proceeding
@@ -243,6 +255,7 @@ ORDER BY scf_environment;
 #### File 1: `src/groovy/umig/utils/DatabaseUtil.groovy`
 
 **Current Code** (lines 56-58):
+
 ```groovy
 String url = System.getenv('UMIG_DB_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
 String user = System.getenv('UMIG_DB_USER') ?: 'umig_app_user'
@@ -250,6 +263,7 @@ String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
 ```
 
 **New Code** (proposed):
+
 ```groovy
 // Phase 1: Try environment variables (backward compatibility)
 String url = System.getenv('UMIG_DB_URL')
@@ -278,6 +292,7 @@ if (!password) {
 ```
 
 **Rationale**:
+
 - Maintains backward compatibility with environment variables
 - Adds ConfigurationService as fallback
 - Provides clear error message if neither configured
@@ -286,6 +301,7 @@ if (!password) {
 #### File 2: `src/groovy/umig/tests/integration/TestDatabaseUtil.groovy`
 
 **Current Code** (lines 20-22):
+
 ```groovy
 String url = System.getenv('UMIG_TEST_DB_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
 String user = System.getenv('UMIG_TEST_DB_USER') ?: 'umig_app_user'
@@ -293,6 +309,7 @@ String password = System.getenv('UMIG_TEST_DB_PASSWORD') ?: '123456'
 ```
 
 **New Code** (proposed):
+
 ```groovy
 // Similar pattern to DatabaseUtil.groovy but using test.database.* keys
 String url = System.getenv('UMIG_TEST_DB_URL')
@@ -316,6 +333,7 @@ if (!password) {
 ```
 
 **Additional Files to Update** (9+ files total):
+
 - `src/groovy/umig/utils/DatabaseQualityValidator.groovy`
 - `src/groovy/umig/tests/integration/IntegrationTestBase.groovy`
 - `src/groovy/umig/tests/performance/PerformanceTestUtil.groovy`
@@ -329,6 +347,7 @@ if (!password) {
 ### Post-Code-Change Validation (When Code Changes Made)
 
 #### Unit Test Validation
+
 ```bash
 # Run ConfigurationService tests
 npm run test:groovy:unit
@@ -337,6 +356,7 @@ npm run test:groovy:unit
 ```
 
 #### Integration Test Validation
+
 ```bash
 # Run integration tests with ConfigurationService
 npm run test:groovy:integration
@@ -347,6 +367,7 @@ npm run test:groovy:integration
 #### Manual Validation
 
 1. **Verify Database Connection**:
+
 ```groovy
 // Test in Groovy console
 def sql = DatabaseUtil.getSql()
@@ -356,6 +377,7 @@ println "✅ Database connection successful"
 ```
 
 2. **Verify ConfigurationService Retrieval**:
+
 ```groovy
 // Test configuration retrieval
 def passwordEnvVar = ConfigurationService.getString('database.password.env.var')
@@ -365,6 +387,7 @@ println "✅ ConfigurationService working"
 ```
 
 3. **Verify Audit Logging**:
+
 ```sql
 -- Check audit logs for configuration access
 SELECT
@@ -386,6 +409,7 @@ LIMIT 10;
 **Expected**: Audit entries show configuration access with CONFIDENTIAL values masked
 
 4. **Verify No Hardcoded Passwords Remain**:
+
 ```bash
 # Search for hardcoded password patterns
 grep -r "123456" src/groovy/umig/ --include="*.groovy"
@@ -400,6 +424,7 @@ grep -r "123456" src/groovy/umig/ --include="*.groovy"
 ### Rollback Trigger Conditions
 
 Execute rollback immediately if:
+
 - ❌ Security violation detected (actual passwords in database)
 - ❌ Verification queries fail
 - ❌ Database connection failures after code changes
@@ -500,21 +525,21 @@ echo "Rollback executed at $(date)" >> claudedocs/US-098-rollback-log.txt
 
 ### Critical Risks (HIGH)
 
-| Risk | Probability | Impact | Mitigation | Contingency |
-|------|-------------|--------|------------|-------------|
-| Database connection failures | Medium | Critical | Maintain env var fallback | Immediate rollback |
-| Password exposure in logs | Low | Critical | CONFIDENTIAL masking | Rotate passwords |
-| Liquibase migration failure | Low | High | Pre-validate changeset | Manual SQL insertion |
-| Test suite failures | Medium | High | Run tests before code changes | Revert code |
+| Risk                         | Probability | Impact   | Mitigation                    | Contingency          |
+| ---------------------------- | ----------- | -------- | ----------------------------- | -------------------- |
+| Database connection failures | Medium      | Critical | Maintain env var fallback     | Immediate rollback   |
+| Password exposure in logs    | Low         | Critical | CONFIDENTIAL masking          | Rotate passwords     |
+| Liquibase migration failure  | Low         | High     | Pre-validate changeset        | Manual SQL insertion |
+| Test suite failures          | Medium      | High     | Run tests before code changes | Revert code          |
 
 ### Moderate Risks (MEDIUM)
 
-| Risk | Probability | Impact | Mitigation | Contingency |
-|------|-------------|--------|------------|-------------|
-| Performance degradation | Low | Medium | ConfigurationService caching | Optimize queries |
-| Configuration inconsistency | Medium | Medium | Verification queries | Reseed data |
-| Missing configurations | Low | Medium | Comprehensive audit | Add missing configs |
-| Audit log overflow | Low | Low | Log retention policy | Archive old logs |
+| Risk                        | Probability | Impact | Mitigation                   | Contingency         |
+| --------------------------- | ----------- | ------ | ---------------------------- | ------------------- |
+| Performance degradation     | Low         | Medium | ConfigurationService caching | Optimize queries    |
+| Configuration inconsistency | Medium      | Medium | Verification queries         | Reseed data         |
+| Missing configurations      | Low         | Medium | Comprehensive audit          | Add missing configs |
+| Audit log overflow          | Low         | Low    | Log retention policy         | Archive old logs    |
 
 ### Risk Tolerance
 
@@ -553,6 +578,7 @@ Upon successful completion of Batch 1:
 4. **Continue Monitoring**: Watch for delayed issues from Batch 1
 
 **Estimated Timeline**:
+
 - Batch 2 (Infrastructure): 3-4 hours (15 configs)
 - Batch 3 (Performance): 4-5 hours (35 configs)
 - Batch 4 (Features): 2-3 hours (36 configs)

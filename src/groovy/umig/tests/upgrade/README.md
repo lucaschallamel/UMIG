@@ -18,6 +18,7 @@ upgrade/
 ## Validation Coverage
 
 ### Infrastructure Validation
+
 - **Container health** - Running status, network connectivity, port accessibility
 - **Database connectivity** - PostgreSQL connections, schema validation, Liquibase versions
 - **API functionality** - REST endpoints, response validation, performance testing
@@ -26,12 +27,14 @@ upgrade/
 ### Upgrade Workflows
 
 **Pre-Upgrade** (Baseline):
+
 ```bash
 cd src/groovy/umig/tests/upgrade
 ./run-all-tests.sh                  # Capture baseline
 ```
 
 **Post-Upgrade** (Validation):
+
 ```bash
 ./run-all-tests.sh                  # Verify no regressions
 ```
@@ -63,11 +66,13 @@ cd src/groovy/umig/tests/upgrade
 ## Test Environment Requirements
 
 ### Running Services
+
 - `umig_confluence` - Confluence application (port 8090)
 - `umig_postgres` - PostgreSQL database (port 5432)
 - `umig_mailhog` - Mail server (ports 8025, 1025)
 
 ### Expected Endpoints
+
 - Confluence: http://localhost:8090
 - UMIG APIs: http://localhost:8090/confluence/rest/scriptrunner/latest/custom
 - PostgreSQL databases: `confluence`, `umig_app_db`
@@ -89,23 +94,27 @@ cd src/groovy/umig/tests/upgrade
 ## Test Output
 
 ### Console Indicators
+
 - ✅ **Green checkmarks** - Tests passing
 - ❌ **Red X marks** - Tests failing
 - ⚠️ **Yellow warnings** - Non-critical issues
 - ℹ️ **Blue info** - Status information
 
 ### Log Files (logs/ directory)
+
 - `upgrade_validation_TIMESTAMP.log` - Complete test run
 - `test-NAME_TIMESTAMP.log` - Individual test logs
 - `upgrade_validation_report_TIMESTAMP.md` - Markdown report
 
 ### Exit Codes
+
 - **0** - All tests passed
 - **1** - One or more failures
 
 ## Pass/Fail Criteria
 
 ### Pass Criteria
+
 - ✅ All containers running and healthy
 - ✅ All databases accessible with expected schema
 - ✅ All UMIG API endpoints registered and responding
@@ -114,6 +123,7 @@ cd src/groovy/umig/tests/upgrade
 - ✅ Performance within thresholds
 
 ### Fail Criteria
+
 - ❌ Container not running or unhealthy
 - ❌ Database connectivity issues
 - ❌ UMIG API endpoints 404 or connection errors
@@ -123,24 +133,28 @@ cd src/groovy/umig/tests/upgrade
 ## Troubleshooting
 
 ### Container Issues
+
 ```bash
 podman ps --all              # Check status
 npm start                    # Restart environment
 ```
 
 ### Database Issues
+
 ```bash
 podman logs umig_postgres    # Check PostgreSQL logs
 podman exec umig_postgres env | grep POSTGRES  # Verify credentials
 ```
 
 ### API Issues
+
 ```bash
 podman logs umig_confluence --tail 50  # Check Confluence logs
 curl http://localhost:8090/rest/scriptrunner/latest/custom/teams  # Test endpoint
 ```
 
 ### ScriptRunner Issues
+
 ```bash
 podman exec umig_confluence ls -la /var/atlassian/application-data/confluence/scripts/umig
 podman exec umig_confluence printenv CATALINA_OPTS

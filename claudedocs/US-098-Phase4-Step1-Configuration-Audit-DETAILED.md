@@ -27,34 +27,34 @@
 
 ### Statistics
 
-| Metric | Count |
-|--------|-------|
-| **Total Configurations** | 156 |
-| **Critical Priority** | 28 |
-| **High Priority** | 15 |
-| **Medium Priority** | 68 |
-| **Low Priority** | 45 |
+| Metric                   | Count |
+| ------------------------ | ----- |
+| **Total Configurations** | 156   |
+| **Critical Priority**    | 28    |
+| **High Priority**        | 15    |
+| **Medium Priority**      | 68    |
+| **Low Priority**         | 45    |
 
 ### Security Classification Breakdown
 
-| Classification | Count | Description |
-|---------------|-------|-------------|
-| **CONFIDENTIAL** | 12 | Passwords, secrets, credentials |
-| **INTERNAL** | 42 | URLs, hosts, file paths, connection strings |
-| **PUBLIC** | 102 | Timeouts, batch sizes, feature flags, limits |
+| Classification   | Count | Description                                  |
+| ---------------- | ----- | -------------------------------------------- |
+| **CONFIDENTIAL** | 12    | Passwords, secrets, credentials              |
+| **INTERNAL**     | 42    | URLs, hosts, file paths, connection strings  |
+| **PUBLIC**       | 102   | Timeouts, batch sizes, feature flags, limits |
 
 ### Category Summary
 
-| Category | Count | Priority Range |
-|----------|-------|----------------|
-| SMTP/Email Configuration | 6 | Critical - High |
-| Database Configuration | 18 | Critical |
-| API URLs/Endpoints | 8 | High |
-| Timeouts/Intervals | 52 | Medium - Low |
-| Batch Sizes/Limits | 35 | High - Medium |
-| Credentials/Secrets | 12 | Critical |
-| File Paths/Directories | 4 | High - Medium |
-| Feature Flags | 36 | Medium |
+| Category                 | Count | Priority Range  |
+| ------------------------ | ----- | --------------- |
+| SMTP/Email Configuration | 6     | Critical - High |
+| Database Configuration   | 18    | Critical        |
+| API URLs/Endpoints       | 8     | High            |
+| Timeouts/Intervals       | 52    | Medium - Low    |
+| Batch Sizes/Limits       | 35    | High - Medium   |
+| Credentials/Secrets      | 12    | Critical        |
+| File Paths/Directories   | 4     | High - Medium   |
+| Feature Flags            | 36    | Medium          |
 
 ---
 
@@ -72,11 +72,13 @@
 **Classification**: INTERNAL
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.host", "umig_mailhog")
 ```
 
 **Context**:
+
 ```groovy
 // Lines 845-855
 private static Properties getMailProperties() {
@@ -96,6 +98,7 @@ private static Properties getMailProperties() {
 
 **Proposed Key**: `email.smtp.host`
 **Proposed Values**:
+
 - DEV: `umig_mailhog`
 - UAT: `smtp.example-uat.com`
 - PROD: `smtp.example.com`
@@ -113,6 +116,7 @@ private static Properties getMailProperties() {
 **Classification**: INTERNAL
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.port", "1025")
 ```
@@ -122,6 +126,7 @@ props.put("mail.smtp.port", "1025")
 
 **Proposed Key**: `email.smtp.port`
 **Proposed Values**:
+
 - DEV: `1025` (MailHog)
 - UAT: `587` (typical SMTP submission port)
 - PROD: `587`
@@ -139,6 +144,7 @@ props.put("mail.smtp.port", "1025")
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.auth", "false")
 ```
@@ -148,6 +154,7 @@ props.put("mail.smtp.auth", "false")
 
 **Proposed Key**: `email.smtp.auth.enabled`
 **Proposed Values**:
+
 - DEV: `false` (MailHog doesn't need auth)
 - UAT: `true`
 - PROD: `true`
@@ -166,6 +173,7 @@ props.put("mail.smtp.auth", "false")
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.starttls.enable", "false")
 ```
@@ -175,6 +183,7 @@ props.put("mail.smtp.starttls.enable", "false")
 
 **Proposed Key**: `email.smtp.starttls.enabled`
 **Proposed Values**:
+
 - DEV: `false`
 - UAT: `true`
 - PROD: `true`
@@ -192,6 +201,7 @@ props.put("mail.smtp.starttls.enable", "false")
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.connectiontimeout", "5000")
 ```
@@ -201,6 +211,7 @@ props.put("mail.smtp.connectiontimeout", "5000")
 
 **Proposed Key**: `email.smtp.connection.timeout.ms`
 **Proposed Values**:
+
 - DEV: `5000` (5 seconds)
 - UAT: `10000` (10 seconds)
 - PROD: `15000` (15 seconds)
@@ -218,6 +229,7 @@ props.put("mail.smtp.connectiontimeout", "5000")
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 props.put("mail.smtp.timeout", "5000")
 ```
@@ -227,6 +239,7 @@ props.put("mail.smtp.timeout", "5000")
 
 **Proposed Key**: `email.smtp.timeout.ms`
 **Proposed Values**:
+
 - DEV: `5000`
 - UAT: `15000`
 - PROD: `30000`
@@ -250,11 +263,13 @@ props.put("mail.smtp.timeout", "5000")
 **Classification**: CONFIDENTIAL
 
 **Current Code**:
+
 ```groovy
 String url = System.getenv('UMIG_DB_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
 ```
 
 **Context**:
+
 ```groovy
 // Lines 54-62
 static Sql getSql() {
@@ -275,6 +290,7 @@ static Sql getSql() {
 
 **Proposed Key**: `database.url`
 **Proposed Values**:
+
 - DEV: `jdbc:postgresql://localhost:5432/umig_app_db`
 - UAT: `jdbc:postgresql://uat-db.example.com:5432/umig_uat_db`
 - PROD: `jdbc:postgresql://prod-db.example.com:5432/umig_prod_db`
@@ -293,6 +309,7 @@ static Sql getSql() {
 **Classification**: CONFIDENTIAL
 
 **Current Code**:
+
 ```groovy
 String user = System.getenv('UMIG_DB_USER') ?: 'umig_app_user'
 ```
@@ -302,6 +319,7 @@ String user = System.getenv('UMIG_DB_USER') ?: 'umig_app_user'
 
 **Proposed Key**: `database.username`
 **Proposed Values**:
+
 - DEV: `umig_app_user`
 - UAT: `umig_uat_user`
 - PROD: `umig_prod_user`
@@ -319,6 +337,7 @@ String user = System.getenv('UMIG_DB_USER') ?: 'umig_app_user'
 **Classification**: CONFIDENTIAL
 
 **Current Code**:
+
 ```groovy
 String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
 ```
@@ -330,6 +349,7 @@ String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
 **Proposed Key**: `database.password`
 **Proposed Values**: Should NEVER be in ConfigurationService database
 **Recommendation**:
+
 1. Remove hardcoded fallback immediately
 2. Require environment variable only
 3. Consider secrets management solution (HashiCorp Vault, AWS Secrets Manager)
@@ -342,6 +362,7 @@ String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
 ### 2.4-2.18 Test Database Configurations
 
 **Files**:
+
 - `src/groovy/umig/tests/integration/TestDatabaseUtil.groovy`
 - `src/groovy/umig/utils/DatabaseQualityValidator.groovy`
 - Various test files
@@ -352,11 +373,13 @@ String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
 **Classification**: CONFIDENTIAL
 
 **Example** (`TestDatabaseUtil.groovy:22`):
+
 ```groovy
 String password = System.getenv('UMIG_TEST_DB_PASSWORD') ?: '123456'
 ```
 
 **Proposed Keys**:
+
 - `test.database.url`
 - `test.database.username`
 - `test.database.password`
@@ -380,11 +403,13 @@ String password = System.getenv('UMIG_TEST_DB_PASSWORD') ?: '123456'
 **Classification**: INTERNAL
 
 **Current Code**:
+
 ```groovy
 String baseUrl = "http://localhost:8090"
 ```
 
 **Context**:
+
 ```groovy
 // Lines 928-935 (approximate)
 def getConfluenceVersion() {
@@ -402,6 +427,7 @@ def getConfluenceVersion() {
 
 **Proposed Key**: `confluence.base.url`
 **Proposed Values**:
+
 - DEV: `http://localhost:8090`
 - UAT: `https://confluence-uat.example.com`
 - PROD: `https://confluence.example.com`
@@ -419,11 +445,13 @@ def getConfluenceVersion() {
 **Classification**: INTERNAL
 
 **Current Code**:
+
 ```groovy
 private static final String DEFAULT_BASE_URL = "http://localhost:8090"
 ```
 
 **Context**:
+
 ```groovy
 // Lines 24-30 (approximate)
 class UrlConfigurationApi {
@@ -450,6 +478,7 @@ class UrlConfigurationApi {
 
 **Pattern**: Various API endpoints scattered across service and API files
 **Examples**:
+
 - REST API base paths
 - Webhook URLs
 - External service endpoints
@@ -459,6 +488,7 @@ class UrlConfigurationApi {
 **Classification**: INTERNAL
 
 **Proposed Keys**:
+
 - `api.rest.base.path`
 - `api.webhook.url`
 - `external.service.endpoint`
@@ -479,11 +509,13 @@ class UrlConfigurationApi {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 Thread.sleep(50)
 ```
 
 **Context**:
+
 ```groovy
 // Lines 295-305 (approximate)
 private void processImportBatch(List<ImportItem> batch) {
@@ -499,6 +531,7 @@ private void processImportBatch(List<ImportItem> batch) {
 
 **Proposed Key**: `import.processing.delay.ms`
 **Proposed Values**:
+
 - DEV: `50`
 - UAT: `100`
 - PROD: `0` (no delay if system can handle it)
@@ -516,11 +549,13 @@ private void processImportBatch(List<ImportItem> batch) {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 Thread.sleep(60000)  // 1 minute
 ```
 
 **Context**:
+
 ```groovy
 // Monitoring loop
 while (monitoringEnabled) {
@@ -534,6 +569,7 @@ while (monitoringEnabled) {
 
 **Proposed Key**: `import.monitoring.check.interval.ms`
 **Proposed Values**:
+
 - DEV: `60000` (1 minute)
 - UAT: `30000` (30 seconds)
 - PROD: `120000` (2 minutes)
@@ -551,11 +587,13 @@ while (monitoringEnabled) {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 Thread.sleep(5000)
 ```
 
 **Context**:
+
 ```groovy
 // After import completion, wait before promoting
 importComplete()
@@ -568,6 +606,7 @@ promoteToProduction()
 
 **Proposed Key**: `import.promotion.delay.ms`
 **Proposed Values**:
+
 - DEV: `5000`
 - UAT: `2000`
 - PROD: `1000`
@@ -585,11 +624,13 @@ promoteToProduction()
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final long CLEANUP_INTERVAL = 5 * 60 * 1000  // 5 minutes
 ```
 
 **Context**:
+
 ```groovy
 // Periodic cleanup of expired rate limit entries
 scheduledExecutor.scheduleAtFixedRate({
@@ -602,6 +643,7 @@ scheduledExecutor.scheduleAtFixedRate({
 
 **Proposed Key**: `rate.limit.cleanup.interval.ms`
 **Proposed Values**:
+
 - DEV: `300000` (5 minutes)
 - UAT: `180000` (3 minutes)
 - PROD: `600000` (10 minutes)
@@ -619,6 +661,7 @@ scheduledExecutor.scheduleAtFixedRate({
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int CONNECTION_TIMEOUT = 10000
 ```
@@ -628,6 +671,7 @@ private static final int CONNECTION_TIMEOUT = 10000
 
 **Proposed Key**: `test.connection.timeout.ms`
 **Proposed Values**:
+
 - DEV: `10000`
 - CI/CD: `20000` (slower build servers)
 
@@ -643,6 +687,7 @@ private static final int CONNECTION_TIMEOUT = 10000
 **Total**: 47 additional timeout/interval configurations
 
 **Common Patterns**:
+
 - HTTP request timeouts
 - Database query timeouts
 - Cache expiration intervals
@@ -668,11 +713,13 @@ private static final int CONNECTION_TIMEOUT = 10000
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int MAX_BATCH_SIZE = 1000
 ```
 
 **Context**:
+
 ```groovy
 // Lines 23-30
 class ImportService {
@@ -694,6 +741,7 @@ class ImportService {
 
 **Proposed Key**: `import.batch.max.size`
 **Proposed Values**:
+
 - DEV: `1000`
 - UAT: `2000`
 - PROD: `5000` (assuming sufficient resources)
@@ -711,6 +759,7 @@ class ImportService {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int CHUNK_SIZE = 50
 ```
@@ -722,6 +771,7 @@ private static final int CHUNK_SIZE = 50
 
 **Proposed Key**: `import.chunk.size`
 **Proposed Values**:
+
 - DEV: `50`
 - UAT: `100`
 - PROD: `200`
@@ -739,6 +789,7 @@ private static final int CHUNK_SIZE = 50
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int CHUNKING_THRESHOLD = 20
 ```
@@ -750,6 +801,7 @@ private static final int CHUNKING_THRESHOLD = 20
 
 **Proposed Key**: `import.chunking.threshold`
 **Proposed Values**:
+
 - DEV: `20`
 - UAT: `50`
 - PROD: `100`
@@ -767,11 +819,13 @@ private static final int CHUNKING_THRESHOLD = 20
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int DEFAULT_CHUNK_SIZE = 1000
 ```
 
 **Context**:
+
 ```groovy
 // Lines 34-42
 class PerformanceOptimizedImportService {
@@ -790,6 +844,7 @@ class PerformanceOptimizedImportService {
 
 **Proposed Key**: `import.chunk.default.size`
 **Proposed Values**:
+
 - DEV: `1000`
 - UAT: `2000`
 - PROD: `3000`
@@ -807,6 +862,7 @@ class PerformanceOptimizedImportService {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int MAX_BATCH_SIZE = 10000
 ```
@@ -816,6 +872,7 @@ private static final int MAX_BATCH_SIZE = 10000
 
 **Proposed Key**: `import.batch.max.size.optimized`
 **Proposed Values**:
+
 - DEV: `10000`
 - UAT: `15000`
 - PROD: `20000`
@@ -833,6 +890,7 @@ private static final int MAX_BATCH_SIZE = 10000
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int MAX_CONCURRENT_CHUNKS = 4
 ```
@@ -844,6 +902,7 @@ private static final int MAX_CONCURRENT_CHUNKS = 4
 
 **Proposed Key**: `import.concurrent.chunks.max`
 **Proposed Values**:
+
 - DEV: `4`
 - UAT: `6`
 - PROD: `8` (assuming multi-core servers)
@@ -861,6 +920,7 @@ private static final int MAX_CONCURRENT_CHUNKS = 4
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int MEMORY_CHECK_INTERVAL = 100
 ```
@@ -872,6 +932,7 @@ private static final int MEMORY_CHECK_INTERVAL = 100
 
 **Proposed Key**: `import.memory.check.interval`
 **Proposed Values**:
+
 - DEV: `100`
 - UAT: `50` (more frequent checks)
 - PROD: `200` (less overhead)
@@ -889,6 +950,7 @@ private static final int MEMORY_CHECK_INTERVAL = 100
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final int MEMORY_CHECK_INTERVAL = 500
 ```
@@ -898,6 +960,7 @@ private static final int MEMORY_CHECK_INTERVAL = 500
 
 **Proposed Key**: `csv.import.memory.check.interval`
 **Proposed Values**:
+
 - DEV: `500`
 - UAT: `250`
 - PROD: `1000`
@@ -915,6 +978,7 @@ private static final int MEMORY_CHECK_INTERVAL = 500
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 50
 ```
@@ -926,6 +990,7 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 
 **Proposed Key**: `api.pagination.default.size`
 **Proposed Values**:
+
 - DEV: `50`
 - UAT: `100`
 - PROD: `100`
@@ -942,6 +1007,7 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 **Total**: 26 additional configurations
 
 **Common Patterns**:
+
 - Export batch sizes
 - Query result limits
 - Cache entry limits
@@ -960,14 +1026,14 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 
 ### Summary of All Password Occurrences
 
-| File | Line | Value | Context | Priority |
-|------|------|-------|---------|----------|
-| DatabaseUtil.groovy | 58 | `"123456"` | Production DB password fallback | 🔴 Critical |
-| TestDatabaseUtil.groovy | 22 | `"123456"` | Test DB password fallback | 🔴 Critical |
-| DatabaseQualityValidator.groovy | 33 | `"123456"` | Validator DB password | 🔴 Critical |
-| IntegrationTestBase.groovy | 15 | `"123456"` | Integration test DB password | 🔴 Critical |
-| PerformanceTestUtil.groovy | 28 | `"123456"` | Performance test DB password | 🔴 Critical |
-| E2ETestConfiguration.groovy | 41 | `"123456"` | E2E test DB password | 🔴 Critical |
+| File                            | Line | Value      | Context                         | Priority    |
+| ------------------------------- | ---- | ---------- | ------------------------------- | ----------- |
+| DatabaseUtil.groovy             | 58   | `"123456"` | Production DB password fallback | 🔴 Critical |
+| TestDatabaseUtil.groovy         | 22   | `"123456"` | Test DB password fallback       | 🔴 Critical |
+| DatabaseQualityValidator.groovy | 33   | `"123456"` | Validator DB password           | 🔴 Critical |
+| IntegrationTestBase.groovy      | 15   | `"123456"` | Integration test DB password    | 🔴 Critical |
+| PerformanceTestUtil.groovy      | 28   | `"123456"` | Performance test DB password    | 🔴 Critical |
+| E2ETestConfiguration.groovy     | 41   | `"123456"` | E2E test DB password            | 🔴 Critical |
 
 **Additional Occurrences**: 6 more test-related files with same password
 
@@ -976,6 +1042,7 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 **CRITICAL VULNERABILITY**: Password "123456" appears in 12+ files in source control
 
 **Risk Analysis**:
+
 - ✅ Environment variable fallback pattern partially mitigates risk
 - ❌ Default values expose credentials if env vars not set
 - ❌ Same password used across dev/test/prod contexts
@@ -983,6 +1050,7 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 - ❌ Test passwords should still be managed, not hardcoded
 
 **Immediate Actions Required**:
+
 1. Remove all hardcoded password fallbacks
 2. Require environment variables for all database connections
 3. Rotate database passwords (especially if repository was ever public)
@@ -990,6 +1058,7 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 5. Update .gitignore to prevent future credential commits
 
 **Migration Strategy**:
+
 - **DO NOT** migrate passwords to ConfigurationService database
 - Use environment variables as primary mechanism
 - ConfigurationService should reference environment variable names, not values
@@ -1015,11 +1084,13 @@ int pageSize = params.pageSize ? Integer.parseInt(params.pageSize as String) : 5
 **Classification**: INTERNAL
 
 **Current Code**:
+
 ```groovy
 private static final String WEB_ROOT = "/var/atlassian/application-data/confluence/scripts/umig/web"
 ```
 
 **Context**:
+
 ```groovy
 // Lines 25-35 (approximate)
 class WebApi {
@@ -1040,6 +1111,7 @@ class WebApi {
 
 **Proposed Key**: `web.root.directory`
 **Proposed Values**:
+
 - DEV: `/var/atlassian/application-data/confluence/scripts/umig/web`
 - UAT: `/opt/confluence/data/scripts/umig/web`
 - PROD: `/opt/confluence/data/scripts/umig/web`
@@ -1056,6 +1128,7 @@ class WebApi {
 **Total**: 3 additional path configurations
 
 **Common Issues**:
+
 - Hardcoded /tmp paths
 - Upload directory locations
 - Export file destinations
@@ -1079,11 +1152,13 @@ class WebApi {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final boolean SCHEDULING_ENABLED = true
 ```
 
 **Context**:
+
 ```groovy
 // Lines 75-85
 class ImportQueueConfiguration {
@@ -1102,6 +1177,7 @@ class ImportQueueConfiguration {
 
 **Proposed Key**: `import.scheduling.enabled`
 **Proposed Values**:
+
 - DEV: `true`
 - UAT: `true`
 - PROD: `true`
@@ -1121,6 +1197,7 @@ class ImportQueueConfiguration {
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final boolean PERFORMANCE_MONITORING_ENABLED = true
 ```
@@ -1130,6 +1207,7 @@ private static final boolean PERFORMANCE_MONITORING_ENABLED = true
 
 **Proposed Key**: `import.monitoring.performance.enabled`
 **Proposed Values**:
+
 - DEV: `true` (always monitor in dev)
 - UAT: `true`
 - PROD: `true` (but can disable if performance issue)
@@ -1147,6 +1225,7 @@ private static final boolean PERFORMANCE_MONITORING_ENABLED = true
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final boolean AUTO_RETRY_ENABLED = true
 ```
@@ -1158,6 +1237,7 @@ private static final boolean AUTO_RETRY_ENABLED = true
 
 **Proposed Key**: `import.retry.auto.enabled`
 **Proposed Values**:
+
 - DEV: `true`
 - UAT: `true`
 - PROD: `true`
@@ -1175,6 +1255,7 @@ private static final boolean AUTO_RETRY_ENABLED = true
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final boolean HEALTH_MONITORING_ENABLED = true
 ```
@@ -1184,6 +1265,7 @@ private static final boolean HEALTH_MONITORING_ENABLED = true
 
 **Proposed Key**: `import.health.monitoring.enabled`
 **Proposed Values**:
+
 - DEV: `true`
 - UAT: `true`
 - PROD: `true`
@@ -1201,6 +1283,7 @@ private static final boolean HEALTH_MONITORING_ENABLED = true
 **Classification**: PUBLIC
 
 **Current Code**:
+
 ```groovy
 private static final boolean EMAIL_NOTIFICATIONS_ENABLED = true
 ```
@@ -1212,6 +1295,7 @@ private static final boolean EMAIL_NOTIFICATIONS_ENABLED = true
 
 **Proposed Key**: `import.email.notifications.enabled`
 **Proposed Values**:
+
 - DEV: `false` (avoid spam in dev)
 - UAT: `true`
 - PROD: `true`
@@ -1229,6 +1313,7 @@ private static final boolean EMAIL_NOTIFICATIONS_ENABLED = true
 **Total**: 31 additional feature flags
 
 **Common Patterns**:
+
 - Debug mode flags
 - Logging level controls
 - Feature enable/disable flags
@@ -1246,6 +1331,7 @@ private static final boolean EMAIL_NOTIFICATIONS_ENABLED = true
 ### Proposed ConfigurationService Keys (All 156)
 
 #### Email Configuration (6 keys)
+
 ```
 email.smtp.host
 email.smtp.port
@@ -1256,6 +1342,7 @@ email.smtp.timeout.ms
 ```
 
 #### Database Configuration (6 keys)
+
 ```
 database.url
 database.username
@@ -1266,6 +1353,7 @@ test.database.password.env.var
 ```
 
 #### API Configuration (8 keys)
+
 ```
 confluence.base.url
 api.rest.base.path
@@ -1278,6 +1366,7 @@ api.retry.max.attempts
 ```
 
 #### Import Configuration (35 keys)
+
 ```
 import.batch.max.size
 import.chunk.size
@@ -1301,6 +1390,7 @@ csv.import.memory.check.interval
 ```
 
 #### Feature Flags (36 keys)
+
 ```
 feature.import.scheduling.enabled
 feature.import.monitoring.enabled
@@ -1312,6 +1402,7 @@ feature.performance.optimization.enabled
 ```
 
 #### Performance Configuration (20 keys)
+
 ```
 performance.thread.pool.size
 performance.memory.threshold.percent
@@ -1321,6 +1412,7 @@ performance.gc.frequency.ms
 ```
 
 #### Timeout Configuration (45 keys)
+
 ```
 timeout.http.connection.ms
 timeout.http.read.ms
@@ -1340,15 +1432,18 @@ timeout.session.idle.ms
 #### Batch 1: CRITICAL SECURITY (12 configs, 2-3 hours)
 
 **Scope**:
+
 - All database password references (12 occurrences)
 - SMTP authentication settings if passwords required
 
 **Prerequisites**:
+
 1. Rotate all database passwords
 2. Establish secrets management strategy
 3. Update environment variable documentation
 
 **Liquibase Changeset**:
+
 ```sql
 -- Do NOT store passwords in configuration table
 -- Store environment variable names only
@@ -1359,6 +1454,7 @@ VALUES
 ```
 
 **Migration Pattern**:
+
 ```groovy
 // BEFORE
 String password = System.getenv('UMIG_DB_PASSWORD') ?: '123456'
@@ -1372,11 +1468,13 @@ if (!password) {
 ```
 
 **Testing**:
+
 - Verify database connectivity in all environments
 - Confirm no hardcoded passwords remain
 - Test error handling when env var missing
 
 **Rollback Plan**:
+
 - Keep environment variable pattern unchanged
 - ConfigurationService failure falls back to direct env var lookup
 
@@ -1387,17 +1485,20 @@ if (!password) {
 #### Batch 2: INFRASTRUCTURE (15 configs, 3-4 hours)
 
 **Scope**:
+
 - SMTP host and port (2 configs)
 - API base URLs (8 configs)
 - File system paths (4 configs)
 - Database URLs (1 config)
 
 **Prerequisites**:
+
 1. Document UAT and PROD SMTP server details
 2. Document UAT and PROD Confluence URLs
 3. Verify file system paths in UAT/PROD
 
 **Liquibase Changeset**:
+
 ```sql
 INSERT INTO system_configuration_scf (scf_key, scf_value, scf_environment, scf_security_classification)
 VALUES
@@ -1422,6 +1523,7 @@ VALUES
 ```
 
 **Migration Pattern**:
+
 ```groovy
 // BEFORE
 props.put("mail.smtp.host", "umig_mailhog")
@@ -1433,12 +1535,14 @@ props.put("mail.smtp.port", ConfigurationService.getString("email.smtp.port"))
 ```
 
 **Files to Update**:
+
 - `EnhancedEmailService.groovy` (lines 848-853)
 - `AdminVersionApi.groovy` (line 930)
 - `UrlConfigurationApi.groovy` (line 26)
 - `WebApi.groovy` (line 27)
 
 **Testing**:
+
 - Send test email in each environment
 - Verify API calls to Confluence
 - Test file access from WebApi
@@ -1452,15 +1556,18 @@ props.put("mail.smtp.port", ConfigurationService.getString("email.smtp.port"))
 #### Batch 3: PERFORMANCE (35 configs, 4-5 hours)
 
 **Scope**:
+
 - Batch sizes and limits (35 configs)
 - Timeout configurations (included in count)
 
 **Prerequisites**:
+
 1. Establish baseline performance metrics
 2. Document current batch processing behavior
 3. Plan performance testing strategy
 
 **Liquibase Changeset Example**:
+
 ```sql
 INSERT INTO system_configuration_scf (scf_key, scf_value, scf_environment, scf_security_classification)
 VALUES
@@ -1477,6 +1584,7 @@ VALUES
 ```
 
 **Migration Pattern**:
+
 ```groovy
 // BEFORE
 private static final int MAX_BATCH_SIZE = 1000
@@ -1501,12 +1609,14 @@ def processBatch(List items) {
 ```
 
 **Files to Update**:
+
 - `ImportService.groovy` (multiple constants)
 - `PerformanceOptimizedImportService.groovy` (multiple constants)
 - `PerformanceOptimizedCsvImportService.groovy`
 - `PlansApi.groovy` (pagination)
 
 **Testing Strategy**:
+
 - Performance benchmarks before/after migration
 - Memory profiling with different batch sizes
 - Load testing with various configurations
@@ -1521,15 +1631,18 @@ def processBatch(List items) {
 #### Batch 4: FEATURES (36 configs, 2-3 hours)
 
 **Scope**:
+
 - Feature flags (36 boolean configurations)
 - Runtime toggles
 - Debug settings
 
 **Prerequisites**:
+
 1. Document current feature states
 2. Establish feature flag management process
 
 **Liquibase Changeset Example**:
+
 ```sql
 INSERT INTO system_configuration_scf (scf_key, scf_value, scf_environment, scf_security_classification)
 VALUES
@@ -1546,6 +1659,7 @@ VALUES
 ```
 
 **Migration Pattern**:
+
 ```groovy
 // BEFORE
 private static final boolean SCHEDULING_ENABLED = true
@@ -1569,10 +1683,12 @@ void initialize() {
 ```
 
 **Files to Update**:
+
 - `ImportQueueConfiguration.groovy` (majority of flags)
 - Various service files with debug flags
 
 **Testing**:
+
 - Verify each feature can be toggled
 - Test behavior with features enabled/disabled
 - Confirm no runtime errors from boolean conversion
@@ -1586,6 +1702,7 @@ void initialize() {
 #### Batch 5: TEST ENVIRONMENT (58 configs, 3-4 hours) - OPTIONAL
 
 **Scope**:
+
 - Test-specific timeouts
 - Test database configurations (already in Batch 1 for passwords)
 - Performance test thresholds
@@ -1648,40 +1765,41 @@ For configurations where UAT/PROD values are unknown:
 
 ### Appendix A: Complete File List with Configuration Counts
 
-| File | Configs | Categories | Priority Range |
-|------|---------|------------|----------------|
-| EnhancedEmailService.groovy | 6 | SMTP | 🔴 Critical - 🟢 Medium |
-| DatabaseUtil.groovy | 3 | Database | 🔴 Critical |
-| TestDatabaseUtil.groovy | 3 | Database | 🔴 Critical |
-| DatabaseQualityValidator.groovy | 3 | Database | 🔴 Critical |
-| ImportService.groovy | 12 | Batch, Timeout | 🟡 High - 🟢 Medium |
-| PerformanceOptimizedImportService.groovy | 15 | Batch, Timeout | 🟡 High - 🟢 Medium |
-| PerformanceOptimizedCsvImportService.groovy | 8 | Batch, Timeout | 🟢 Medium |
-| ImportQueueConfiguration.groovy | 36 | Feature Flags | 🟢 Medium |
-| ImportPerformanceMonitoringService.groovy | 5 | Timeout | 🟢 Medium |
-| AdminVersionApi.groovy | 2 | API URLs | 🟡 High |
-| UrlConfigurationApi.groovy | 1 | API URLs | 🟡 High |
-| WebApi.groovy | 1 | File Paths | 🟡 High |
-| PlansApi.groovy | 4 | Batch, API | 🟢 Medium |
-| RateLimiter.groovy | 3 | Timeout | ⚪ Low |
-| TestConfiguration.groovy | 2 | Timeout | ⚪ Low |
-| IntegrationTestBase.groovy | 3 | Database | 🔴 Critical |
-| PerformanceTestUtil.groovy | 3 | Database | 🔴 Critical |
-| E2ETestConfiguration.groovy | 3 | Database | 🔴 Critical |
-| **Additional 30+ files** | 45 | Various | Various |
-| **TOTAL** | **156** | 8 categories | 🔴 to ⚪ |
+| File                                        | Configs | Categories     | Priority Range          |
+| ------------------------------------------- | ------- | -------------- | ----------------------- |
+| EnhancedEmailService.groovy                 | 6       | SMTP           | 🔴 Critical - 🟢 Medium |
+| DatabaseUtil.groovy                         | 3       | Database       | 🔴 Critical             |
+| TestDatabaseUtil.groovy                     | 3       | Database       | 🔴 Critical             |
+| DatabaseQualityValidator.groovy             | 3       | Database       | 🔴 Critical             |
+| ImportService.groovy                        | 12      | Batch, Timeout | 🟡 High - 🟢 Medium     |
+| PerformanceOptimizedImportService.groovy    | 15      | Batch, Timeout | 🟡 High - 🟢 Medium     |
+| PerformanceOptimizedCsvImportService.groovy | 8       | Batch, Timeout | 🟢 Medium               |
+| ImportQueueConfiguration.groovy             | 36      | Feature Flags  | 🟢 Medium               |
+| ImportPerformanceMonitoringService.groovy   | 5       | Timeout        | 🟢 Medium               |
+| AdminVersionApi.groovy                      | 2       | API URLs       | 🟡 High                 |
+| UrlConfigurationApi.groovy                  | 1       | API URLs       | 🟡 High                 |
+| WebApi.groovy                               | 1       | File Paths     | 🟡 High                 |
+| PlansApi.groovy                             | 4       | Batch, API     | 🟢 Medium               |
+| RateLimiter.groovy                          | 3       | Timeout        | ⚪ Low                  |
+| TestConfiguration.groovy                    | 2       | Timeout        | ⚪ Low                  |
+| IntegrationTestBase.groovy                  | 3       | Database       | 🔴 Critical             |
+| PerformanceTestUtil.groovy                  | 3       | Database       | 🔴 Critical             |
+| E2ETestConfiguration.groovy                 | 3       | Database       | 🔴 Critical             |
+| **Additional 30+ files**                    | 45      | Various        | Various                 |
+| **TOTAL**                                   | **156** | 8 categories   | 🔴 to ⚪                |
 
 ---
 
 ### Appendix B: Security Classification Matrix
 
-| Classification | Count | Example Keys | Handling |
-|----------------|-------|--------------|----------|
-| **CONFIDENTIAL** | 12 | database.password.env.var | Environment variables only, never in database |
-| **INTERNAL** | 42 | email.smtp.host, confluence.base.url | ConfigurationService with partial masking in audit logs |
-| **PUBLIC** | 102 | import.batch.max.size, feature flags | ConfigurationService with full visibility |
+| Classification   | Count | Example Keys                         | Handling                                                |
+| ---------------- | ----- | ------------------------------------ | ------------------------------------------------------- |
+| **CONFIDENTIAL** | 12    | database.password.env.var            | Environment variables only, never in database           |
+| **INTERNAL**     | 42    | email.smtp.host, confluence.base.url | ConfigurationService with partial masking in audit logs |
+| **PUBLIC**       | 102   | import.batch.max.size, feature flags | ConfigurationService with full visibility               |
 
 **Audit Log Sanitization**:
+
 - CONFIDENTIAL: `***REDACTED***`
 - INTERNAL: `smt*****com` (partial mask: 20% visible at start/end)
 - PUBLIC: `30000` (full value visible)
@@ -1693,6 +1811,7 @@ For configurations where UAT/PROD values are unknown:
 For each configuration batch:
 
 **Planning Phase**:
+
 - [ ] All configurations in batch identified
 - [ ] ConfigurationService keys defined
 - [ ] Values determined for all environments (DEV, UAT, PROD)
@@ -1701,6 +1820,7 @@ For each configuration batch:
 - [ ] Migration complexity assessed
 
 **Implementation Phase**:
+
 - [ ] Liquibase changeset created
 - [ ] Changeset peer-reviewed
 - [ ] Code updated to use ConfigurationService
@@ -1709,6 +1829,7 @@ For each configuration batch:
 - [ ] Tests passing locally
 
 **Validation Phase**:
+
 - [ ] No hardcoded values remain (grep verification)
 - [ ] Unit tests passing with mocked configurations
 - [ ] Integration tests passing with ConfigurationService
@@ -1716,6 +1837,7 @@ For each configuration batch:
 - [ ] Security classification correct in logs
 
 **Deployment Phase**:
+
 - [ ] Deployed to DEV environment
 - [ ] Tested in DEV
 - [ ] Deployed to UAT environment
@@ -1725,6 +1847,7 @@ For each configuration batch:
 - [ ] Rollback plan documented
 
 **Post-Deployment**:
+
 - [ ] Monitoring confirms correct behavior
 - [ ] Audit logs reviewed for configuration access
 - [ ] Performance metrics within acceptable range
@@ -1737,6 +1860,7 @@ For each configuration batch:
 ### Appendix D: Proposed Environment-Specific Values
 
 #### DEV Environment Values
+
 ```yaml
 # Email
 email.smtp.host: umig_mailhog
@@ -1765,6 +1889,7 @@ import.monitoring.performance.enabled: true
 ```
 
 #### UAT Environment Values
+
 ```yaml
 # Email
 email.smtp.host: smtp-uat.example.com
@@ -1792,6 +1917,7 @@ import.monitoring.performance.enabled: true
 ```
 
 #### PROD Environment Values
+
 ```yaml
 # Email
 email.smtp.host: smtp.example.com
@@ -1825,12 +1951,14 @@ import.monitoring.performance.enabled: true
 This audit identified **156 hardcoded configuration values** across **8 categories** requiring migration to ConfigurationService.
 
 **Critical Findings**:
+
 - 🔴 **12 CONFIDENTIAL credentials** requiring immediate attention (database passwords)
 - 🔴 **6 SMTP configurations** preventing deployment to UAT/PROD
 - 🟡 **8 API URLs** limiting environment portability
 - 🟢 **130+ performance/feature configurations** reducing operational flexibility
 
 **Recommended Approach**:
+
 1. **Batch 1** (Critical Security): 2-3 hours - Database passwords and credentials
 2. **Batch 2** (Infrastructure): 3-4 hours - SMTP, APIs, file paths
 3. **Batch 3** (Performance): 4-5 hours - Batch sizes, timeouts

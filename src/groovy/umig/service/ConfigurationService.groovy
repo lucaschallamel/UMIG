@@ -5,6 +5,8 @@ import umig.utils.DatabaseUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
+import com.atlassian.sal.api.component.ComponentLocator
+import com.atlassian.confluence.setup.settings.SettingsManager
 
 /**
  * ConfigurationService - Central configuration management service
@@ -364,37 +366,111 @@ class ConfigurationService {
     }
 
     /**
-     * Get current environment code using 3-tier detection hierarchy.
+     * Get Confluence base URL from global settings.
+     *
+     * @return String Confluence base URL, null if unavailable
+     * US-098 Phase 4: URL-based environment detection
+     */
+    private static String getConfluenceBaseUrl() {
+        try {
+            def settingsManager = ComponentLocator.getComponent(SettingsManager.class)
+            String baseUrl = settingsManager?.globalSettings?.baseUrl
+            log.debug("Retrieved Confluence base URL: ${baseUrl}")
+            return baseUrl
+        } catch (Exception e) {
+            log.warn("Failed to get Confluence base URL: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * Detect environment based on Confluence base URL pattern matching.
+     *
+     * URL Pattern Mapping:
+     * - localhost / 127.0.0.1 / 0.0.0.0 → DEV
+     * - confluence-evx.corp.ubp.ch → UAT
+     * - confluence.corp.ubp.ch → PROD
+     *
+     * IMPORTANT: Check UAT before PROD (UAT URL contains PROD substring)
+     *
+     * @param baseUrl Confluence base URL to analyze
+     * @return String environment code (DEV, UAT, PROD), null if cannot determine
+     * US-098 Phase 4: URL-based environment detection
+     */
+    private static String detectEnvironmentFromUrl(String baseUrl) {
+        if (!baseUrl) {
+            return null
+        }
+
+        String lowerUrl = (baseUrl as String).toLowerCase()
+
+        // DEV: localhost patterns
+        if (lowerUrl.contains('localhost') ||
+            lowerUrl.contains('127.0.0.1') ||
+            lowerUrl.contains('0.0.0.0')) {
+            log.debug("Detected DEV environment from URL: ${baseUrl}")
+            return 'DEV'
+        }
+
+        // UAT: confluence-evx.corp.ubp.ch (check BEFORE PROD to avoid false match)
+        if (lowerUrl.contains('confluence-evx.corp.ubp.ch')) {
+            log.debug("Detected UAT environment from URL: ${baseUrl}")
+            return 'UAT'
+        }
+
+        // PROD: confluence.corp.ubp.ch
+        if (lowerUrl.contains('confluence.corp.ubp.ch')) {
+            log.debug("Detected PROD environment from URL: ${baseUrl}")
+            return 'PROD'
+        }
+
+        // Unknown URL pattern
+        log.warn("Unknown Confluence URL pattern: ${baseUrl}")
+        return null
+    }
+
+    /**
+     * Get current environment code using 4-tier detection hierarchy.
      *
      * Detection Order:
-     * 1. System property: -Dumig.environment=ENV
-     * 2. Environment variable: UMIG_ENVIRONMENT
-     * 3. Default: PROD (fail-safe)
+     * 1. System property: -Dumig.environment=ENV (manual override)
+     * 2. Environment variable: UMIG_ENVIRONMENT (fallback)
+     * 3. Confluence Base URL pattern matching (self-service)
+     * 4. Default: PROD (fail-safe)
      *
-     * Note: Database tier removed due to circular dependency - need envId to query,
-     * but need environment code to get envId. Environment should be configured via
-     * system property or environment variable before application starts.
+     * URL Pattern Mapping (Tier 3):
+     * - http://localhost:8090 → DEV
+     * - https://confluence-evx.corp.ubp.ch → UAT
+     * - https://confluence.corp.ubp.ch → PROD
      *
-     * @return String environment code (DEV, TEST, UAT, PROD)
-     * Task 1.2: IMPLEMENTED
+     * @return String environment code (DEV, UAT, PROD)
+     * Task 1.2: IMPLEMENTED + US-098 Phase 4 Enhancement
      */
     static String getCurrentEnvironment() {
-        // Tier 1: System property
+        // Tier 1: System property (highest priority - manual override)
         String sysProperty = System.getProperty('umig.environment')
         if (sysProperty) {
             log.debug("Environment from system property: ${sysProperty}")
             return (sysProperty as String).toUpperCase()
         }
 
-        // Tier 2: Environment variable
+        // Tier 2: Environment variable (fallback)
         String envVar = System.getenv('UMIG_ENVIRONMENT')
         if (envVar) {
             log.debug("Environment from environment variable: ${envVar}")
             return (envVar as String).toUpperCase()
         }
 
-        // Tier 3: Fail-safe default
-        log.info("Using default environment: PROD")
+        // Tier 3: Confluence Base URL pattern matching (NEW - self-service)
+        String baseUrl = getConfluenceBaseUrl()
+        String urlBasedEnv = detectEnvironmentFromUrl(baseUrl)
+        if (urlBasedEnv) {
+            log.info("Environment detected from Confluence URL (${baseUrl}): ${urlBasedEnv}")
+            return urlBasedEnv
+        }
+
+        // Tier 4: Fail-safe default
+        log.warn("Could not detect environment from any source - using fail-safe default: PROD")
         return 'PROD'
     }
 

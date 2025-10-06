@@ -1,32 +1,84 @@
 # US-098 Phase 4 Step 2: Migration Execution Plan - REVISED
 
-**Date**: 2025-10-02
-**Status**: REVISED - Architecture Pivot Approved
+**Date**: 2025-10-02 (Initial), 2025-10-06 (MailServerManager Pivot)
+**Status**: FINAL - Confluence MailServerManager Architecture
 **Branch**: `feature/sprint8-us-098-configuration-management-system`
-**Batches**: 2 (Batch 1: Non-Credentials, Batch 2: Credentials)
-**Risk Acceptance**: Plain text credential storage approved (see Risk Assessment)
+**Batches**: 1 (Batch 1 ONLY: Application Behavior Configs)
+**Security Risk**: LOW-MEDIUM (was HIGH) - No credential storage
 
 ---
 
 ## Table of Contents
 
-1. [Architecture Pivot Summary](#architecture-pivot-summary)
-2. [Revised Batch Definitions](#revised-batch-definitions)
-3. [Batch 1 Execution Plan](#batch-1-execution-plan)
-4. [Batch 2 Execution Plan](#batch-2-execution-plan)
+1. [MailServerManager Architecture Update (2025-10-06)](#mailservermanager-architecture-update-2025-10-06)
+2. [Original Architecture Pivot Summary (2025-10-02)](#original-architecture-pivot-summary-2025-10-02)
+3. [Final Batch Definition](#final-batch-definition)
+4. [Batch 1 Execution Plan](#batch-1-execution-plan)
 5. [Validation Steps](#validation-steps)
 6. [Rollback Procedures](#rollback-procedures)
 7. [Post-Migration Activities](#post-migration-activities)
 
 ---
 
-## Architecture Pivot Summary
+## MailServerManager Architecture Update (2025-10-06)
+
+### Critical Decision: Confluence MailServerManager Integration
+
+**USER APPROVAL**: Use Confluence's built-in MailServerManager API instead of storing SMTP credentials in ConfigurationService.
+
+### Eliminated Scope
+
+**Batch 2 Status**: ❌ **DELETED** - No longer needed with MailServerManager approach
+
+**Removed from Batch 1**:
+
+- ❌ `email.smtp.host` (DEV, PROD) - 2 configs (Confluence manages)
+- ❌ `email.smtp.port` (DEV, PROD) - 2 configs (Confluence manages)
+
+**Total Reduction**: 8 configurations eliminated (4 from Batch 2, 4 from Batch 1)
+
+### Updated Scope
+
+| Batch       | Scope                             | Config Count | Story Points | Duration      |
+| ----------- | --------------------------------- | ------------ | ------------ | ------------- |
+| **Batch 1** | Application behavior configs ONLY | 14           | 5            | 4-5 hours     |
+| **Batch 2** | ❌ DELETED                        | 0            | 0            | 0             |
+| **Total**   | **14 configurations**             | **14**       | **5**        | **4-5 hours** |
+
+**Previous Scope**: 22 configurations, 8 story points, 6-8 hours
+**Reduction**: 36% fewer configs, 37.5% fewer story points, 40% less time
+
+### Security Benefits
+
+1. **Zero Credential Storage**: No SMTP credentials in UMIG database
+2. **Eliminated Risks**: R-001, R-002, R-003, R-005, R-006 (all CRITICAL/HIGH)
+3. **Risk Profile**: HIGH → **LOW-MEDIUM**
+4. **Platform Security**: Confluence manages credentials with built-in encryption
+5. **Simplified Deployment**: No credential configuration files needed
+
+### Implementation Reference
+
+**Integration Guide**: `/docs/technical/Confluence-SMTP-Integration-Guide.md`
+
+**Key Points**:
+
+- Use `MailServerManager.getDefaultSMTPMailServer()` API
+- Apply ConfigurationService overrides for application behavior
+- Health check integration for SMTP availability
+- Clear error messages if SMTP not configured
+
+---
+
+## Original Architecture Pivot Summary (2025-10-02)
+
+**NOTE**: The following describes the original database credential exclusion decision. SMTP architecture has since been further refined (see above).
 
 ### Critical Decision: Database Credentials Excluded
 
 **User Decision**: Database credentials (UMIG_DB_PASSWORD, etc.) will **NOT** be migrated to ConfigurationService.
 
 **Rationale**:
+
 1. **Deployment Model Incompatibility**:
    - UAT/PROD environments use ScriptRunner's pre-configured resource pool
    - NO environment variables available in UAT/PROD
@@ -49,74 +101,88 @@
 **User Decision**: Skip encryption implementation for Phase 4.
 
 **Rationale**:
+
 1. **Complexity**: pgcrypto extension + schema changes + key management = 30-40 hours
 2. **Timeline**: Cannot afford extra complexity in Sprint 8
 3. **Risk Acceptance**: Plain text storage acceptable with mitigations
 4. **Upgrade Path**: Security category classification enables future encryption
 
-### Revised Scope
+### Original Scope (2025-10-02)
 
-| Batch | Scope | Config Count | Includes Credentials? |
-|-------|-------|--------------|----------------------|
-| **Batch 1** | Non-credential infrastructure, performance, features | 18 | ❌ NO |
-| **Batch 2** | SMTP credentials, usernames (plain text) | 4 | ✅ YES (plain text) |
-| **Database Credentials** | ❌ EXCLUDED - Managed by ScriptRunner | 0 | N/A |
-| **Total** | 22 configurations | 22 | 4 credentials |
+| Batch                    | Scope                                                | Config Count | Includes Credentials? |
+| ------------------------ | ---------------------------------------------------- | ------------ | --------------------- |
+| **Batch 1**              | Non-credential infrastructure, performance, features | 18           | ❌ NO                 |
+| **Batch 2**              | SMTP credentials, usernames (plain text)             | 4            | ✅ YES (plain text)   |
+| **Database Credentials** | ❌ EXCLUDED - Managed by ScriptRunner                | 0            | N/A                   |
+| **Total**                | 22 configurations                                    | 22           | 4 credentials         |
 
 ---
 
-## Revised Batch Definitions
+## Final Batch Definition
 
-### Batch 1: Non-Credential Configurations (18 configs)
+### Batch 1: Application Behavior Configurations (14 configs - FINAL)
 
 **File**: `local-dev-setup/liquibase/changelogs/035_us098_phase4_batch1_revised.sql`
 
-**Categories**:
-- SMTP Infrastructure (4): Host, port, auth enabled, STARTTLS enabled
-- API URLs (2): Confluence base URL
-- Timeouts (4): SMTP connection timeout, SMTP operation timeout
-- Batch Sizes (4): Import max size, API pagination
-- Feature Flags (4): Email notifications enabled, performance monitoring
+**MailServerManager Architecture Note**:
+
+- SMTP infrastructure (host/port) managed by Confluence MailServerManager
+- SMTP credentials (username/password) managed by Confluence MailServerManager
+- ConfigurationService stores application behavior configs ONLY
+
+**Configuration Breakdown**:
+
+1. **SMTP Application Behavior** (4 configs):
+   - `email.smtp.auth.enabled` (DEV, PROD) - Authentication override flags
+   - `email.smtp.starttls.enabled` (DEV, PROD) - TLS override flags
+
+2. **API Integration** (2 configs):
+   - `confluence.base.url` (DEV, PROD) - Confluence base URL for API calls
+
+3. **Application Timeouts** (4 configs):
+   - `email.smtp.connection.timeout.ms` (DEV, PROD) - Connection timeout
+   - `email.smtp.timeout.ms` (DEV, PROD) - Operation timeout
+
+4. **Business Logic** (4 configs):
+   - `import.batch.max.size` (DEV, PROD) - Batch size limits
+   - `api.pagination.default.size` (DEV, PROD) - Pagination defaults
 
 **Security Classifications**:
-- Infrastructure: 6 configs
-- Performance: 8 configs
-- General: 4 configs
+
+- Infrastructure: 2 configs (API URLs)
+- Performance: 8 configs (timeouts, batch sizes, pagination)
+- General: 4 configs (SMTP behavior overrides)
 
 **Environments**:
-- DEV: 9 configs
-- PROD: 9 configs
-- Total: 18 configs
 
-**Duration**: 30-45 minutes (simple migration)
+- DEV: 7 configs
+- PROD: 7 configs
+- **Total: 14 configs**
+
+**Story Points**: 5 (was 8)
+**Duration**: 4-5 hours (was 6-8 hours)
 
 ---
 
-### Batch 2: Credential Configurations (4 configs - PLAIN TEXT)
+### Batch 2: DELETED (Confluence MailServerManager Integration)
 
-**File**: `local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql`
+**Status**: ❌ **NOT NEEDED**
 
-**⚠️  SECURITY CLASSIFICATION**: ALL configs are category = 'security'
+**Original File**: `local-dev-setup/liquibase/changelogs/036_us098_phase4_batch2_credentials_plaintext.sql`
+**File Status**: Deleted (cannot be removed due to macOS extended attributes - manual deletion required)
 
-**Categories**:
-- SMTP Credentials (2): Passwords (DEV, PROD)
-- SMTP Usernames (2): Usernames (DEV, PROD)
+**Approach**: Use Confluence's MailServerManager API instead of storing credentials
 
-**Security Classifications**:
-- Security: 4 configs (all)
+**Benefits**:
 
-**Environments**:
-- DEV: 2 configs (non-functional for MailHog)
-- PROD: 2 configs (PLACEHOLDERS - must replace before deployment)
-- Total: 4 configs
+- ✅ Zero credential storage in UMIG database
+- ✅ Eliminated all credential-related security risks (R-001, R-002, R-003, R-005, R-006)
+- ✅ Simpler deployment (use Confluence admin UI)
+- ✅ Better security posture (Confluence manages credentials securely)
+- ✅ Reduced story points: 8 → 5 (37.5% reduction)
+- ✅ Reduced duration: 6-8 hours → 4-5 hours (40% reduction)
 
-**Duration**: 20-30 minutes (includes security validation)
-
-**CRITICAL NOTES**:
-1. ⚠️  **Plain Text Storage**: Credentials stored in `scf_value` column unencrypted
-2. ⚠️  **Placeholder Values**: PROD configs have `REPLACE_WITH_*` placeholders
-3. ⚠️  **Pre-Deployment Required**: Real credentials must be set via UPDATE statements
-4. ⚠️  **Risk Assessment**: See `claudedocs/US-098-Phase4-Security-Risk-Assessment.md`
+**Implementation**: See `/docs/technical/Confluence-SMTP-Integration-Guide.md`
 
 ---
 
@@ -134,6 +200,7 @@
 **Action**: Execute Batch 1 Liquibase changeset
 
 **Commands**:
+
 ```bash
 # From project root
 cd local-dev-setup
@@ -144,12 +211,14 @@ liquibase --changeLogFile=liquibase/changelogs/changelog-master.xml update
 ```
 
 **Expected Outcome**:
+
 - Liquibase reports successful changeset application
-- 18 INSERT statements executed (9 DEV + 9 PROD)
+- 14 INSERT statements executed (7 DEV + 7 PROD)
 - No errors or warnings
 - Changeset ID `035_us098_phase4_batch1_revised` recorded in DATABASECHANGELOG
 
 **Verification Command**:
+
 ```sql
 -- Via Podman container
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
@@ -164,7 +233,8 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 
 **Critical Queries**:
 
-1. **Count by Category** (Expected: infrastructure=6, performance=8, general=4):
+1. **Count by Category** (Expected: infrastructure=2, performance=8, general=4):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -178,7 +248,8 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 "
 ```
 
-2. **Count by Environment** (Expected: DEV=9, PROD=9):
+2. **Count by Environment** (Expected: DEV=7, PROD=7):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -193,6 +264,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 3. **Security Check - No Credentials** (Expected: 0 rows):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -206,6 +278,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 4. **Overall Health Check** (Expected: `✅ ALL CHECKS PASSED`):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -231,6 +304,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **Rationale**: Batch 1 configs not yet used by application code (migration first, code changes later)
 
 **If testing desired**:
+
 - Verify ConfigurationService.getString('email.smtp.host') returns correct values
 - Test environment-aware retrieval
 - Confirm no errors in application logs
@@ -251,6 +325,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **Action**: Execute Batch 2 Liquibase changeset
 
 **Commands**:
+
 ```bash
 # From project root
 cd local-dev-setup
@@ -258,12 +333,14 @@ npm run liquibase:update
 ```
 
 **Expected Outcome**:
+
 - Liquibase reports successful changeset application
 - 4 INSERT statements executed (2 DEV + 2 PROD)
 - No errors or warnings
 - Changeset ID `036_us098_phase4_batch2_credentials_plaintext` recorded
 
 **Verification Command**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT * FROM DATABASECHANGELOG
@@ -278,6 +355,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **Critical Queries**:
 
 1. **Count by Category** (Expected: security=4):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -293,6 +371,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 2. **Placeholder Credential Check** (Expected: 2 PROD placeholders):
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -313,6 +392,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 3. **Audit Log Sanitization Test**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT
@@ -339,6 +419,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **Action**: Verify security controls are working
 
 **Checklist**:
+
 - [ ] Passwords show as `***REDACTED***` in audit simulation
 - [ ] Usernames show partial masking (e.g., `smt*****com`)
 - [ ] Security category = 'security' for all credentials
@@ -422,6 +503,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 **Expected Output**:
+
 ```
  total_configs | unique_keys | dev_count | prod_count | infrastructure_count | performance_count | general_count | security_count | placeholder_count | overall_status        | credential_status
 ---------------+-------------+-----------+------------+----------------------+-------------------+---------------+----------------+-------------------+-----------------------+--------------------------------------------------
@@ -437,6 +519,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **When**: If Batch 2 fails validation or security concerns raised
 
 **Command**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   DELETE FROM system_configuration_scf
@@ -446,6 +529,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 **Verification**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT COUNT(*) AS remaining_configs
@@ -463,6 +547,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **When**: If complete migration needs to be reverted
 
 **Command**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   DELETE FROM system_configuration_scf
@@ -471,6 +556,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 ```
 
 **Verification**:
+
 ```sql
 podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
   SELECT COUNT(*) AS remaining_configs
@@ -490,6 +576,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 **Scope**: Update application code to use ConfigurationService instead of hardcoded values
 
 **Files to Update** (Batch 1 configs):
+
 1. `EnhancedEmailService.groovy` (lines 848-853): SMTP infrastructure
 2. `AdminVersionApi.groovy` (line 930): Confluence base URL
 3. `UrlConfigurationApi.groovy` (line 26): Confluence base URL
@@ -498,6 +585,7 @@ podman exec -it umig_postgres psql -U umig_app_user -d umig_app_db -c "
 6. `ImportQueueConfiguration.groovy` (lines 251, 106): Feature flags
 
 **Pattern**:
+
 ```groovy
 // BEFORE
 props.put("mail.smtp.host", "umig_mailhog")
@@ -509,6 +597,7 @@ props.put("mail.smtp.port", ConfigurationService.getString("email.smtp.port"))
 ```
 
 **Files to Update** (Batch 2 configs - when code needs SMTP auth):
+
 1. `EnhancedEmailService.groovy`: Add SMTP authentication logic (currently disabled)
 
 **Estimated Effort**: 4-6 hours for code migration + testing
@@ -527,15 +616,15 @@ props.put("mail.smtp.port", ConfigurationService.getString("email.smtp.port"))
 
 ## Summary of Changes from Original Plan
 
-| Aspect | Original Plan | Revised Plan | Reason |
-|--------|--------------|--------------|--------|
-| **Database Credentials** | Store env var NAMES in ConfigService | ❌ EXCLUDED from ConfigService | Won't work in UAT/PROD (no env vars) |
-| **Encryption** | Implement pgcrypto + encrypted columns | ⏭️  DEFERRED to Sprint 9+ | Timeline constraints (30-40 hours) |
-| **Credential Storage** | Encrypted storage from start | ✅ Plain text with risk acceptance | Accepted risk with mitigations |
-| **Batch 1 Scope** | 12 database credential configs | ✅ 18 non-credential configs | Revised to exclude all credentials |
-| **Batch 2 Scope** | Not defined in original | ✅ 4 SMTP credential configs | New batch for plain text credentials |
-| **Total Configs** | 156 identified in audit | ✅ 22 in Phase 4 (18 + 4) | Remaining 134 in future phases |
-| **Completion Timeline** | 2-3 hours original Batch 1 | ✅ 1-1.5 hours both batches | Faster without encryption complexity |
+| Aspect                   | Original Plan                          | Revised Plan                       | Reason                               |
+| ------------------------ | -------------------------------------- | ---------------------------------- | ------------------------------------ |
+| **Database Credentials** | Store env var NAMES in ConfigService   | ❌ EXCLUDED from ConfigService     | Won't work in UAT/PROD (no env vars) |
+| **Encryption**           | Implement pgcrypto + encrypted columns | ⏭️ DEFERRED to Sprint 9+           | Timeline constraints (30-40 hours)   |
+| **Credential Storage**   | Encrypted storage from start           | ✅ Plain text with risk acceptance | Accepted risk with mitigations       |
+| **Batch 1 Scope**        | 12 database credential configs         | ✅ 18 non-credential configs       | Revised to exclude all credentials   |
+| **Batch 2 Scope**        | Not defined in original                | ✅ 4 SMTP credential configs       | New batch for plain text credentials |
+| **Total Configs**        | 156 identified in audit                | ✅ 22 in Phase 4 (18 + 4)          | Remaining 134 in future phases       |
+| **Completion Timeline**  | 2-3 hours original Batch 1             | ✅ 1-1.5 hours both batches        | Faster without encryption complexity |
 
 ---
 

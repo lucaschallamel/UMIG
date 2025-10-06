@@ -18,12 +18,14 @@ apis/
 ## Test Scope
 
 ### API Validation
+
 - **Endpoint responses** - HTTP status codes and data formats
 - **Contract maintenance** - API version compatibility
 - **Authentication** - User authentication and authorization
 - **Response formats** - Data model consistency
 
 ### Key Patterns
+
 - **CustomEndpointDelegate** - All REST endpoints use @BaseScript annotation
 - **DatabaseUtil.withSql** - Safe database access with lifecycle management
 - **Type safety** - Explicit casting with 'as' keyword
@@ -59,6 +61,7 @@ plans(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
 ```
 
 **Key Requirements**:
+
 - `@BaseScript CustomEndpointDelegate delegate` annotation
 - Method named after resource (e.g., `plans`, `teams`)
 - Accepts `httpMethod`, `request`, `binding` arguments
@@ -92,6 +95,7 @@ def findAllTeams() {
 ```
 
 **Why**:
+
 - **Safe**: Prevents connection leaks
 - **IDE-Friendly**: Resolves static analysis warnings
 - **Correct**: Officially recommended by Adaptavist

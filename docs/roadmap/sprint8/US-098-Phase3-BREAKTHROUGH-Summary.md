@@ -61,13 +61,13 @@ This represents a **MAJOR MILESTONE** for US-098, with the complete test suite v
 
 **Purpose**: Validate ConfigurationService integration with SystemConfigurationRepository and database
 
-| Category                   | Tests | Status    | Key Validations                         |
-| -------------------------- | ----- | --------- | --------------------------------------- |
-| Repository Integration     | 5     | ✅ PASS   | Data retrieval, lazy initialization     |
-| FK Relationships           | 6     | ✅ PASS   | env_id resolution, type safety          |
-| Performance Benchmarking   | 4     | ✅ PASS   | Cache targets <50ms, >3× speedup        |
-| Cache Efficiency           | 5     | ✅ PASS   | TTL expiration, thread safety, hit rate |
-| Database Unavailability    | 3     | ✅ PASS   | Graceful degradation, cache durability  |
+| Category                 | Tests | Status  | Key Validations                         |
+| ------------------------ | ----- | ------- | --------------------------------------- |
+| Repository Integration   | 5     | ✅ PASS | Data retrieval, lazy initialization     |
+| FK Relationships         | 6     | ✅ PASS | env_id resolution, type safety          |
+| Performance Benchmarking | 4     | ✅ PASS | Cache targets <50ms, >3× speedup        |
+| Cache Efficiency         | 5     | ✅ PASS | TTL expiration, thread safety, hit rate |
+| Database Unavailability  | 3     | ✅ PASS | Graceful degradation, cache durability  |
 
 **File**: `ConfigurationServiceIntegrationTest.groovy` (1,053 lines)
 
@@ -75,12 +75,12 @@ This represents a **MAJOR MILESTONE** for US-098, with the complete test suite v
 
 **Purpose**: Validate security classification, sensitive data protection, and audit logging
 
-| Category                    | Tests | Status    | Key Validations                          |
-| --------------------------- | ----- | --------- | ---------------------------------------- |
-| Security Classification     | 5     | ✅ PASS   | 3-level system, DDL enforcement          |
-| Sensitive Data Protection   | 6     | ✅ PASS   | Masking, classification-based protection |
-| Audit Logging               | 7     | ✅ PASS   | Event tracking, <5ms overhead            |
-| Pattern Matching            | 4     | ✅ PASS   | Auto-classification, edge cases          |
+| Category                  | Tests | Status  | Key Validations                          |
+| ------------------------- | ----- | ------- | ---------------------------------------- |
+| Security Classification   | 5     | ✅ PASS | 3-level system, DDL enforcement          |
+| Sensitive Data Protection | 6     | ✅ PASS | Masking, classification-based protection |
+| Audit Logging             | 7     | ✅ PASS | Event tracking, <5ms overhead            |
+| Pattern Matching          | 4     | ✅ PASS | Auto-classification, edge cases          |
 
 **File**: `ConfigurationServiceSecurityTest.groovy` (945 lines)
 
@@ -88,12 +88,12 @@ This represents a **MAJOR MILESTONE** for US-098, with the complete test suite v
 
 **Purpose**: Validate core ConfigurationService functionality with mocked dependencies
 
-| Category                     | Tests | Status    | Key Validations                      |
-| ---------------------------- | ----- | --------- | ------------------------------------ |
-| Environment Detection        | 3     | ✅ PASS   | System property, fallback, resolution |
-| Configuration Retrieval      | 5     | ✅ PASS   | Type-safe accessors, fallback chain   |
-| Cache Management             | 4     | ✅ PASS   | Clear, refresh, stats, expiration     |
-| Type Safety & Error Handling | 5     | ✅ PASS   | Null handling, invalid values         |
+| Category                     | Tests | Status  | Key Validations                       |
+| ---------------------------- | ----- | ------- | ------------------------------------- |
+| Environment Detection        | 3     | ✅ PASS | System property, fallback, resolution |
+| Configuration Retrieval      | 5     | ✅ PASS | Type-safe accessors, fallback chain   |
+| Cache Management             | 4     | ✅ PASS | Clear, refresh, stats, expiration     |
+| Type Safety & Error Handling | 5     | ✅ PASS | Null handling, invalid values         |
 
 **File**: `ConfigurationServiceTest.groovy` (727 lines)
 
@@ -129,10 +129,11 @@ void testMethodName() {
 **Impact**: Fixed 21/22 failing security tests
 
 **Methods Fixed**:
-- testSecurityClassification_* (5 methods)
-- testSensitiveDataProtection_* (6 methods)
-- testAuditLogging_* (7 methods, except one with different issue)
-- testPatternMatching_* (3 methods, 4th already passing)
+
+- testSecurityClassification\_\* (5 methods)
+- testSensitiveDataProtection\_\* (6 methods)
+- testAuditLogging\_\* (7 methods, except one with different issue)
+- testPatternMatching\_\* (3 methods, 4th already passing)
 
 **Lines Modified**: 280-945 (21 test methods in ConfigurationServiceSecurityTest.groovy)
 
@@ -176,14 +177,14 @@ assert auditMessage.contains('smtp.port'.substring(sectionPrefix.length()))     
 
 ## ADR Compliance Matrix
 
-| ADR     | Title                  | Compliance Status  | Evidence                                                    |
-| ------- | ---------------------- | ------------------ | ----------------------------------------------------------- |
+| ADR     | Title                  | Compliance Status  | Evidence                                                   |
+| ------- | ---------------------- | ------------------ | ---------------------------------------------------------- |
 | ADR-031 | Type Safety            | ✅ Full Compliance | Explicit casting in all 22 security tests + fix validation |
-| ADR-036 | Repository Pattern     | ✅ Full Compliance | All data access via SystemConfigurationRepository           |
-| ADR-042 | Audit Logging          | ✅ Full Compliance | 7 audit tests, <5ms overhead confirmed                      |
-| ADR-043 | FK Compliance          | ✅ Full Compliance | INTEGER env_id with proper resolution and validation        |
-| ADR-059 | Schema Authority       | ✅ Full Compliance | Test fixes adapted to schema, no schema modifications       |
-| ADR-036 | Self-Contained Testing | ✅ Full Compliance | Environment config pattern preserves test isolation         |
+| ADR-036 | Repository Pattern     | ✅ Full Compliance | All data access via SystemConfigurationRepository          |
+| ADR-042 | Audit Logging          | ✅ Full Compliance | 7 audit tests, <5ms overhead confirmed                     |
+| ADR-043 | FK Compliance          | ✅ Full Compliance | INTEGER env_id with proper resolution and validation       |
+| ADR-059 | Schema Authority       | ✅ Full Compliance | Test fixes adapted to schema, no schema modifications      |
+| ADR-036 | Self-Contained Testing | ✅ Full Compliance | Environment config pattern preserves test isolation        |
 
 ---
 
@@ -202,16 +203,19 @@ enum SecurityClassification {
 ### Automatic Classification Patterns
 
 **CONFIDENTIAL** (passwords, secrets, tokens):
+
 - Patterns: `*password*`, `*secret*`, `*token*`, `*api_key*`, `*private_key*`
 - Example: `smtp.password`, `oauth.client_secret`
 - Masking: Full redaction → `[REDACTED]`
 
 **INTERNAL** (URLs, timeouts, batch sizes):
+
 - Patterns: `*url*`, `*timeout*`, `*batch*`, `*limit*`
 - Example: `app.base_url`, `query.timeout_ms`
 - Masking: Partial → `https://***`
 
 **PUBLIC** (feature flags, display settings):
+
 - Default classification for non-matching patterns
 - Example: `ui.theme`, `feature.dark_mode_enabled`
 - Masking: None (safe to log)
@@ -295,21 +299,21 @@ static void logAuditEvent(AuditEvent event) {
 
 ### Cache Performance (Validated in Tests)
 
-| Metric            | Target        | Achieved   | Status  | Test                                 |
-| ----------------- | ------------- | ---------- | ------- | ------------------------------------ |
-| Cached Access     | <50ms         | 10-30ms    | ✅ PASS | testPerformance_CachedAccessTarget   |
-| Uncached Access   | <200ms        | 100-150ms  | ✅ PASS | testPerformance_UncachedAccessTarget |
-| Cache Speedup     | ≥3×           | 5-10×      | ✅ PASS | testPerformance_CacheSpeedup         |
-| env_id Resolution | <100ms for 5  | 50-80ms    | ✅ PASS | testPerformance_EnvironmentIdResolution |
-| Cache Hit Ratio   | >85%          | 90-95%     | ✅ PASS | testCacheEfficiency_HitRatioTarget   |
+| Metric            | Target       | Achieved  | Status  | Test                                    |
+| ----------------- | ------------ | --------- | ------- | --------------------------------------- |
+| Cached Access     | <50ms        | 10-30ms   | ✅ PASS | testPerformance_CachedAccessTarget      |
+| Uncached Access   | <200ms       | 100-150ms | ✅ PASS | testPerformance_UncachedAccessTarget    |
+| Cache Speedup     | ≥3×          | 5-10×     | ✅ PASS | testPerformance_CacheSpeedup            |
+| env_id Resolution | <100ms for 5 | 50-80ms   | ✅ PASS | testPerformance_EnvironmentIdResolution |
+| Cache Hit Ratio   | >85%         | 90-95%    | ✅ PASS | testCacheEfficiency_HitRatioTarget      |
 
 ### Audit Performance (New in Phase 3)
 
-| Metric                  | Target | Achieved | Status  | Test                                  |
-| ----------------------- | ------ | -------- | ------- | ------------------------------------- |
-| Audit Overhead          | <5ms   | 1-3ms    | ✅ PASS | testAuditLogging_PerformanceOverhead  |
-| Asynchronous Processing | Yes    | Yes      | ✅ PASS | Validated in implementation           |
-| Queue Depth             | <1000  | ~10-50   | ✅ PASS | Measured during test execution        |
+| Metric                  | Target | Achieved | Status  | Test                                 |
+| ----------------------- | ------ | -------- | ------- | ------------------------------------ |
+| Audit Overhead          | <5ms   | 1-3ms    | ✅ PASS | testAuditLogging_PerformanceOverhead |
+| Asynchronous Processing | Yes    | Yes      | ✅ PASS | Validated in implementation          |
+| Queue Depth             | <1000  | ~10-50   | ✅ PASS | Measured during test execution       |
 
 ### Thread Safety (Validated)
 
@@ -322,16 +326,16 @@ static void logAuditEvent(AuditEvent event) {
 
 ## Files Created/Modified in Phase 3
 
-| File                                       | Type     | Lines | Changes                                  |
-| ------------------------------------------ | -------- | ----- | ---------------------------------------- |
-| ConfigurationServiceSecurityTest.groovy    | Created  | 945   | Complete security test suite             |
-| ConfigurationServiceSecurityTest.groovy    | Modified | 21    | Environment config fix (21 test methods) |
-| ConfigurationServiceSecurityTest.groovy    | Modified | 5     | Test bug fix (lines 829-833)             |
-| ConfigurationService.groovy                | Enhanced | +200  | Security classification + audit logging  |
-| SecurityClassification.groovy              | Created  | 50    | Enum definition                          |
-| AuditEventType.groovy                      | Created  | 45    | Enum definition                          |
-| AuditEvent.groovy                          | Created  | 120   | Data class                               |
-| AuditLogRepository.groovy                  | Created  | 180   | Audit persistence layer                  |
+| File                                    | Type     | Lines | Changes                                  |
+| --------------------------------------- | -------- | ----- | ---------------------------------------- |
+| ConfigurationServiceSecurityTest.groovy | Created  | 945   | Complete security test suite             |
+| ConfigurationServiceSecurityTest.groovy | Modified | 21    | Environment config fix (21 test methods) |
+| ConfigurationServiceSecurityTest.groovy | Modified | 5     | Test bug fix (lines 829-833)             |
+| ConfigurationService.groovy             | Enhanced | +200  | Security classification + audit logging  |
+| SecurityClassification.groovy           | Created  | 50    | Enum definition                          |
+| AuditEventType.groovy                   | Created  | 45    | Enum definition                          |
+| AuditEvent.groovy                       | Created  | 120   | Data class                               |
+| AuditLogRepository.groovy               | Created  | 180   | Audit persistence layer                  |
 
 ---
 
@@ -490,6 +494,7 @@ groovy src/groovy/umig/tests/unit/ConfigurationServiceSecurityTest.groovy testSe
   - Feature flags: Boolean constants throughout codebase
 
 - **Migration Phase**: Replace with ConfigurationService calls
+
   ```groovy
   // Before
   String baseUrl = "http://localhost:8090"

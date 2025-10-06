@@ -68,6 +68,7 @@ tests/
 ```
 
 **NEVER use**:
+
 - `spock-core:2.3-groovy-4.0` (incompatible)
 - `javax.ws.rs:javax.ws.rs-api:2.1.1` (causes Grape hang)
 - Database hostname `postgres` (use `localhost`)
@@ -77,6 +78,7 @@ tests/
 **Essential Reference**: [`integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md)
 
 Framework compliance requirements:
+
 - **US-037 BaseIntegrationTest**: 95%+ compliance target
 - **Performance**: <500ms API, <2s complex queries, <60s large data
 - **Coverage**: 95%+ comprehensive test coverage
@@ -155,12 +157,14 @@ Run: `groovy grab-postgres-jdbc.groovy`
 ## Adding New Tests
 
 ### Unit Tests
+
 1. Use Spock 2.3-groovy-3.0 framework
 2. Mock dependencies with specific SQL validation (ADR-026)
 3. Place in appropriate `unit/` subdirectory
 4. Add to NPM test runners
 
 ### Integration Tests
+
 1. Follow US-037 BaseIntegrationTest pattern
 2. Use `localhost` for database connections
 3. Implement proper cleanup (reverse order)

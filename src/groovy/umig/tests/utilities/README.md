@@ -35,6 +35,7 @@ groovy grab-postgres-jdbc.groovy
 ## Integration
 
 Used by:
+
 - Integration test suites requiring database connectivity
 - NPM test runners for environment validation
 - Quality gate validators needing JDBC access

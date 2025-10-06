@@ -1,14 +1,101 @@
 # US-098 Phase 4: Security Risk Assessment - Plain Text Credential Storage
 
-**Date**: 2025-10-02
-**Status**: Risk Accepted (User Decision)
+**Date**: 2025-10-02 (Initial), 2025-10-06 (Architecture Update)
+**Status**: Risk Profile DRAMATICALLY IMPROVED (Architecture Pivot)
 **Branch**: `feature/sprint8-us-098-configuration-management-system`
 **Decision Authority**: Project Owner (Lucas Challamel)
 **Security Classification**: CONFIDENTIAL
 
 ---
 
-## Executive Summary
+## 🔄 ARCHITECTURE UPDATE (2025-10-06)
+
+### Critical Decision: Confluence MailServerManager Integration
+
+**APPROVED APPROACH**: Use Confluence's built-in MailServerManager API for SMTP infrastructure instead of storing credentials in ConfigurationService.
+
+### Eliminated Security Risks
+
+| Risk ID   | Original Severity | Status After Architecture Pivot                                                  |
+| --------- | ----------------- | -------------------------------------------------------------------------------- |
+| **R-001** | CRITICAL          | ✅ **ELIMINATED** - No SMTP credentials in database                              |
+| **R-002** | CRITICAL          | ✅ **ELIMINATED** - No SMTP credentials in backups                               |
+| **R-003** | HIGH              | ✅ **ELIMINATED** - No SMTP credentials in audit logs                            |
+| **R-005** | MEDIUM            | ✅ **ELIMINATED** - No SMTP credentials in migration files                       |
+| **R-006** | HIGH              | ✅ **ELIMINATED** - No SMTP credentials in git history                           |
+| **R-004** | CRITICAL          | ⚠️ **REDUCED** - Only Confluence manages SMTP credentials (lower attack surface) |
+
+### Updated Risk Profile
+
+**Previous Risk Level**: **HIGH** (5 CRITICAL risks, multiple HIGH risks)
+**Current Risk Level**: **LOW-MEDIUM** (Application behavior configs only)
+
+### Architecture Changes
+
+**REMOVED from ConfigurationService** (Batch 2 DELETED):
+
+- ❌ `email.smtp.username` (DEV, PROD) - 2 credential configs
+- ❌ `email.smtp.password` (DEV, PROD) - 2 credential configs
+- ❌ Database credentials (never migrated, handled by ScriptRunner)
+
+**REMOVED from ConfigurationService** (Batch 1 REVISED):
+
+- ❌ `email.smtp.host` (DEV, PROD) - 2 infrastructure configs
+- ❌ `email.smtp.port` (DEV, PROD) - 2 infrastructure configs
+
+**KEPT in ConfigurationService** (Application behavior only):
+
+- ✅ `email.smtp.auth.enabled` (DEV, PROD) - 2 override flags
+- ✅ `email.smtp.starttls.enabled` (DEV, PROD) - 2 override flags
+- ✅ `email.smtp.connection.timeout.ms` (DEV, PROD) - 2 timeout configs
+- ✅ `email.smtp.timeout.ms` (DEV, PROD) - 2 timeout configs
+- ✅ `confluence.base.url` (DEV, PROD) - 2 API URLs
+- ✅ `import.batch.max.size` (DEV, PROD) - 2 business logic configs
+- ✅ `api.pagination.default.size` (DEV, PROD) - 2 business logic configs
+
+**Total Configurations**: 14 (was 22 before pivot, 36% reduction)
+
+### Security Benefits
+
+1. **Zero Credential Storage**: No SMTP credentials in UMIG database
+2. **Platform Security**: Confluence manages credentials with built-in encryption
+3. **Reduced Attack Surface**: 5 fewer sensitive configuration types
+4. **Compliance Improvement**: Dramatic reduction in audit scope
+5. **Simplified Security**: No custom encryption/key management needed
+
+### New Dependency Risk
+
+**NEW RISK: R-007 - Confluence SMTP Dependency**
+
+**Description**: UMIG depends on Confluence's SMTP configuration being present and correct.
+
+**Likelihood**: LOW (Confluence SMTP is standard enterprise configuration)
+**Impact**: MEDIUM (Email functionality unavailable if not configured)
+**Overall Risk**: **LOW-MEDIUM**
+
+**Mitigations**:
+
+- Document SMTP prerequisite in deployment guide
+- Add SMTP availability health check to system monitoring
+- Provide clear error messages if SMTP not configured
+- ConfigurationService override flags allow environment-specific customisation
+
+### Implementation Guide
+
+**Reference**: `/docs/technical/Confluence-SMTP-Integration-Guide.md`
+
+**Key Integration Points**:
+
+1. Use `MailServerManager.getDefaultSMTPMailServer()` for SMTP access
+2. Apply ConfigurationService overrides for application behavior (auth, TLS, timeouts)
+3. Leverage Confluence's secure credential management
+4. Health check integration for SMTP availability monitoring
+
+---
+
+## Executive Summary (Original Assessment - 2025-10-02)
+
+**NOTE**: The following assessment was based on the original architecture before the Confluence MailServerManager pivot. Many risks have been eliminated by the architecture change documented above.
 
 ### Decision Made
 
@@ -19,6 +106,7 @@
 **Architecture Constraint**: UAT/PROD environments use ScriptRunner's pre-configured resource pool for database access, making environment variable approach incompatible with deployment model.
 
 **Complexity Trade-off**: Adding encryption at this stage introduces:
+
 - PostgreSQL pgcrypto extension installation requirement
 - Schema changes (new encrypted columns)
 - Key management infrastructure
@@ -34,14 +122,14 @@
 
 ### Identified Risks
 
-| Risk ID | Risk Description | Likelihood | Impact | Severity | Mitigation Status |
-|---------|------------------|------------|--------|----------|-------------------|
-| **R-001** | Credentials visible to DB users with SELECT access | HIGH | HIGH | **CRITICAL** | Partial (RLS policies) |
-| **R-002** | Credentials exposed in database backups | HIGH | HIGH | **CRITICAL** | None |
-| **R-003** | Credentials visible in audit logs (even if sanitized) | MEDIUM | HIGH | **HIGH** | Implemented (sanitization) |
-| **R-004** | Credentials exposed if database compromised | MEDIUM | CRITICAL | **CRITICAL** | Partial (network isolation) |
-| **R-005** | Credentials in Liquibase migration files | LOW | MEDIUM | **MEDIUM** | Mitigated (placeholder values) |
-| **R-006** | Credentials in git history (if real values committed) | LOW | CRITICAL | **HIGH** | Prevention (code review) |
+| Risk ID   | Risk Description                                      | Likelihood | Impact   | Severity     | Mitigation Status              |
+| --------- | ----------------------------------------------------- | ---------- | -------- | ------------ | ------------------------------ |
+| **R-001** | Credentials visible to DB users with SELECT access    | HIGH       | HIGH     | **CRITICAL** | Partial (RLS policies)         |
+| **R-002** | Credentials exposed in database backups               | HIGH       | HIGH     | **CRITICAL** | None                           |
+| **R-003** | Credentials visible in audit logs (even if sanitized) | MEDIUM     | HIGH     | **HIGH**     | Implemented (sanitization)     |
+| **R-004** | Credentials exposed if database compromised           | MEDIUM     | CRITICAL | **CRITICAL** | Partial (network isolation)    |
+| **R-005** | Credentials in Liquibase migration files              | LOW        | MEDIUM   | **MEDIUM**   | Mitigated (placeholder values) |
+| **R-006** | Credentials in git history (if real values committed) | LOW        | CRITICAL | **HIGH**     | Prevention (code review)       |
 
 ### Risk Scoring Legend
 
@@ -58,17 +146,20 @@
 **Description**: Any database user with SELECT privilege on `system_configuration_scf` table can read plain text credentials.
 
 **Current Exposure**:
+
 - SMTP passwords (2 configs: DEV, PROD)
 - SMTP usernames (2 configs: DEV, PROD)
 - Future API tokens (when added)
 
 **Impact if Exploited**:
+
 - Unauthorized email sending from company SMTP server
 - Email spoofing attacks
 - Resource consumption (SMTP server abuse)
 - Reputational damage
 
 **Current Mitigations**:
+
 1. **Database Access Control**:
    - Only `umig_app_user` has SELECT access to `system_configuration_scf`
    - Application-level RLS policies restrict access by environment
@@ -95,16 +186,19 @@
 **Description**: Database backups (pg_dump, automated backups) contain plain text credentials.
 
 **Current Exposure**:
+
 - Full database dumps include `system_configuration_scf` table
 - Point-in-time recovery snapshots contain credentials
 - Backup files stored on backup servers/cloud storage
 
 **Impact if Exploited**:
+
 - Backup files stolen → credentials compromised
 - Backup restoration in non-production environments → credential leakage
 - Long retention periods → extended exposure window
 
 **Current Mitigations**:
+
 1. **Backup Security**:
    - Backup files encrypted at rest (if backup solution supports it)
    - Access to backup storage restricted to DBAs only
@@ -126,16 +220,19 @@
 **Description**: Even with sanitization (`***REDACTED***`), credentials exist in database and could theoretically be accessed.
 
 **Current Exposure**:
+
 - `scf_value` column contains plain text password
 - Audit log shows `***REDACTED***` for password configs
 - Audit log shows partial masking for usernames (e.g., `smt*****com`)
 
 **Impact if Exploited**:
+
 - Audit log analysis could reveal credential change patterns
 - Timing attacks possible (correlate config updates with system behavior)
 - Minimal direct credential exposure (sanitization works)
 
 **Current Mitigations**:
+
 1. **Audit Log Sanitization** (ADR-058 Phase 3):
    - Passwords: Complete redaction (`***REDACTED***`)
    - Usernames: 20% visible at start/end (e.g., `smt*****com`)
@@ -157,17 +254,20 @@
 **Description**: If database server is compromised, all credentials are immediately exposed.
 
 **Current Exposure**:
+
 - Total exposure: All credentials in `system_configuration_scf` readable
 - No defense-in-depth (no encryption layer)
 - Attacker has complete access
 
 **Impact if Exploited**:
+
 - CATASTROPHIC: All application secrets compromised
 - SMTP credentials → email server abuse
 - API tokens → external service compromise
 - Database credentials → data breach (if stored in future)
 
 **Current Mitigations**:
+
 1. **Database Hardening**:
    - PostgreSQL security best practices applied
    - Regular security patches and updates
@@ -194,15 +294,18 @@
 **Description**: Liquibase migrations contain INSERT statements with credential values.
 
 **Current Exposure**:
+
 - `036_us098_phase4_batch2_credentials_plaintext.sql` contains placeholder credentials
 - Placeholder values clearly marked: `REPLACE_WITH_REAL_SMTP_PASSWORD`
 - Real credentials should NEVER be committed to git repository
 
 **Impact if Exploited**:
+
 - If real credentials committed: CRITICAL exposure (git history immutable)
 - Placeholder values committed: LOW impact (non-functional credentials)
 
 **Current Mitigations**:
+
 1. **Placeholder Strategy**:
    - Migration files use obvious placeholders (`REPLACE_WITH_*`)
    - Real credentials set via UPDATE statements in deployment scripts
@@ -229,15 +332,18 @@
 **Description**: If real credentials are accidentally committed, they remain in git history forever.
 
 **Current Exposure**:
+
 - Git history immutable → credentials cannot be fully removed
 - Public repository → credentials exposed to world
 - Private repository → credentials exposed to team members
 
 **Impact if Exploited**:
+
 - If repository public: CRITICAL (credentials immediately compromised)
 - If repository private: HIGH (credentials exposed to team, contractors, etc.)
 
 **Current Mitigations**:
+
 1. **Prevention**:
    - `.gitignore` configured to exclude `.env` files
    - Pre-commit hooks to detect credential patterns
@@ -263,18 +369,18 @@
 
 ### Current Scope (Batch 2)
 
-| Credential Type | Config Key | Environments | Sensitivity | Audit Log Treatment |
-|-----------------|------------|--------------|-------------|---------------------|
-| SMTP Password | `email.smtp.password` | DEV, PROD | CRITICAL | `***REDACTED***` |
-| SMTP Username | `email.smtp.username` | DEV, PROD | HIGH | Partial masking (20%) |
+| Credential Type | Config Key            | Environments | Sensitivity | Audit Log Treatment   |
+| --------------- | --------------------- | ------------ | ----------- | --------------------- |
+| SMTP Password   | `email.smtp.password` | DEV, PROD    | CRITICAL    | `***REDACTED***`      |
+| SMTP Username   | `email.smtp.username` | DEV, PROD    | HIGH        | Partial masking (20%) |
 
 ### Future Scope (Potential)
 
-| Credential Type | Config Key | Estimated Timeline | Sensitivity |
-|-----------------|------------|-------------------|-------------|
-| API Auth Tokens | `api.auth.token` | Sprint 10+ | CRITICAL |
-| Webhook Secrets | `webhook.signing.secret` | Sprint 10+ | HIGH |
-| External Service Keys | `external.service.api.key` | Future | HIGH |
+| Credential Type       | Config Key                 | Estimated Timeline | Sensitivity |
+| --------------------- | -------------------------- | ------------------ | ----------- |
+| API Auth Tokens       | `api.auth.token`           | Sprint 10+         | CRITICAL    |
+| Webhook Secrets       | `webhook.signing.secret`   | Sprint 10+         | HIGH        |
+| External Service Keys | `external.service.api.key` | Future             | HIGH        |
 
 **Total Credentials**: 2 types currently, potentially 5+ types in future
 
@@ -354,6 +460,7 @@
 ### Plain Text Storage (Current Approach)
 
 **Advantages**:
+
 - ✅ Simple implementation (no additional infrastructure)
 - ✅ Fast development timeline (no encryption complexity)
 - ✅ No key management required
@@ -361,6 +468,7 @@
 - ✅ Upgrade path available (security category classification)
 
 **Disadvantages**:
+
 - ❌ Credentials visible to database users
 - ❌ Credentials exposed in backups
 - ❌ No defense-in-depth
@@ -374,6 +482,7 @@
 ### Encrypted Storage (Future Enhancement)
 
 **Advantages**:
+
 - ✅ Credentials protected at rest
 - ✅ Defense-in-depth security layer
 - ✅ Compliance-friendly (meets many regulatory requirements)
@@ -381,6 +490,7 @@
 - ✅ Industry best practice
 
 **Disadvantages**:
+
 - ❌ Complex implementation (30-40 hours estimated)
 - ❌ Key management infrastructure required
 - ❌ Performance overhead (encryption/decryption)
@@ -390,6 +500,7 @@
 **Estimated Effort**: 30-40 hours (Sprint 9+)
 
 **Components Needed**:
+
 1. PostgreSQL pgcrypto extension installation (2 hours)
 2. Schema changes (new encrypted columns) (4 hours)
 3. Key management implementation (8-12 hours)
@@ -406,6 +517,7 @@
 #### Pre-Deployment (UAT/PROD)
 
 - [ ] **Replace Placeholder Credentials**:
+
   ```sql
   UPDATE system_configuration_scf
   SET scf_value = 'REAL_SMTP_PASSWORD',
@@ -417,6 +529,7 @@
   ```
 
 - [ ] **Verify No Placeholders Remain**:
+
   ```sql
   SELECT scf_key, scf_value
   FROM system_configuration_scf
@@ -557,18 +670,18 @@ Re-evaluate this risk acceptance if ANY of the following occur:
 
 ### Current Credentials (Batch 2)
 
-| Credential | Config Key | Location | Access Method | Rotation Frequency |
-|------------|------------|----------|---------------|-------------------|
-| SMTP Password | `email.smtp.password` | system_configuration_scf | ConfigurationService.getString() | Quarterly |
-| SMTP Username | `email.smtp.username` | system_configuration_scf | ConfigurationService.getString() | As needed |
+| Credential    | Config Key            | Location                 | Access Method                    | Rotation Frequency |
+| ------------- | --------------------- | ------------------------ | -------------------------------- | ------------------ |
+| SMTP Password | `email.smtp.password` | system_configuration_scf | ConfigurationService.getString() | Quarterly          |
+| SMTP Username | `email.smtp.username` | system_configuration_scf | ConfigurationService.getString() | As needed          |
 
 ### Future Credentials (Potential)
 
-| Credential | Estimated Sprint | Sensitivity | Storage Location |
-|------------|-----------------|-------------|------------------|
-| API Auth Tokens | Sprint 10+ | CRITICAL | To be determined |
-| Webhook Secrets | Sprint 10+ | HIGH | To be determined |
-| External Service Keys | Future | HIGH | To be determined |
+| Credential            | Estimated Sprint | Sensitivity | Storage Location |
+| --------------------- | ---------------- | ----------- | ---------------- |
+| API Auth Tokens       | Sprint 10+       | CRITICAL    | To be determined |
+| Webhook Secrets       | Sprint 10+       | HIGH        | To be determined |
+| External Service Keys | Future           | HIGH        | To be determined |
 
 ---
 
@@ -579,6 +692,7 @@ Re-evaluate this risk acceptance if ANY of the following occur:
 **Goal**: Set up encryption infrastructure
 
 **Tasks**:
+
 1. Install PostgreSQL pgcrypto extension
 2. Add `scf_encrypted_value` column to `system_configuration_scf` table
 3. Implement key management (choose solution: Vault, AWS, Azure)
@@ -593,6 +707,7 @@ Re-evaluate this risk acceptance if ANY of the following occur:
 **Goal**: Migrate existing credentials to encrypted storage
 
 **Tasks**:
+
 1. Create migration script (plain text → encrypted)
 2. Test migration in DEV environment
 3. Validate encryption/decryption working correctly
@@ -607,6 +722,7 @@ Re-evaluate this risk acceptance if ANY of the following occur:
 **Goal**: Ensure encrypted storage working correctly
 
 **Tasks**:
+
 1. Comprehensive testing of encrypted configs
 2. Performance testing (encryption overhead acceptable)
 3. Key rotation testing
@@ -621,6 +737,7 @@ Re-evaluate this risk acceptance if ANY of the following occur:
 **Goal**: Roll out to UAT/PROD environments
 
 **Tasks**:
+
 1. Deploy encrypted storage to UAT
 2. UAT testing and validation
 3. Production deployment with rollback plan

@@ -14,6 +14,7 @@ security/
 ## Test Coverage
 
 ### Attack Pattern Categories
+
 - **SQL Injection** (7 patterns) - Database query injection prevention
 - **XSS Prevention** (9 patterns) - Cross-site scripting blocking
 - **Command Injection** (7 patterns) - System command prevention
@@ -22,6 +23,7 @@ security/
 - **Performance/Size** (13 patterns) - Resource exhaustion validation
 
 ### Performance Requirements
+
 - <2ms security overhead per validation
 - Measured execution time tracking
 - All patterns validated without performance degradation
@@ -42,12 +44,15 @@ groovy EmailTemplateSecurityTest.groovy
 ## Architecture
 
 ### EmailService Integration
+
 Tests Phase 1 security implementation:
+
 - `validateTemplateExpression(String templateText)` - Block dangerous patterns
 - `validateContentSize(Map variables, String templateText)` - Size validation
 - `processNotificationTemplate(...)` - Integrated security checks
 
 ### Test Infrastructure
+
 - **BaseSecurityTest pattern** - Reusable attack pattern library
 - **Mock pattern** - DatabaseUtil.withSql with MockSql
 - **Error handling** - SecurityException for blocked patterns
@@ -64,6 +69,7 @@ Tests Phase 1 security implementation:
 ```
 
 ## Coverage Metrics
+
 - SQL Injection: 7/7 patterns blocked
 - XSS Prevention: 9/9 patterns blocked
 - Command Injection: 7/7 patterns blocked

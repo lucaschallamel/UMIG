@@ -18,6 +18,7 @@ The security test suite is FAILING due to incomplete application of the environm
 ## Test Execution Evidence
 
 ### Observed Failure
+
 ```bash
 Caught: java.lang.AssertionError: First retrieval should be 'cache_test_value' but got 'null'.
 Expression: (firstRetrieval == testValue). Values: firstRetrieval = null, testValue = cache_test_value
@@ -25,6 +26,7 @@ Expression: (firstRetrieval == testValue). Values: firstRetrieval = null, testVa
 ```
 
 ### Root Cause Analysis
+
 - **Problem**: Tests create configs in DEV environment but ConfigurationService defaults to PROD
 - **Manifestation**: `ConfigurationService.getString()` returns `null` because it looks in PROD, not DEV
 - **Solution Applied**: Only 1 of 16 affected tests has the environment property fix
@@ -36,30 +38,16 @@ Expression: (firstRetrieval == testValue). Values: firstRetrieval = null, testVa
 ### Tests Requiring Environment Fix
 
 #### ✅ Already Fixed (1/16)
+
 1. **testAuditLogging_ConfigurationAccess** (line 568) - ✅ Has System.setProperty wrapper
 
 #### ❌ Needs Fix (15/16)
 
-**Category 1: Sensitive Data Protection Tests (6 tests)**
-2. **testSensitiveDataProtection_PasswordNotLogged** (line 309)
-3. **testSensitiveDataProtection_TokenNotLogged** (line 350)
-4. **testSensitiveDataProtection_KeyNotLogged** (line 391)
-5. **testSensitiveDataProtection_InternalPartialMask** (line 440)
-6. **testSensitiveDataProtection_PublicFullValue** (line 481)
-7. **testSensitiveDataProtection_NullHandling** (line 505)
+**Category 1: Sensitive Data Protection Tests (6 tests)** 2. **testSensitiveDataProtection_PasswordNotLogged** (line 309) 3. **testSensitiveDataProtection_TokenNotLogged** (line 350) 4. **testSensitiveDataProtection_KeyNotLogged** (line 391) 5. **testSensitiveDataProtection_InternalPartialMask** (line 440) 6. **testSensitiveDataProtection_PublicFullValue** (line 481) 7. **testSensitiveDataProtection_NullHandling** (line 505)
 
-**Category 2: Audit Logging Tests (5 tests)**
-8. **testAuditLogging_CacheHit** (lines 630, 655) - ⚠️ **FAILING TEST**
-9. **testAuditLogging_DatabaseRetrieval** (line 709)
-10. **testAuditLogging_SectionRetrieval** (line 826)
-11. **testAuditLogging_FailedAccess** (lines 856, 862)
-12. **testAuditLogging_UsernameCapture** (line 895)
+**Category 2: Audit Logging Tests (5 tests)** 8. **testAuditLogging_CacheHit** (lines 630, 655) - ⚠️ **FAILING TEST** 9. **testAuditLogging_DatabaseRetrieval** (line 709) 10. **testAuditLogging_SectionRetrieval** (line 826) 11. **testAuditLogging_FailedAccess** (lines 856, 862) 12. **testAuditLogging_UsernameCapture** (line 895)
 
-**Category 3: Advanced Tests (4 tests)**
-13. **testAuditLogging_TimestampRecording** (line 971)
-14. **testPatternMatching_CaseInsensitive** (multiple calls)
-15. **testPatternMatching_NestedKeys** (multiple calls)
-16. **testPatternMatching_EdgeCases** (multiple calls)
+**Category 3: Advanced Tests (4 tests)** 13. **testAuditLogging_TimestampRecording** (line 971) 14. **testPatternMatching_CaseInsensitive** (multiple calls) 15. **testPatternMatching_NestedKeys** (multiple calls) 16. **testPatternMatching_EdgeCases** (multiple calls)
 
 ---
 
@@ -118,21 +106,23 @@ static void testMethodName() {
 
 ### Test Categories Affected
 
-| Category | Tests | Status | Priority |
-|----------|-------|--------|----------|
-| Sensitive Data Protection | 6 | ❌ All need fix | HIGH |
-| Audit Logging | 5 | ❌ All need fix | CRITICAL |
-| Advanced Pattern Matching | 4 | ❌ All need fix | MEDIUM |
-| **TOTAL** | **15** | **Incomplete** | **BLOCKING** |
+| Category                  | Tests  | Status          | Priority     |
+| ------------------------- | ------ | --------------- | ------------ |
+| Sensitive Data Protection | 6      | ❌ All need fix | HIGH         |
+| Audit Logging             | 5      | ❌ All need fix | CRITICAL     |
+| Advanced Pattern Matching | 4      | ❌ All need fix | MEDIUM       |
+| **TOTAL**                 | **15** | **Incomplete**  | **BLOCKING** |
 
 ### Risk Assessment
 
 **Severity**: 🔴 **CRITICAL**
+
 - Tests are producing FALSE NEGATIVES (passing incorrectly due to null values)
 - Security validation is INCOMPLETE without environment fix
 - Phase 3 cannot progress until security tests pass
 
 **Blast Radius**: 🔴 **HIGH**
+
 - 15 of 22 security tests affected (68%)
 - All tests that verify ConfigurationService behavior are broken
 - Core security validation compromised
@@ -144,14 +134,17 @@ static void testMethodName() {
 ### Phase 1: Apply Environment Fix (Estimated: 30 minutes)
 
 **Step 1**: Apply fix to Sensitive Data Protection tests (6 tests)
+
 - Lines: 283-520
 - Pattern: Wrap all getString() calls in System.setProperty block
 
 **Step 2**: Apply fix to Audit Logging tests (5 tests)
+
 - Lines: 611-1000
 - Pattern: Same as Step 1
 
 **Step 3**: Apply fix to Pattern Matching tests (4 tests)
+
 - Lines: 1036-1250
 - Pattern: Same as Step 1
 
@@ -174,18 +167,21 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 ## Quality Gates
 
 ### Pre-Fix Checklist
+
 - [x] Root cause identified (environment configuration)
 - [x] Fix pattern validated (integration tests: 23/23 passing)
 - [x] All affected tests identified (15 tests)
 - [x] Implementation plan created
 
 ### Post-Fix Validation Criteria
+
 - [ ] All 22 security tests passing
 - [ ] No test failures or assertion errors
 - [ ] Performance within expected range (<3 minutes)
 - [ ] Environment property cleanup verified (no side effects)
 
 ### Phase 3 Completion Criteria
+
 - [ ] Integration tests: 23/23 ✅
 - [ ] Security tests: 22/22 ⏳
 - [ ] Unit tests: 17/17 ⏳
@@ -196,12 +192,14 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 ## Technical Debt Assessment
 
 ### Good Practices Maintained ✅
+
 - ✅ Root cause analysis completed (no workarounds)
 - ✅ Fix pattern proven on integration tests
 - ✅ ADR-036 compliance (self-contained tests)
 - ✅ Comprehensive test coverage maintained
 
 ### Areas for Improvement 🔄
+
 - 🔄 Environment property management could be centralized in BaseSecurityTest
 - 🔄 Consider adding @BeforeMethod/@AfterMethod for property management
 - 🔄 Document environment configuration requirements in test documentation
@@ -211,11 +209,13 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 ## Lessons Learned
 
 ### What Worked ✅
+
 1. **Systematic Debugging**: GString fix → Race condition fix → Environment fix progression
 2. **Evidence-Based Testing**: Integration tests validated the environment fix pattern
 3. **Comprehensive Analysis**: Identified ALL affected tests, not just failing ones
 
 ### What Could Be Improved 🔄
+
 1. **Pattern Application**: Should have applied environment fix to ALL security tests simultaneously
 2. **Test Review**: More thorough review of similar patterns across test suite
 3. **Documentation**: Environment requirements should be documented in test base classes
@@ -225,12 +225,14 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 ## Next Actions
 
 ### Immediate (BLOCKING - 45 minutes)
+
 1. ⚠️ **Apply environment fix to 15 remaining tests**
    - Priority: Audit Logging tests (currently failing)
    - Then: Sensitive Data Protection tests
    - Finally: Pattern Matching tests
 
 2. ⚠️ **Execute validation**
+
    ```bash
    cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSecurityTest
    ```
@@ -238,6 +240,7 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 3. ⚠️ **Verify 22/22 passing**
 
 ### After Security Tests Pass (30 minutes)
+
 4. Run ConfigurationServiceTest.groovy (17 unit tests)
 5. Verify total: 62/62 tests passing
 6. Update completion documentation
@@ -247,16 +250,19 @@ cd local-dev-setup && npm run test:groovy:integration -- ConfigurationServiceSec
 ## Confidence Assessment
 
 **Fix Correctness**: 🟢 **HIGH**
+
 - Environment fix pattern proven on integration tests (23/23 passing)
 - Root cause clearly identified and understood
 - Solution is straightforward and systematic
 
 **Implementation Risk**: 🟡 **LOW-MEDIUM**
+
 - Pattern is repetitive and mechanical
 - Risk of missing edge cases in pattern matching tests
 - Requires careful review of each test's getString() call placement
 
 **Success Probability**: 🟢 **95%**
+
 - High confidence in fix pattern
 - Clear identification of all affected tests
 - Proven validation method (npm test runner)
@@ -317,19 +323,23 @@ Line 1202: testPatternMatching_EdgeCases ← NEEDS FIX (no getString)
 ### C. Special Cases
 
 **testAuditLogging_SectionRetrieval** (line 746):
+
 - Tests `ConfigurationService.getAllInSection()`
 - May not need environment fix if method doesn't filter by environment
 - **Action**: Apply fix and verify behavior
 
 **testAuditLogging_FailedAccess** (line 815):
+
 - Tests non-existent keys (expects null)
 - **Action**: Apply fix to ensure tests run in correct environment context
 
 **testPatternMatching_PriorityOrder** (line 1146):
+
 - No direct getString() calls visible
 - **Action**: Review test logic, may not need fix
 
 **testPatternMatching_EdgeCases** (line 1202):
+
 - No direct getString() calls visible
 - **Action**: Review test logic, may not need fix
 

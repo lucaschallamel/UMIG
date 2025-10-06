@@ -12,6 +12,7 @@ Test execution for US-098 Phase 3 Step 3 (Testing & Validation) has been **block
 **Root Cause**: Test setup attempts to insert configuration records with NULL `env_id` values because required test environments (DEV, UAT, PROD) do not exist in the database when tests execute.
 
 **Impact**:
+
 - ❌ 0/62 tests passing (0% success rate)
 - 🚨 ADR-059 violation: Code attempting to bypass schema NOT NULL constraint
 - ⏸️ Phase 3 completion blocked pending remediation
@@ -25,6 +26,7 @@ Test execution for US-098 Phase 3 Step 3 (Testing & Validation) has been **block
 **Actual**: 0 tests executed
 
 **Error Details**:
+
 ```
 java.lang.AssertionError: Retrieved value should be 'audit_test_value' but got 'null'
 Expression: (retrievedValue == testValue)
@@ -36,6 +38,7 @@ Values: retrievedValue = null, testValue = audit_test_value
 **Failed At**: Line 568 - `testAuditLogging_ConfigurationAccess()`
 
 **Test Categories Blocked**:
+
 1. **Security Classification** (5 tests) - Not executed
 2. **Sensitive Data Protection** (6 tests) - Not executed
 3. **Audit Logging** (7 tests) - Not executed
@@ -48,6 +51,7 @@ Values: retrievedValue = null, testValue = audit_test_value
 **Actual**: 0 tests executed
 
 **Error Details**:
+
 ```sql
 ERROR: null value in column "env_id" of relation "system_configuration_scf" violates not-null constraint
 Detail: Failing row contains (3ceca4f6-93e7-4062-ac3d-56a8f29e717b, null, test.integration.key, TEST, uat_value, ...)
@@ -58,6 +62,7 @@ Detail: Failing row contains (3ceca4f6-93e7-4062-ac3d-56a8f29e717b, null, test.i
 **Failed At**: Line 158 - `testRepositoryIntegration_EnvironmentSpecific()`
 
 **Test Categories Blocked**:
+
 1. **Repository Integration** (5 tests) - Not executed
 2. **Foreign Key Relationships** (6 tests) - Not executed
 3. **Performance Benchmarks** (4 tests) - Not executed
@@ -75,11 +80,13 @@ Detail: Failing row contains (3ceca4f6-93e7-4062-ac3d-56a8f29e717b, null, test.i
 ### Issue #1: NULL env_id Constraint Violations
 
 **Schema Constraint** (system_configuration_scf table):
+
 ```sql
 env_id INTEGER NOT NULL
 ```
 
 **Test Setup Code** (ConfigurationServiceIntegrationTest.groovy:968-976):
+
 ```groovy
 private static Integer resolveTestEnvironmentId(String envCode) {
     return DatabaseUtil.withSql { sql ->
@@ -93,6 +100,7 @@ private static Integer resolveTestEnvironmentId(String envCode) {
 ```
 
 **Test Configuration Creation** (Lines 981-1000):
+
 ```groovy
 private static void createTestConfiguration(
     SystemConfigurationRepository repository,
@@ -112,6 +120,7 @@ private static void createTestConfiguration(
 ```
 
 **Problem Flow**:
+
 1. Test setup calls `resolveTestEnvironmentId('DEV')`
 2. Query finds no matching environment → returns `null`
 3. `createTestConfiguration()` receives `null` for `envId`
@@ -122,15 +131,18 @@ private static void createTestConfiguration(
 ### Issue #2: Missing Test Environment Prerequisites
 
 **Expected Environments**:
+
 - `DEV` - Development environment (env_code = 'DEV')
 - `UAT` - User Acceptance Testing (env_code = 'UAT')
 - `PROD` - Production environment (env_code = 'PROD')
 
 **Actual Database State**:
+
 - Unable to verify (database not running during test execution)
 - Error indicates environments do not exist when tests run
 
 **Impact**:
+
 - Test isolation broken (tests assume specific environment IDs exist)
 - Test reliability compromised (setup depends on external state)
 - ADR-036 self-contained test principle violated
@@ -140,6 +152,7 @@ private static void createTestConfiguration(
 **ADR-059 Principle**: "Database schema is truth - fix code, not schema"
 
 **Violation Analysis**:
+
 - Schema correctly enforces NOT NULL constraint on `env_id`
 - Test code attempts to insert NULL values
 - Proper fix: Update test code to respect constraint
@@ -152,11 +165,13 @@ private static void createTestConfiguration(
 ### Database Status During Execution
 
 **Container State**: Not running
+
 ```
 Error: no container with name or ID "umig-postgres" found: no such container
 ```
 
 **Implications**:
+
 1. Integration tests require running database
 2. Test runner detected connectivity issues
 3. Tests proceeded despite database unavailability warning
@@ -171,6 +186,7 @@ Error: no container with name or ID "umig-postgres" found: no such container
 **Database Connectivity**: ❌ Failed
 
 **Test Runner Output**:
+
 ```
 🚀 Enhanced Groovy Test Runner
 =====================================
@@ -258,12 +274,14 @@ private static Integer ensureTestEnvironment(String envCode, String envName) {
 **Cleanup Enhancement**: Ensure `cleanupTestEnvironment()` removes created test environments
 
 **Advantages**:
+
 - ✅ Maintains test isolation and self-containment
 - ✅ Complies with ADR-036 (self-contained test architecture)
 - ✅ No dependency on external setup scripts or database state
 - ✅ Tests can run in any environment
 
 **Disadvantages**:
+
 - Requires additional setup/cleanup logic
 - May leave orphaned records if cleanup fails
 
@@ -292,11 +310,13 @@ private static Map<String, Integer> getAvailableTestEnvironments() {
 ```
 
 **Advantages**:
+
 - ✅ Simpler implementation
 - ✅ Uses existing database state
 - ✅ No cleanup required
 
 **Disadvantages**:
+
 - ❌ Test behavior varies by environment
 - ❌ Breaks test isolation principle
 - ❌ Harder to debug failures (which environments were used?)
@@ -314,6 +334,7 @@ private static Map<String, Integer> getAvailableTestEnvironments() {
 #### 4. Execute Full Test Suite
 
 **Sequence**:
+
 1. Security tests (22 tests) - `ConfigurationServiceSecurityTest.groovy`
 2. Integration tests (23 tests) - `ConfigurationServiceIntegrationTest.groovy`
 3. Unit tests (17 tests) - `ConfigurationServiceTest.groovy`
@@ -323,6 +344,7 @@ private static Map<String, Integer> getAvailableTestEnvironments() {
 #### 5. Performance Validation
 
 **Metrics to Verify**:
+
 - Cached access: <50ms average
 - Uncached access: <200ms average
 - Cache speedup: ≥3× improvement
@@ -333,6 +355,7 @@ private static Map<String, Integer> getAvailableTestEnvironments() {
 #### 6. Documentation Updates
 
 **Required Documentation**:
+
 1. ConfigurationService JavaDoc (security features)
 2. Security Usage Guide (audit logs, compliance reporting)
 3. Phase 3 implementation summary (test results)
@@ -340,56 +363,56 @@ private static Map<String, Integer> getAvailableTestEnvironments() {
 
 ## Test Statistics Summary
 
-| Test Suite | Target | Executed | Passed | Failed | Blocked | Success Rate |
-|------------|--------|----------|--------|--------|---------|--------------|
-| Security | 22 | 0 | 0 | 0 | 22 | 0% |
-| Integration | 23 | 0 | 0 | 0 | 23 | 0% |
-| Unit | 17 | 0 | 0 | 0 | 17 | 0% |
-| **TOTAL** | **62** | **0** | **0** | **0** | **62** | **0%** |
+| Test Suite  | Target | Executed | Passed | Failed | Blocked | Success Rate |
+| ----------- | ------ | -------- | ------ | ------ | ------- | ------------ |
+| Security    | 22     | 0        | 0      | 0      | 22      | 0%           |
+| Integration | 23     | 0        | 0      | 0      | 23      | 0%           |
+| Unit        | 17     | 0        | 0      | 0      | 17      | 0%           |
+| **TOTAL**   | **62** | **0**    | **0**  | **0**  | **62**  | **0%**       |
 
 ## Compliance Analysis
 
 ### ADR Compliance Review
 
-| ADR | Requirement | Status | Notes |
-|-----|-------------|--------|-------|
-| ADR-036 | Self-contained test architecture | ❌ VIOLATED | Tests depend on external environment state |
-| ADR-059 | Database schema is truth | ⚠️ AT RISK | Test code attempts NULL insertion against NOT NULL constraint |
-| ADR-031 | Type safety with explicit casting | ✅ COMPLIANT | No type safety issues detected |
-| ADR-043 | Parameter type validation | ✅ COMPLIANT | Repository validates parameters correctly |
+| ADR     | Requirement                       | Status       | Notes                                                         |
+| ------- | --------------------------------- | ------------ | ------------------------------------------------------------- |
+| ADR-036 | Self-contained test architecture  | ❌ VIOLATED  | Tests depend on external environment state                    |
+| ADR-059 | Database schema is truth          | ⚠️ AT RISK   | Test code attempts NULL insertion against NOT NULL constraint |
+| ADR-031 | Type safety with explicit casting | ✅ COMPLIANT | No type safety issues detected                                |
+| ADR-043 | Parameter type validation         | ✅ COMPLIANT | Repository validates parameters correctly                     |
 
 ### Project Standards Compliance
 
-| Standard | Requirement | Status | Notes |
-|----------|-------------|--------|-------|
-| Database Access | Use `DatabaseUtil.withSql` pattern | ✅ COMPLIANT | All database access follows pattern |
-| Error Handling | SQL state mapping | ✅ COMPLIANT | Constraint violations properly detected |
-| Test Isolation | No external dependencies | ❌ VIOLATED | Tests require pre-existing environments |
-| Schema Authority | Fix code, not schema | ⚠️ PENDING | Remediation must fix test code |
+| Standard         | Requirement                        | Status       | Notes                                   |
+| ---------------- | ---------------------------------- | ------------ | --------------------------------------- |
+| Database Access  | Use `DatabaseUtil.withSql` pattern | ✅ COMPLIANT | All database access follows pattern     |
+| Error Handling   | SQL state mapping                  | ✅ COMPLIANT | Constraint violations properly detected |
+| Test Isolation   | No external dependencies           | ❌ VIOLATED  | Tests require pre-existing environments |
+| Schema Authority | Fix code, not schema               | ⚠️ PENDING   | Remediation must fix test code          |
 
 ## Impact Assessment
 
 ### Phase 3 Deliverables
 
-| Deliverable | Status | Impact |
-|-------------|--------|--------|
-| Security Classification | ✅ IMPLEMENTED | Code complete, testing blocked |
-| Audit Logging | ✅ IMPLEMENTED | Code complete, testing blocked |
-| Security Tests | ⚠️ BLOCKED | Tests written, setup broken |
-| Integration Tests | ⚠️ BLOCKED | Regression suite broken |
-| Performance Validation | ⏸️ PENDING | Cannot validate until tests pass |
-| Documentation | ⏸️ PENDING | Cannot document untested features |
-| Phase 3 Completion | 🚨 **BLOCKED** | Cannot proceed to Phase 4 |
+| Deliverable             | Status         | Impact                            |
+| ----------------------- | -------------- | --------------------------------- |
+| Security Classification | ✅ IMPLEMENTED | Code complete, testing blocked    |
+| Audit Logging           | ✅ IMPLEMENTED | Code complete, testing blocked    |
+| Security Tests          | ⚠️ BLOCKED     | Tests written, setup broken       |
+| Integration Tests       | ⚠️ BLOCKED     | Regression suite broken           |
+| Performance Validation  | ⏸️ PENDING     | Cannot validate until tests pass  |
+| Documentation           | ⏸️ PENDING     | Cannot document untested features |
+| Phase 3 Completion      | 🚨 **BLOCKED** | Cannot proceed to Phase 4         |
 
 ### Risk Assessment
 
-| Risk | Severity | Probability | Mitigation |
-|------|----------|-------------|------------|
-| Phase 3 delays | HIGH | 100% | Immediate remediation priority |
-| Production deployment blocked | CRITICAL | 100% | Tests must pass before release |
-| Security feature untested | HIGH | 100% | Cannot validate security claims |
-| Performance regression undetected | MEDIUM | 75% | Phase 2 benchmarks may be broken |
-| ADR violations propagate | MEDIUM | 50% | Fix serves as compliance example |
+| Risk                              | Severity | Probability | Mitigation                       |
+| --------------------------------- | -------- | ----------- | -------------------------------- |
+| Phase 3 delays                    | HIGH     | 100%        | Immediate remediation priority   |
+| Production deployment blocked     | CRITICAL | 100%        | Tests must pass before release   |
+| Security feature untested         | HIGH     | 100%        | Cannot validate security claims  |
+| Performance regression undetected | MEDIUM   | 75%         | Phase 2 benchmarks may be broken |
+| ADR violations propagate          | MEDIUM   | 50%         | Fix serves as compliance example |
 
 ## Recommendations
 
@@ -464,6 +487,7 @@ US-098 Phase 3 Step 3 (Testing & Validation) is **blocked by critical database c
 **Recommended Resolution**: Implement Option A (Create Test Environments) to ensure test isolation, ADR compliance, and reliable test execution in any environment.
 
 **Critical Success Factors**:
+
 1. Start development environment (database must be running)
 2. Fix test environment setup in both test suites
 3. Achieve 62/62 tests passing (no failures tolerated)

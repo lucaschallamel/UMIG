@@ -464,6 +464,7 @@ window.ModalComponent = ModalComponent;
 **Current Status**: Week 1 Complete (2025-10-02) | TD-014-B + US-098 + TD-017 + TD-016 COMPLETE | 22.5 of 51.5 points (44% complete)
 
 **Sprint 8 Progress Metrics**:
+
 - **Points Complete**: 22.5 of 51.5 (44% sprint progress)
 - **Velocity Required**: 2.23 points/day to complete on time
 - **Days Remaining**: 13 days (October 14, 2025 target)

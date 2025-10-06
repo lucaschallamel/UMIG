@@ -13,6 +13,7 @@ diagnostics/
 ## Test Coverage
 
 ### Database Connectivity
+
 - **PostgreSQL connection** - Verify database accessibility and health
 - **Connection parameters** - Validate credentials and configuration
 - **Query execution** - Test basic query capabilities
@@ -29,6 +30,7 @@ npm run test:diagnostics
 ```
 
 ### Pre-Test Validation
+
 - Development stack running (`npm start`)
 - PostgreSQL container healthy (`podman ps`)
 - `.env` file configured with database credentials
@@ -52,6 +54,7 @@ npm run test:diagnostics
 ## Integration
 
 Used for:
+
 - Pre-development environment checks
 - Deployment readiness validation
 - Infrastructure troubleshooting

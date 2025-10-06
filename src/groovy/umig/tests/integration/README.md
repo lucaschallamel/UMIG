@@ -33,6 +33,7 @@ integration/
 ## Framework Standards
 
 ### BaseIntegrationTest (US-037)
+
 - **95%+ compliance target** - Universal integration test infrastructure
 - **Standardized lifecycle** - Setup, execution, teardown patterns
 - **Authentication integration** - UserService with ADR-042 fallback
@@ -40,6 +41,7 @@ integration/
 - **Error handling** - SQL state mapping (23503→400, 23505→409)
 
 ### Performance Standards
+
 - **API responses**: <500ms for standard endpoints
 - **Complex queries**: <2s for 3-table joins
 - **Large data operations**: <60s for bulk processing
@@ -82,6 +84,7 @@ groovy src/groovy/umig/tests/integration/ImportServiceIntegrationTest.groovy
 **Essential Reference**: [`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./INTEGRATION_TEST_VALIDATION_STANDARDS.md)
 
 Comprehensive 200+ line framework covering:
+
 - **Framework compliance** - US-037 BaseIntegrationTest requirements (95%+ target)
 - **Performance standards** - Production-scale validation criteria
 - **Coverage requirements** - 95%+ comprehensive test coverage
@@ -107,6 +110,7 @@ def connection = createAuthenticatedConnection(url, "POST", "application/json")
 ```
 
 **Security Standards Met**:
+
 - ✅ No hard-coded credentials
 - ✅ Environment variable support
 - ✅ Credential protection in logs
@@ -116,17 +120,22 @@ def connection = createAuthenticatedConnection(url, "POST", "application/json")
 ## Test Data Management
 
 ### Hierarchical Creation
+
 Complete hierarchy for realistic testing:
+
 - Migration → Iteration → Plan → Sequence → Phase → Step → Instruction
 
 ### Cleanup Pattern
+
 Reverse order cleanup (foreign key safe):
+
 1. Instructions (instances then masters)
 2. Steps → Phases → Sequences
 3. Plans → Iterations → Migrations
 4. Supporting entities (teams, users, etc.)
 
 ### Test Isolation
+
 - 'test' user marker for test data identification
 - Independent test execution (no cross-contamination)
 - Automated cleanup after each test
@@ -134,11 +143,13 @@ Reverse order cleanup (foreign key safe):
 ## US-034 Data Import Testing
 
 ### Performance Excellence
+
 - **51ms** complex query execution (10x better than 500ms target)
 - **95%+ BaseIntegrationTest compliance** achieved
 - **Comprehensive coverage** - All import phases validated
 
 ### Import Phases Tested
+
 - CSV_TEAMS - Team data import
 - CSV_USERS - User data import
 - CSV_APPLICATIONS - Application import
@@ -146,6 +157,7 @@ Reverse order cleanup (foreign key safe):
 - JSON_STEPS - Step structure import
 
 ### Database Validation
+
 - Direct PostgreSQL verification
 - Staging table validation
 - Orchestration record verification
@@ -158,6 +170,7 @@ Reverse order cleanup (foreign key safe):
 **Issue**: LinkageError with SAXParserImpl in legacy @Grab tests
 
 **Solution**: Test runner uses XML_PARSER_OPTS:
+
 ```bash
 XML_PARSER_OPTS="-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl"
 ```
@@ -167,6 +180,7 @@ XML_PARSER_OPTS="-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.
 ### Database Connection
 
 **Correct**: Use `localhost` hostname
+
 ```groovy
 def dbUrl = "jdbc:postgresql://localhost:5432/umig_app_db"  // ✅
 ```

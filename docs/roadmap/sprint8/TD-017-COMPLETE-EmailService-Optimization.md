@@ -15,12 +15,14 @@
 TD-017 successfully optimized the `EnhancedEmailService.groovy` database queries from 2 separate round trips to a single optimized query using PostgreSQL CTEs and JSON aggregation. The implementation exceeded all performance targets and achieved production-ready status with comprehensive testing and validation.
 
 **Journey Timeline**:
+
 - **Phase 1**: Foundation & Analysis (45 minutes)
 - **Phase 2**: Implementation & Testing (2.5 hours)
 - **Phase 3**: Final Validation & Regression Fix (1 hour)
 - **Total Effort**: 4 hours (as estimated)
 
 **Key Achievements**:
+
 - 🚀 **99.41% performance improvement** (120ms → 0.71ms average)
 - ✅ **11/11 unit tests passing** (100% success rate)
 - 🎯 **250× faster execution** at production scale
@@ -62,6 +64,7 @@ row_to_json       -- Row to JSON conversion
 ### Initial Query Design
 
 **Baseline Performance** (2-query approach):
+
 - Average execution time: ~120ms
 - Database connections: 2 per email
 - Network round trips: 2 per email
@@ -114,6 +117,7 @@ Execution Time: 2.932 ms  ✅ 94% below 50ms target
 ```
 
 **Index Usage Validation**:
+
 - ✅ Bitmap Index Scan on `idx_dto_instructions_count` (sti_id filter)
 - ✅ Index Scan on `idx_dto_comments_aggregation` (sti_id filter + DESC ordering)
 - ✅ No table scans detected
@@ -124,25 +128,18 @@ Execution Time: 2.932 ms  ✅ 94% below 50ms target
 ### Edge Case Catalog (11 Scenarios)
 
 **Category A: Empty Result Sets (3 tests)**
+
 1. No instructions, no comments → Both arrays empty
 2. No instructions, has comments → Instructions empty, comments populated
 3. Has instructions, no comments → Instructions populated, comments empty
 
-**Category B: Null/Missing Data (3 tests)**
-4. Null control codes → `control_code: null` in JSON
-5. Null author names → `author_name: null` in JSON
-6. Null team names → `team_name: null` in JSON
+**Category B: Null/Missing Data (3 tests)** 4. Null control codes → `control_code: null` in JSON 5. Null author names → `author_name: null` in JSON 6. Null team names → `team_name: null` in JSON
 
-**Category C: Volume & Performance (2 tests)**
-7. Large instruction set (50+ items) → Query completes in <50ms
-8. Large comment set (100+ items) → LIMIT 3 enforced correctly
+**Category C: Volume & Performance (2 tests)** 7. Large instruction set (50+ items) → Query completes in <50ms 8. Large comment set (100+ items) → LIMIT 3 enforced correctly
 
-**Category D: Data Validation (2 tests)**
-9. Invalid step instance ID → Both arrays empty, no errors
-10. Null step instance ID → Validation error or empty results
+**Category D: Data Validation (2 tests)** 9. Invalid step instance ID → Both arrays empty, no errors 10. Null step instance ID → Validation error or empty results
 
-**Category E: Functional Equivalence (1 test)**
-11. Result integrity → Identical data structure vs 2-query approach
+**Category E: Functional Equivalence (1 test)** 11. Result integrity → Identical data structure vs 2-query approach
 
 ### Helper Method Design
 
@@ -186,6 +183,7 @@ private static List<Map> parseJsonArray(String jsonString) {
 ### Phase 1 Decision: GO for Implementation
 
 **Risk Assessment**: LOW
+
 - ✅ Performance validated (2.9ms vs 50ms target)
 - ✅ Schema compliance verified
 - ✅ Index optimization confirmed
@@ -229,15 +227,18 @@ List<Map> comments = parseJsonArray(queryResult?.comments_json as String)
 ### ADR Compliance Validation
 
 **ADR-031: Type Safety** ✅
+
 - Explicit type casting: `[stepInstanceId: stepInstanceId as String]`
 - Return type declarations: `List<Map> instructions = parseJsonArray(...)`
 - JSON parsing with type safety: `(parsed as List).collect { it as Map }`
 
 **ADR-042: Audit Logging** ✅
+
 - Database operations logged with TD-017 markers
 - Query execution tracked with println statements
 
 **ADR-059: Schema Authority** ✅
+
 - No schema changes required
 - All column names verified against existing schema
 - Schema compliance maintained throughout
@@ -284,18 +285,19 @@ Pattern: TD-001 Self-contained | 11 Edge Case Scenarios
 **Test File**: `src/groovy/umig/tests/performance/EmailServicePerformanceTest.groovy`
 
 **Methodology**:
+
 - Warm-up phase: 10 iterations (JVM stabilization)
 - Measurement phase: 100 iterations
 - Test data: 5 instructions + 3 comments
 
 **Performance Metrics Achieved**:
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Average Time | ≤70ms | 0.71ms | ✅ 99.41% improvement |
-| P95 Time | ≤100ms | <1ms | ✅ Exceptional |
-| Baseline | 120ms | - | 2-query approach |
-| Improvement | ≥40% | 99.41% | ✅ Far exceeds target |
+| Metric       | Target | Actual | Status                |
+| ------------ | ------ | ------ | --------------------- |
+| Average Time | ≤70ms  | 0.71ms | ✅ 99.41% improvement |
+| P95 Time     | ≤100ms | <1ms   | ✅ Exceptional        |
+| Baseline     | 120ms  | -      | 2-query approach      |
+| Improvement  | ≥40%   | 99.41% | ✅ Far exceeds target |
 
 **Test Output**:
 
@@ -333,12 +335,14 @@ P95 Target: <=100ms
 ### Security Validation
 
 **SQL Injection Prevention** ✅
+
 - Parameterized queries with named parameters (`:stepInstanceId`)
 - No string concatenation in SQL
 - Type-safe parameter binding
 - All user inputs sanitized through explicit casting
 
 **Query Security Features**:
+
 ```groovy
 // Parameterized query - no SQL injection possible
 WHERE ini.sti_id = :stepInstanceId  // Named parameter binding
@@ -361,6 +365,7 @@ WHERE sic.sti_id = :stepInstanceId  // Named parameter binding
 **Issue Detected**: After initial deployment, query returned empty result set due to UUID type mismatch and verbose logging bug.
 
 **Symptoms**:
+
 - Database query executed successfully
 - Empty instructions and comments arrays returned
 - No PostgreSQL errors in logs
@@ -423,6 +428,7 @@ println "   Input: ${jsonString?.take(100)}..."
 **Test Execution**: Comprehensive validation suite
 
 **Database Query Validation**:
+
 ```bash
 # Manual PostgreSQL query execution
 PGPASSWORD=123456 psql -h localhost -p 5432 -U umig_app_user -d umig_app_db -c "
@@ -447,13 +453,13 @@ SELECT
 
 **Final Performance Metrics** (after regression fix):
 
-| Metric | Before Fix | After Fix | Status |
-|--------|------------|-----------|--------|
-| Average Time | 0.71ms | 0.71ms | ✅ No regression |
-| P95 Time | <1ms | <1ms | ✅ Maintained |
-| Result Accuracy | 0% (empty) | 100% (complete) | ✅ Fixed |
-| UUID Casting | Implicit | Explicit (::uuid) | ✅ Secure |
-| Logging | Failed | Working | ✅ Fixed |
+| Metric          | Before Fix | After Fix         | Status           |
+| --------------- | ---------- | ----------------- | ---------------- |
+| Average Time    | 0.71ms     | 0.71ms            | ✅ No regression |
+| P95 Time        | <1ms       | <1ms              | ✅ Maintained    |
+| Result Accuracy | 0% (empty) | 100% (complete)   | ✅ Fixed         |
+| UUID Casting    | Implicit   | Explicit (::uuid) | ✅ Secure        |
+| Logging         | Failed     | Working           | ✅ Fixed         |
 
 ### Lessons Learned
 
@@ -483,6 +489,7 @@ SELECT
 ### Performance Achievement
 
 **Target vs Actual**:
+
 - **Target**: ≥40% improvement
 - **Actual**: 99.41% improvement (250× faster)
 - **Baseline**: 120ms (2-query approach)
@@ -490,14 +497,15 @@ SELECT
 
 **System-Level Impact**:
 
-| Scenario | Before (2-query) | After (1-query) | Improvement |
-|----------|------------------|-----------------|-------------|
-| Single Email | 120ms | 0.71ms | 99.41% |
-| 10 Emails | 1,200ms | 7.1ms | 99.41% |
-| 100 Emails | 12,000ms (12s) | 71ms | 99.41% |
-| Database Connections | 2 per email | 1 per email | 50% reduction |
+| Scenario             | Before (2-query) | After (1-query) | Improvement   |
+| -------------------- | ---------------- | --------------- | ------------- |
+| Single Email         | 120ms            | 0.71ms          | 99.41%        |
+| 10 Emails            | 1,200ms          | 7.1ms           | 99.41%        |
+| 100 Emails           | 12,000ms (12s)   | 71ms            | 99.41%        |
+| Database Connections | 2 per email      | 1 per email     | 50% reduction |
 
 **Bulk Email Scenario** (100 notifications):
+
 - **Before**: 200 database connections, 12 seconds total time
 - **After**: 100 database connections, 0.071 seconds total time
 - **Improvement**: 50% fewer connections, 99.41% faster execution
@@ -522,6 +530,7 @@ Buffer Statistics:
 ```
 
 **Query Plan Validation** ✅:
+
 1. Index Scan usage (not Seq Scan) - PASS
 2. Execution time <50ms - PASS (1.461ms)
 3. Efficient join strategy (Nested Loop + Hash Join) - PASS
@@ -531,6 +540,7 @@ Buffer Statistics:
 ### Test Coverage Summary
 
 **Unit Tests**: 11/11 passing (100%)
+
 - Empty result sets: 3 tests
 - Null/missing data: 3 tests
 - Volume & performance: 2 tests
@@ -538,11 +548,13 @@ Buffer Statistics:
 - Functional equivalence: 1 test
 
 **Performance Tests**: All passing
+
 - Average time validation: PASS
 - P95 time validation: PASS
 - Improvement threshold: PASS (99.41% vs 40% target)
 
 **Integration Tests**: Complete email notification suite passing
+
 - Email template processing: PASS
 - SMTP delivery: PASS
 - Message content verification: PASS
@@ -551,24 +563,28 @@ Buffer Statistics:
 ### Code Quality Metrics
 
 **Maintainability**: 🟢 EXCELLENT
+
 - Clear CTE structure with meaningful names
 - Self-documenting query logic
 - Robust error handling with defensive logging
 - Consistent naming conventions
 
 **Reliability**: 🟢 EXCELLENT
+
 - Comprehensive edge case coverage (11 scenarios)
 - Functional equivalence validated
 - Zero SQL injection vulnerabilities
 - Explicit type casting throughout
 
 **Performance**: 🟢 EXCEPTIONAL
+
 - 99.41% improvement over baseline
 - Consistent performance (P95 <1ms)
 - Scalable to bulk operations
 - Minimal resource utilization
 
 **ADR Compliance**: 🟢 100%
+
 - ADR-031: Type safety with explicit casting ✅
 - ADR-042: Audit logging maintained ✅
 - ADR-043: Explicit casting for all parameters ✅
@@ -581,18 +597,21 @@ Buffer Statistics:
 ### Operational Benefits
 
 **Performance Improvements**:
+
 - 99.41% faster email enrichment (120ms → 0.71ms)
 - 50% reduction in database connection pool usage
 - Near-instantaneous email delivery
 - Enables 10× higher notification volume
 
 **Cost Savings**:
+
 - Lower database CPU utilization
 - Reduced network traffic (50% fewer round trips)
 - Decreased connection pool contention
 - Improved system scalability
 
 **User Experience**:
+
 - Faster notification delivery
 - Higher system responsiveness
 - Better bulk notification handling
@@ -601,17 +620,20 @@ Buffer Statistics:
 ### Technical Debt Resolution
 
 **Debt Removed**:
+
 - ❌ Inefficient 2-query approach (duplicate database connections)
 - ❌ High connection pool pressure
 - ❌ Excessive network overhead
 
 **Quality Added**:
+
 - ✅ Optimized single-query approach with CTEs
 - ✅ Comprehensive test coverage (11 edge cases)
 - ✅ Performance benchmarking with validation
 - ✅ Zero SQL injection vulnerabilities
 
 **Patterns Established**:
+
 - UUID query pattern with explicit `::uuid` casting
 - Defensive logging with `getClass()` method
 - Incremental validation across integration layers
@@ -655,6 +677,7 @@ class EnhancedEmailService {
 ### Monitoring Metrics
 
 **Production Monitoring**:
+
 - Email generation error rate (target: <0.1%)
 - Average enrichment time (target: <70ms)
 - P95 enrichment time (target: <100ms)
@@ -662,6 +685,7 @@ class EnhancedEmailService {
 - Database query execution time
 
 **Alerting Thresholds**:
+
 - Error rate >0.5% → Warning
 - Error rate >1% → Critical (initiate rollback)
 - Average time >70ms → Warning
@@ -783,6 +807,7 @@ private static List<Map> parseJsonArray(String jsonString) {
 **Sprint 8 Progress**: 16.5/52 points complete (32% on Day 3)
 
 **Quality Metrics**:
+
 - Test coverage: 100% (11/11 passing)
 - Performance target: 248% exceeded (99.41% vs 40%)
 - ADR compliance: 100%
@@ -796,6 +821,7 @@ private static List<Map> parseJsonArray(String jsonString) {
 TD-017 successfully optimized the EnhancedEmailService database queries from 2 separate round trips to a single optimized query, achieving exceptional performance improvements far exceeding all targets. The implementation includes comprehensive testing, proper ADR compliance, and production-ready quality.
 
 **Key Success Factors**:
+
 1. Thorough Phase 1 analysis with EXPLAIN ANALYZE validation
 2. Comprehensive edge case catalog (11 scenarios)
 3. Incremental validation across unit, performance, and integration tests
@@ -803,6 +829,7 @@ TD-017 successfully optimized the EnhancedEmailService database queries from 2 s
 5. Feature flag rollback strategy for production safety
 
 **Production Readiness**: ✅ APPROVED
+
 - All acceptance criteria exceeded
 - Performance targets surpassed by 248%
 - Zero SQL injection vulnerabilities
