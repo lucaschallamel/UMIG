@@ -48,47 +48,75 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /users/current - Get current authenticated user
     if (pathParts.size() == 1 && pathParts[0] == 'current') {
         try {
-            // Try to get username from ThreadLocal (primary method)
-            def currentUser = null
+            // SECURITY: Get authenticated user from session (REQUIRED)
+            // This uses UserService.getCurrentUserContext() which now has enhanced authentication
+            // with AuthenticatedUserThreadLocal + SAL UserManager fallback
             def username = null
+            def authenticatedUserContext = null
 
             try {
-                // Get username from UserService ThreadLocal access (per ADR-042)
-                def userContext = UserService.getCurrentUserContext()
-                username = userContext?.confluenceUsername as String
-                log.info("GET /users/current - Got username from ThreadLocal: ${username}")
+                // Get username from UserService ThreadLocal/SAL authentication (per ADR-042)
+                authenticatedUserContext = UserService.getCurrentUserContext()
+                username = authenticatedUserContext?.confluenceUsername as String
+                log.info("GET /users/current - Authenticated user: ${username}")
             } catch (Exception e) {
-                log.warn("GET /users/current - ThreadLocal access failed: ${e.message}")
+                log.error("GET /users/current - Authentication failed: ${e.message}", e)
             }
 
-            // Fallback: check query parameter
+            // SECURITY: If authentication fails, return 401 Unauthorized
+            // DO NOT fall back to query parameters - this would create an authentication bypass vulnerability
             if (!username) {
-                username = queryParams.getFirst('username') as String
-                log.info("GET /users/current - Using username from query parameter: ${username}")
-            }
-
-            // Additional fallback: check for userCode parameter (legacy support)
-            if (!username) {
-                username = queryParams.getFirst('userCode') as String
-                log.info("GET /users/current - Using userCode from query parameter: ${username}")
-            }
-
-            if (!username) {
-                return Response.status(Response.Status.BAD_REQUEST)
+                log.warn("SECURITY: GET /users/current - Authentication failed, no valid session")
+                return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(new JsonBuilder([
-                        error: "Unable to determine current user. Username parameter required.",
-                        debug: "ThreadLocal failed, no username or userCode parameter provided"
+                        error: "Session authentication required",
+                        details: "Unable to verify user identity. Please ensure you are logged into Confluence.",
+                        troubleshooting: [
+                            "Verify Confluence session is active",
+                            "Check ScriptRunner authentication context",
+                            "Review logs for authentication method failures"
+                        ]
                     ]).toString())
                     .build()
             }
 
-            // Find user by username
-            currentUser = userRepository.findUserByUsername(username as String)
+            // SECURITY: Check for admin-only cross-user viewing
+            // Optional feature: Allow admins to view other users' data via ?username parameter
+            def requestedUsername = queryParams.getFirst('username') as String
+
+            if (requestedUsername && requestedUsername != username) {
+                // Cross-user query detected - verify admin privileges
+                def authenticatedUser = userRepository.findUserByUsername(username)
+
+                // Explicit casting for type safety (ADR-031, ADR-043)
+                def authenticatedUserMap = authenticatedUser as Map
+
+                if (!authenticatedUserMap?.usr_is_admin) {
+                    // Non-admin attempting to view other user's data - REJECT
+                    log.warn("SECURITY: User '${username}' (non-admin) attempted unauthorized access to user '${requestedUsername}'")
+
+                    return Response.status(Response.Status.FORBIDDEN)
+                        .entity(new JsonBuilder([
+                            error: "Insufficient privileges",
+                            details: "Only administrators can view other users' data",
+                            authenticatedUser: username,
+                            requestedUser: requestedUsername
+                        ]).toString())
+                        .build()
+                }
+
+                // Admin is authorized - allow cross-user query
+                log.info("SECURITY: Admin '${username}' authorized to view user '${requestedUsername}'")
+                username = requestedUsername
+            }
+
+            // Find user by username (either authenticated user or admin-requested user)
+            def currentUser = userRepository.findUserByUsername(username as String)
 
             if (!currentUser) {
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity(new JsonBuilder([
-                        error: "Current user not found in database",
+                        error: "User not found in database",
                         username: username
                     ]).toString())
                     .build()

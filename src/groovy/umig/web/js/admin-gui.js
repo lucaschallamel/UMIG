@@ -61,9 +61,40 @@ window.adminGui = {
   featureToggle: null,
   performanceMonitor: null,
 
-  // API endpoints
+  // API endpoints with dynamic base URL resolution (US-098 Configuration Management)
   api: {
-    baseUrl: "/rest/scriptrunner/latest/custom",
+    // Dynamic baseUrl getter implementing US-098 configuration patterns
+    // Fallback chain: window.UMIG_CONFIG → constructed from window.location → hard-coded default
+    get baseUrl() {
+      // Tier 1: Check injected configuration from macro (preferred - environment-aware)
+      if (
+        window.UMIG_CONFIG &&
+        window.UMIG_CONFIG.api &&
+        window.UMIG_CONFIG.api.baseUrl
+      ) {
+        console.debug(
+          "[AdminGUI] Using baseUrl from UMIG_CONFIG:",
+          window.UMIG_CONFIG.api.baseUrl,
+        );
+        return window.UMIG_CONFIG.api.baseUrl;
+      }
+
+      // Tier 2: Construct from window.location (works in all environments)
+      if (window.location && window.location.origin) {
+        const constructedUrl = `${window.location.origin}/rest/scriptrunner/latest/custom`;
+        console.debug(
+          "[AdminGUI] Constructed baseUrl from window.location:",
+          constructedUrl,
+        );
+        return constructedUrl;
+      }
+
+      // Tier 3: Hard-coded fallback for development (last resort)
+      console.warn(
+        "[AdminGUI] Using hard-coded baseUrl fallback - configuration injection may have failed",
+      );
+      return "/rest/scriptrunner/latest/custom";
+    },
     endpoints: {
       users: "/users",
       teams: "/teams",
@@ -2047,7 +2078,11 @@ window.adminGui = {
   // Automatic authentication using /users/current API (TD-007)
   automaticAuthentication: function () {
     return new Promise((resolve, reject) => {
+      // SECURITY: Use session-based authentication ONLY
+      // Query parameter fallback removed to prevent authentication bypass vulnerability
       const url = `${this.api.baseUrl}/users/current`;
+
+      console.log("[UMIG] Authenticating via session (no query parameters)");
 
       fetch(url, {
         method: "GET",
@@ -2055,17 +2090,32 @@ window.adminGui = {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        credentials: "include", // Include session cookies
+        credentials: "include", // Include session cookies for authentication
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Authentication failed - provide helpful error messages
+            let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+
+            if (response.status === 401) {
+              errorMsg +=
+                " - Session authentication required. Please ensure you are logged into Confluence.";
+            } else if (response.status === 403) {
+              errorMsg +=
+                " - Insufficient privileges. Contact your administrator.";
+            }
+
+            throw new Error(errorMsg);
           }
           return response.json();
         })
         .then((userData) => {
           // Transform API response to internal user format
           const user = this.transformUserData(userData);
+          console.log(
+            "[UMIG] Authentication successful for user:",
+            user.username,
+          );
           resolve(user);
         })
         .catch((error) => {
@@ -2076,6 +2126,66 @@ window.adminGui = {
           reject(error);
         });
     });
+  },
+
+  // Get current Confluence username from AJS context (UAT resilience)
+  getConfluenceUsername: function () {
+    try {
+      let username = null;
+
+      // Method 1: AJS.params.remoteUser (most reliable)
+      if (typeof AJS !== "undefined" && AJS.params && AJS.params.remoteUser) {
+        username = AJS.params.remoteUser;
+      }
+
+      // Method 2: AJS.Meta.get('remote-user') (alternative)
+      if (!username && typeof AJS !== "undefined" && AJS.Meta && AJS.Meta.get) {
+        const remoteUser = AJS.Meta.get("remote-user");
+        if (remoteUser) {
+          username = remoteUser;
+        }
+      }
+
+      // Method 3: Parse from Confluence's user menu (last resort)
+      if (!username) {
+        const userMenu = document.querySelector(
+          "#user-menu-link, .aui-dropdown2-trigger.aui-dropdown2-trigger-arrowless",
+        );
+        if (userMenu) {
+          const menuUsername = userMenu.getAttribute("data-username");
+          if (menuUsername) {
+            username = menuUsername;
+          }
+        }
+      }
+
+      // SECURITY: Validate extracted username before returning
+      if (username && typeof username === "string") {
+        username = username.trim();
+
+        // Validate username length (reasonable bounds)
+        if (username.length > 0 && username.length <= 255) {
+          // Additional validation: Check for suspicious characters
+          // Allow alphanumeric, dot, hyphen, underscore (common username patterns)
+          // This is defense-in-depth - server-side validation is primary
+          const validUsernamePattern = /^[a-zA-Z0-9._@-]+$/;
+          if (validUsernamePattern.test(username)) {
+            return username;
+          } else {
+            console.warn(
+              "[UMIG] Username contains invalid characters:",
+              username,
+            );
+          }
+        } else {
+          console.warn("[UMIG] Invalid username length:", username.length);
+        }
+      }
+    } catch (e) {
+      console.warn("[UMIG] Could not extract Confluence username:", e);
+    }
+
+    return null;
   },
 
   // Transform user data from API to internal format (TD-007)

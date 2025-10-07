@@ -6,6 +6,7 @@ import umig.repository.UserRepository
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
+import groovy.transform.Field
 
 import javax.servlet.http.HttpServletRequest
 import groovy.json.JsonException
@@ -16,7 +17,10 @@ import javax.ws.rs.core.Response
 
 @BaseScript CustomEndpointDelegate delegate
 
+@Field
 final TeamRepository teamRepository = new TeamRepository()
+
+@Field
 final UserRepository userRepository = new UserRepository()
 
 /**
@@ -30,7 +34,7 @@ final UserRepository userRepository = new UserRepository()
  * - GET /teams/{id} -> returns a single team
  * - GET /teams/{id}/members -> returns all members of a team
  */
-teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+teams(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
