@@ -1308,11 +1308,30 @@ class SecurityDevelopmentWorkflow {
 
 ## Related ADRs
 
+### Dependencies (Backward References)
+
 - **ADR-052**: Self-Contained Test Architecture - Foundation for security testing infrastructure
 - **ADR-053**: Technology-Prefixed Commands - Extended to include security-specific command patterns
 - **ADR-055**: Multi-Agent Security Collaboration Workflow - Collaborative implementation methodology
 - **ADR-031**: Type Safety and Explicit Casting - Enhanced for security input validation
 - **ADR-043**: PostgreSQL JDBC Type Casting - Security implications for data type handling
+
+### Dependents (Forward References)
+
+- **ADR-057**: JavaScript Module Loading Anti-Pattern - Component registration security patterns
+- **ADR-058**: Global SecurityUtils Access Pattern - Security controls implementation foundation
+- **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Applies enterprise security architecture to entity managers
+- **ADR-061**: StepView RBAC Security Implementation - Extends security architecture with role-based access controls
+- **ADR-062**: Modal Component Render Override - Applies component security patterns for DOM protection
+- **ADR-063**: Pagination Component Cross-Component Event Delegation - Uses security boundary enforcement
+- **ADR-064**: UMIG Namespace Prefixing - Builds on security architecture for namespace isolation
+- **ADR-066**: UMIG Comprehensive Versioning Strategy - References security certification requirements
+- **ADR-067**: Session Security Enhancement - Extends security architecture with session boundary controls
+- **ADR-068**: SecurityUtils Enhancement - Advanced rate limiting building on 8-phase security framework
+- **ADR-069**: Component Security Boundary Enforcement - Advanced namespace protection extending security architecture
+- **ADR-070**: Component Lifecycle Security - Comprehensive audit framework based on security architecture pattern
+- **ADR-071**: Privacy-First Security Architecture - Framework for compliant security extending enterprise pattern
+- **ADR-072**: Dual-Track Testing Strategy - Tests enterprise security architecture implementation
 
 ## Success Stories
 

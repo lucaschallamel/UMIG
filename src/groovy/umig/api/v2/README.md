@@ -1,6 +1,6 @@
 # V2 REST APIs
 
-Production-ready ScriptRunner REST API endpoints implementing complete UMIG functionality across 30+ entity types and system operations.
+Production-ready ScriptRunner REST API endpoints implementing complete UMIG functionality across 31 entity types and system operations.
 
 ## Responsibilities
 
@@ -148,7 +148,7 @@ try {
 ## Quality Metrics
 
 - **Test coverage**: 95%+ across all endpoints with integration and unit tests
-- **Operational status**: 100% of 30 APIs production-ready and stable
+- **Operational status**: 100% of 31 APIs production-ready and stable
 - **ADR compliance**: Complete validation against ADR-023, ADR-030, ADR-031, ADR-042
 - **Security rating**: 8.5/10 with 8-phase security controls and comprehensive penetration testing
 

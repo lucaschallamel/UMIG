@@ -1,12 +1,39 @@
 # ADR-067: Session Security Enhancement - Multi-Session Detection and Boundary Enforcement
 
+> **⚠️ CRITICAL PRIVACY VIOLATION - DO NOT IMPLEMENT**
+>
+> **Status**: DEPRECATED (Privacy Violation - GDPR Non-Compliant)
+> **Superseded by**: ADR-071 Privacy-First Security Architecture
+> **Deprecation Date**: 2025-10-07
+> **Reason**: Device fingerprinting techniques violate GDPR Article 6 (lawful basis) and Article 7 (consent) without explicit user consent mechanism.
+>
+> **Legal Risk**: Up to €20M or 4% annual revenue in GDPR fines
+> **Action Required**: Use ADR-071 privacy-preserving alternatives instead
+>
+> **Specific Violations**:
+>
+> - Canvas fingerprinting without consent (lines 109-120, 407-419)
+> - WebGL fingerprinting without lawful basis (lines 421-440)
+> - Behavioral profiling without transparency (lines 133-171, 445-471)
+> - Persistent tracking across sessions without user control
+> - No consent mechanism for personal data processing
+>
+> **Compliance Issues**:
+>
+> - GDPR Article 6: No lawful basis for fingerprinting
+> - GDPR Article 7: No valid consent mechanism
+> - GDPR Article 13/14: Missing transparency requirements
+> - ePrivacy Directive: Tracking without consent
+> - CCPA: No opt-out mechanism provided
+
 ## Status
 
-**Status**: Accepted
-**Date**: 2025-01-09
+**Status**: DEPRECATED - Privacy Violation
+**Original Date**: 2025-01-09
+**Deprecation Date**: 2025-10-07
 **Author**: Security Architecture Team
 **Technical Story**: Sprint 8 - Phase 1 Security Architecture Enhancement
-**Target Rating**: 8.6/10 (from current 8.5/10)
+**Target Rating**: 8.6/10 (from current 8.5/10) - NOT ACHIEVABLE DUE TO PRIVACY VIOLATIONS
 
 ## Context
 

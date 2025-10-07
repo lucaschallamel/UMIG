@@ -44,6 +44,7 @@ docs/
 ├── releases/            # Version history, release notes, change documentation
 │   └── sprint7/        # Sprint 7 release documentation
 └── archive/             # Historical documentation and superseded materials
+    ├── policies/        # Archived policy documents
     ├── Sprint6_archives/ # Sprint 6 archived documentation
     ├── Sprint7_archives/ # Sprint 7 archived documentation
     └── Sprint8_archive/  # Sprint 8 archived documentation
@@ -112,6 +113,52 @@ docs/
 **API Coverage**: 31+ endpoints fully documented
 **ADR Count**: 72 architectural decisions documented
 **Branch**: `bugfix/US-058-email-service-iteration-step-views`
+
+## Documentation Organization Policy
+
+**Effective Date**: October 7, 2025 | **Status**: ACTIVE
+
+### Core Principle
+
+**ALL project documentation belongs in `/docs/`** - The `/local-dev-setup/` directory contains **ONLY executable code and configuration** for the development environment.
+
+### Critical Rules
+
+**✅ Allowed in `/local-dev-setup/`**:
+
+- Scripts (`*.sh`, `*.groovy`, `*.js`, `*.sql`, `*.py`)
+- Configuration files (`*.json`, `*.yml`, `docker-compose.yml`, `jest.config.js`)
+- Test files (`*Test.js`, `*Test.groovy`, `*.spec.js`)
+- Package management (`package.json`, `node_modules/`)
+- **README.md files ONLY** (operational documentation for scripts)
+
+**❌ NOT Allowed in `/local-dev-setup/`**:
+
+- Documentation files (`*.md` except README.md) → Move to `/docs/`
+- Investigation reports → `/docs/troubleshooting/investigations/`
+- Troubleshooting guides → `/docs/troubleshooting/guides/`
+- Architecture decisions → `/docs/architecture/`
+- Bugfix documentation → `/docs/troubleshooting/bugfixes/`
+
+### Decision Tree: Where Does New Documentation Go?
+
+```
+Is this a README.md for /local-dev-setup/?
+├─ YES → Keep in /local-dev-setup/[subdirectory]/README.md (keep concise)
+└─ NO → Place in /docs/:
+    ├─ Architecture decision or design? → /docs/architecture/
+    ├─ Developer guide or reference? → /docs/development/
+    ├─ Operations procedure or runbook? → /docs/operations/
+    ├─ Bugfix, investigation, or debug guide? → /docs/troubleshooting/
+    ├─ Test documentation or report? → /docs/testing/
+    ├─ API documentation? → /docs/api/
+    ├─ Sprint planning or user story? → /docs/roadmap/
+    └─ Deployment or release documentation? → /docs/deployment/
+```
+
+**Full Policy Details**: See archived [DOCUMENTATION-ORGANIZATION-2025-10-07.md](archive/policies/DOCUMENTATION-ORGANIZATION-2025-10-07.md) for migration history and comprehensive guidelines.
+
+---
 
 ## Documentation Standards
 

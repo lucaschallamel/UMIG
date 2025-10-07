@@ -182,9 +182,14 @@ All entity managers must follow these patterns:
 
 ## Related ADRs
 
+- **ADR-028**: Data Import Strategy for Confluence JSON Exports - Related to admin component patterns
+- **ADR-039**: Enhanced Error Handling and User Guidance - Related to component error state management
 - **ADR-054**: Enterprise Component Security Architecture Pattern - Component security foundations
 - **ADR-057**: JavaScript Module Loading Anti-Pattern - Component loading patterns
 - **ADR-058**: Global SecurityUtils Access Pattern - Component dependency patterns
+- **ADR-062**: Modal Component Render Override - Related component architecture patterns
+- **ADR-063**: Pagination Component Interaction Pattern - PaginationComponent interface compatibility
+- **ADR-065**: Phased Implementation Strategy - Entity manager implementation phases
 - **US-082-B**: Component Architecture Implementation - Self-managing component philosophy
 
 ## Validation

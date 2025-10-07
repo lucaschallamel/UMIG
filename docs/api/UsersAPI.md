@@ -13,14 +13,15 @@
 
 ## 2. Endpoints
 
-| Method | Path          | Description                                           |
-| ------ | ------------- | ----------------------------------------------------- |
-| GET    | /users        | Get all users with pagination, filtering, and sorting |
-| POST   | /users        | Create a new user                                     |
-| GET    | /users/{id}   | Get a specific user by ID                             |
-| PUT    | /users/{id}   | Update an existing user                               |
-| DELETE | /users/{id}   | Delete a user                                         |
-| GET    | /user/context | Get user context with role information                |
+| Method | Path           | Description                                           |
+| ------ | -------------- | ----------------------------------------------------- |
+| GET    | /users         | Get all users with pagination, filtering, and sorting |
+| POST   | /users         | Create a new user                                     |
+| GET    | /users/{id}    | Get a specific user by ID                             |
+| PUT    | /users/{id}    | Update an existing user                               |
+| DELETE | /users/{id}    | Delete a user                                         |
+| GET    | /users/current | Get current authenticated user                        |
+| GET    | /user/context  | Get user context with role information                |
 
 ## 3. Request Details
 
@@ -42,6 +43,12 @@
 | teamId    | integer | No       | Filter users by team membership                                                                                 |
 | userCode  | string  | No       | Find user by exact code match (for authentication, returns debug info if not found)                             |
 | active    | boolean | No       | Filter users by active status (true for active, false for inactive)                                             |
+
+#### GET /users/current Query Parameters
+
+| Name     | Type   | Required | Description                                                                          |
+| -------- | ------ | -------- | ------------------------------------------------------------------------------------ |
+| username | string | No       | Admin-only: Username to view another user's data (requires administrator privileges) |
 
 #### GET /user/context Query Parameters
 
@@ -242,6 +249,72 @@
 - **Status Code:** 204 No Content
 - **Body:** Empty
 
+#### GET /users/current (Current Authenticated User)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "userId": "integer",
+  "username": "string",
+  "confluenceUserId": "string",
+  "confluenceContextUsername": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "email": "string",
+  "isAdmin": "boolean",
+  "roleId": "integer",
+  "role": "string",
+  "isActive": "boolean",
+  "source": "string"
+}
+```
+
+- **Example (Standard User Request):**
+
+```json
+{
+  "userId": 1001,
+  "username": "JDO",
+  "confluenceUserId": "jdoe",
+  "confluenceContextUsername": "jdoe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "isAdmin": false,
+  "roleId": 2,
+  "role": "NORMAL",
+  "isActive": true,
+  "source": "current_user_endpoint"
+}
+```
+
+- **Example (Admin Cross-User Query):**
+
+```bash
+# Admin viewing another user's data
+GET /users/current?username=MSmith
+```
+
+```json
+{
+  "userId": 1002,
+  "username": "MSmith",
+  "confluenceUserId": "msmith",
+  "confluenceContextUsername": "admin",
+  "firstName": "Mary",
+  "lastName": "Smith",
+  "email": "mary.smith@example.com",
+  "isAdmin": false,
+  "roleId": 2,
+  "role": "NORMAL",
+  "isActive": true,
+  "source": "current_user_endpoint"
+}
+```
+
 #### GET /user/context
 
 - **Status Code:** 200 OK
@@ -283,6 +356,10 @@
 | Status Code | Content-Type     | Schema                                                                                         | Example                                                                                                                               | Description                                                          |
 | ----------- | ---------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | 400         | application/json | `{"error": "string"}`                                                                          | `{"error": "Invalid User ID format."}`                                                                                                | Bad request - validation errors, invalid parameters                  |
+| 401         | application/json | `{"error": "string", "errorCode": "string", "message": "string"}`                              | `{"error": "Authentication Required", "errorCode": "SESSION_INVALID"}`                                                                | Authentication failed - no valid session (GET /users/current)        |
+| 403         | application/json | `{"error": "string", "errorCode": "string", "message": "string"}`                              | `{"error": "Access Denied", "errorCode": "USER_NOT_REGISTERED"}`                                                                      | User authenticated but not registered in UMIG (GET /users/current)   |
+| 403         | application/json | `{"error": "string", "errorCode": "string", "message": "string"}`                              | `{"error": "Access Denied", "errorCode": "USER_DEACTIVATED"}`                                                                         | User exists but account is deactivated (GET /users/current)          |
+| 403         | application/json | `{"error": "string", "errorCode": "string", "message": "string"}`                              | `{"error": "Access Denied", "errorCode": "INSUFFICIENT_PRIVILEGES_CROSS_USER"}`                                                       | Non-admin attempted cross-user query (GET /users/current)            |
 | 404         | application/json | `{"error": "string"}`                                                                          | `{"error": "User with ID 123 not found."}`                                                                                            | User not found                                                       |
 | 409         | application/json | `{"error": "string", "details": "string", "sqlState": "string", "blocking_relationships": {}}` | `{"error": "A user with this email address already exists.", "details": "Duplicate value constraint violation", "sqlState": "23505"}` | Conflict - duplicate email/code or deletion blocked by relationships |
 | 500         | application/json | `{"error": "string"}`                                                                          | `{"error": "Database error occurred: connection timeout"}`                                                                            | Internal server error                                                |
@@ -461,7 +538,128 @@ All user responses include comprehensive audit information:
 
 **Important**: Both the paginated list endpoint (`GET /users`) and individual user endpoint (`GET /users/{id}`) now return identical field structures, including role information and audit trails. This ensures consistent data presentation across all user operations.
 
-## 13. Changelog
+## 13. GET /users/current Endpoint Details
+
+### 13.1. Endpoint Purpose
+
+The `/users/current` endpoint provides secure access to the currently authenticated user's profile with enhanced authentication validation and optional cross-user viewing for administrators. This endpoint implements the enhanced dual authentication mechanism from ADR-042.
+
+### 13.2. Authentication Mechanism
+
+- **Primary Authentication**: Uses `UserService.getCurrentUserContext()` which leverages:
+  - `AuthenticatedUserThreadLocal` (primary)
+  - Confluence SAL UserManager (fallback)
+- **Session Validation**: Verifies active Confluence session before processing
+- **Admin Cross-User Query**: Allows administrators to view other users' data via `?username` parameter
+
+### 13.3. Response Fields
+
+| Field                     | Type    | Description                                           |
+| ------------------------- | ------- | ----------------------------------------------------- |
+| userId                    | integer | UMIG database user ID                                 |
+| username                  | string  | User's UMIG username (usr_code)                       |
+| confluenceUserId          | string  | Confluence user identifier                            |
+| confluenceContextUsername | string  | Authenticated user's Confluence username from context |
+| firstName                 | string  | User's first name                                     |
+| lastName                  | string  | User's last name                                      |
+| email                     | string  | User's email address                                  |
+| isAdmin                   | boolean | Administrator flag                                    |
+| roleId                    | integer | User's role ID                                        |
+| role                      | string  | User's role code (ADMIN, NORMAL, PILOT, or USER)      |
+| isActive                  | boolean | User active status                                    |
+| source                    | string  | Always "current_user_endpoint" for this endpoint      |
+
+### 13.4. Security Scenarios
+
+The endpoint implements four distinct security scenarios:
+
+#### Scenario 1: User Not Registered (403 Forbidden)
+
+- **Condition**: User authenticated in Confluence but not found in UMIG database
+- **Error Code**: `USER_NOT_REGISTERED`
+- **Response**: Detailed troubleshooting guidance and admin contact information
+
+#### Scenario 2: Authentication Failed (401 Unauthorized)
+
+- **Condition**: No valid Confluence session or authentication verification failed
+- **Error Code**: `SESSION_INVALID`
+- **Response**: Session validation guidance and troubleshooting steps
+
+#### Scenario 3: User Deactivated (403 Forbidden)
+
+- **Condition**: User exists in UMIG but account is deactivated
+- **Error Code**: `USER_DEACTIVATED`
+- **Response**: Account status information and reactivation guidance
+
+#### Scenario 4: Insufficient Privileges for Cross-User Query (403 Forbidden)
+
+- **Condition**: Non-admin user attempts to view another user's data via `?username` parameter
+- **Error Code**: `INSUFFICIENT_PRIVILEGES_CROSS_USER`
+- **Response**: Privilege requirement explanation
+
+### 13.5. Admin Cross-User Query Feature
+
+Administrators can view other users' data by providing the `username` query parameter:
+
+```bash
+GET /users/current?username=targetuser
+```
+
+**Validation Process**:
+
+1. Verify authenticated user has admin privileges
+2. Validate target username exists in UMIG
+3. Return target user's data with `confluenceContextUsername` showing admin's username
+
+### 13.6. Usage Examples
+
+**Standard User Request**:
+
+```bash
+GET /users/current
+```
+
+**Admin Cross-User Query**:
+
+```bash
+GET /users/current?username=MSmith
+```
+
+**Error Response - User Not Registered**:
+
+```json
+{
+  "error": "Access Denied",
+  "errorCode": "USER_NOT_REGISTERED",
+  "message": "User 'jdoe' is authenticated in Confluence but not registered in UMIG",
+  "details": {
+    "confluenceUsername": "jdoe",
+    "isAuthenticated": true,
+    "isRegisteredInUmig": false,
+    "requiredAction": "Contact your administrator to create a UMIG user account"
+  },
+  "troubleshooting": [
+    "Verify user is registered in UMIG database (users_usr table)",
+    "Contact administrator to create user account",
+    "Check if auto-user-creation is enabled in UserService configuration",
+    "Run SQL query: SELECT * FROM users_usr WHERE LOWER(usr_code) = LOWER('jdoe') OR LOWER(usr_confluence_user_id) = LOWER('jdoe')"
+  ],
+  "links": {
+    "documentation": "/wiki/display/UMIG/User+Registration",
+    "support": "/wiki/display/UMIG/Contact+Administrator"
+  }
+}
+```
+
+## 14. Changelog
+
+### Version 2.3.0 (October 7, 2025)
+
+- **New Endpoint**: Added `GET /users/current` for authenticated user profile retrieval
+- **Enhanced Security**: Implemented four-scenario security model with detailed error codes
+- **Admin Features**: Added cross-user query capability for administrators
+- **Dual Authentication**: Integrated ADR-042 enhanced authentication mechanism
+- **Comprehensive Error Handling**: Added detailed troubleshooting guidance for all failure scenarios
 
 ### Version 2.2.0 (September 21, 2025)
 

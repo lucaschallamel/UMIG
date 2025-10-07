@@ -1,7 +1,0 @@
-f1ed73f22c189db0d04d39ea5027112254feaa023b59a64407b55bafadb01f94  ./volume_backup.log
-2922d7b754ee8b2e83596a1815ab014933e512c3a678268d247688cbfe31b9a3  ./backup_manifest.sha256
-2715a04c4b53ef7c3d5fd24b1426498aba84d3780600af27f2a4083dc2347dc0  ./backup_info.txt
-bc11e4dce7aa5a9fad35ae4f842ad5ef71f4b30733df628ac660f4b58ce2abbf  ./volumes/local-dev-setup_confluence_data.tar.gz
-ea6e8ac2ef2715a4dae06344b560c5d6a3e771a6bd3f3daa6cffd69c8f4cd6fe  ./volumes/local-dev-setup_postgres_data.tar.gz
-67749e1a3d834ef30272f376cde407898e25aa306e57ac7dc1d45efdf17e229f  ./metadata/local-dev-setup_postgres_data_info.json
-7c75e9066082a9b8ee6ed56673b6a584ed73394e9dbee2b386400a59efcf3cbf  ./metadata/local-dev-setup_confluence_data_info.json

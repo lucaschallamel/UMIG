@@ -7,26 +7,44 @@
 ## 1. API Overview
 
 - **API Name:** User Relationships API v2
+- **ScriptRunner Endpoint Name:** `usersRelationship`
+- **Base Path:** `/rest/scriptrunner/latest/custom/usersRelationship`
 - **Purpose:** Complete bidirectional user-team relationship management including role transition validation, relationship queries, integrity validation, cascade delete protection, user activity tracking, and batch operations. Supports the Users Entity Migration (US-082-C) with enterprise-grade relationship integrity, 90-day audit retention, and performance optimization for large datasets.
 - **Owner:** UMIG Development Team
 - **Related ADRs:** ADR-017 (V2 REST API Architecture), ADR-031 (Type Safety), ADR-026 (Testing Patterns), ADR-039 (Error Handling), ADR-042 (Authentication Context), ADR-043 (Explicit Casting)
 
+### ScriptRunner Endpoint Architecture
+
+This API is implemented as a ScriptRunner custom REST endpoint with the name `usersRelationship`. In ScriptRunner, endpoint names:
+
+- Must match the function name in the Groovy script (e.g., `usersRelationship(httpMethod: "GET")`)
+- Become part of the URL path automatically
+- Are case-sensitive and typically use camelCase
+
+**Path Structure**: `/rest/scriptrunner/latest/custom/{endpointName}/{additionalPath}`
+
+For this API:
+
+- **Endpoint Name**: `usersRelationship`
+- **Full Base Path**: `/rest/scriptrunner/latest/custom/usersRelationship`
+- **Additional Paths**: Appended after the endpoint name (e.g., `/users/{userId}/teams`)
+
 ## 2. Endpoints
 
-| Method | Path                                           | Description                                        | Security Groups           |
-| ------ | ---------------------------------------------- | -------------------------------------------------- | ------------------------- |
-| GET    | /api/v2/users/{userId}/teams                   | Retrieve teams for specific user                   | confluence-users          |
-| GET    | /api/v2/users/{userId}/teams/{teamId}/validate | Validate specific user-team relationship integrity | confluence-users          |
-| GET    | /api/v2/users/{userId}/delete-protection       | Check cascade delete protection for user           | confluence-users          |
-| GET    | /api/v2/users/{userId}/activity                | Retrieve user activity tracking with history       | confluence-users          |
-| GET    | /api/v2/users/relationship-statistics          | Retrieve user relationship statistics              | confluence-users          |
-| PUT    | /api/v2/users/{userId}/soft-delete             | Soft delete user with relationship preservation    | confluence-administrators |
-| PUT    | /api/v2/users/{userId}/restore                 | Restore soft-deleted user                          | confluence-administrators |
-| PUT    | /api/v2/users/{userId}/role                    | Change user role with validation                   | confluence-administrators |
-| PUT    | /api/v2/users/{userId}/role/validate           | Validate role transition feasibility               | confluence-administrators |
-| POST   | /api/v2/users/cleanup-orphaned-members         | Cleanup orphaned user memberships                  | confluence-administrators |
-| POST   | /api/v2/users/batch-validate                   | Batch validate multiple users                      | confluence-users          |
-| POST   | /api/v2/users/batch-validate-relationships     | Batch validate user-team relationships             | confluence-users          |
+| Method | Full Path                                                                                     | Additional Path                             | Description                                        | Security Groups           |
+| ------ | --------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------- | ------------------------- |
+| GET    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/teams                       | /users/{userId}/teams                       | Retrieve teams for specific user                   | confluence-users          |
+| GET    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/teams/{teamId}/validate     | /users/{userId}/teams/{teamId}/validate     | Validate specific user-team relationship integrity | confluence-users          |
+| GET    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/delete-protection           | /users/{userId}/delete-protection           | Check cascade delete protection for user           | confluence-users          |
+| GET    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/activity                    | /users/{userId}/activity                    | Retrieve user activity tracking with history       | confluence-users          |
+| GET    | /rest/scriptrunner/latest/custom/usersRelationship/users/relationship-statistics              | /users/relationship-statistics              | Retrieve user relationship statistics              | confluence-users          |
+| PUT    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/soft-delete                 | /users/{userId}/soft-delete                 | Soft delete user with relationship preservation    | confluence-administrators |
+| PUT    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/restore                     | /users/{userId}/restore                     | Restore soft-deleted user                          | confluence-administrators |
+| PUT    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/role                        | /users/{userId}/role                        | Change user role with validation                   | confluence-administrators |
+| PUT    | /rest/scriptrunner/latest/custom/usersRelationship/users/{userId}/role/validate               | /users/{userId}/role/validate               | Validate role transition feasibility               | confluence-administrators |
+| POST   | /rest/scriptrunner/latest/custom/usersRelationship/usersRelationship/cleanup-orphaned-members | /usersRelationship/cleanup-orphaned-members | Cleanup orphaned user memberships                  | confluence-administrators |
+| POST   | /rest/scriptrunner/latest/custom/usersRelationship/usersRelationship/batch-validate           | /usersRelationship/batch-validate           | Batch validate multiple users                      | confluence-users          |
+| POST   | /rest/scriptrunner/latest/custom/usersRelationship/users/batch-validate-relationships         | /users/batch-validate-relationships         | Batch validate user-team relationships             | confluence-users          |
 
 ## 3. Request Details
 
@@ -911,7 +929,7 @@
 ### Get Teams for User
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams?includeArchived=false" \
+curl -X GET "/rest/scriptrunner/latest/custom/usersRelationship/users/101/teams?includeArchived=false" \
   -H "Content-Type: application/json"
 ```
 
@@ -945,7 +963,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams?includeArchived=fa
 ### Validate User-Team Relationship
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams/1/validate" \
+curl -X GET "/rest/scriptrunner/latest/custom/usersRelationship/users/101/teams/1/validate" \
   -H "Content-Type: application/json"
 ```
 
@@ -972,7 +990,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams/1/validate" \
 ### Get User Activity
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/users/101/activity?days=30" \
+curl -X GET "/rest/scriptrunner/latest/custom/usersRelationship/users/101/activity?days=30" \
   -H "Content-Type: application/json"
 ```
 
@@ -1014,7 +1032,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/activity?days=30" \
 ### Check Delete Protection
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/users/101/delete-protection" \
+curl -X GET "/rest/scriptrunner/latest/custom/usersRelationship/users/101/delete-protection" \
   -H "Content-Type: application/json"
 ```
 
@@ -1058,7 +1076,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/delete-protection" \
 ### Change User Role
 
 ```bash
-curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role" \
+curl -X PUT "/rest/scriptrunner/latest/custom/usersRelationship/users/101/role" \
   -H "Content-Type: application/json" \
   -d '{
     "roleId": 3,
@@ -1094,7 +1112,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role" \
 ### Validate Role Transition
 
 ```bash
-curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role/validate" \
+curl -X PUT "/rest/scriptrunner/latest/custom/usersRelationship/users/101/role/validate" \
   -H "Content-Type: application/json" \
   -d '{
     "fromRoleId": 2,
@@ -1150,7 +1168,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/users/101/role/validate" \
 ### Cleanup Orphaned Members
 
 ```bash
-curl -X POST "/rest/scriptrunner/latest/custom/users/cleanup-orphaned-members" \
+curl -X POST "/rest/scriptrunner/latest/custom/usersRelationship/usersRelationship/cleanup-orphaned-members" \
   -H "Content-Type: application/json"
 ```
 
@@ -1189,7 +1207,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/cleanup-orphaned-members" \
 ### Batch Validate Users
 
 ```bash
-curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate" \
+curl -X POST "/rest/scriptrunner/latest/custom/usersRelationship/usersRelationship/batch-validate" \
   -H "Content-Type: application/json" \
   -d '{
     "userIds": [101, 102, 103, 104, 999]
@@ -1237,7 +1255,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate" \
 ### Batch Validate Relationships
 
 ```bash
-curl -X POST "/rest/scriptrunner/latest/custom/users/batch-validate-relationships" \
+curl -X POST "/rest/scriptrunner/latest/custom/usersRelationship/users/batch-validate-relationships" \
   -H "Content-Type: application/json" \
   -d '{
     "relationships": [

@@ -22,6 +22,7 @@ service/
 ├── Authentication & User Services
 │   ├── UserService.groovy                    # User context management (348 lines)
 │   ├── StatusService.groovy                  # Status management with hierarchical validation
+│   ├── ConfigurationService.groovy           # System configuration management
 │
 ├── Import Services
 │   ├── ImportService.groovy                  # Core import processing (597 lines)
@@ -31,6 +32,7 @@ service/
 │   ├── PerformanceOptimizedCsvImportService.groovy # Optimized CSV processing
 │   └── PerformanceOptimizedImportService.groovy   # Optimized import operations
 │
+├── test_csv_parser.groovy                    # CSV parser testing utility
 └── README.md
 ```
 

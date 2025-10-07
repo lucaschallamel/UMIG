@@ -275,9 +275,12 @@ Implement a **phased implementation strategy** that enables immediate value deli
 
 ## Related Decisions
 
-- **ADR-039**: Security Guidelines for Input Validation
+- **ADR-028**: Entity Management Architecture - Admin component implementation foundation
 - **ADR-031**: Explicit Type Casting Requirements
+- **ADR-039**: Security Guidelines for Input Validation
 - **ADR-043**: Type Safety Standards
+- **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Entity manager integration patterns
+- **ADR-062**: Modal Component Render Override - Related to phased component implementation
 - **US-058**: EmailService Refactoring and Security Enhancement
 - **US-093-A**: Phase 1 Additive DTO Enhancement Foundation
 

@@ -1130,10 +1130,12 @@ class EnvironmentDetectionIntegrationTest extends GroovyTestCase {
 
 ## Related ADRs
 
+- **[ADR-031](ADR-031-groovy-type-safety-and-filtering-patterns.md)**: Type Safety Standards - Implementation compliance
 - **[ADR-042](ADR-042-dual-authentication-context-management.md)**: Dual Authentication Pattern - Similar tiered fallback approach
 - **[ADR-048](ADR-048-url-construction-service-architecture.md)**: URL Construction Service - Direct integration point
-- **[ADR-031](ADR-031-groovy-type-safety-and-filtering-patterns.md)**: Type Safety Standards - Implementation compliance
+- **[ADR-059](ADR-059-sql-schema-first-development-principle.md)**: SQL Schema-First Development - Schema authority in environment detection
 - **[ADR-072](ADR-072-dual-track-testing-strategy.md)**: Dual-Track Testing - Testing strategy guidance
+- **[ADR-074](ADR-074-ComponentLocator-ScriptRunner-Compatibility-Fix.md)**: ComponentLocator Compatibility - Builds upon this ADR's environment detection foundation
 
 ## Amendment History
 

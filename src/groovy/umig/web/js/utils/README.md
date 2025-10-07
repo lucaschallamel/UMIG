@@ -22,7 +22,9 @@ utils/
 ├── PerformanceMonitor.js        # Performance metrics collection
 ├── SecurityUtils.js             # XSS/CSRF prevention utilities
 ├── StatusProvider.js            # Status code and display management
-└── url-constructor.js           # URL building and routing
+├── api-url-helper.js            # Dynamic API URL construction
+├── url-constructor.js           # URL building and routing
+└── README.md
 ```
 
 ## Key Utilities
@@ -46,6 +48,10 @@ Provides HTML entity encoding, CSRF token management, and input sanitization.
 ### StatusProvider
 
 Centralized status code management with display formatting and color coding.
+
+### api-url-helper
+
+Dynamic API URL construction with environment awareness for local development vs production deployment.
 
 ## Related
 

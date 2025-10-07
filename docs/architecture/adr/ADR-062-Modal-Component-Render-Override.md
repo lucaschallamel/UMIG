@@ -77,10 +77,13 @@ Modal Container: {display: 'block', visibility: 'visible', width: '800px', heigh
 
 ## Related Decisions
 
+- ADR-028: Data Import Strategy for Confluence JSON Exports - Admin component patterns and architecture
+- ADR-039: Enhanced Error Handling and User Guidance - Error message UX patterns in modals
 - ADR-057: JavaScript Module Loading Pattern (eliminated IIFE wrappers)
 - ADR-058: Global SecurityUtils Access Pattern
 - ADR-059: SQL Schema-First Development
-- ADR-060: BaseEntityManager Interface Compatibility
+- ADR-060: BaseEntityManager Interface Compatibility - Related component architecture patterns
+- ADR-063: Pagination Component Interaction Pattern - Related component interaction patterns
 - ADR-064: UMIG Namespace Prefixing for Confluence Isolation
 
 ## Professional CSS Enhancement

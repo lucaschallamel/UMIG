@@ -17,7 +17,7 @@ npm run generate-data:erase  # Generate test data with reset
 ### Core Directories
 
 - **scripts/** - Development and operational scripts (orchestration, testing, utilities)
-- \***\*tests**/\*\* - Jest testing framework (unit, integration, e2e, security)
+- \***\*tests**/\*\* - Jest testing framework (unit, integration, e2e, security, diagnostics)
 - **liquibase/** - Database migrations and schema management
 - **data-utils/** - CSV templates, data importers, and archives
 - **infrastructure/** - Backup, restore, and upgrade utilities
@@ -28,15 +28,24 @@ npm run generate-data:erase  # Generate test data with reset
 ### Build & Testing
 
 - **build/** - Build artifacts and packaged releases
-- **coverage/** - Test coverage reports (components, unit, integration)
+- **coverage/** - Auto-generated test coverage reports (gitignored, ~15MB)
 - **test-results/** - Test execution results and logs
 - **backstop_data/** - Visual regression testing configuration
 
 ### Utilities
 
-- **diagnostic-scripts/** - System diagnostic and troubleshooting tools
 - **backups/** - Database backup archives
 - **data/** - Runtime data directory
+
+### Diagnostics
+
+All diagnostic utilities are consolidated under `__tests__/diagnostics/`:
+
+- **automated/** - Jest-based diagnostic tests (email enrichment, database validation)
+- **manual/groovy/** - ScriptRunner console diagnostic scripts
+- **manual/sql/** - Direct SQL diagnostic queries
+
+See `__tests__/diagnostics/README.md` for detailed diagnostic documentation.
 
 ## Key Configuration Files
 
@@ -69,6 +78,11 @@ npm run test:groovy:all      # All Groovy tests
 # Combined testing
 npm run test:all:comprehensive # Complete test suite
 npm run test:all:quick       # Quick validation (~158 tests)
+
+# Diagnostic tests (automated + manual)
+npm run diagnostic           # Run automated diagnostics
+npm run diagnostic:email     # Email enrichment diagnostics
+npm run diagnostic:database  # Database validation diagnostics
 ```
 
 ## Infrastructure & Operations
@@ -136,6 +150,17 @@ npm run restart:erase
 - Liquibase for database schema versioning
 - Zero shell script dependencies (cross-platform Node.js)
 
+## Recent Changes
+
+**October 7, 2025 - Directory Rationalization**
+
+- Consolidated diagnostic utilities into `__tests__/diagnostics/`
+- Removed redundant `diagnostics/` and `diagnostic-scripts/` directories
+- Migrated Groovy diagnostics from `src/groovy/umig/tests/diagnostics/` to unified location
+- Organized diagnostics by execution context (automated/Jest vs manual/Groovy vs manual/SQL)
+- Added npm diagnostic commands for automated testing
+- Documentation consolidated in `__tests__/diagnostics/README.md`
+
 ---
 
-_Last Updated: 2025-10-06_
+_Last Updated: 2025-10-07_

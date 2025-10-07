@@ -917,6 +917,9 @@ const componentSecurityConfig = {
 
 ## Related ADRs
 
+- **ADR-042**: Dual Authentication Context Management - Authentication integration with security boundaries
+- **ADR-058**: Global SecurityUtils Access Pattern - Security utilities foundation
+- **ADR-061**: StepView RBAC Security Implementation - RBAC integration with boundary enforcement
 - **ADR-064**: UMIG Namespace Prefixing - Foundation namespace isolation enhanced by this ADR
 - **ADR-067**: Session Security Enhancement - Complementary session-level security controls
 - **ADR-068**: SecurityUtils Enhancement - Enhanced security utilities used by boundary enforcement

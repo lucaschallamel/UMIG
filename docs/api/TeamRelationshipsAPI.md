@@ -7,23 +7,60 @@
 ## 1. API Overview
 
 - **API Name:** Team Relationships API v2
+- **ScriptRunner Endpoint Names:** `users` (for GET /users/{userId}/teams) and `teamsrelationship` (for all other operations)
+- **Base Paths:**
+  - `/rest/scriptrunner/latest/custom/users` (user-to-teams queries)
+  - `/rest/scriptrunner/latest/custom/teamsrelationship` (team-centric operations)
 - **Purpose:** Complete bidirectional team-user relationship management including relationship queries, integrity validation, cascade delete protection, and orphaned member cleanup. Supports the Teams Entity Migration (US-082-C) with enterprise-grade relationship integrity and performance optimization.
 - **Owner:** UMIG Development Team
 - **Related ADRs:** ADR-017 (V2 REST API Architecture), ADR-031 (Type Safety), ADR-026 (Testing Patterns), ADR-039 (Error Handling), ADR-042 (Authentication Context), ADR-043 (Explicit Casting)
 
+### Dual Endpoint Architecture
+
+This API implements a **dual endpoint architecture** for optimal organization and clarity:
+
+1. **`users` Endpoint** (Line 49 in TeamsRelationshipApi.groovy):
+   - **Purpose**: User-centric relationship queries
+   - **Base Path**: `/rest/scriptrunner/latest/custom/users`
+   - **Operations**: GET /users/{userId}/teams
+   - **Rationale**: Provides a natural path structure for user-to-teams queries
+
+2. **`teamsrelationship` Endpoint** (Line 100 in TeamsRelationshipApi.groovy):
+   - **Purpose**: Team-centric operations and administrative functions
+   - **Base Path**: `/rest/scriptrunner/latest/custom/teamsrelationship`
+   - **Operations**: All team-centric GET/PUT/POST operations
+   - **Rationale**: Centralized location for team relationship management
+
+**Why Two Endpoints?**
+
+- **Logical Separation**: User-to-teams queries use the `users` endpoint for intuitive path structure
+- **Administrative Clarity**: Team-centric operations are grouped under `teamsrelationship`
+- **ScriptRunner Architecture**: Each endpoint name creates a separate routing context
+- **Backward Compatibility**: Maintains consistent path patterns across the API
+
+**Path Resolution Table**:
+
+| Operation Type        | Endpoint Used       | Example Path                                                                                |
+| --------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| Get teams for user    | `users`             | `/rest/scriptrunner/latest/custom/users/{userId}/teams`                                     |
+| Get users for team    | `teamsrelationship` | `/rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/users`                   |
+| Validate relationship | `teamsrelationship` | `/rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/users/{userId}/validate` |
+| Soft delete team      | `teamsrelationship` | `/rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/soft-delete`             |
+| Cleanup operations    | `teamsrelationship` | `/rest/scriptrunner/latest/custom/teamsrelationship/teams/cleanup-orphaned-members`         |
+
 ## 2. Endpoints
 
-| Method | Path                                           | Description                                        |
-| ------ | ---------------------------------------------- | -------------------------------------------------- |
-| GET    | /api/v2/users/{userId}/teams                   | Retrieve teams for specific user                   |
-| GET    | /api/v2/teams/{teamId}/users                   | Retrieve users for specific team                   |
-| GET    | /api/v2/teams/{teamId}/users/{userId}/validate | Validate specific team-user relationship integrity |
-| GET    | /api/v2/teams/{teamId}/delete-protection       | Check cascade delete protection for team           |
-| GET    | /api/v2/teams/relationship-statistics          | Retrieve team relationship statistics              |
-| PUT    | /api/v2/teams/{teamId}/soft-delete             | Soft delete team with relationship preservation    |
-| PUT    | /api/v2/teams/{teamId}/restore                 | Restore soft-deleted team                          |
-| POST   | /api/v2/teams/cleanup-orphaned-members         | Cleanup orphaned team members                      |
-| POST   | /api/v2/teams/batch-validate-relationships     | Batch validate multiple team-user relationships    |
+| Method | Endpoint Used       | Full Path                                                                                 | Additional Path                         | Description                                        |
+| ------ | ------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------- |
+| GET    | `users`             | /rest/scriptrunner/latest/custom/users/{userId}/teams                                     | /{userId}/teams                         | Retrieve teams for specific user                   |
+| GET    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/users                   | /teams/{teamId}/users                   | Retrieve users for specific team                   |
+| GET    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/users/{userId}/validate | /teams/{teamId}/users/{userId}/validate | Validate specific team-user relationship integrity |
+| GET    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/delete-protection       | /teams/{teamId}/delete-protection       | Check cascade delete protection for team           |
+| GET    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/relationship-statistics          | /teams/relationship-statistics          | Retrieve team relationship statistics              |
+| PUT    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/soft-delete             | /teams/{teamId}/soft-delete             | Soft delete team with relationship preservation    |
+| PUT    | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/{teamId}/restore                 | /teams/{teamId}/restore                 | Restore soft-deleted team                          |
+| POST   | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/cleanup-orphaned-members         | /teams/cleanup-orphaned-members         | Cleanup orphaned team members                      |
+| POST   | `teamsrelationship` | /rest/scriptrunner/latest/custom/teamsrelationship/teams/batch-validate-relationships     | /teams/batch-validate-relationships     | Batch validate multiple team-user relationships    |
 
 ## 3. Request Details
 
@@ -630,7 +667,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/users/101/teams?includeArchived=fa
 ### Get Users for Team
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users?includeInactive=false" \
+curl -X GET "/rest/scriptrunner/latest/custom/teamsrelationship/teams/1/users?includeInactive=false" \
   -H "Content-Type: application/json"
 ```
 
@@ -663,7 +700,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users?includeInactive=fals
 ### Validate Relationship Integrity
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users/101/validate" \
+curl -X GET "/rest/scriptrunner/latest/custom/teamsrelationship/teams/1/users/101/validate" \
   -H "Content-Type: application/json"
 ```
 
@@ -688,7 +725,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/users/101/validate" \
 ### Check Delete Protection
 
 ```bash
-curl -X GET "/rest/scriptrunner/latest/custom/teams/1/delete-protection" \
+curl -X GET "/rest/scriptrunner/latest/custom/teamsrelationship/teams/1/delete-protection" \
   -H "Content-Type: application/json"
 ```
 
@@ -727,7 +764,7 @@ curl -X GET "/rest/scriptrunner/latest/custom/teams/1/delete-protection" \
 ### Soft Delete Team
 
 ```bash
-curl -X PUT "/rest/scriptrunner/latest/custom/teams/1/soft-delete" \
+curl -X PUT "/rest/scriptrunner/latest/custom/teamsrelationship/teams/1/soft-delete" \
   -H "Content-Type: application/json" \
   -d '{
     "userContext": {
@@ -758,7 +795,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/teams/1/soft-delete" \
 ### Cleanup Orphaned Members
 
 ```bash
-curl -X POST "/rest/scriptrunner/latest/custom/teams/cleanup-orphaned-members" \
+curl -X POST "/rest/scriptrunner/latest/custom/teamsrelationship/teams/cleanup-orphaned-members" \
   -H "Content-Type: application/json"
 ```
 
@@ -793,7 +830,7 @@ curl -X POST "/rest/scriptrunner/latest/custom/teams/cleanup-orphaned-members" \
 ### Batch Validate Relationships
 
 ```bash
-curl -X POST "/rest/scriptrunner/latest/custom/teams/batch-validate-relationships" \
+curl -X POST "/rest/scriptrunner/latest/custom/teamsrelationship/teams/batch-validate-relationships" \
   -H "Content-Type: application/json" \
   -d '{
     "relationships": [

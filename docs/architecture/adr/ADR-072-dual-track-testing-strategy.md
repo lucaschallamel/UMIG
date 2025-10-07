@@ -511,6 +511,7 @@ jobs:
 
 ## Related ADRs
 
+- **[ADR-005](ADR-005-Multi-Layer-Testing-Strategy.md)**: Multi-Layer Testing Strategy - Foundation testing architecture
 - **[ADR-031](ADR-031-groovy-type-safety-and-filtering-patterns.md)**: Type Casting Requirements - Groovy type safety impacts test mocking
 - **[ADR-042](ADR-042-dual-authentication-context-management.md)**: Dual Authentication Pattern - Test authentication strategy
 - **[ADR-052](ADR-052-self-contained-test-architecture-pattern.md)**: Self-Contained Test Architecture - Groovy test isolation pattern
@@ -519,6 +520,7 @@ jobs:
 - **[ADR-058](ADR-058-global-securityutils-access-pattern.md)**: Component Security Architecture - Security testing patterns
 - **[ADR-059](ADR-059-sql-schema-first-development-principle.md)**: Schema Authority Principle - Database fixture validation
 - **[ADR-060](ADR-060-baseentitymanager-interface-compatibility-pattern.md)**: BaseEntityManager Pattern - Entity testing patterns
+- **[ADR-073](ADR-073-Enhanced-4-Tier-Environment-Detection-Architecture.md)**: Environment Detection - Testing strategy guidance integration
 
 ## Coverage Goals & Metrics
 

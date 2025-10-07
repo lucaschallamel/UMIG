@@ -156,9 +156,25 @@ Fixed missing methods during migration:
 
 ## Related ADRs
 
+### Dependencies (Backward References)
+
 - **ADR-054**: Enterprise Component Security Architecture Pattern - Security controls context
 - **ADR-057**: JavaScript Module Loading Anti-Pattern - Similar module dependency resolution
 - **US-087**: Admin GUI Component Migration - Overall security integration context
+
+### Dependents (Forward References)
+
+- **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Uses window.SecurityUtils pattern
+- **ADR-061**: StepView RBAC Security Implementation - Extends SecurityUtils with RBAC controls
+- **ADR-062**: Modal Component Render Override - Applies SecurityUtils for DOM security
+- **ADR-063**: Pagination Component Cross-Component Event Delegation - Uses SecurityUtils for event validation
+- **ADR-064**: UMIG Namespace Prefixing - Builds on global SecurityUtils access pattern
+- **ADR-067**: Session Security Enhancement - Extends SecurityUtils with session boundary controls
+- **ADR-068**: SecurityUtils Enhancement - Advanced rate limiting and CSP integration extending this foundation
+- **ADR-069**: Component Security Boundary Enforcement - Advanced namespace protection building on SecurityUtils
+- **ADR-070**: Component Lifecycle Security - Comprehensive audit framework leveraging SecurityUtils
+- **ADR-071**: Privacy-First Security Architecture - Framework for compliant security using SecurityUtils foundation
+- **ADR-072**: Dual-Track Testing Strategy - Tests SecurityUtils integration patterns
 
 ## Validation
 

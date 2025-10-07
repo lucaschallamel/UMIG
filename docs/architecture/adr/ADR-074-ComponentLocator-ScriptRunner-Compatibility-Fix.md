@@ -16,12 +16,14 @@
 
 **Environment**: DEV (local development with Podman containers)
 **Observed Behavior**:
+
 - Email service failed to send notifications
 - `UrlConstructionService.buildStepViewUrl()` returned null
 - ConfigurationService.getCurrentEnvironment() detected 'PROD' instead of 'DEV'
 - Root cause: `ComponentLocator.getComponent(SettingsManager.class)` returning null
 
 **Immediate Impact**:
+
 - Email notifications broken in DEV environment
 - Wrong URLs generated for stepView links
 - Development workflow disruption
@@ -32,6 +34,7 @@
 #### What Changed - Timeline
 
 1. **Before US-098 Phase 4** (commit `0b9f0232` - Sept 2025):
+
    ```groovy
    static String getCurrentEnvironment() {
        // Tier 1: System property
@@ -46,9 +49,11 @@
        return 'PROD'
    }
    ```
+
    **Status**: ✅ Simple, reliable, worked in all contexts
 
 2. **US-098 Phase 4** (commit `98c165ff` - Sept 26, 2025):
+
    ```groovy
    private static String getConfluenceBaseUrl() {
        try {
@@ -72,21 +77,22 @@
        return 'PROD'  // ❌ WRONG for DEV environment!
    }
    ```
+
    **Status**: ❌ Introduced ComponentLocator dependency, broke DEV detection
 
 #### Why ComponentLocator Fails
 
 **ComponentLocator Context Dependency**:
 
-| Execution Context | ComponentLocator Works? | Why/Why Not |
-|-------------------|-------------------------|-------------|
-| REST API Endpoints | ✅ YES | Running in Confluence servlet container |
-| Web Actions | ✅ YES | Full Confluence component registry available |
-| Scheduled Jobs | ✅ YES | Confluence background executor context |
-| ScriptRunner Console | ❌ NO | Isolated Groovy execution context |
-| Background Scripts | ❌ NO | Different class loader boundary |
-| Early Initialization | ❌ NO | Components not yet initialized |
-| Database Migrations | ❌ NO | Bootstrap phase, no Confluence context |
+| Execution Context    | ComponentLocator Works? | Why/Why Not                                  |
+| -------------------- | ----------------------- | -------------------------------------------- |
+| REST API Endpoints   | ✅ YES                  | Running in Confluence servlet container      |
+| Web Actions          | ✅ YES                  | Full Confluence component registry available |
+| Scheduled Jobs       | ✅ YES                  | Confluence background executor context       |
+| ScriptRunner Console | ❌ NO                   | Isolated Groovy execution context            |
+| Background Scripts   | ❌ NO                   | Different class loader boundary              |
+| Early Initialization | ❌ NO                   | Components not yet initialized               |
+| Database Migrations  | ❌ NO                   | Bootstrap phase, no Confluence context       |
 
 **Technical Explanation**:
 
@@ -145,12 +151,15 @@ EmailService.sendNotification()
 Implement **3-Tier Fallback Strategy** for `getConfluenceBaseUrl()`:
 
 ### Tier 1: ComponentLocator (Best Effort)
+
 Try ComponentLocator but don't fail if unavailable
 
 ### Tier 2: System Property (Explicit Override)
+
 Allow manual configuration via `-Dconfluence.base.url=...`
 
 ### Tier 3: Hardcoded Localhost Fallback (Fail-Safe)
+
 Return `http://localhost:8090` as DEV default
 
 ### Implementation
@@ -193,6 +202,7 @@ private static String getConfluenceBaseUrl() {
 ### Supporting Changes
 
 #### UrlConstructionService.detectEnvironment()
+
 ```groovy
 private static String detectEnvironment() {
     try {
@@ -216,6 +226,7 @@ private static String detectEnvironment() {
 ```
 
 #### UrlConstructionService.buildStepViewUrl()
+
 ```groovy
 static String buildStepViewUrl(UUID stepInstanceId, String migrationCode, String iterationCode) {
     try {
@@ -253,43 +264,51 @@ static String buildStepViewUrl(UUID stepInstanceId, String migrationCode, String
 ### Neutral
 
 ⚪ **Hardcoded Localhost**: Assumes DEV runs on `http://localhost:8090`
-   - **Mitigation**: Can override with system property if needed
-   - **Reasoning**: 99% of DEV setups use localhost:8090 (per docker-compose.yml)
+
+- **Mitigation**: Can override with system property if needed
+- **Reasoning**: 99% of DEV setups use localhost:8090 (per docker-compose.yml)
 
 ⚪ **3-Tier Complexity**: More complex than original 2-tier
-   - **Mitigation**: Well-documented and tested
-   - **Reasoning**: Necessary for reliability across contexts
+
+- **Mitigation**: Well-documented and tested
+- **Reasoning**: Necessary for reliability across contexts
 
 ### Negative
 
 ❌ **ComponentLocator Still Attempted**: Adds ~10ms overhead in ScriptRunner context
-   - **Mitigation**: Acceptable overhead, only occurs once at startup
-   - **Reasoning**: Still want to use it when available (better than hardcoded)
+
+- **Mitigation**: Acceptable overhead, only occurs once at startup
+- **Reasoning**: Still want to use it when available (better than hardcoded)
 
 ## Validation
 
 ### Testing Strategy
 
 #### 1. Groovy Console Test
+
 Run `/src/groovy/umig/tests/diagnostics/test-environment-detection-bugfix.groovy`
 
 **Expected Results**:
+
 - ✅ Test 1: getCurrentEnvironment() returns 'DEV'
 - ✅ Test 2: Identifies Tier 3 (localhost fallback) as successful
 - ✅ Test 3: buildStepViewUrl() generates valid URL
 - ✅ Test 5: ComponentLocator fails gracefully (expected in console)
 
 #### 2. Email Service Test
+
 ```bash
 npm run email:test
 ```
 
 **Expected Results**:
+
 - ✅ Email sent successfully
 - ✅ StepView URL contains `http://localhost:8090`
 - ✅ Environment detection logs show 'DEV'
 
 #### 3. REST API Test
+
 ```bash
 curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/web" \
   -H "Cookie: JSESSIONID=..." \
@@ -297,10 +316,12 @@ curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/web" \
 ```
 
 **Expected Results**:
+
 - ✅ Response includes `currentEnvironment: 'DEV'`
 - ✅ No errors in Confluence logs
 
 #### 4. System Property Override Test
+
 ```groovy
 // In ScriptRunner Console
 System.setProperty('umig.environment', 'UAT')
@@ -309,25 +330,32 @@ assert env == 'UAT', "Override failed: got ${env}"
 ```
 
 **Expected Results**:
+
 - ✅ Tier 1 override takes precedence
 - ✅ Returns 'UAT' despite localhost URL
 
 ### Regression Prevention
 
 **Added Tests**:
+
 1. Unit test for `getConfluenceBaseUrl()` fallback behavior
 2. Integration test for ScriptRunner context environment detection
 3. E2E test for email service URL generation
 
 **Monitoring**:
+
 - Add alert if ComponentLocator fails in UAT/PROD (should never happen)
 - Log warning if Tier 3 fallback used in UAT/PROD (indicates misconfiguration)
 
+## Related ADRs
+
+- **ADR-042**: Session-Based Authentication vs Token Authentication
+- **ADR-061**: StepView RBAC Security Implementation - RBAC context in environment detection
+- **ADR-073**: Enhanced 4-Tier Environment Detection Architecture (parent ADR)
+- **US-098**: Configuration Management System (Phase 4 - URL-based detection)
+
 ## Related Documentation
 
-- **ADR-073**: Enhanced 4-Tier Environment Detection Architecture (parent ADR)
-- **ADR-042**: Session-Based Authentication vs Token Authentication
-- **US-098**: Configuration Management System (Phase 4 - URL-based detection)
 - **Test Script**: `/src/groovy/umig/tests/diagnostics/test-environment-detection-bugfix.groovy`
 
 ## Implementation Checklist
@@ -372,6 +400,7 @@ For deployment customization, set these system properties:
 ```
 
 **Example docker-compose.yml**:
+
 ```yaml
 environment:
   - CATALINA_OPTS=-Dumig.environment=DEV -Dconfluence.base.url=http://localhost:8090

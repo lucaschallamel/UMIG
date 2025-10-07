@@ -825,10 +825,13 @@ const enhancedSecurityConfig = {
 
 ## Related ADRs
 
+- **ADR-042**: Dual Authentication Context Management - Authentication integration with security utilities
 - **ADR-058**: Global SecurityUtils Access Pattern - Foundation security utilities enhanced by this ADR
+- **ADR-061**: StepView RBAC Security Implementation - RBAC integration with enhanced security
 - **ADR-064**: UMIG Namespace Prefixing - Platform isolation that supports enhanced security implementation
 - **ADR-067**: Session Security Enhancement - Complementary session security features
 - **ADR-069**: Component Security Boundary Enforcement - Component isolation that works with enhanced CSP
+- **ADR-070**: Component Lifecycle Security - Lifecycle security integration with enhanced utilities
 
 ## Validation Criteria
 

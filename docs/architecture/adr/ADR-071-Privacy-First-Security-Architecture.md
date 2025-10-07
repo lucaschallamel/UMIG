@@ -605,6 +605,15 @@ class PrivacySuccessMetrics {
 }
 ```
 
+## Related ADRs
+
+- **ADR-058**: Global SecurityUtils Access Pattern - Security foundation for privacy-preserving controls
+- **ADR-061**: StepView RBAC Security Implementation - RBAC integration with privacy-first architecture
+- **ADR-067**: Session Security Enhancement - Supersedes ADR-067 with privacy-first approach
+- **ADR-068**: SecurityUtils Enhancement - Enhanced security utilities with privacy preservation
+- **ADR-069**: Component Security Boundary Enforcement - Privacy-aware security boundaries
+- **ADR-070**: Component Lifecycle Security - Privacy-preserving lifecycle security controls
+
 ## References
 
 ### Regulations

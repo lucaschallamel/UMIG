@@ -952,10 +952,12 @@ const lifecycleSecurityConfig = {
 
 ## Related ADRs
 
+- **ADR-058**: Global SecurityUtils Access Pattern - Foundation security utilities enhanced by lifecycle auditing
+- **ADR-061**: StepView RBAC Security Implementation - RBAC integration with lifecycle security
 - **ADR-067**: Session Security Enhancement - Session-level audit events integration
 - **ADR-068**: SecurityUtils Enhancement - Enhanced security utilities audit integration
 - **ADR-069**: Component Security Boundary Enforcement - Boundary violation audit logging
-- **ADR-058**: Global SecurityUtils Access Pattern - Foundation security utilities enhanced by lifecycle auditing
+- **ADR-071**: Privacy-First Security Architecture - Privacy-preserving lifecycle security controls
 
 ## Validation Criteria
 

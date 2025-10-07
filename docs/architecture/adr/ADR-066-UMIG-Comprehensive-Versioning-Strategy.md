@@ -301,9 +301,13 @@ class UMIGVersion {
 
 - **ADR-008**: Database Migration Strategy with Liquibase (schema versioning foundation)
 - **ADR-017**: V2 REST API Architecture (API versioning independence)
+- **ADR-028**: Entity Management Architecture - Component versioning patterns
 - **ADR-049**: Service Layer Standardization Architecture (backend component organization)
 - **ADR-053**: Technology-Prefixed Test Commands Architecture (testing infrastructure versioning)
 - **ADR-054**: Enterprise Component Security Architecture Pattern (UI component versioning)
+- **ADR-057**: JavaScript Module Loading Anti-Pattern - Component versioning considerations
+- **ADR-059**: SQL Schema-First Development Principle - Schema authority and versioning
+- **ADR-061**: StepView RBAC Security Implementation - Security versioning and compatibility
 - **US-088**: Build Process and Deployment Packaging (implementation vehicle)
 
 ## References

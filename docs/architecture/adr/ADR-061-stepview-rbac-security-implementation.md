@@ -265,10 +265,17 @@ calculatePermissions(userContext) {
 
 ## Related ADRs
 
+- **ADR-031/043**: Explicit Type Casting (database integration)
 - **ADR-042**: Authentication Context Hierarchy (foundation)
 - **ADR-057**: JavaScript Module Loading Anti-Pattern (implementation pattern)
-- **ADR-031/043**: Explicit Type Casting (database integration)
+- **ADR-058**: Global SecurityUtils Access Pattern - Security foundation for RBAC implementation
 - **ADR-059**: SQL Schema-First Development (team relationship queries)
+- **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Related to component security boundaries
+- **ADR-068**: SecurityUtils Enhancement - Advanced security capabilities for RBAC
+- **ADR-069**: Component Security Boundary Enforcement - Enforces RBAC at component level
+- **ADR-070**: Component Lifecycle Security - Security throughout component lifecycle
+- **ADR-071**: Privacy-First Security Architecture - Privacy-preserving security architecture
+- **ADR-074**: ComponentLocator ScriptRunner Compatibility Fix - Related to environment detection security
 
 ## References
 

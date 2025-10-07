@@ -431,10 +431,14 @@ echo "✅ Namespace compliance validated"
 
 ## Related ADRs
 
+- **ADR-004**: Vanilla JavaScript Frontend - Foundation decision that enables namespace implementation
+- **ADR-028**: Entity Management Architecture - Admin component patterns using namespace isolation
+- **ADR-042**: Dual Authentication Context Management - Authentication within namespaced environment
 - **ADR-057**: JavaScript Module Loading Anti-Pattern - Component loading patterns that enable namespace isolation
 - **ADR-058**: Global SecurityUtils Access Pattern - Security utilities that work within namespaced environment
 - **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Component interfaces that support namespace patterns
-- **ADR-004**: Vanilla JavaScript Frontend - Foundation decision that enables namespace implementation
+- **ADR-062**: Modal Component Render Override - Modal implementation using namespace isolation
+- **ADR-063**: Pagination Component Interaction Pattern - Event naming and isolation strategy
 
 ## Validation
 

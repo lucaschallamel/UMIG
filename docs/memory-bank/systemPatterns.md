@@ -1,12 +1,307 @@
 # System Patterns
 
-**Last Updated**: October 2, 2025 (TD-014-B Repository Testing + Agent Delegation Workflow + Type Casting Patterns)
-**Status**: REPOSITORY TESTING EXCELLENCE + AGENT DELEGATION VALIDATED + EXPLICIT TYPE CASTING ENFORCED
-**Key Achievement**: **TD-014-B Repository Layer Testing 100% COMPLETE** (180/180 tests passing, 9.92/10 average quality), Agent delegation workflow validated with 75-85% time savings, explicit type casting pattern established preventing ClassCastException regressions, and ConfigurationService integration pattern for centralised configuration management
+**Last Updated**: October 7, 2025 (Documentation Organisation & URL Configuration Patterns)
+**Status**: DOCUMENTATION ORGANISATION POLICY + URL ARCHITECTURE PATTERNS + CONFIGURATION VALIDATION
+**Key Achievement**: **Documentation Organisation Pattern Established** - NO documentation in `/local-dev-setup/` except README files, logical subdirectory structure in `/docs/`. **StepView URL Architecture Clarity** - PageId-based URLs don't require space key, configuration validation should only check required fields. **Directory Rationalisation Pattern** - Diagnostic utilities consolidated by execution context (automated/ vs manual/). Previous achievements: TD-014-B Repository Layer Testing 100% COMPLETE (180/180 tests passing, 9.92/10 quality), Agent delegation workflow (75-85% time savings), Explicit type casting pattern (99.68% performance improvement)
 **Revolutionary Security Patterns**: Multi-session detection with device fingerprinting, Redis-coordinated adaptive rate limiting, Component namespace isolation (UMIG.\*), Multi-standard compliance audit framework, Advanced CSP integration, Comprehensive security boundary enforcement
 **Security Architecture**: **8.6/10 enhanced enterprise-grade security** with comprehensive multi-standard compliance and <12% performance overhead
 **Performance Excellence**: <12% total security overhead, 82% risk reduction achieved, Enterprise-grade threat protection active
 **Business Impact**: Enhanced enterprise-grade security compliance, Multi-standard regulatory support (SOX/PCI-DSS/ISO27001/GDPR), Revolutionary security architecture patterns
+
+## 📚 Documentation Organisation & Directory Rationalisation Patterns (October 7, 2025)
+
+### Documentation Organisation Policy Pattern
+
+**Pattern Type**: Repository documentation structure policy
+**Application**: All project documentation across repository
+**Business Impact**: Improved discoverability, logical organisation, reduced complexity
+
+#### Core Documentation Organisation Policy
+
+**1. Documentation Location Policy**
+
+```
+POLICY: NO documentation in /local-dev-setup/ except README.md files
+
+Rationale:
+- /local-dev-setup/ is for automation scripts and tooling ONLY
+- /docs/ is the single source of truth for ALL project documentation
+- Clear separation of concerns (automation vs documentation)
+- Improved discoverability through logical organisation
+```
+
+**Documentation Directory Structure**:
+
+```
+/docs/
+├── README.md                          (master index, consolidated policies)
+├── troubleshooting/                   (problem diagnosis and resolution)
+│   ├── DATABASE_ISSUES.md
+│   ├── TROUBLESHOOTING.md
+│   └── uat-browser-debug-guide.md
+├── operations/
+│   └── procedures/                    (operational procedures)
+│       ├── DATABASE_RESTORE_PROCEDURE.md
+│       └── ENVIRONMENT_RESET_PROCEDURE.md
+├── development/
+│   ├── authentication/                (authentication guides)
+│   │   ├── SESSION_AUTH_UTILITIES.md
+│   │   └── authentication guides (4 files)
+│   ├── testing/                       (testing documentation)
+│   └── configuration/                 (configuration guides)
+├── security/                          (security documentation)
+│   └── AUTHENTICATION_SECURITY_FIXES_SUMMARY.md
+├── architecture/                      (ADRs, TOGAF, system design)
+├── api/                              (API documentation, OpenAPI specs)
+├── roadmap/                          (sprint plans, user stories)
+└── archive/
+    └── policies/                      (historical documentation)
+        ├── DIRECTORY_RATIONALIZATION_PLAN.md
+        └── DOCUMENTATION_ORGANIZATION.md
+```
+
+**Benefits**:
+
+- ✅ Clear logical organisation by purpose
+- ✅ Improved documentation discoverability
+- ✅ Separation of automation scripts from documentation
+- ✅ Single source of truth for project knowledge
+- ✅ Archive for historical documentation
+
+### Directory Rationalisation Pattern
+
+**Pattern Type**: Diagnostic utility consolidation and organisation
+**Application**: Test infrastructure and diagnostic tooling
+**Business Impact**: Reduced complexity, improved maintainability, clear execution contexts
+
+#### Core Rationalisation Pattern
+
+**2. Diagnostic Utilities Organisation**
+
+```
+PROBLEM: Diagnostic utilities scattered across 3 locations
+- /local-dev-setup/diagnostic-scripts/
+- /local-dev-setup/diagnostics/
+- /src/groovy/umig/tests/diagnostics/
+
+SOLUTION: Consolidated into unified structure by execution context
+- __tests__/diagnostics/               (single source of truth)
+  ├── automated/                       (CI/CD integration tests)
+  ├── manual/
+  │   ├── groovy/                      (manual Groovy diagnostics)
+  │   └── sql/                         (manual SQL validation)
+```
+
+**Organisation Principles**:
+
+```javascript
+// Organisation by execution context pattern
+const DIAGNOSTIC_STRUCTURE = {
+  automated: {
+    purpose: "CI/CD integration and automated testing",
+    execution: "npm test or automated pipelines",
+    examples: ["integration tests", "smoke tests", "health checks"],
+  },
+  manual_groovy: {
+    purpose: "Manual diagnostic investigation",
+    execution: "groovy script.groovy from project root",
+    examples: [
+      "check-database-integrity.groovy",
+      "test-stepViewApi-authentication.groovy",
+    ],
+  },
+  manual_sql: {
+    purpose: "Manual SQL validation and verification",
+    execution: "psql or database client execution",
+    examples: ["validation queries", "data verification"],
+  },
+};
+```
+
+**Benefits**:
+
+- ✅ Clear execution context separation
+- ✅ Single source of truth for diagnostics
+- ✅ Improved maintainability
+- ✅ Reduced directory complexity
+
+## 🔗 URL Construction & Configuration Validation Patterns (October 7, 2025)
+
+### Confluence URL Architecture Pattern
+
+**Pattern Type**: URL construction for Confluence page navigation
+**Application**: StepView URL generation, macro configuration
+**Business Impact**: Correct URL architecture, reduced configuration complexity
+
+#### Core URL Architecture Pattern
+
+**1. PageId-Based vs Space-Based URL Patterns**
+
+```groovy
+// UMIG Pattern: PageId-based URLs (NO space key required)
+// Used for: StepView functionality, direct page navigation
+def buildPageIdBasedUrl(baseUrl, pageId, pageTitle) {
+    // Format: /pages/viewpage.action?pageId={id}
+    return "${baseUrl}/pages/viewpage.action?pageId=${pageId}"
+
+    // Required parameters:
+    // ✅ baseUrl  (e.g., 'http://localhost:8090')
+    // ✅ pageId   (e.g., '128942229')
+    // ✅ pageTitle (optional for URL, required for context)
+    // ❌ spaceKey (NOT REQUIRED - pageId is sufficient)
+}
+
+// Alternative Pattern: Space-based URLs (space key required)
+// NOT used by UMIG, but valid Confluence pattern
+def buildSpaceBasedUrl(baseUrl, spaceKey, pageTitle) {
+    // Format: /display/{space}/{page}
+    return "${baseUrl}/display/${spaceKey}/${pageTitle}"
+
+    // Required parameters:
+    // ✅ baseUrl
+    // ✅ spaceKey (required for this pattern)
+    // ✅ pageTitle
+}
+```
+
+**Architecture Decision**:
+
+```groovy
+// ✅ CORRECT: PageId-based pattern for UMIG
+// Rationale:
+// - Direct page navigation by unique ID
+// - No dependency on space structure
+// - Simpler configuration (3 fields vs 4 fields)
+// - More stable (page can move between spaces)
+
+def getSystemConfiguration() {
+    return DatabaseUtil.withSql { sql ->
+        sql.firstRow('''
+            SELECT scf_base_url, scf_page_id, scf_page_title
+            FROM system_configuration_scf
+            WHERE scf_key IN (
+                'stepview.confluence.base.url',
+                'stepview.confluence.page.id',
+                'stepview.confluence.page.title'
+                -- NO 'stepview.confluence.space.key' required
+            )
+        ''')
+    }
+}
+```
+
+### Configuration Validation Pattern
+
+**Pattern Type**: Required vs optional field validation
+**Application**: All configuration-based services
+**Business Impact**: Correct validation logic, graceful handling of optional fields
+
+#### Core Validation Pattern
+
+**2. Required-Only Validation Pattern**
+
+```groovy
+// ❌ ANTI-PATTERN: Over-validation (checking optional fields)
+def validateConfiguration(config) {
+    if (!config.baseUrl || !config.spaceKey || !config.pageId || !config.pageTitle) {
+        // Problem: Fails when optional spaceKey is missing
+        return null
+    }
+    return config
+}
+
+// ✅ CORRECT PATTERN: Required-only validation
+def validateConfiguration(config) {
+    // Only validate truly required fields
+    if (!config.baseUrl || !config.pageId || !config.pageTitle) {
+        return null
+    }
+    return config
+}
+
+// Optional field handling pattern
+def buildConfigurationMap(config) {
+    return [
+        baseUrl: config.scf_base_url as String,              // Required
+        pageId: config.scf_page_id as String,                // Required
+        pageTitle: config.scf_page_title as String,          // Required
+        spaceKey: config.scf_space_key ?                     // Optional
+                  config.scf_space_key as String : null,     // Graceful default
+        environment: config.scf_environment as String,       // Required
+        isActive: config.scf_is_active as Boolean            // Required
+    ]
+}
+```
+
+**Validation Philosophy**:
+
+```groovy
+// Core Principles for Configuration Validation
+
+// 1. Only validate truly required fields
+//    - Don't fail on missing optional fields
+//    - Don't over-validate beyond business requirements
+
+// 2. Graceful handling of optional fields
+//    - Use ternary operators: field ? field as Type : null
+//    - Provide sensible defaults where appropriate
+//    - Document which fields are optional
+
+// 3. Environment-specific configuration
+//    - Don't assume DEV configuration matches UAT/PROD
+//    - Verify actual environment configuration
+//    - User's environment is source of truth
+
+// 4. Backward compatibility
+//    - Making fields optional maintains compatibility
+//    - Complete removal risks breaking downstream code
+//    - Graceful degradation preferred over strict removal
+```
+
+### Environment Verification Best Practice Pattern
+
+**Pattern Type**: Cross-environment configuration verification
+**Application**: All environment-dependent configuration
+**Business Impact**: Reduced environment-specific bugs, improved reliability
+
+#### Core Environment Verification Pattern
+
+**3. Environment Configuration Verification**
+
+```groovy
+// ✅ CORRECT PATTERN: Verify actual environment configuration
+def verifyEnvironmentConfiguration() {
+    // Step 1: Check DEV configuration
+    def devConfig = getConfigurationForEnvironment('DEV')
+
+    // Step 2: Check UAT configuration
+    def uatConfig = getConfigurationForEnvironment('UAT')
+
+    // Step 3: Compare configurations
+    def devFields = devConfig.keySet()
+    def uatFields = uatConfig.keySet()
+
+    // Step 4: Identify differences
+    def devOnlyFields = devFields - uatFields
+    def uatOnlyFields = uatFields - devFields
+
+    // Step 5: Validate against requirements
+    // Don't assume DEV fields are required if missing in UAT
+    // Verify with actual UAT environment and business requirements
+
+    return [
+        devOnly: devOnlyFields,        // May be legacy data
+        uatOnly: uatOnlyFields,        // May be UAT-specific
+        common: devFields & uatFields  // Shared configuration
+    ]
+}
+
+// Lesson from StepView URL Bug:
+// - DEV had 'space.key' (legacy data)
+// - UAT did NOT have 'space.key' (correct configuration)
+// - Incorrectly assumed DEV configuration was required
+// - Always verify with actual environment and requirements
+```
 
 ## 🏆 TD-014-B: Repository Testing Patterns - Agent Delegation Breakthrough (October 2, 2025)
 

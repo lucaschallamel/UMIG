@@ -11,14 +11,15 @@
 
 ## Key Directories
 
-- **api/** - REST endpoints (21 APIs) with ADR-023 patterns and foundation service integration
-- **repository/** - Database access layer with DatabaseUtil.withSql pattern (mandatory)
-- **service/** - Business logic layer (US-056) with data transformation and orchestration services
-- **utils/** - Core utilities (DatabaseUtil, EmailService, SecurityUtils, AuthenticationService)
+- **api/** - REST endpoints (31 APIs) with ADR-023 patterns and foundation service integration
+- **repository/** - Database access layer (28 repositories) with DatabaseUtil.withSql pattern (mandatory)
+- **service/** - Business logic layer (11 services) with data transformation and orchestration
+- **utils/** - Core utilities (13 utilities) including DatabaseUtil, EmailService, SecurityUtils
 - **web/** - Frontend components with ComponentOrchestrator and 8-phase security controls
 - **macros/** - ScriptRunner UI macros for container rendering and asset loading
-- **tests/** - Self-contained testing architecture (100% pass rate) with technology-prefixed commands
+- **tests/** - Self-contained testing architecture (43/43 passing) with technology-prefixed commands
 - **dto/** - Data transfer objects with master/instance template separation
+- **config/** - Configuration utilities for import queue and system settings
 
 ## Critical Standards
 

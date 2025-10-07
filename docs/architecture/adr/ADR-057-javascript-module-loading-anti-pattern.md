@@ -128,9 +128,22 @@ The browser module loading system provides these guarantees:
 
 ## Related ADRs
 
+### Dependencies (Backward References)
+
 - **ADR-054**: Enterprise Component Security Architecture Pattern - Component registration security
 - **ADR-058**: Global SecurityUtils Access Pattern - Similar dependency resolution approach
 - **US-087**: Admin GUI Component Migration - Overall migration context
+
+### Dependents (Forward References)
+
+- **ADR-060**: BaseEntityManager Interface Compatibility Pattern - Applies direct class declaration pattern for entity managers
+- **ADR-061**: StepView RBAC Security Implementation - Uses module loading pattern for security components
+- **ADR-062**: Modal Component Render Override - Implements direct declaration without IIFE wrappers
+- **ADR-063**: Pagination Component Cross-Component Event Delegation - Follows established module loading sequence
+- **ADR-064**: UMIG Namespace Prefixing - Builds on reliable module loading architecture
+- **ADR-066**: UMIG Comprehensive Versioning Strategy - References module loading reliability
+- **ADR-072**: Dual-Track Testing Strategy - Tests module loading patterns
+- **ADR-074**: ComponentLocator ScriptRunner Compatibility Fix - Extends module loading with multi-tier fallback strategy
 
 ## Validation
 
