@@ -2036,6 +2036,9 @@ window.adminGui = {
     // Show loading screen immediately
     this.showLoadingScreen();
 
+    // UAT DEBUGGING: Add explicit diagnostic API call
+    this.runDiagnosticCheck();
+
     // Attempt automatic authentication
     this.automaticAuthentication()
       .then((user) => {
@@ -2075,7 +2078,158 @@ window.adminGui = {
       });
   },
 
+  // UAT DEBUGGING: Explicit diagnostic check
+  runDiagnosticCheck: function () {
+    console.log(
+      "═══════════════════════════════════════════════════════════════",
+    );
+    console.log("🔍 UMIG UAT AUTHENTICATION DIAGNOSTICS");
+    console.log(
+      "═══════════════════════════════════════════════════════════════",
+    );
+
+    // Check 1: Confluence context from macro
+    console.log("1️⃣ Confluence Context (from macro):");
+    console.log(
+      "   Username:",
+      window.UMIG_CONFIG?.confluence?.username || "❌ NOT AVAILABLE",
+    );
+    console.log(
+      "   Full Name:",
+      window.UMIG_CONFIG?.confluence?.fullName || "❌ NOT AVAILABLE",
+    );
+    console.log(
+      "   Email:",
+      window.UMIG_CONFIG?.confluence?.email || "❌ NOT AVAILABLE",
+    );
+
+    // Check 2: API base URL
+    console.log("\n2️⃣ API Configuration:");
+    console.log("   Base URL:", this.api.baseUrl);
+    console.log("   Full endpoint:", `${this.api.baseUrl}/users/current`);
+
+    // Check 3: Make diagnostic API call
+    console.log("\n3️⃣ Testing API call to /users/current...");
+    fetch(`${this.api.baseUrl}/users/current`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      credentials: "include",
+    })
+      .then((response) => {
+        console.log(
+          "   API Response Status:",
+          response.status,
+          response.statusText,
+        );
+        if (!response.ok) {
+          console.error("   ❌ API call failed");
+          return response.text().then((text) => {
+            console.error("   Error body:", text);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("   ✅ API call succeeded");
+        console.log("   Response data:", data);
+        console.log("\n4️⃣ Database User Data:");
+        console.log("   usr_code (username):", data.username || "❌ NOT FOUND");
+        console.log(
+          "   usr_confluence_user_id:",
+          data.confluenceUserId || "❌ NOT FOUND",
+        );
+        console.log(
+          "   Confluence Context Username:",
+          data.confluenceContextUsername || "❌ NOT FOUND",
+        );
+        console.log("   role:", data.role || "❌ NOT FOUND");
+        console.log("   isAdmin:", data.isAdmin || false);
+
+        console.log("\n5️⃣ Identity Matching Analysis:");
+        const confluenceCtxFromMacro =
+          window.UMIG_CONFIG?.confluence?.username || "";
+        const dbUsrCode = data.username || "";
+        const dbConfluenceId = data.confluenceUserId || "";
+        const confluenceCtxFromApi = data.confluenceContextUsername || "";
+
+        console.log(
+          "   Confluence Context (from macro):          ",
+          confluenceCtxFromMacro,
+        );
+        console.log("   DB usr_code:                              ", dbUsrCode);
+        console.log(
+          "   DB usr_confluence_user_id:                ",
+          dbConfluenceId,
+        );
+        console.log(
+          "   Confluence Context Username (from API):   ",
+          confluenceCtxFromApi,
+        );
+
+        const allMatch =
+          confluenceCtxFromMacro.toLowerCase() === dbUsrCode.toLowerCase() &&
+          confluenceCtxFromMacro.toLowerCase() ===
+            dbConfluenceId.toLowerCase() &&
+          confluenceCtxFromMacro.toLowerCase() ===
+            confluenceCtxFromApi.toLowerCase();
+
+        if (allMatch) {
+          console.log("   ✅ ALL IDENTIFIERS MATCH");
+        } else {
+          console.error("   ❌ MISMATCH DETECTED:");
+          if (
+            confluenceCtxFromMacro.toLowerCase() !== dbUsrCode.toLowerCase()
+          ) {
+            console.error("      - Confluence Context (macro) ≠ DB usr_code");
+            console.error(
+              `        '${confluenceCtxFromMacro}' !== '${dbUsrCode}'`,
+            );
+          }
+          if (
+            confluenceCtxFromMacro.toLowerCase() !==
+            dbConfluenceId.toLowerCase()
+          ) {
+            console.error(
+              "      - Confluence Context (macro) ≠ DB usr_confluence_user_id",
+            );
+            console.error(
+              `        '${confluenceCtxFromMacro}' !== '${dbConfluenceId}'`,
+            );
+          }
+          if (
+            confluenceCtxFromMacro.toLowerCase() !==
+            confluenceCtxFromApi.toLowerCase()
+          ) {
+            console.error(
+              "      - Confluence Context (macro) ≠ Confluence Context (API)",
+            );
+            console.error(
+              `        '${confluenceCtxFromMacro}' !== '${confluenceCtxFromApi}'`,
+            );
+          }
+          if (dbUsrCode.toLowerCase() !== dbConfluenceId.toLowerCase()) {
+            console.error("      - DB usr_code ≠ DB usr_confluence_user_id");
+            console.error(`        '${dbUsrCode}' !== '${dbConfluenceId}'`);
+          }
+        }
+        console.log(
+          "═══════════════════════════════════════════════════════════════\n",
+        );
+      })
+      .catch((error) => {
+        console.error("   ❌ Diagnostic API call failed:", error);
+        console.log(
+          "═══════════════════════════════════════════════════════════════\n",
+        );
+      });
+  },
+
   // Automatic authentication using /users/current API (TD-007)
+  // REFACTORED: Added fallback strategy for debugging when primary endpoint fails
   automaticAuthentication: function () {
     return new Promise((resolve, reject) => {
       // SECURITY: Use session-based authentication ONLY
@@ -2094,22 +2248,109 @@ window.adminGui = {
       })
         .then((response) => {
           if (!response.ok) {
-            // Authentication failed - provide helpful error messages
-            let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+            // Parse error response body for structured error information
+            return response
+              .json()
+              .then((errorBody) => {
+                console.error("[UMIG] API call failed");
+                console.error(
+                  "   Status:",
+                  response.status,
+                  response.statusText,
+                );
+                console.error("   Error body:", errorBody);
 
-            if (response.status === 401) {
-              errorMsg +=
-                " - Session authentication required. Please ensure you are logged into Confluence.";
-            } else if (response.status === 403) {
-              errorMsg +=
-                " - Insufficient privileges. Contact your administrator.";
-            }
+                let errorMessage = "";
 
-            throw new Error(errorMsg);
+                // Handle different error scenarios based on status code AND errorCode
+                if (response.status === 401) {
+                  // SCENARIO 2: Authentication failed (no valid session)
+                  errorMessage = `Authentication Failed: ${errorBody.message || "Session invalid"}`;
+                  if (
+                    errorBody.troubleshooting &&
+                    errorBody.troubleshooting.length > 0
+                  ) {
+                    errorMessage += `\n\nTroubleshooting:\n${errorBody.troubleshooting.join("\n")}`;
+                  }
+                } else if (response.status === 403) {
+                  // SCENARIO 1, 3, 4: Access denied (not registered, deactivated, or insufficient privileges)
+                  if (errorBody.errorCode === "USER_NOT_REGISTERED") {
+                    errorMessage = `User Not Registered: ${errorBody.message}`;
+                    errorMessage += `\n\nRequired Action: ${errorBody.details?.requiredAction}`;
+                    if (
+                      errorBody.troubleshooting &&
+                      errorBody.troubleshooting.length > 0
+                    ) {
+                      errorMessage += `\n\nTroubleshooting:\n${errorBody.troubleshooting.slice(0, 2).join("\n")}`;
+                    }
+                  } else if (errorBody.errorCode === "USER_DEACTIVATED") {
+                    errorMessage = `Account Deactivated: ${errorBody.message}`;
+                    errorMessage += `\n\nRequired Action: ${errorBody.details?.requiredAction}`;
+                  } else if (
+                    errorBody.errorCode === "INSUFFICIENT_PRIVILEGES_CROSS_USER"
+                  ) {
+                    errorMessage = `Insufficient Privileges: ${errorBody.message}`;
+                  } else {
+                    errorMessage = `Access Denied: ${errorBody.message}`;
+                  }
+                } else if (response.status === 404) {
+                  // True 404 - endpoint not found
+                  errorMessage =
+                    "Endpoint not found. Check ScriptRunner endpoint registration.";
+                } else {
+                  // Other errors
+                  errorMessage =
+                    errorBody.message ||
+                    `HTTP ${response.status}: ${response.statusText}`;
+                }
+
+                // UAT DEBUGGING: Try fallback authentication for debugging purposes
+                console.warn(
+                  "[UMIG] Primary authentication failed, attempting fallback for debugging...",
+                );
+                return this.fallbackAuthenticationDebug(errorMessage)
+                  .then(() => {
+                    // Fallback succeeded for debugging, but still reject primary auth
+                    throw new Error(errorMessage);
+                  })
+                  .catch(() => {
+                    // Fallback also failed, update debugging panel and throw original error
+                    this.updateDebuggingInfo(null, errorMessage);
+                    throw new Error(errorMessage);
+                  });
+              })
+              .catch((jsonError) => {
+                // Failed to parse JSON error body - use basic error message
+                let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+                if (response.status === 401) {
+                  errorMsg +=
+                    " - Session authentication required. Please ensure you are logged into Confluence.";
+                } else if (response.status === 403) {
+                  errorMsg += " - Access denied. Contact your administrator.";
+                } else if (response.status === 404) {
+                  errorMsg +=
+                    " - Endpoint not found. Check ScriptRunner endpoint registration.";
+                }
+
+                console.warn(
+                  "[UMIG] Primary authentication failed, attempting fallback for debugging...",
+                );
+                return this.fallbackAuthenticationDebug(errorMsg)
+                  .then(() => {
+                    throw new Error(errorMsg);
+                  })
+                  .catch(() => {
+                    this.updateDebuggingInfo(null, errorMsg);
+                    throw new Error(errorMsg);
+                  });
+              });
           }
           return response.json();
         })
         .then((userData) => {
+          // UAT DEBUGGING: Populate debugging panel with all user codes
+          this.updateDebuggingInfo(userData, null);
+
           // Transform API response to internal user format
           const user = this.transformUserData(userData);
           console.log(
@@ -2123,6 +2364,70 @@ window.adminGui = {
             "[UMIG] Automatic authentication API call failed:",
             error,
           );
+          reject(error);
+        });
+    });
+  },
+
+  // UAT DEBUGGING: Fallback authentication for debugging panel population
+  // Attempts to fetch user data using alternative endpoint when /users/current fails
+  fallbackAuthenticationDebug: function (primaryError) {
+    return new Promise((resolve, reject) => {
+      // Get Confluence username from macro config
+      const confluenceUsername = window.UMIG_CONFIG?.confluence?.username;
+
+      if (!confluenceUsername) {
+        console.warn(
+          "[UMIG] Fallback failed: No Confluence username available from macro",
+        );
+        reject(new Error("No Confluence username available"));
+        return;
+      }
+
+      // Try to fetch user by userCode using /users endpoint
+      const fallbackUrl = `${this.api.baseUrl}/users?userCode=${encodeURIComponent(confluenceUsername)}`;
+
+      console.log(`[UMIG] Attempting fallback API call: GET ${fallbackUrl}`);
+
+      fetch(fallbackUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Fallback API failed: HTTP ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((usersArray) => {
+          // Extract first user from array response
+          if (usersArray && usersArray.length > 0) {
+            const userData = usersArray[0];
+            console.log(
+              "[UMIG] Fallback API succeeded, updating debugging panel only",
+            );
+
+            // Update debugging panel with fallback data
+            this.updateDebuggingInfo(
+              userData,
+              `${primaryError} (showing fallback data)`,
+            );
+
+            resolve(userData);
+          } else {
+            throw new Error("No user found in fallback API response");
+          }
+        })
+        .catch((error) => {
+          console.warn("[UMIG] Fallback authentication debug failed:", error);
+
+          // Still update debugging panel with Confluence context from macro
+          this.updateDebuggingInfo(null, primaryError);
+
           reject(error);
         });
     });
@@ -2259,19 +2564,83 @@ window.adminGui = {
     };
   },
 
+  // UAT DEBUGGING: Update debugging panel with user identity information
+  // REFACTORED: Graceful degradation with fallback data sources
+  updateDebuggingInfo: function (userData, errorMsg) {
+    try {
+      // DEBUG: Log what we received
+      console.log("[UMIG] updateDebuggingInfo called with:", {
+        userData: userData,
+        errorMsg: errorMsg,
+        hasUsername: !!(userData && userData.username),
+        hasConfluenceUserId: !!(userData && userData.confluenceUserId),
+      });
+
+      // Update database user code (from users_usr.usr_code via API response field: username)
+      const dbUserCodeEl = document.getElementById("debugDbUserCode");
+      if (dbUserCodeEl) {
+        if (userData && userData.username) {
+          dbUserCodeEl.textContent = userData.username;
+          dbUserCodeEl.style.color = "#006644"; // Green for success
+        } else if (errorMsg) {
+          dbUserCodeEl.textContent = `API FAILED: ${errorMsg}`;
+          dbUserCodeEl.style.color = "#de350b"; // Red for error
+          dbUserCodeEl.title =
+            "Check ScriptRunner endpoint registration for /users/current";
+        } else {
+          dbUserCodeEl.textContent = "NOT FOUND";
+          dbUserCodeEl.style.color = "#ff8b00"; // Orange for warning
+        }
+      }
+
+      // Update database Confluence user ID (from users_usr.usr_confluence_user_id via API response field: confluenceUserId)
+      const dbConfluenceUserIdEl = document.getElementById(
+        "debugDbConfluenceUserId",
+      );
+      if (dbConfluenceUserIdEl) {
+        if (userData && userData.confluenceUserId) {
+          dbConfluenceUserIdEl.textContent = userData.confluenceUserId;
+          dbConfluenceUserIdEl.style.color = "#006644"; // Green for success
+        } else if (errorMsg) {
+          dbConfluenceUserIdEl.textContent = `API FAILED: ${errorMsg}`;
+          dbConfluenceUserIdEl.style.color = "#de350b"; // Red for error
+          dbConfluenceUserIdEl.title =
+            "Check ScriptRunner endpoint registration for /users/current";
+        } else {
+          dbConfluenceUserIdEl.textContent = "NOT FOUND";
+          dbConfluenceUserIdEl.style.color = "#ff8b00"; // Orange for warning
+        }
+      }
+
+      // Log debugging information to console for additional diagnostics
+      console.log("[UMIG] Debugging Info Updated:", {
+        dbUserCode: userData?.username || "N/A",
+        dbConfluenceUserId: userData?.confluenceUserId || "N/A",
+        hasError: !!errorMsg,
+        error: errorMsg || null,
+      });
+    } catch (e) {
+      console.error("[UMIG] Failed to update debugging info:", e);
+    }
+  },
+
   // Handle authentication failure fallback (TD-007)
   handleAuthenticationFailure: function (error = null) {
     let errorMessage;
 
-    // Check if this is an insufficient privileges error
+    // Check if this is a user not registered error (HTTP 403 from API)
     if (
       error &&
       error.message &&
-      error.message.includes("Access denied: Insufficient privileges")
+      (error.message.includes("User Not Registered") ||
+        error.message.includes("HTTP 403") ||
+        error.message.includes("Access denied"))
     ) {
-      errorMessage = `
+      // First check if it's the insufficient privileges error (more specific)
+      if (error.message.includes("Insufficient privileges")) {
+        errorMessage = `
           <div style="text-align: center; padding: 50px; max-width: 600px; margin: 0 auto;">
-            <div style="background: #ffebe6; border: 1px solid #de350b; border-radius: 8px; padding: 30px;">
+            <div style="background: #ffebe6; border: 1px solid #de350b; border-radius: 8px; padding: 30px; margin-top: 20px;">
               <h2 style="color: #de350b; margin-top: 0;">🚫 Access Denied</h2>
               <p style="font-size: 16px; margin-bottom: 20px;">
                 <strong>Insufficient Privileges</strong>
@@ -2291,11 +2660,39 @@ window.adminGui = {
             </div>
           </div>
         `;
+      } else {
+        // User authenticated in Confluence but not registered in UMIG database (HTTP 403 but not insufficient privileges)
+        errorMessage = `
+          <div style="text-align: center; padding: 50px; max-width: 600px; margin: 0 auto;">
+            <div style="background: #ffebe6; border: 1px solid #de350b; border-radius: 8px; padding: 30px; margin-top: 20px;">
+              <h2 style="color: #de350b; margin-top: 0;">🚫 Access Denied</h2>
+              <p style="margin-bottom: 20px;">
+                Unable to authenticate automatically. Please ensure you are logged into Confluence.
+              </p>
+              <p style="margin-bottom: 20px;">
+                If you are logged in, then your username appears as <strong>NOT declared in the UMIG application</strong>.
+              </p>
+              <p style="margin-bottom: 20px;">
+                This UMIG Administration Console is restricted to authorized personnel only.
+              </p>
+              <p style="margin-bottom: 20px;">
+                <strong>Required Roles:</strong> PILOT, ADMIN, or SUPERADMIN
+              </p>
+              <p style="margin-bottom: 30px;">
+                If you believe you should have access, please contact the system administrator.
+              </p>
+              <button onclick="location.reload()" style="background: #0052cc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Retry Authentication
+              </button>
+            </div>
+          </div>
+        `;
+      }
     } else {
       // General authentication failure
       errorMessage = `
           <div style="text-align: center; padding: 50px; max-width: 600px; margin: 0 auto;">
-            <div style="background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 8px; padding: 30px;">
+            <div style="background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 8px; padding: 30px; margin-top: 20px;">
               <h2 style="color: #42526e; margin-top: 0;">🔐 Authentication Required</h2>
               <p style="margin-bottom: 20px;">
                 Unable to authenticate automatically. Please ensure you are logged into Confluence.

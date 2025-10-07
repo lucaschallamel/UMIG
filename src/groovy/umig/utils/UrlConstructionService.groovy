@@ -6,6 +6,7 @@ import java.util.regex.Pattern
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import umig.utils.DatabaseUtil
+import umig.service.ConfigurationService
 
 /**
  * UrlConstructionService - Constructs secure URLs for UMIG step views
@@ -40,21 +41,27 @@ class UrlConstructionService {
     
     /**
      * Constructs a secure stepView URL for email notifications
-     * 
+     *
+     * URL Format: {baseURL}/pages/viewpage.action?pageId={pageId}&mig={migrationCode}&ite={iterationCode}&stepid={stepCode}
+     *
+     * Environment Detection:
+     * - Automatically detects environment where UMIG is running (not step target environment)
+     * - Uses ConfigurationService 4-tier detection (ADR-073)
+     * - Retrieves BASE_URL and PAGE_ID from system_configuration_scf for detected environment
+     *
      * @param stepInstanceId UUID of the step instance
-     * @param migrationCode Migration code (e.g., "TORONTO")  
+     * @param migrationCode Migration code (e.g., "TORONTO")
      * @param iterationCode Iteration code (e.g., "run1")
-     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
      * @return Fully constructed and validated URL, or null if construction fails
+     * @see umig.service.ConfigurationService#getCurrentEnvironment()
+     * @see ADR-073 Enhanced 4-Tier Environment Detection Architecture
      */
-    static String buildStepViewUrl(UUID stepInstanceId, String migrationCode, String iterationCode, String environmentCode = null) {
+    static String buildStepViewUrl(UUID stepInstanceId, String migrationCode, String iterationCode) {
         try {
-            // Auto-detect environment if not provided
-            if (!environmentCode) {
-                environmentCode = detectEnvironment()
-            }
-            
-            // Get system configuration for the environment
+            // Detect environment where UMIG is running (NOT step target environment)
+            String environmentCode = detectEnvironment()
+
+            // Get system configuration for the environment where UMIG is running
             def config = getSystemConfiguration(environmentCode)
             if (!config) {
                 println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
@@ -143,20 +150,24 @@ class UrlConstructionService {
     /**
      * Constructs a secure iteration view URL for email notifications
      *
+     * Environment Detection:
+     * - Automatically detects environment where UMIG is running (not iteration target environment)
+     * - Uses ConfigurationService 4-tier detection (ADR-073)
+     * - Retrieves BASE_URL and PAGE_ID from system_configuration_scf for detected environment
+     *
      * @param iterationId UUID of the iteration
      * @param migrationCode Migration code (e.g., "TORONTO")
      * @param iterationCode Iteration code (e.g., "run1")
-     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
      * @return Fully constructed and validated URL, or null if construction fails
+     * @see umig.service.ConfigurationService#getCurrentEnvironment()
+     * @see ADR-073 Enhanced 4-Tier Environment Detection Architecture
      */
-    static String buildIterationViewUrl(UUID iterationId, String migrationCode, String iterationCode, String environmentCode = null) {
+    static String buildIterationViewUrl(UUID iterationId, String migrationCode, String iterationCode) {
         try {
-            // Auto-detect environment if not provided
-            if (!environmentCode) {
-                environmentCode = detectEnvironment()
-            }
+            // Detect environment where UMIG is running (NOT iteration target environment)
+            String environmentCode = detectEnvironment()
 
-            // Get system configuration for the environment
+            // Get system configuration for the environment where UMIG is running
             def config = getSystemConfiguration(environmentCode)
             if (!config) {
                 println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
@@ -227,31 +238,32 @@ class UrlConstructionService {
     }
 
     /**
-     * Auto-detect current environment based on system properties or defaults
+     * Detect current environment where UMIG is running using ConfigurationService.
+     *
+     * This delegates to ConfigurationService.getCurrentEnvironment() which implements
+     * the 4-tier detection hierarchy from ADR-073:
+     * 1. System Property (-Dumig.environment=UAT) - Emergency override
+     * 2. Environment Variable (UMIG_ENVIRONMENT) - Deployment override
+     * 3. Confluence Base URL pattern matching - Self-service detection
+     * 4. Default to PROD - Fail-safe
+     *
+     * @return Environment code where UMIG is running (DEV, UAT, PROD, etc.)
+     * @see umig.service.ConfigurationService#getCurrentEnvironment()
+     * @see ADR-073 Enhanced 4-Tier Environment Detection Architecture
      */
     private static String detectEnvironment() {
-        // Check system property first
-        def env = System.getProperty('umig.environment')
-        if (env) {
-            return env.toUpperCase()
+        try {
+            String env = ConfigurationService.getCurrentEnvironment()
+            println "UrlConstructionService: Detected environment: ${env} (via ConfigurationService)"
+            return env
+        } catch (Exception e) {
+            println "UrlConstructionService: Error detecting environment via ConfigurationService: ${e.message}"
+            e.printStackTrace()
+
+            // Fail-safe default per ADR-073
+            println "UrlConstructionService: Falling back to PROD (fail-safe default)"
+            return 'PROD'
         }
-        
-        // Check if we're in local development (common patterns)
-        def hostname = System.getProperty('confluence.hostname', 'localhost')
-        def port = System.getProperty('confluence.port', '8090')
-        
-        if (hostname.contains('localhost') || hostname.contains('127.0.0.1') || port == '8090') {
-            return 'DEV'
-        }
-        
-        // Check for environment indicators in hostname
-        if (hostname.contains('dev')) return 'DEV'
-        if (hostname.contains('test') || hostname.contains('ev1') || hostname.contains('evx')) return 'UAT'
-        if (hostname.contains('stage') || hostname.contains('ev2')) return 'EV2'
-        if (hostname.contains('prod')) return 'PROD'
-        
-        // Default to DEV for safety
-        return 'DEV'
     }
     
     /**
@@ -501,18 +513,21 @@ class UrlConstructionService {
     /**
      * Constructs a stepView URL template for dynamic parameter injection
      * Used by macros that need to build URLs client-side with user selections
-     * 
-     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
+     *
+     * Environment Detection:
+     * - Automatically detects environment where UMIG is running
+     * - Uses ConfigurationService 4-tier detection (ADR-073)
+     *
      * @return Base URL template without step-specific parameters, or null if construction fails
+     * @see umig.service.ConfigurationService#getCurrentEnvironment()
      */
-    static String buildStepViewUrlTemplate(String environmentCode = null) {
+    static String buildStepViewUrlTemplate() {
+        String environmentCode = null
         try {
-            // Auto-detect environment if not provided
-            if (!environmentCode) {
-                environmentCode = detectEnvironment()
-            }
-            
-            // Get system configuration for the environment
+            // Detect environment where UMIG is running
+            environmentCode = detectEnvironment()
+
+            // Get system configuration for the environment where UMIG is running
             def config = getSystemConfiguration(environmentCode)
             if (!config) {
                 println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
@@ -556,20 +571,23 @@ class UrlConstructionService {
     }
     
     /**
-     * Gets the base URL configuration for a specific environment
+     * Gets the base URL configuration for the environment where UMIG is running
      * Used by macros to expose configuration to client-side JavaScript
-     * 
-     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
+     *
+     * Environment Detection:
+     * - Automatically detects environment where UMIG is running
+     * - Uses ConfigurationService 4-tier detection (ADR-073)
+     *
      * @return Map containing URL configuration components, or null if not available
+     * @see umig.service.ConfigurationService#getCurrentEnvironment()
      */
-    static Map getUrlConfigurationForEnvironment(String environmentCode = null) {
+    static Map getUrlConfigurationForEnvironment() {
+        String environmentCode = null
         try {
-            // Auto-detect environment if not provided
-            if (!environmentCode) {
-                environmentCode = detectEnvironment()
-            }
-            
-            // Get system configuration for the environment
+            // Detect environment where UMIG is running
+            environmentCode = detectEnvironment()
+
+            // Get system configuration for the environment where UMIG is running
             def config = getSystemConfiguration(environmentCode)
             if (!config) {
                 println "UrlConstructionService: No configuration found for environment: ${environmentCode}"

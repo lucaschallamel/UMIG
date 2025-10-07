@@ -74,16 +74,16 @@ CREATE TABLE users_usr (
 
 ### Impact Areas
 
-| Component           | File                                                                  | Change Required              |
-| ------------------- | --------------------------------------------------------------------- | ---------------------------- |
-| Database Schema     | `liquibase/changelogs/038_add_usr_telephone_field.sql`                | Add usr_telephone column     |
-| Repository Layer    | `src/groovy/umig/repository/UserRepository.groovy`                    | Add telephone CRUD methods   |
-| API Layer           | `src/groovy/umig/api/v2/UsersApi.groovy`                              | Expose telephone in REST API |
-| Frontend Manager    | `src/groovy/umig/web/js/entities/user/UserEntityManager.js`           | Add telephone form field     |
-| Test Suite (Groovy) | `src/groovy/umig/tests/unit/UserRepositoryTest.groovy`                | Add telephone validation     |
-| Test Suite (JS)     | `local-dev-setup/__tests__/components/UserEntityManager.test.js`      | Add telephone field tests    |
-| Documentation       | `docs/api/users-api.md`, `docs/architecture/database-schema.md`       | Update API and schema docs   |
-| OpenAPI Spec        | `docs/api/openapi.yaml`                                               | Add telephone to User schema |
+| Component           | File                                                             | Change Required              |
+| ------------------- | ---------------------------------------------------------------- | ---------------------------- |
+| Database Schema     | `liquibase/changelogs/038_add_usr_telephone_field.sql`           | Add usr_telephone column     |
+| Repository Layer    | `src/groovy/umig/repository/UserRepository.groovy`               | Add telephone CRUD methods   |
+| API Layer           | `src/groovy/umig/api/v2/UsersApi.groovy`                         | Expose telephone in REST API |
+| Frontend Manager    | `src/groovy/umig/web/js/entities/user/UserEntityManager.js`      | Add telephone form field     |
+| Test Suite (Groovy) | `src/groovy/umig/tests/unit/UserRepositoryTest.groovy`           | Add telephone validation     |
+| Test Suite (JS)     | `local-dev-setup/__tests__/components/UserEntityManager.test.js` | Add telephone field tests    |
+| Documentation       | `docs/api/users-api.md`, `docs/architecture/database-schema.md`  | Update API and schema docs   |
+| OpenAPI Spec        | `docs/api/openapi.yaml`                                          | Add telephone to User schema |
 
 ---
 
@@ -412,35 +412,35 @@ void testTelephoneMaxLength() {
 **JavaScript Component Tests** (UserEntityManager.test.js):
 
 ```javascript
-describe('UserEntityManager - Telephone Field', () => {
-    it('should display telephone input field', () => {
-        const manager = new UserEntityManager();
-        const formHTML = manager.renderForm();
-        expect(formHTML).toContain('name="usr_telephone"');
-        expect(formHTML).toContain('placeholder="+XX-XXX-XXX-XXXX"');
-    });
+describe("UserEntityManager - Telephone Field", () => {
+  it("should display telephone input field", () => {
+    const manager = new UserEntityManager();
+    const formHTML = manager.renderForm();
+    expect(formHTML).toContain('name="usr_telephone"');
+    expect(formHTML).toContain('placeholder="+XX-XXX-XXX-XXXX"');
+  });
 
-    it('should validate telephone format', () => {
-        const manager = new UserEntityManager();
-        expect(manager.validateTelephone('+41-22-555-0101')).toBe(true);
-        expect(manager.validateTelephone('+1 (555) 123-4567')).toBe(true);
-        expect(manager.validateTelephone('invalid')).toBe(false);
-        expect(manager.validateTelephone(null)).toBe(true); // Nullable
-    });
+  it("should validate telephone format", () => {
+    const manager = new UserEntityManager();
+    expect(manager.validateTelephone("+41-22-555-0101")).toBe(true);
+    expect(manager.validateTelephone("+1 (555) 123-4567")).toBe(true);
+    expect(manager.validateTelephone("invalid")).toBe(false);
+    expect(manager.validateTelephone(null)).toBe(true); // Nullable
+  });
 
-    it('should sanitize telephone input', () => {
-        const manager = new UserEntityManager();
-        const xssAttempt = '<script>alert("xss")</script>';
-        const sanitized = manager.sanitizeTelephone(xssAttempt);
-        expect(sanitized).not.toContain('<script>');
-    });
+  it("should sanitize telephone input", () => {
+    const manager = new UserEntityManager();
+    const xssAttempt = '<script>alert("xss")</script>';
+    const sanitized = manager.sanitizeTelephone(xssAttempt);
+    expect(sanitized).not.toContain("<script>");
+  });
 
-    it('should enforce max length constraint', () => {
-        const manager = new UserEntityManager();
-        const longPhone = '12345678901234567890123456789';
-        const sanitized = manager.sanitizeTelephone(longPhone);
-        expect(sanitized.length).toBeLessThanOrEqual(20);
-    });
+  it("should enforce max length constraint", () => {
+    const manager = new UserEntityManager();
+    const longPhone = "12345678901234567890123456789";
+    const sanitized = manager.sanitizeTelephone(longPhone);
+    expect(sanitized.length).toBeLessThanOrEqual(20);
+  });
 });
 ```
 
@@ -506,7 +506,7 @@ components:
           type: string
           maxLength: 255
           format: email
-        usr_telephone:  # NEW FIELD
+        usr_telephone: # NEW FIELD
           type: string
           maxLength: 20
           nullable: true
@@ -725,53 +725,55 @@ usersApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
 
 ```javascript
 class UserEntityManager extends BaseEntityManager {
-    getFormFields() {
-        return [
-            // ... existing fields (usr_code, usr_first_name, usr_last_name, usr_email)
+  getFormFields() {
+    return [
+      // ... existing fields (usr_code, usr_first_name, usr_last_name, usr_email)
 
-            // NEW FIELD: Telephone
-            {
-                name: 'usr_telephone',
-                type: 'text',
-                label: 'Telephone',
-                required: false,
-                placeholder: '+XX-XXX-XXX-XXXX',
-                maxLength: 20,
-                validation: {
-                    pattern: /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/,
-                    message: 'Invalid phone format. Use +XX-XXX-XXX-XXXX format.'
-                },
-                helpText: 'International format preferred (e.g., +41-22-555-0101)',
-                sanitize: (value) => this.sanitizeTelephone(value)
-            },
+      // NEW FIELD: Telephone
+      {
+        name: "usr_telephone",
+        type: "text",
+        label: "Telephone",
+        required: false,
+        placeholder: "+XX-XXX-XXX-XXXX",
+        maxLength: 20,
+        validation: {
+          pattern:
+            /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/,
+          message: "Invalid phone format. Use +XX-XXX-XXX-XXXX format.",
+        },
+        helpText: "International format preferred (e.g., +41-22-555-0101)",
+        sanitize: (value) => this.sanitizeTelephone(value),
+      },
 
-            // ... remaining fields (usr_is_admin, tms_id, rls_id)
-        ];
-    }
+      // ... remaining fields (usr_is_admin, tms_id, rls_id)
+    ];
+  }
 
-    /**
-     * Sanitize telephone input (XSS protection - ADR-058)
-     */
-    sanitizeTelephone(value) {
-        if (!value) return null;
+  /**
+   * Sanitize telephone input (XSS protection - ADR-058)
+   */
+  sanitizeTelephone(value) {
+    if (!value) return null;
 
-        // Use SecurityUtils for XSS protection
-        const sanitized = window.SecurityUtils.sanitizeInput(value)
-            .replace(/[^0-9\+\-\s\(\)\.]/g, '')
-            .trim();
+    // Use SecurityUtils for XSS protection
+    const sanitized = window.SecurityUtils.sanitizeInput(value)
+      .replace(/[^0-9\+\-\s\(\)\.]/g, "")
+      .trim();
 
-        return sanitized.substring(0, 20) || null;
-    }
+    return sanitized.substring(0, 20) || null;
+  }
 
-    /**
-     * Validate telephone format (client-side)
-     */
-    validateTelephone(value) {
-        if (!value) return true; // Nullable field
+  /**
+   * Validate telephone format (client-side)
+   */
+  validateTelephone(value) {
+    if (!value) return true; // Nullable field
 
-        const pattern = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
-        return pattern.test(value);
-    }
+    const pattern =
+      /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+    return pattern.test(value);
+  }
 }
 
 window.UserEntityManager = UserEntityManager;

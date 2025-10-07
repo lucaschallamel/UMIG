@@ -77,9 +77,27 @@ console.log('[UMIG] Admin GUI loading...');
 
 <!-- UMIG Admin GUI Container (normal mode) -->
 <div id="umig-admin-gui-root" class="umig-admin-container">
-    
-    <!-- Login Page -->
-    <div id="loginPage" class="login-container">
+
+    <!-- UAT Debugging Information (extracted from deprecated login form) -->
+    <div id="debuggingInfo" class="debugging-info" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+        <strong style="display: block; margin-bottom: 8px; color: #856404;">🔍 Authentication Debugging (UAT)</strong>
+        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 8px; line-height: 1.6;">
+            <span style="font-weight: bold;">Confluence Context:</span>
+            <span id="debugConfluenceUser">${confluenceUsername ?: 'NOT AVAILABLE'}</span>
+
+            <span style="font-weight: bold;">DB usr_code:</span>
+            <span id="debugDbUserCode" style="color: #0052cc; font-weight: bold;">Loading...</span>
+
+            <span style="font-weight: bold;">DB usr_confluence_user_id:</span>
+            <span id="debugDbConfluenceUserId" style="color: #0052cc; font-weight: bold;">Loading...</span>
+        </div>
+        <small style="display: block; margin-top: 8px; color: #856404;">
+            ⚠️ All three identifiers must match for successful authentication
+        </small>
+    </div>
+
+    <!-- Login Page (DEPRECATED - hidden, to be removed in future cleanup) -->
+    <div id="loginPage" class="login-container" style="display: none;">
         <div class="login-box">
             <div class="login-header">
                 <h2 class="login-title">UMIG Administration</h2>
@@ -93,24 +111,24 @@ console.log('[UMIG] Admin GUI loading...');
                         ${confluenceEmail ? "<br><small>${confluenceEmail}</small>" : ""}
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="userCode">User Code (Trigram)</label>
-                    <input type="text" 
-                           id="userCode" 
+                    <input type="text"
+                           id="userCode"
                            name="userCode"
-                           placeholder="Enter your 3-letter code" 
-                           maxlength="3" 
+                           placeholder="Enter your 3-letter code"
+                           maxlength="3"
                            autocomplete="off"
                            required>
                     <small class="form-help">Your organizational trigram identifier</small>
                 </div>
-                
+
                 <button type="submit" class="login-btn">
                     <span class="btn-text">Access Admin Console</span>
                     <span class="btn-loading" style="display: none;">Authenticating...</span>
                 </button>
-                
+
                 <div id="loginError" class="login-error" style="display: none;"></div>
             </form>
             

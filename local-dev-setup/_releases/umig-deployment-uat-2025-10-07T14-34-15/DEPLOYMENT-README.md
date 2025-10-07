@@ -1,9 +1,9 @@
 # UMIG Deployment Package
 
-**Version**: 1.0.0-uat.20251007.1135+9afc4b81
+**Version**: 1.0.0-uat.20251007.1634+6b8466b8
 **Environment**: UAT
-**Build Date**: Tuesday 7 October 2025 at 11:35 am
-**Git Commit**: 9afc4b81
+**Build Date**: Tuesday 7 October 2025 at 04:34 pm
+**Git Commit**: 6b8466b8
 
 ## Package Contents
 
@@ -29,7 +29,6 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 ## 🚀 Quick Deployment
 
 ### Prerequisites
-
 - **ScriptRunner**: Version 9.21.0 or higher
 - **PostgreSQL**: Version 14 or higher
 - **Confluence**: Compatible with your ScriptRunner version
@@ -37,7 +36,6 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 ### Deployment Steps
 
 1. **Extract Package**
-
    ```bash
    tar -xzf umig-deployment-uat-*.tar.gz
    cd umig-deployment/
@@ -67,5 +65,5 @@ This deployment package contains everything needed to deploy UMIG (Unified Migra
 
 ---
 
-_Package generated: Tuesday 7 October 2025 at 11:35 am_
-_Build System: UMIG Build Orchestrator vv22.20.0_
+*Package generated: Tuesday 7 October 2025 at 04:34 pm*
+*Build System: UMIG Build Orchestrator vv22.20.0*

@@ -63,18 +63,22 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 log.error("GET /users/current - Authentication failed: ${e.message}", e)
             }
 
-            // SECURITY: If authentication fails, return 401 Unauthorized
-            // DO NOT fall back to query parameters - this would create an authentication bypass vulnerability
+            // SCENARIO 2: Authentication failed - return 401
             if (!username) {
                 log.warn("SECURITY: GET /users/current - Authentication failed, no valid session")
                 return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(new JsonBuilder([
-                        error: "Session authentication required",
-                        details: "Unable to verify user identity. Please ensure you are logged into Confluence.",
+                        error: "Authentication Required",
+                        errorCode: "SESSION_INVALID",
+                        message: "Unable to verify user identity. Please ensure you are logged into Confluence.",
+                        details: [
+                            authenticationMethod: "confluence-session",
+                            sessionValid: false
+                        ],
                         troubleshooting: [
                             "Verify Confluence session is active",
-                            "Check ScriptRunner authentication context",
-                            "Review logs for authentication method failures"
+                            "Try logging out and logging back into Confluence",
+                            "Clear browser cookies and try again"
                         ]
                     ]).toString())
                     .build()
@@ -92,15 +96,19 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 def authenticatedUserMap = authenticatedUser as Map
 
                 if (!authenticatedUserMap?.usr_is_admin) {
-                    // Non-admin attempting to view other user's data - REJECT
+                    // SCENARIO 4: Insufficient privileges for cross-user query
                     log.warn("SECURITY: User '${username}' (non-admin) attempted unauthorized access to user '${requestedUsername}'")
 
                     return Response.status(Response.Status.FORBIDDEN)
                         .entity(new JsonBuilder([
-                            error: "Insufficient privileges",
-                            details: "Only administrators can view other users' data",
-                            authenticatedUser: username,
-                            requestedUser: requestedUsername
+                            error: "Access Denied",
+                            errorCode: "INSUFFICIENT_PRIVILEGES_CROSS_USER",
+                            message: "Only administrators can view other users' data",
+                            details: [
+                                authenticatedUser: username,
+                                requestedUser: requestedUsername,
+                                requiredPrivilege: "admin"
+                            ]
                         ]).toString())
                         .build()
                 }
@@ -113,24 +121,65 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             // Find user by username (either authenticated user or admin-requested user)
             def currentUser = userRepository.findUserByUsername(username as String)
 
+            // SCENARIO 1: User authenticated but not registered in UMIG
             if (!currentUser) {
-                return Response.status(Response.Status.NOT_FOUND)
+                log.warn("GET /users/current - User '${username}' authenticated in Confluence but not found in UMIG database")
+
+                return Response.status(Response.Status.FORBIDDEN)
                     .entity(new JsonBuilder([
-                        error: "User not found in database",
-                        username: username
+                        error: "Access Denied",
+                        errorCode: "USER_NOT_REGISTERED",
+                        message: "User '${username}' is authenticated in Confluence but not registered in UMIG",
+                        details: [
+                            confluenceUsername: username,
+                            isAuthenticated: true,
+                            isRegisteredInUmig: false,
+                            requiredAction: "Contact your administrator to create a UMIG user account"
+                        ],
+                        troubleshooting: [
+                            "Verify user is registered in UMIG database (users_usr table)",
+                            "Contact administrator to create user account",
+                            "Check if auto-user-creation is enabled in UserService configuration",
+                            "Run SQL query: SELECT * FROM users_usr WHERE LOWER(usr_code) = LOWER('${username}') OR LOWER(usr_confluence_user_id) = LOWER('${username}')"
+                        ],
+                        links: [
+                            documentation: "/wiki/display/UMIG/User+Registration",
+                            support: "/wiki/display/UMIG/Contact+Administrator"
+                        ]
                     ]).toString())
                     .build()
             }
 
-            // Return current user with role information
             def userMap = currentUser as Map
 
-            // Use the role code directly from the database
+            // SCENARIO 3: User exists but is deactivated
+            if (!userMap.usr_active) {
+                log.warn("GET /users/current - User '${username}' exists but account is deactivated")
+
+                return Response.status(Response.Status.FORBIDDEN)
+                    .entity(new JsonBuilder([
+                        error: "Access Denied",
+                        errorCode: "USER_DEACTIVATED",
+                        message: "User '${username}' is registered but account is deactivated",
+                        details: [
+                            confluenceUsername: username,
+                            isAuthenticated: true,
+                            isRegisteredInUmig: true,
+                            isActive: false,
+                            requiredAction: "Contact your administrator to reactivate your account"
+                        ]
+                    ]).toString())
+                    .build()
+            }
+
+            // SUCCESS: Return current user with role information
             def roleCode = userMap.role_code ?: 'USER' // Default to USER if no role
 
             return Response.ok(new JsonBuilder([
                 userId: userMap.usr_id,
                 username: userMap.usr_code,
+                confluenceUserId: userMap.usr_confluence_user_id,
+                confluenceContextUsername: authenticatedUserContext?.confluenceUsername as String,
                 firstName: userMap.usr_first_name,
                 lastName: userMap.usr_last_name,
                 email: userMap.usr_email,
@@ -142,10 +191,12 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             ]).toString()).build()
 
         } catch (Exception e) {
-            log.error("GET /users/current - Error getting current user: ${e.message}", e)
+            log.error("GET /users/current - Unexpected error: ${e.message}", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(new JsonBuilder([
-                    error: "Failed to get current user information",
+                    error: "Internal Server Error",
+                    errorCode: "UNEXPECTED_ERROR",
+                    message: "An unexpected error occurred while processing your request",
                     details: e.message
                 ]).toString())
                 .build()

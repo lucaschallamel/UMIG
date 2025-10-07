@@ -11,6 +11,7 @@
 **Epic**: Operational Excellence & Configuration Management
 **Type**: Feature - Runtime Email Control
 **Related Work**:
+
 - US-098 Configuration Management System (100% complete - Foundation)
 - US-058 Email Service Security Enhancement (89% complete - Email infrastructure)
 - TD-016 Email Notification Enhancements (100% complete - Email workflow)
@@ -22,12 +23,14 @@
 **Business Need**: UMIG currently sends email notifications for step status updates and instruction changes without any runtime control mechanism. There is no ability to disable email sending per environment (DEV/UAT/PROD) or notification type without code changes and redeployment.
 
 **Solution**: Implement a 3-tier email control system using the existing `system_configuration_scf` table (established by US-098) that allows:
+
 - Global email on/off control per environment
 - Granular control by email type (step updates, instruction updates, other)
 - Runtime configuration changes (no code deployment required)
 - Complete audit trail of suppressed emails with compliance-grade logging
 
 **Why 3 Story Points**: This story leverages the complete US-098 Configuration Management System infrastructure (ConfigurationService, system_configuration_scf table, environment detection, 4-tier fallback hierarchy, caching). The foundation is already operational with 17/17 tests passing. Implementation requires only:
+
 1. Database migration (9 configuration rows)
 2. EnhancedEmailService refactoring (~100 lines added to existing 2,300+ line service)
 3. Configuration check integration (4 email methods)
@@ -64,6 +67,7 @@
 ### Problem Statement
 
 UMIG currently lacks operational controls for email notifications:
+
 - **No UAT testing mode**: Email notifications fire during testing, potentially reaching real users
 - **No maintenance mode**: Cannot disable emails during system maintenance windows
 - **No audit trail**: Suppressed emails leave no trace for compliance verification
@@ -91,6 +95,7 @@ UMIG currently lacks operational controls for email notifications:
 ### Email Sending Architecture (US-098, US-058, TD-016)
 
 **Established Infrastructure**:
+
 ```
 EnhancedEmailService.groovy (2,300+ lines)
 ├── sendStepStatusChangedNotificationWithUrl()  # Step status updates (line 85)
@@ -101,11 +106,13 @@ EnhancedEmailService.groovy (2,300+ lines)
 ```
 
 **Email Templates** (3 active templates):
+
 1. `step_status_changed.groovy` - Step status update emails
 2. `instruction_completed.groovy` - Instruction completion emails
 3. `instruction_incomplete.groovy` - Instruction incomplete emails
 
 **Audit Integration** (TD-016 - 92% code reduction achieved):
+
 - `sendEmailWithAudit()` method established
 - `AuditLogRepository` integration complete
 - `EVENT_TYPE` enumeration for email events
@@ -114,6 +121,7 @@ EnhancedEmailService.groovy (2,300+ lines)
 ### Configuration Infrastructure (US-098 - 100% Complete)
 
 **Available Foundation**:
+
 - `system_configuration_scf` table with `env_id` FK support
 - `ConfigurationService.groovy` with caching (5-min TTL)
 - Type-safe accessors: `getString()`, `getInteger()`, `getBoolean()`
@@ -122,6 +130,7 @@ EnhancedEmailService.groovy (2,300+ lines)
 - 17/17 tests passing (100% test coverage)
 
 **Proven Integration Pattern**:
+
 ```groovy
 // Already used in macros (stepViewMacro.groovy line 84)
 def webRoot = ConfigurationService.getString('umig.web.root', '/rest/scriptrunner/latest/custom/web')
@@ -130,6 +139,7 @@ def webRoot = ConfigurationService.getString('umig.web.root', '/rest/scriptrunne
 ### Audit Logging Schema (Existing - Migration 001, 030)
 
 **audit_log_aud Table Structure**:
+
 ```sql
 CREATE TABLE audit_log_aud (
     aud_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -146,6 +156,7 @@ CREATE TABLE audit_log_aud (
 ```
 
 **Performance Indexes** (Migration 030):
+
 - `idx_audit_log_entity` on `(aud_entity_type, aud_entity_id, aud_timestamp DESC)`
 - `idx_audit_log_user` on `(usr_id, aud_timestamp DESC)`
 - `idx_audit_log_action` on `(aud_entity_type, aud_action, aud_timestamp DESC)`
@@ -158,18 +169,20 @@ CREATE TABLE audit_log_aud (
 
 **Configuration Keys**:
 
-| Configuration Key | Data Type | Default | Category | Description |
-|-------------------|-----------|---------|----------|-------------|
-| `email.send.step_updates` | BOOLEAN | TRUE | EMAIL_CONTROLS | Controls step status update emails from stepView/iterationView |
-| `email.send.instruction_updates` | BOOLEAN | TRUE | EMAIL_CONTROLS | Controls instruction complete/incomplete notification emails |
-| `email.send.other_emails` | BOOLEAN | FALSE | EMAIL_CONTROLS | Generic control for future email types (default: disabled, opt-in approach) |
+| Configuration Key                | Data Type | Default | Category       | Description                                                                 |
+| -------------------------------- | --------- | ------- | -------------- | --------------------------------------------------------------------------- |
+| `email.send.step_updates`        | BOOLEAN   | TRUE    | EMAIL_CONTROLS | Controls step status update emails from stepView/iterationView              |
+| `email.send.instruction_updates` | BOOLEAN   | TRUE    | EMAIL_CONTROLS | Controls instruction complete/incomplete notification emails                |
+| `email.send.other_emails`        | BOOLEAN   | FALSE   | EMAIL_CONTROLS | Generic control for future email types (default: disabled, opt-in approach) |
 
 **Environment-Specific Configuration**:
+
 - Each configuration key has separate values per environment (DEV, UAT, PROD)
 - Environment isolation via `env_id` foreign key constraint
 - Runtime changes without code deployment
 
 **Business Rules**:
+
 1. Default to TRUE for existing email types (backward compatible)
 2. Default to FALSE for new email types (opt-in approach)
 3. Configuration changes take effect within 5 minutes (ConfigurationService cache TTL)
@@ -179,14 +192,15 @@ CREATE TABLE audit_log_aud (
 
 **Integration Points**:
 
-| Method | Configuration Key | Check Location |
-|--------|-------------------|----------------|
-| `sendStepStatusChangedNotificationWithUrl` | `email.send.step_updates` | Before template retrieval |
-| `sendStepOpenedNotificationWithUrl` | `email.send.step_updates` | Before template retrieval |
-| `sendInstructionCompletedNotificationWithUrl` | `email.send.instruction_updates` | Before template retrieval |
+| Method                                          | Configuration Key                | Check Location            |
+| ----------------------------------------------- | -------------------------------- | ------------------------- |
+| `sendStepStatusChangedNotificationWithUrl`      | `email.send.step_updates`        | Before template retrieval |
+| `sendStepOpenedNotificationWithUrl`             | `email.send.step_updates`        | Before template retrieval |
+| `sendInstructionCompletedNotificationWithUrl`   | `email.send.instruction_updates` | Before template retrieval |
 | `sendInstructionUncompletedNotificationWithUrl` | `email.send.instruction_updates` | Before template retrieval |
 
 **Suppression Pattern**:
+
 ```groovy
 // Check configuration before sending email (ADR-031: explicit casting)
 def emailEnabled = ConfigurationService.getBoolean('email.send.step_updates', true) as Boolean
@@ -197,6 +211,7 @@ if (!emailEnabled) {
 ```
 
 **Return Value Structure**:
+
 ```groovy
 [
     success: true,         // Suppression successful (not an error)
@@ -210,6 +225,7 @@ if (!emailEnabled) {
 ### FR-3: Email Suppression Audit Trail
 
 **Audit Event Structure**:
+
 ```sql
 INSERT INTO audit_log_aud (
     usr_id,              -- User triggering email (if available)
@@ -222,22 +238,24 @@ INSERT INTO audit_log_aud (
 ```
 
 **JSONB Details Schema**:
+
 ```json
 {
-    "email_type": "step_status_update | instruction_completed | instruction_incomplete",
-    "intended_recipients": ["joh***@company.com", "use***@company.com"],
-    "step_code": "BUS-031",
-    "step_title": "Verify database connections",
-    "old_status": "PENDING",
-    "new_status": "IN_PROGRESS",
-    "suppression_reason": "email.send.step_updates=false in UAT environment",
-    "configuration_source": "database",
-    "timestamp": "2025-10-07T14:30:25.123Z"
+  "email_type": "step_status_update | instruction_completed | instruction_incomplete",
+  "intended_recipients": ["joh***@company.com", "use***@company.com"],
+  "step_code": "BUS-031",
+  "step_title": "Verify database connections",
+  "old_status": "PENDING",
+  "new_status": "IN_PROGRESS",
+  "suppression_reason": "email.send.step_updates=false in UAT environment",
+  "configuration_source": "database",
+  "timestamp": "2025-10-07T14:30:25.123Z"
 }
 ```
 
 **Security Requirements**:
-- Recipient email addresses masked in logs (first 3 chars + *** + @domain)
+
+- Recipient email addresses masked in logs (first 3 chars + \*\*\* + @domain)
 - No sensitive data exposed in audit logs
 - Only metadata captured (follows US-098 Phase 3 security classification)
 
@@ -246,6 +264,7 @@ INSERT INTO audit_log_aud (
 **Environment Configuration Examples**:
 
 **DEV Environment** (Development - emails enabled for testing):
+
 ```sql
 INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_data_type, scf_description) VALUES
 ((SELECT env_id FROM environments_env WHERE env_code = 'DEV'), 'email.send.step_updates', 'EMAIL_CONTROLS', 'true', 'BOOLEAN', 'Enable step status update emails in DEV'),
@@ -254,6 +273,7 @@ INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, 
 ```
 
 **UAT Environment** (User Testing - emails disabled for safety):
+
 ```sql
 -- UAT: emails suppressed during testing cycles
 INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_data_type, scf_description) VALUES
@@ -263,6 +283,7 @@ INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, 
 ```
 
 **PROD Environment** (Production - all emails enabled):
+
 ```sql
 -- Production: all emails operational
 INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, scf_data_type, scf_description) VALUES
@@ -272,24 +293,28 @@ INSERT INTO system_configuration_scf (env_id, scf_key, scf_category, scf_value, 
 ```
 
 **Environment Detection**:
+
 - ConfigurationService automatically detects current environment via `getCurrentEnvironment()`
 - Environment resolution uses 4-tier fallback: System property → Environment variable → Database → Default (PROD)
 
 ### FR-5: Backward Compatibility
 
 **Fallback Behavior**:
+
 ```groovy
 // Default to TRUE (send emails) if configuration not found
 def emailEnabled = ConfigurationService.getBoolean('email.send.step_updates', true)
 ```
 
 **Graceful Degradation**:
+
 1. **Configuration Not Found**: Default to TRUE (send email)
 2. **ConfigurationService Error**: Catch exception, default to TRUE, log warning
 3. **Database Unavailable**: ConfigurationService falls back to .env (LOCAL) or default
 4. **Cache Expired**: ConfigurationService refreshes from database (5-minute TTL)
 
 **Error Handling Pattern**:
+
 ```groovy
 try {
     def emailEnabled = ConfigurationService.getBoolean('email.send.step_updates', true)
@@ -318,12 +343,14 @@ try {
 
 **And** each key should have environment-specific values for DEV, UAT, PROD
 **And** configuration metadata should include:
+
 - `scf_category` = 'EMAIL_CONTROLS'
 - `scf_data_type` = 'BOOLEAN'
 - `scf_is_system_managed` = FALSE (admin-editable)
 - `scf_description` with clear explanation of control purpose
 
 **Database Validation**:
+
 ```sql
 SELECT
     e.env_code,
@@ -353,6 +380,7 @@ ORDER BY e.env_code, scf.scf_key;
 **When** EnhancedEmailService checks email sending controls
 **Then** it should use ConfigurationService.getBoolean() for type-safe access
 **And** follow 4-tier fallback hierarchy:
+
 1. Environment-specific value (e.g., UAT: false)
 2. Global value (if set)
 3. System environment variable (LOCAL/DEV only)
@@ -362,6 +390,7 @@ ORDER BY e.env_code, scf.scf_key;
 **And** explicit type casting per ADR-031/043
 
 **Implementation Pattern**:
+
 ```groovy
 // EnhancedEmailService.groovy - Email control check
 private static boolean isEmailTypeEnabled(String emailType) {
@@ -393,6 +422,7 @@ private static Boolean getDefaultForEmailType(String emailType) {
 **And** if FALSE: suppress email and log `EVENT_TYPE='EMAIL_SUPPRESSED'` with audit details
 
 **Suppression Audit Details** (JSON format):
+
 ```json
 {
   "email_type": "step_status_update",
@@ -416,6 +446,7 @@ private static Boolean getDefaultForEmailType(String emailType) {
 **And** if FALSE: suppress email and log `EVENT_TYPE='EMAIL_SUPPRESSED'` with audit details
 
 **Suppression Audit Details** (JSON format):
+
 ```json
 {
   "email_type": "instruction_completed",
@@ -435,6 +466,7 @@ private static Boolean getDefaultForEmailType(String emailType) {
 **Given** an email is suppressed due to configuration
 **When** the suppression occurs
 **Then** an audit log entry should be created with:
+
 - `aud_entity_type` = 'STEP_INSTANCE' or 'INSTRUCTION_INSTANCE'
 - `aud_entity_id` = Step/Instruction UUID
 - `aud_action` = 'EMAIL_NOTIFICATION'
@@ -444,6 +476,7 @@ private static Boolean getDefaultForEmailType(String emailType) {
 - `aud_timestamp` = Suppression timestamp
 
 **And** the method should return success status with suppression indicator:
+
 ```groovy
 [
     success: true,
@@ -455,6 +488,7 @@ private static Boolean getDefaultForEmailType(String emailType) {
 ```
 
 **Audit Query Validation**:
+
 ```sql
 -- Query suppressed emails for compliance reporting
 SELECT
@@ -481,6 +515,7 @@ ORDER BY aud_timestamp DESC;
 **And** a new specific configuration key can be added later (e.g., `email.send.reminders`)
 
 **Future Extension Pattern**:
+
 ```groovy
 // Future email types use 'other_emails' control initially
 static Map sendReminderNotification(Map reminderData) {
@@ -501,21 +536,25 @@ static Map sendReminderNotification(Map reminderData) {
 **Then** the configuration should follow environment-specific settings:
 
 **DEV Environment** (Testing, all emails enabled):
+
 - `email.send.step_updates` = TRUE
 - `email.send.instruction_updates` = TRUE
 - `email.send.other_emails` = FALSE
 
 **UAT Environment** (User testing, emails suppressed for safety):
+
 - `email.send.step_updates` = FALSE
 - `email.send.instruction_updates` = FALSE
 - `email.send.other_emails` = FALSE
 
 **PROD Environment** (Production, all emails enabled):
+
 - `email.send.step_updates` = TRUE
 - `email.send.instruction_updates` = TRUE
 - `email.send.other_emails` = FALSE
 
 **And** administrators should be able to change these via:
+
 1. Admin GUI (future US-103 - Admin Configuration UI)
 2. Direct SQL updates (immediate availability)
 3. Liquibase migrations (initial setup)
@@ -525,17 +564,20 @@ static Map sendReminderNotification(Map reminderData) {
 **Given** the email control check executes on every email send attempt
 **When** performance is measured
 **Then** the configuration check should:
+
 - Complete in <5ms (cached)
 - Complete in <50ms (uncached, database lookup)
 - Have zero impact on email sending performance (negligible overhead)
 - Benefit from ConfigurationService 5-min cache TTL (US-098)
 
 **And** audit logging should:
+
 - Complete in <20ms average
 - Use AuditLogRepository (established in TD-016)
 - Not block email sending flow (async where possible)
 
 **Performance Validation**:
+
 ```bash
 # Benchmark email control check
 time npm run test:groovy:unit -- ConfigurationServiceEmailControlTest
@@ -548,17 +590,20 @@ time npm run test:groovy:unit -- ConfigurationServiceEmailControlTest
 **Given** the system has existing email sending functionality
 **When** the 3-tier email control system is deployed
 **Then** there should be:
+
 - Zero breaking changes to existing email methods
 - Default configuration values that maintain current behavior (all enabled)
 - Graceful degradation if configuration is unavailable (default to enabled)
 - No impact to existing audit logging from TD-016
 
 **And** the system should support rollback:
+
 - Configuration keys can be deleted (system falls back to defaults)
 - Code can be reverted without database changes
 - Audit logs are preserved permanently
 
 **Rollback Test**:
+
 ```sql
 -- Delete email control configurations
 DELETE FROM system_configuration_scf
@@ -572,17 +617,20 @@ WHERE scf_category = 'EMAIL_CONTROLS';
 **Given** email control configurations are stored in the database
 **When** administrators access or modify email controls
 **Then** the configuration should:
+
 - Be editable only by users with ADMIN role
 - Be visible to users with PILOT role (read-only)
 - Be hidden from users with NORMAL role
 - Have audit trail for all configuration changes
 
 **And** email suppression should not expose sensitive data:
-- Recipient email addresses should be masked in logs (first 3 chars + ***)
+
+- Recipient email addresses should be masked in logs (first 3 chars + \*\*\*)
 - Email content should not be logged
 - Only metadata should be captured in audit trail
 
 **Security Pattern**:
+
 ```groovy
 // Mask email addresses in audit logs
 private static String maskEmail(String email) {
@@ -598,17 +646,20 @@ private static String maskEmail(String email) {
 **Given** an administrator changes email control configuration
 **When** the configuration is updated in the database
 **Then** the change should:
+
 - Take effect within 5 minutes (cache TTL from US-098)
 - Be logged in audit_log_aud with `aud_action='CONFIGURATION_CHANGED'`
 - Be visible immediately if cache is manually cleared
 
 **And** administrators should have a way to force immediate propagation:
+
 ```groovy
 // Clear cache to force immediate configuration reload
 umig.service.ConfigurationService.clearCache()
 ```
 
 **Cache Refresh Pattern**:
+
 ```bash
 # Admin GUI button (future US-103)
 POST /rest/scriptrunner/latest/custom/admin/configuration/refresh
@@ -623,12 +674,14 @@ POST /rest/scriptrunner/latest/custom/admin/configuration/refresh
 **Then** the test suite should include:
 
 **Unit Tests** (`ConfigurationServiceEmailControlTest.groovy`):
+
 - Test `isEmailTypeEnabled()` for all three email types
 - Test default value handling for each email type
 - Test configuration fallback hierarchy
 - Test type safety (ADR-031/043 compliance)
 
 **Integration Tests** (`EnhancedEmailServiceSuppressionTest.groovy`):
+
 - Test step status email suppression with audit logging
 - Test instruction email suppression with audit logging
 - Test email sending when controls are enabled
@@ -636,6 +689,7 @@ POST /rest/scriptrunner/latest/custom/admin/configuration/refresh
 - Test performance (<5ms cached, <50ms uncached)
 
 **Manual Testing Checklist**:
+
 - [ ] Configure UAT to suppress all emails
 - [ ] Trigger step status change in UAT
 - [ ] Verify no email sent, audit log entry created
@@ -782,6 +836,7 @@ ORDER BY e.env_code, scf.scf_key;
 ```
 
 **Justification**:
+
 - UAT environment defaults to suppressed emails for safe testing
 - DEV/PROD environments default to enabled for normal operations
 - `other_emails` defaults to FALSE for safety (opt-in for new email types)
@@ -1126,6 +1181,7 @@ class EnhancedEmailService {
 ### Phase 1: Database Configuration (1-2 hours)
 
 **Tasks**:
+
 1. Create `local-dev-setup/liquibase/changelogs/036_us102_email_controls.sql`
 2. Add migration to `db.changelog-master.xml`
 3. Test migration application
@@ -1133,6 +1189,7 @@ class EnhancedEmailService {
 5. Test configuration queries
 
 **Validation**:
+
 ```bash
 npm run db:migrate
 psql -d umig_app_db -c "
@@ -1148,6 +1205,7 @@ ORDER BY e.env_code, scf.scf_key;"
 ### Phase 2: EnhancedEmailService Implementation (3-4 hours)
 
 **Tasks**:
+
 1. Add `isEmailTypeEnabled()` method
 2. Add `getDefaultForEmailType()` method
 3. Add `suppressEmailWithAudit()` method
@@ -1160,6 +1218,7 @@ ORDER BY e.env_code, scf.scf_key;"
 10. Test type safety (ADR-031/043)
 
 **Deliverables**:
+
 - EnhancedEmailService.groovy with ~100 lines added
 - Complete email control logic
 - Audit trail integration
@@ -1167,6 +1226,7 @@ ORDER BY e.env_code, scf.scf_key;"
 ### Phase 3: Testing & Validation (2-3 hours)
 
 **Tasks**:
+
 1. Write `ConfigurationServiceEmailControlTest.groovy` unit tests
 2. Write `EnhancedEmailServiceSuppressionTest.groovy` integration tests
 3. Test email suppression in UAT environment
@@ -1177,6 +1237,7 @@ ORDER BY e.env_code, scf.scf_key;"
 8. Test cache expiration and refresh
 
 **Validation Commands**:
+
 ```bash
 npm run test:groovy:unit -- ConfigurationServiceEmailControlTest
 npm run test:groovy:integration -- EnhancedEmailServiceSuppressionTest
@@ -1191,6 +1252,7 @@ ORDER BY aud_timestamp DESC LIMIT 10;"
 ### Phase 4: Documentation (1 hour)
 
 **Tasks**:
+
 1. Create `docs/architecture/implementation-notes/US-102-3-Tier-Email-Control.md`
 2. Document configuration keys and values
 3. Add audit log query examples for operations team
@@ -1199,6 +1261,7 @@ ORDER BY aud_timestamp DESC LIMIT 10;"
 6. Add JSDoc comments to all new methods
 
 **Documentation Checklist**:
+
 - [ ] Implementation guide complete
 - [ ] Configuration reference documented
 - [ ] Audit log query examples provided
@@ -1214,6 +1277,7 @@ ORDER BY aud_timestamp DESC LIMIT 10;"
 **Location**: `src/groovy/umig/tests/unit/ConfigurationServiceEmailControlTest.groovy`
 
 **Test Coverage**:
+
 ```groovy
 @Test
 void testIsEmailTypeEnabled_StepUpdates_EnabledInProd() {
@@ -1251,6 +1315,7 @@ void testMaskEmail_StandardEmail() {
 **Location**: `src/groovy/umig/tests/integration/EnhancedEmailServiceSuppressionTest.groovy`
 
 **Test Scenarios**:
+
 ```groovy
 @Test
 void testStepStatusEmail_Suppressed_AuditLogCreated() {
@@ -1312,6 +1377,7 @@ void testEmailControlPerformance_CachedAccess() {
 **Risk**: New email control logic introduces bugs that break existing email functionality
 
 **Mitigation**:
+
 - Add email control check as first step (early return if suppressed)
 - Preserve all existing email sending logic unchanged
 - Comprehensive unit and integration tests
@@ -1320,6 +1386,7 @@ void testEmailControlPerformance_CachedAccess() {
 - Backward compatibility tests (delete configurations, verify emails still work)
 
 **Validation**:
+
 ```bash
 # Test existing email functionality unchanged
 npm run test:groovy:integration -- EnhancedEmailServiceTest
@@ -1332,6 +1399,7 @@ npm run test:groovy:integration -- EnhancedEmailServiceTest
 **Risk**: Audit logging for suppressed emails impacts system performance
 
 **Mitigation**:
+
 - Use existing AuditLogRepository (optimized in TD-016, 92% code reduction)
 - Leverage existing audit_log_aud indexes (Migration 030)
 - Async audit logging where possible
@@ -1343,6 +1411,7 @@ npm run test:groovy:integration -- EnhancedEmailServiceTest
 **Risk**: Configuration changes don't propagate immediately due to 5-min cache TTL
 
 **Mitigation**:
+
 - Document 5-min cache TTL clearly for administrators
 - Provide manual cache clear capability (ConfigurationService.clearCache())
 - Include cache refresh button in future Admin GUI (US-103)
@@ -1354,6 +1423,7 @@ npm run test:groovy:integration -- EnhancedEmailServiceTest
 **Risk**: UAT email suppression configuration accidentally left enabled in PROD
 
 **Mitigation**:
+
 - Default PROD configuration to enabled (emails on)
 - Environment-specific configuration (UAT ≠ PROD)
 - Configuration migration explicitly sets PROD values
@@ -1361,6 +1431,7 @@ npm run test:groovy:integration -- EnhancedEmailServiceTest
 - Admin GUI (future US-103) highlights suppressed email configurations
 
 **Operational Procedure**:
+
 ```sql
 -- Pre-deployment checklist: Verify PROD email controls
 SELECT
