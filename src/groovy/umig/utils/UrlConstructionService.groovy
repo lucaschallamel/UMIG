@@ -61,10 +61,16 @@ class UrlConstructionService {
             // Detect environment where UMIG is running (NOT step target environment)
             String environmentCode = detectEnvironment()
 
+            // Defensive null check (should never happen with 4-tier fallback logic, but defensive programming)
+            if (!environmentCode) {
+                println "❌ UrlConstructionService: Failed to detect environment - cannot build stepView URL"
+                return null
+            }
+
             // Get system configuration for the environment where UMIG is running
             def config = getSystemConfiguration(environmentCode)
             if (!config) {
-                println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
+                println "❌ UrlConstructionService: No configuration found for environment: ${environmentCode}"
                 return null
             }
             
@@ -97,12 +103,11 @@ class UrlConstructionService {
             
             // Construct the URL
             def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
-            def spaceKey = sanitizeParameter(config.scf_space_key as String)
             def pageId = sanitizeParameter(config.scf_page_id as String)
             def pageTitle = sanitizePageTitle(config.scf_page_title as String)
-            
-            if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
-                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
+
+            if (!baseUrl || !pageId || !pageTitle) {
+                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}. Required: baseUrl, pageId, pageTitle"
                 return null
             }
             
@@ -254,15 +259,21 @@ class UrlConstructionService {
     private static String detectEnvironment() {
         try {
             String env = ConfigurationService.getCurrentEnvironment()
-            println "UrlConstructionService: Detected environment: ${env} (via ConfigurationService)"
-            return env
+            if (env) {
+                println "UrlConstructionService: Detected environment: ${env} (via ConfigurationService)"
+                return env
+            } else {
+                // Should never happen with new fallback logic, but defensive programming
+                println "⚠️  UrlConstructionService: ConfigurationService.getCurrentEnvironment() returned null - using DEV fallback"
+                return 'DEV'
+            }
         } catch (Exception e) {
-            println "UrlConstructionService: Error detecting environment via ConfigurationService: ${e.message}"
+            println "❌ UrlConstructionService: Error detecting environment via ConfigurationService: ${e.message}"
             e.printStackTrace()
 
-            // Fail-safe default per ADR-073
-            println "UrlConstructionService: Falling back to PROD (fail-safe default)"
-            return 'PROD'
+            // Fail-safe default per ADR-073 (but prefer DEV for safety in errors)
+            println "UrlConstructionService: Falling back to DEV (fail-safe default for error condition)"
+            return 'DEV'
         }
     }
     
@@ -288,9 +299,8 @@ class UrlConstructionService {
                     WHERE e.env_code = :envCode 
                       AND scf.scf_is_active = true
                       AND scf.scf_category = 'MACRO_LOCATION'
-                      AND scf.scf_key IN ('stepview.confluence.base.url', 
-                                         'stepview.confluence.space.key',
-                                         'stepview.confluence.page.id', 
+                      AND scf.scf_key IN ('stepview.confluence.base.url',
+                                         'stepview.confluence.page.id',
                                          'stepview.confluence.page.title')
                 ''', [envCode: environmentCode])
                 
@@ -307,9 +317,6 @@ class UrlConstructionService {
                             case 'stepview.confluence.base.url':
                                 config.scf_base_url = configMap.scf_value as String
                                 break
-                            case 'stepview.confluence.space.key':
-                                config.scf_space_key = configMap.scf_value as String
-                                break
                             case 'stepview.confluence.page.id':
                                 config.scf_page_id = configMap.scf_value as String
                                 break
@@ -319,13 +326,13 @@ class UrlConstructionService {
                         }
                     }
                     
-                    // Only cache if we have all required configuration values
-                    if (config.scf_base_url && config.scf_space_key && config.scf_page_id && config.scf_page_title) {
+                    // Only cache if we have all required configuration values (space key is optional)
+                    if (config.scf_base_url && config.scf_page_id && config.scf_page_title) {
                         configurationCache[environmentCode] = config
                         cacheLastUpdated = now
                         return config
                     } else {
-                        println "UrlConstructionService: Incomplete configuration for ${environmentCode}. Found configs: ${configs}"
+                        println "❌ UrlConstructionService: Incomplete configuration for ${environmentCode}. Required: base_url, page_id, page_title. Found: ${config}"
                         return null
                     }
                 } else {
@@ -536,12 +543,11 @@ class UrlConstructionService {
             
             // Validate and sanitize configuration components
             def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
-            def spaceKey = sanitizeParameter(config.scf_space_key as String)
             def pageId = sanitizeParameter(config.scf_page_id as String)
             def pageTitle = sanitizePageTitle(config.scf_page_title as String)
-            
-            if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
-                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
+
+            if (!baseUrl || !pageId || !pageTitle) {
+                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}. Required: baseUrl, pageId, pageTitle. Found: baseUrl=${baseUrl}, pageId=${pageId}, pageTitle=${pageTitle}"
                 return null
             }
             
@@ -596,7 +602,7 @@ class UrlConstructionService {
             
             return [
                 baseUrl: config.scf_base_url as String,
-                spaceKey: config.scf_space_key as String,
+                spaceKey: config.scf_space_key ? config.scf_space_key as String : null,
                 pageId: config.scf_page_id as String,
                 pageTitle: config.scf_page_title as String,
                 environment: environmentCode,

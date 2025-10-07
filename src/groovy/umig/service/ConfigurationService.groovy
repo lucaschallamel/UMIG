@@ -366,21 +366,49 @@ class ConfigurationService {
     }
 
     /**
-     * Get Confluence base URL from global settings.
+     * Get Confluence base URL using multi-tier fallback strategy.
+     * Used for environment auto-detection via URL pattern matching.
      *
-     * @return String Confluence base URL, null if unavailable
+     * Fallback Strategy:
+     * - Tier 1: ComponentLocator (may fail in ScriptRunner context)
+     * - Tier 2: System property 'confluence.base.url'
+     * - Tier 3: Environment variable 'CONFLUENCE_BASE_URL'
+     * - Tier 4: Hardcoded localhost fallback for DEV
+     *
+     * @return String Confluence base URL, always returns non-null value
      * US-098 Phase 4: URL-based environment detection
+     * Bugfix: Added multi-tier fallback for ScriptRunner compatibility
      */
     private static String getConfluenceBaseUrl() {
+        // Tier 1: Try ComponentLocator (may fail in ScriptRunner context)
         try {
             def settingsManager = ComponentLocator.getComponent(SettingsManager.class)
-            String baseUrl = settingsManager?.globalSettings?.baseUrl
-            log.debug("Retrieved Confluence base URL: ${baseUrl}")
-            return baseUrl
+            if (settingsManager?.globalSettings?.baseUrl) {
+                String baseUrl = settingsManager.globalSettings.baseUrl
+                log.info("ConfigurationService: Retrieved Confluence base URL via ComponentLocator: ${baseUrl}")
+                return baseUrl
+            }
         } catch (Exception e) {
-            log.warn("Failed to get Confluence base URL: ${e.message}")
-            return null
+            log.warn("ConfigurationService: ComponentLocator.getComponent(SettingsManager) failed (this is expected in ScriptRunner context): ${e.message}")
         }
+
+        // Tier 2: Try system property (explicit configuration)
+        String systemPropUrl = System.getProperty('confluence.base.url')
+        if (systemPropUrl) {
+            log.info("ConfigurationService: Using Confluence base URL from system property 'confluence.base.url': ${systemPropUrl}")
+            return systemPropUrl
+        }
+
+        // Tier 3: Try environment variable
+        String envVarUrl = System.getenv('CONFLUENCE_BASE_URL')
+        if (envVarUrl) {
+            log.info("ConfigurationService: Using Confluence base URL from environment variable 'CONFLUENCE_BASE_URL': ${envVarUrl}")
+            return envVarUrl
+        }
+
+        // Tier 4: Hardcoded localhost fallback for DEV (last resort)
+        log.warn("ConfigurationService: Could not determine Confluence base URL via any method - using localhost:8090 fallback for DEV")
+        return 'http://localhost:8090'
     }
 
     /**
@@ -450,26 +478,29 @@ class ConfigurationService {
         // Tier 1: System property (highest priority - manual override)
         String sysProperty = System.getProperty('umig.environment')
         if (sysProperty) {
-            log.debug("Environment from system property: ${sysProperty}")
+            log.debug("ConfigurationService: Environment from system property: ${sysProperty}")
             return (sysProperty as String).toUpperCase()
         }
 
         // Tier 2: Environment variable (fallback)
         String envVar = System.getenv('UMIG_ENVIRONMENT')
         if (envVar) {
-            log.debug("Environment from environment variable: ${envVar}")
+            log.debug("ConfigurationService: Environment from environment variable: ${envVar}")
             return (envVar as String).toUpperCase()
         }
 
-        // Tier 3: Confluence Base URL pattern matching (NEW - self-service)
+        // Tier 3: Confluence Base URL pattern matching (self-service auto-detection)
+        // Note: getConfluenceBaseUrl() now always returns non-null (has 4-tier fallback with localhost default)
         String baseUrl = getConfluenceBaseUrl()
-        String urlBasedEnv = detectEnvironmentFromUrl(baseUrl)
-        if (urlBasedEnv) {
-            log.info("Environment detected from Confluence URL (${baseUrl}): ${urlBasedEnv}")
-            return urlBasedEnv
+        if (baseUrl) {
+            String urlBasedEnv = detectEnvironmentFromUrl(baseUrl)
+            if (urlBasedEnv) {
+                log.info("ConfigurationService: Environment detected from Confluence URL (${baseUrl}): ${urlBasedEnv}")
+                return urlBasedEnv
+            }
         }
 
-        // Tier 4: Fail-safe default
+        // Tier 4: Fail-safe default (only reached if URL pattern doesn't match known environments)
         log.warn("Could not detect environment from any source - using fail-safe default: PROD")
         return 'PROD'
     }

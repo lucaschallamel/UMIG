@@ -50,7 +50,7 @@ final TeamRepository teamRepository = new TeamRepository()
  * Enhanced users endpoint for bidirectional relationship management
  * Provides user-centric operations with team relationships
  */
-users(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+usersRelationship(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -240,7 +240,7 @@ users(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
  * PUT endpoints for administrative user management operations
  * [SFT] Admin-only access for destructive operations
  */
-users(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+usersRelationship(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -473,11 +473,11 @@ users(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap
  * POST endpoints for administrative batch operations and cleanup
  * [SFT] Admin-only access for data modification operations  
  */
-users(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+usersRelationship(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
-    // Route: POST /users/cleanup-orphaned-members
+    // Route: POST /usersRelationship/cleanup-orphaned-members
     if (pathParts.size() == 1 && pathParts[0] == 'cleanup-orphaned-members') {
         try {
             def cleanupResult = userRepository.cleanupOrphanedMembers()
@@ -503,11 +503,11 @@ users(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMa
  * POST endpoints for regular user validation operations
  * [SFT] User-level access for read-only validation operations
  */
-users(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+usersRelationship(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
-    // Route: POST /users/batch-validate
+    // Route: POST /usersRelationship/batch-validate
     if (pathParts.size() == 1 && pathParts[0] == 'batch-validate') {
         try {
             // Parse request body for user IDs array

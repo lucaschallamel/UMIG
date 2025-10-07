@@ -25,6 +25,10 @@ def webRoot = ConfigurationService.getString('umig.web.root', '/rest/scriptrunne
 def urlConfig = UrlConstructionService.getUrlConfigurationForEnvironment()
 def stepViewBaseUrl = UrlConstructionService.buildStepViewUrlTemplate()
 
+// Debug logging
+println "🔍 iterationViewMacro: urlConfig = ${urlConfig}"
+println "🔍 iterationViewMacro: stepViewBaseUrl = ${stepViewBaseUrl}"
+
 return """
 <!-- Canonical CSS for Iteration View -->
 <link rel=\"stylesheet\" href=\"${webRoot}/css/iteration-view.css\">

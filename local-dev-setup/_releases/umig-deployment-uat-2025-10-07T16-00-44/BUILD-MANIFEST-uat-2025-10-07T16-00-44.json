@@ -1,9 +1,9 @@
 {
   "packageInfo": {
     "name": "UMIG Deployment Package",
-    "version": "1.0.0-uat.20251007.1634+6b8466b8",
+    "version": "1.0.0-uat.20251007.1800+818ec520",
     "environment": "uat",
-    "buildDate": "07/10/2025, 04:34:15 pm",
+    "buildDate": "07/10/2025, 06:00:45 pm",
     "buildDuration": "unknown"
   },
   "contents": {
@@ -29,7 +29,7 @@
     "archiveSize": "160 Bytes"
   },
   "buildInfo": {
-    "gitCommit": "6b8466b8",
+    "gitCommit": "818ec520",
     "gitBranch": "main",
     "nodeVersion": "v22.20.0",
     "buildHost": "unknown"

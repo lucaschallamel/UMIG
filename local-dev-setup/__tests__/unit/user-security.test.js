@@ -200,7 +200,7 @@ describe("User Security Tests", () => {
   describe("API Authorization Segregation", () => {
     test("GET endpoints should be accessible to regular users", async () => {
       // Mock API endpoint test
-      const endpoint = "/rest/scriptrunner/latest/custom/users/1/teams";
+      const endpoint = "/rest/scriptrunner/latest/custom/usersRelationship/1/teams";
       const mockRequest = {
         method: "GET",
         groups: ["confluence-users"],
@@ -214,7 +214,7 @@ describe("User Security Tests", () => {
 
     test("PUT endpoints should require admin privileges", async () => {
       // Mock API endpoint test for destructive operations
-      const endpoint = "/rest/scriptrunner/latest/custom/users/1/soft-delete";
+      const endpoint = "/rest/scriptrunner/latest/custom/usersRelationship/1/soft-delete";
       const mockRequest = {
         method: "PUT",
         groups: ["confluence-administrators"],
@@ -229,7 +229,7 @@ describe("User Security Tests", () => {
     test("POST cleanup endpoints should require admin privileges", async () => {
       // Mock API endpoint test for cleanup operations
       const endpoint =
-        "/rest/scriptrunner/latest/custom/users/cleanup-orphaned-members";
+        "/rest/scriptrunner/latest/custom/usersRelationship/cleanup-orphaned-members";
       const mockRequest = {
         method: "POST",
         groups: ["confluence-administrators"],
@@ -243,7 +243,7 @@ describe("User Security Tests", () => {
 
     test("POST validation endpoints should be accessible to regular users", async () => {
       // Mock API endpoint test for validation operations
-      const endpoint = "/rest/scriptrunner/latest/custom/users/batch-validate";
+      const endpoint = "/rest/scriptrunner/latest/custom/usersRelationship/batch-validate";
       const mockRequest = {
         method: "POST",
         groups: ["confluence-users"],

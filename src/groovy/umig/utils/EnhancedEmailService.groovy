@@ -862,11 +862,31 @@ class EnhancedEmailService {
             println "📧 Recipients: ${recipients.size()}"
             println "📧 Subject: ${subject}"
 
-            // Validate SMTP configuration
-            SMTPMailServer mailServer = validateSMTPConfiguration()
+            // Try Confluence MailServerManager first, fallback to direct SMTP if unavailable
+            Session session
+            String fromAddress
 
-            // Build JavaMail session with ConfigurationService overrides
-            Session session = buildEmailSession(mailServer)
+            if (mailServerManager) {
+                println "📧 Using Confluence MailServerManager"
+                // Validate SMTP configuration
+                SMTPMailServer mailServer = validateSMTPConfiguration()
+                // Build JavaMail session with ConfigurationService overrides
+                session = buildEmailSession(mailServer)
+                fromAddress = mailServer.getDefaultFrom() ?: DEFAULT_FROM_ADDRESS
+            } else {
+                // Fallback for DEV: Direct MailHog connection
+                println "📧 MailServerManager unavailable, using direct MailHog connection (DEV fallback)"
+                Properties props = new Properties()
+                props.put("mail.smtp.host", "localhost")
+                props.put("mail.smtp.port", "1025")
+                props.put("mail.smtp.auth", "false")
+                props.put("mail.smtp.starttls.enable", "false")
+                props.put("mail.smtp.ssl.enable", "false")
+
+                session = Session.getInstance(props)
+                fromAddress = DEFAULT_FROM_ADDRESS
+                println "📧 Created direct SMTP session to localhost:1025"
+            }
 
             // Send to each recipient
             boolean allSent = true
@@ -875,7 +895,7 @@ class EnhancedEmailService {
                     println "📧 Processing recipient: ${recipient}"
 
                     MimeMessage message = new MimeMessage(session)
-                    message.setFrom(new InternetAddress(mailServer.getDefaultFrom() ?: DEFAULT_FROM_ADDRESS))
+                    message.setFrom(new InternetAddress(fromAddress))
                     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
                     message.setSubject(subject, "UTF-8")
                     message.setContent(body, "text/html; charset=utf-8")

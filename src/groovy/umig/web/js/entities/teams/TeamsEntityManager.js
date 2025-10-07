@@ -2863,7 +2863,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/users/${encodeURIComponent(userId)}/teams?${params.toString()}`,
+        `/rest/scriptrunner/latest/custom/usersRelationship/${encodeURIComponent(userId)}/teams?${params.toString()}`,
         {
           method: "GET",
           headers: window.SecurityUtils.addCSRFProtection({
