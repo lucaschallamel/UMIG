@@ -300,15 +300,74 @@ class UserService {
     }
     
     /**
-     * Gets the current Confluence user from the thread local context.
+     * Gets the current Confluence user using multiple robust authentication methods.
+     *
+     * This method attempts multiple authentication strategies in order of preference:
+     * 1. AuthenticatedUserThreadLocal (Confluence-specific ThreadLocal context)
+     * 2. SAL UserManager (cross-application abstraction layer - more robust for REST endpoints)
+     *
+     * Note: Both methods rely on proper request context initialization by ScriptRunner/Confluence.
+     * If both fail, it indicates a critical environment configuration issue that must be resolved
+     * at the infrastructure level, NOT bypassed with insecure query parameters.
+     *
+     * @return User object from Confluence authentication context, or null if authentication fails
      */
     private static def getCurrentConfluenceUser() {
+        // Method 1: Try AuthenticatedUserThreadLocal (current primary method)
         try {
-            return com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get()
+            def user = com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get()
+            if (user) {
+                log.debug("UserService: Successfully retrieved user via AuthenticatedUserThreadLocal")
+                return user
+            }
         } catch (Exception e) {
-            log.warn("UserService: Could not get current Confluence user", e)
-            return null
+            log.warn("UserService: AuthenticatedUserThreadLocal.get() failed: ${e.message}")
         }
+
+        // Method 2: Try SAL UserManager (more robust for REST endpoint context)
+        try {
+            def userManager = com.atlassian.sal.api.component.ComponentLocator.getComponent(
+                com.atlassian.sal.api.user.UserManager.class
+            )
+
+            if (userManager) {
+                // Use getRemoteUser() instead of deprecated getRemoteUsername()
+                // Returns UserProfile object with username property (since SAL 2.10)
+                def remoteUser = userManager.getRemoteUser()
+                if (remoteUser) {
+                    def remoteUsername = remoteUser.getUsername() as String
+                    log.info("UserService: Successfully retrieved username via SAL UserManager: ${remoteUsername}")
+
+                    // Convert SAL username to Confluence User object
+                    def userAccessor = com.atlassian.sal.api.component.ComponentLocator.getComponent(
+                        com.atlassian.confluence.user.UserAccessor.class
+                    )
+
+                    if (userAccessor) {
+                        def confluenceUser = userAccessor.getUserByName(remoteUsername)
+                        if (confluenceUser) {
+                            log.debug("UserService: Successfully resolved Confluence User object from SAL username")
+                            return confluenceUser
+                        } else {
+                            log.warn("UserService: SAL username '${remoteUsername}' could not be resolved to Confluence User")
+                        }
+                    }
+                } else {
+                    log.warn("UserService: SAL UserManager.getRemoteUser() returned null")
+                }
+            }
+        } catch (Exception e) {
+            log.warn("UserService: SAL UserManager retrieval failed: ${e.message}")
+        }
+
+        // If all methods fail, log comprehensive error and return null
+        // DO NOT fall back to query parameters - this would create a security vulnerability
+        log.error("UserService: CRITICAL - All authentication methods failed. " +
+                  "This indicates an environment configuration issue that must be resolved at the infrastructure level. " +
+                  "Possible causes: ScriptRunner context not initialized, request context missing, " +
+                  "or authentication session not properly established.")
+
+        return null
     }
     
     /**

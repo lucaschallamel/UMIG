@@ -11,6 +11,20 @@
  */
 
 /**
+ * US-098: Initialize ApiUrlHelper for dynamic API URL construction
+ * Verify global apiUrlHelper is available before proceeding
+ */
+if (typeof window.apiUrlHelper === "undefined") {
+  console.error(
+    "❌ CRITICAL: ApiUrlHelper not loaded! Check script load order in macro.",
+  );
+  throw new Error(
+    "ApiUrlHelper dependency missing - cannot initialize iteration-view.js",
+  );
+}
+console.log("✅ ApiUrlHelper detected and ready for use");
+
+/**
  * StepsAPI v2 Client - High-performance API integration with caching
  */
 class StepsAPIv2Client {
@@ -1845,13 +1859,28 @@ class IterationView {
     // US-084: Populate filters for this iteration (no more plan filter)
     const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
     const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
-    const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
-    const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
 
-    populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
-    populateFilter("#phase-filter", phaseUrl, "All Phases");
-    populateFilter("#team-filter", teamsUrl, "All Teams");
-    populateFilter("#label-filter", labelsUrl, "All Labels");
+    // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+    try {
+      const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+        iterationId: iteId,
+      });
+      const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+        iterationId: iteId,
+      });
+
+      populateFilter("#sequence-filter", sequenceUrl, "All Sequences");
+      populateFilter("#phase-filter", phaseUrl, "All Phases");
+      populateFilter("#team-filter", teamsUrl, "All Teams");
+      populateFilter("#label-filter", labelsUrl, "All Labels");
+    } catch (error) {
+      console.error(
+        "❌ onIterationChange: Error building filter URLs:",
+        error.message,
+      );
+      this.resetSelector("#team-filter", "All Teams");
+      this.resetSelector("#label-filter", "All Labels");
+    }
 
     this.showNotification("Loading data for selected iteration...", "info");
     // Load steps and auto-select first step
@@ -1903,28 +1932,78 @@ class IterationView {
       if (planTemplateId) {
         // Filter by plan template - use plan instance filtering
         const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases?planTemplateId=${planTemplateId}`;
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}&planTemplateId=${planTemplateId}`;
-        populateFilter("#phase-filter", phaseUrl, "All Phases");
-        populateFilter("#team-filter", teamsUrl, "All Teams");
-        populateFilter("#label-filter", labelsUrl, "All Labels");
+
+        // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+        try {
+          const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+            iterationId: iteId,
+            planTemplateId: planTemplateId,
+          });
+          const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+            iterationId: iteId,
+            planTemplateId: planTemplateId,
+          });
+
+          populateFilter("#phase-filter", phaseUrl, "All Phases");
+          populateFilter("#team-filter", teamsUrl, "All Teams");
+          populateFilter("#label-filter", labelsUrl, "All Labels");
+        } catch (error) {
+          console.error(
+            "❌ onSequenceChange: Error building filter URLs (plan template):",
+            error.message,
+          );
+          this.resetSelector("#team-filter", "All Teams");
+          this.resetSelector("#label-filter", "All Labels");
+        }
       } else {
         // No plan template selected - show all phases for iteration
         const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
-        populateFilter("#phase-filter", phaseUrl, "All Phases");
-        populateFilter("#team-filter", teamsUrl, "All Teams");
-        populateFilter("#label-filter", labelsUrl, "All Labels");
+
+        // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+        try {
+          const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+            iterationId: iteId,
+          });
+          const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+            iterationId: iteId,
+          });
+
+          populateFilter("#phase-filter", phaseUrl, "All Phases");
+          populateFilter("#team-filter", teamsUrl, "All Teams");
+          populateFilter("#label-filter", labelsUrl, "All Labels");
+        } catch (error) {
+          console.error(
+            "❌ onSequenceChange: Error building filter URLs (no plan):",
+            error.message,
+          );
+          this.resetSelector("#team-filter", "All Teams");
+          this.resetSelector("#label-filter", "All Labels");
+        }
       }
     } else {
       // Specific sequence selected - use nested URL pattern (migrationApi supports this)
       const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences/${seqId}/phases`;
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
-      populateFilter("#phase-filter", phaseUrl, "All Phases");
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
+
+      // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+      try {
+        const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+          sequenceId: seqId,
+        });
+        const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+          sequenceId: seqId,
+        });
+
+        populateFilter("#phase-filter", phaseUrl, "All Phases");
+        populateFilter("#team-filter", teamsUrl, "All Teams");
+        populateFilter("#label-filter", labelsUrl, "All Labels");
+      } catch (error) {
+        console.error(
+          "❌ onSequenceChange: Error building filter URLs (sequence):",
+          error.message,
+        );
+        this.resetSelector("#team-filter", "All Teams");
+        this.resetSelector("#label-filter", "All Labels");
+      }
     }
 
     // Clear cache and apply filters to reload steps
@@ -1963,27 +2042,85 @@ class IterationView {
     if (!phaseId) {
       // 'All Phases' selected - refresh teams and labels for current sequence or higher level
       if (seqId) {
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
-        populateFilter("#team-filter", teamsUrl, "All Teams");
-        populateFilter("#label-filter", labelsUrl, "All Labels");
-      } else if (planId) {
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
-        populateFilter("#team-filter", teamsUrl, "All Teams");
-        populateFilter("#label-filter", labelsUrl, "All Labels");
+        // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+        try {
+          const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+            sequenceId: seqId,
+          });
+          const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+            sequenceId: seqId,
+          });
+          populateFilter("#team-filter", teamsUrl, "All Teams");
+          populateFilter("#label-filter", labelsUrl, "All Labels");
+        } catch (error) {
+          console.error(
+            "❌ onPhaseChange: Error building filter URLs (sequence):",
+            error.message,
+          );
+          this.resetSelector("#team-filter", "All Teams");
+          this.resetSelector("#label-filter", "All Labels");
+        }
+      } else if (planTemplateId) {
+        // US-098: Use planTemplateId (not planId) - Dynamic API URL construction
+        try {
+          const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+            iterationId: iteId,
+            planTemplateId: planTemplateId,
+          });
+          const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+            iterationId: iteId,
+            planTemplateId: planTemplateId,
+          });
+          populateFilter("#team-filter", teamsUrl, "All Teams");
+          populateFilter("#label-filter", labelsUrl, "All Labels");
+        } catch (error) {
+          console.error(
+            "❌ onPhaseChange: Error building filter URLs (plan template):",
+            error.message,
+          );
+          this.resetSelector("#team-filter", "All Teams");
+          this.resetSelector("#label-filter", "All Labels");
+        }
       } else {
-        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
-        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
-        populateFilter("#team-filter", teamsUrl, "All Teams");
-        populateFilter("#label-filter", labelsUrl, "All Labels");
+        // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+        try {
+          const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+            iterationId: iteId,
+          });
+          const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+            iterationId: iteId,
+          });
+          populateFilter("#team-filter", teamsUrl, "All Teams");
+          populateFilter("#label-filter", labelsUrl, "All Labels");
+        } catch (error) {
+          console.error(
+            "❌ onPhaseChange: Error building filter URLs (iteration):",
+            error.message,
+          );
+          this.resetSelector("#team-filter", "All Teams");
+          this.resetSelector("#label-filter", "All Labels");
+        }
       }
     } else {
       // Specific phase selected - show only teams and labels for this phase
-      const teamsUrl = `/rest/scriptrunner/latest/custom/teams?phaseId=${phaseId}`;
-      const labelsUrl = `/rest/scriptrunner/latest/custom/labels?phaseId=${phaseId}`;
-      populateFilter("#team-filter", teamsUrl, "All Teams");
-      populateFilter("#label-filter", labelsUrl, "All Labels");
+      // US-098: Dynamic API URL construction for Teams and Labels (bugfix/uat-deployment-issues)
+      try {
+        const teamsUrl = window.apiUrlHelper.buildTeamsUrl({
+          phaseId: phaseId,
+        });
+        const labelsUrl = window.apiUrlHelper.buildLabelsUrl({
+          phaseId: phaseId,
+        });
+        populateFilter("#team-filter", teamsUrl, "All Teams");
+        populateFilter("#label-filter", labelsUrl, "All Labels");
+      } catch (error) {
+        console.error(
+          "❌ onPhaseChange: Error building filter URLs (phase):",
+          error.message,
+        );
+        this.resetSelector("#team-filter", "All Teams");
+        this.resetSelector("#label-filter", "All Labels");
+      }
     }
 
     // Clear cache and apply filters to reload steps

@@ -57,6 +57,9 @@ return """
 <!-- StatusProvider for TD-003 status management - Load AFTER SecurityUtils -->
 <script src=\"${webRoot}/js/utils/StatusProvider.js\"></script>
 
+<!-- ApiUrlHelper for US-098 API URL construction - Load BEFORE iteration-view.js -->
+<script src=\"${webRoot}/js/utils/api-url-helper.js\"></script>
+
 <!-- Main JavaScript file - Load AFTER configuration and dependencies -->
 <script src=\"${webRoot}/js/iteration-view.js\"></script>
 

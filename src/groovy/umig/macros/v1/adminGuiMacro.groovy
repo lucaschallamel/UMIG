@@ -30,8 +30,24 @@ String confluenceUsername = currentUser?.getName() ?: ""
 String confluenceFullName = currentUser?.getFullName() ?: ""
 String confluenceEmail = currentUser?.getEmail() ?: ""
 
-// Base path for web resources (CSS/JS) - US-098 Phase 5E migration
+// US-098 Configuration Management: Web resources and API base URL
+// Use ConfigurationService for environment-aware configuration
 def webResourcesPath = ConfigurationService.getString('umig.web.root', '/rest/scriptrunner/latest/custom/web')
+
+// Construct API base URL from request context for environment-aware configuration
+// This replaces hard-coded paths in admin-gui.js (US-098 alignment)
+def apiBaseUrl = ConfigurationService.getString('umig.api.base.url', null)
+if (!apiBaseUrl) {
+    // Fallback: construct from web resources path (remove /web suffix)
+    // SECURITY: Add null pointer protection for webResourcesPath
+    if (webResourcesPath) {
+        apiBaseUrl = webResourcesPath.replaceAll('/web$', '')
+    } else {
+        // Ultimate fallback: use default API path
+        apiBaseUrl = '/rest/scriptrunner/latest/custom'
+        log.warn("adminGuiMacro: Both apiBaseUrl and webResourcesPath are null, using default: ${apiBaseUrl}")
+    }
+}
 
 // Version string for JavaScript files (update when deploying changes)
 // Using a stable version instead of System.currentTimeMillis() for better caching
@@ -400,23 +416,34 @@ console.log('[UMIG] Admin GUI loading...');
 </div>
 
 <!-- Confluence User Context for JavaScript -->
+<!-- US-098 Configuration Management: Environment-aware API base URL injection -->
+<!-- SECURITY: Using JsonBuilder for automatic XSS protection via proper escaping -->
 <script type="text/javascript">
-    window.UMIG_CONFIG = {
-        confluence: {
-            username: "${confluenceUsername}",
-            fullName: "${confluenceFullName}",
-            email: "${confluenceEmail}"
-        },
-        api: {
-            baseUrl: "/rest/scriptrunner/latest/custom",
-            webResourcesPath: "${webResourcesPath}"
-        },
-        features: {
+    window.UMIG_CONFIG = ${new groovy.json.JsonBuilder([
+        confluence: [
+            username: confluenceUsername ?: '',
+            fullName: confluenceFullName ?: '',
+            email: confluenceEmail ?: ''
+        ],
+        api: [
+            baseUrl: apiBaseUrl,
+            webResourcesPath: webResourcesPath
+        ],
+        environment: [
+            code: ConfigurationService.getCurrentEnvironment(),
+            detected: "server-side"
+        ],
+        features: [
             superAdminEnabled: true,
             bulkOperations: true,
             exportEnabled: true
-        }
-    };
+        ]
+    ]).toString()};
+    console.log('[UMIG] Configuration loaded:', {
+        environment: window.UMIG_CONFIG.environment.code,
+        apiBaseUrl: window.UMIG_CONFIG.api.baseUrl,
+        webResourcesPath: window.UMIG_CONFIG.api.webResourcesPath
+    });
 </script>
 
 <!-- Optimized CSS loading with critical path optimization -->

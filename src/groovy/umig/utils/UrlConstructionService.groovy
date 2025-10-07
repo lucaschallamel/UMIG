@@ -246,7 +246,7 @@ class UrlConstructionService {
         
         // Check for environment indicators in hostname
         if (hostname.contains('dev')) return 'DEV'
-        if (hostname.contains('test') || hostname.contains('ev1')) return 'EV1'
+        if (hostname.contains('test') || hostname.contains('ev1') || hostname.contains('evx')) return 'UAT'
         if (hostname.contains('stage') || hostname.contains('ev2')) return 'EV2'
         if (hostname.contains('prod')) return 'PROD'
         

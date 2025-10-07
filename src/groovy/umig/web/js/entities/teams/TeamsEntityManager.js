@@ -2919,7 +2919,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/users?${params.toString()}`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/${encodeURIComponent(teamId)}/users?${params.toString()}`,
         {
           method: "GET",
           headers: window.SecurityUtils.addCSRFProtection({
@@ -2971,7 +2971,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       window.SecurityUtils.validateInput({ teamId, userId });
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/users/${encodeURIComponent(userId)}/validate`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/${encodeURIComponent(teamId)}/users/${encodeURIComponent(userId)}/validate`,
         {
           method: "GET",
           headers: window.SecurityUtils.addCSRFProtection({
@@ -3032,7 +3032,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       this._checkPermission("delete");
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/${encodeURIComponent(teamId)}/delete-protection`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/${encodeURIComponent(teamId)}/delete-protection`,
         {
           method: "GET",
           headers: window.SecurityUtils.addCSRFProtection({
@@ -3246,7 +3246,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       this._checkPermission("bulk"); // Requires bulk operations permission
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/cleanup-orphaned-members`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/cleanup-orphaned-members`,
         {
           method: "POST",
           headers: window.SecurityUtils.addCSRFProtection({
@@ -3318,7 +3318,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       this._checkPermission("view"); // Basic view permission required
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/relationship-statistics`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/relationship-statistics`,
         {
           method: "GET",
           headers: window.SecurityUtils.addCSRFProtection({
@@ -3396,7 +3396,7 @@ class TeamsEntityManager extends (window.BaseEntityManager || class {}) {
       });
 
       const response = await fetch(
-        `/rest/scriptrunner/latest/custom/teams/batch-validate-relationships`,
+        `/rest/scriptrunner/latest/custom/teamsrelationship/batch-validate-relationships`,
         {
           method: "POST",
           headers: window.SecurityUtils.addCSRFProtection({

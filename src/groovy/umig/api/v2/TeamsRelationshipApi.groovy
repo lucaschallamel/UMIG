@@ -97,7 +97,7 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
  * Enhanced teams endpoint for bidirectional relationship management
  * Extends the base teams API with relationship-specific operations
  */
-teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+teamsrelationship(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -228,7 +228,7 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 /**
  * PUT endpoints for team management operations
  */
-teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+teamsrelationship(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
@@ -340,7 +340,7 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
 /**
  * POST endpoints for batch operations and cleanup
  */
-teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+teamsrelationship(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
