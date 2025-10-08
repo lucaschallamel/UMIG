@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11895,
-  "title": "O BE CANCELLED ?",
+  "title": "SGPBS FILES: Positions Extraction Part 2 - TO BE CANCELLED ?",
   "predecessor": "TRT-12332",
   "successor": "CHK-11898",
   "primary_team": "SGPBS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SGPBS - FILES: Positions Extraction Part 2",
-      "instruction_id": "TRT-11895-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11895-1"
     }
   ]
 }

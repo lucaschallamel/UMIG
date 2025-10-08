@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 1416,
-  "title": "ENGINE - TO GENERATE CONTROLS FOR TARIF Step 06_6 - FILE SENDING TO TARIF - TIERS RUBRIQUES \u0026amp; PARTICULAR CONDITIONS REPORT CREATION",
+  "title": "ENGINE - TO GENERATE CONTROLS FOR TARIF Step 06_6 - FILE SENDING TO TARIF - TIERS RUBRIQUES &amp; PARTICULAR CONDITIONS REPORT CREATION",
   "predecessor": "BGO-13809",
   "successor": "IGO-12835",
   "primary_team": "ENGINE COMMON",
@@ -10,39 +10,39 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_dbo.P_TARIF_OUT_TIERS_HISTORY",
-      "instruction_id": "CHK-1416-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-1416-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "DTSX_FTC_MOTEUR_SYSPARAM_0044_TARIFS_TIERS",
-      "instruction_id": "CHK-1416-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-1416-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "On Tarif's Team confirmation:\nBREAKPOINT_0_JOB_TARIF\nSQL_MOTEUR_MOTEUR_0000_TEMP_TARIF_MAPPING_CONDITIONS_PARTICULIERES",
       "associated_controls": "",
-      "instruction_title": "On Tarif\u0027s Team confirmation:\nBREAKPOINT_0_JOB_TARIF\nSQL_MOTEUR_MOTEUR_0000_TEMP_TARIF_MAPPING_CONDITIONS_PARTICULIERES",
-      "instruction_id": "CHK-1416-3",
-      "nominated_user": ""
+      "instruction_id": "CHK-1416-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "On Tarif's Team confirmation:\nBREAKPOINT_1_GEN_TARIF\nREPORT_TARIF_CONDITIONS_PARTICULIERES\nMAIL_TARIF_CONDITIONS_PARTICULIERES",
       "associated_controls": "",
-      "instruction_title": "On Tarif\u0027s Team confirmation:\nBREAKPOINT_1_GEN_TARIF\nREPORT_TARIF_CONDITIONS_PARTICULIERES\nMAIL_TARIF_CONDITIONS_PARTICULIERES",
-      "instruction_id": "CHK-1416-4",
-      "nominated_user": ""
+      "instruction_id": "CHK-1416-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "GENERATE AND SENDING OF THE Third Party Merger ID Matching List: C2460",
-      "instruction_id": "CHK-1416-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-1416-5"
     }
   ]
 }

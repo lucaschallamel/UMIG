@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13936,
   "title": "IT - CONTROLS RECONCILIATION INTEGRITY (CID PART)",
@@ -6,15 +6,15 @@
   "successor": "BGO-13941",
   "primary_team": "CID",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "",
       "instruction_title": "Execute controls the below controls and send results to TORONTOMigrationCoordination:\n\nK1008 List of positions without related instrument in SGPBS referential \nK1022 Security attributes differences between SGPBS and UBP\nK1029 Security prices control",
-      "instruction_id": "IGO-13936-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-13936-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 1680,
-  "title": "RUN1",
+  "title": "DARWIN - EOD*1",
   "predecessor": "IGO-14427",
   "successor": "IGO-2896",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EOD*1 EXECUTION\nE3_T_DRM_INTG-BANQUE-STAR1",
-      "instruction_id": "GON-1680-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-1680-1"
     }
   ]
 }

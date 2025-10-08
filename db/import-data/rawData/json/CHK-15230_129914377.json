@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15230,
   "title": "Secli - Count After Staging load and transformation",
@@ -10,18 +10,18 @@
   "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Count After Staging load and transformation",
-      "instruction_id": "CHK-15230-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-15230-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Send figures to [ CONTROLS ](#)",
-      "instruction_id": "CHK-15230-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-15230-2"
     }
   ]
 }

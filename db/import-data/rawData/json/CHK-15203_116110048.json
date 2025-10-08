@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15203,
   "title": "MUREX - Trade Reconciliation between MUREX and ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MUREX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Trade Reconciliation between MUREX and ATLAS",
-      "instruction_id": "CHK-15203-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15203-1"
     }
   ]
 }

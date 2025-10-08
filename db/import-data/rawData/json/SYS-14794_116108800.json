@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 14794,
-  "title": "ATLAS - SYSTEM DATE CHANGE TO CutoverDate AND CHANGE CICS NIGHT MODE \u0026amp; DB BATCH MODE ON Prod Like Environment",
+  "title": "ATLAS - SYSTEM DATE CHANGE TO CutoverDate AND CHANGE CICS NIGHT MODE &amp; DB BATCH MODE ON Prod Like Environment",
   "predecessor": "SYS-14794",
   "successor": "SYS-14794",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "Set date to : 31.01.2025\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\nSur Controlm EVX\n\n**Si mode nuit :**\nHolder le groupe : E**x**_MODE-TX-NIGHT-NIGHT\nConfirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-NIGHT-NIGHT\nJOB : E**x**_15-STOP_AV_TX-SERIES\n\n**Si mode jour :** \nHolder le groupe : E**x**_T_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : E**x**_00-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-DAY-DAY\nJOB : E5_00-STOP_AV_TX-SERIES\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l'environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev4txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**Si mode Nuit : **Démarrer atlas en mode nuit libérer les jobs suivants : \nE**x**_20-START_Prep_ORACLE_Batch\nE**x**_25-START_TX_Series_Nuit\n\n**Si mode jour :** Démarrer atlas en mode jour libérer les jobs suivants : \nE**x**_05-START_Prep_ORACLE_Online \nE**x**_10-START_TX_Series_Day\nE**x**_12-TRANSCU1",
       "associated_controls": "",
-      "instruction_title": "Set date to : 31.01.2025\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\nSur Controlm EVX\n\n**Si mode nuit :**\nHolder le groupe : E**x**_MODE-TX-NIGHT-NIGHT\nConfirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-NIGHT-NIGHT\nJOB : E**x**_15-STOP_AV_TX-SERIES\n\n**Si mode jour :** \nHolder le groupe : E**x**_T_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : E**x**_00-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-DAY-DAY\nJOB : E5_00-STOP_AV_TX-SERIES\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l\u0027environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev4txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**Si mode Nuit : **Démarrer atlas en mode nuit libérer les jobs suivants : \nE**x**_20-START_Prep_ORACLE_Batch\nE**x**_25-START_TX_Series_Nuit\n\n**Si mode jour :** Démarrer atlas en mode jour libérer les jobs suivants : \nE**x**_05-START_Prep_ORACLE_Online \nE**x**_10-START_TX_Series_Day\nE**x**_12-TRANSCU1",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

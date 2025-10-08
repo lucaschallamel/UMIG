@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6314,
-  "title": "CID - BO REPORTS GENERATION - MODIFIER L\u0027HEURE DE GENERATION DU RAPPORT BO COURS AUTOMATIQUES ET MANUELS HORS TOLéRANCE",
+  "title": "CID - BO REPORTS GENERATION - MODIFIER L'HEURE DE GENERATION DU RAPPORT BO COURS AUTOMATIQUES ET MANUELS HORS TOLéRANCE",
   "predecessor": "PRE-9006",
   "successor": "IGO-1973",
   "primary_team": "CID",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "MAHFOUDH Wassim",
       "instruction_assigned_team": "BUSINESS OBJECT",
+      "instruction_title": "SUR UAT-EV2 (DBIUAT) - MODIFIER L'HEURE DE GENERATION DU RAPPORT BO COURS AUTOMATIQUES ET MANUELS HORS TOLéRANCE\nle 19.09 à 4h00\n            mail to DBInstrument, _bus_im_cid, jcb\n            format excel\n  \nle 19.09 à 5h10\n            mail to DBInstrument, _bus_im_cid, jcb\n            format excel",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "SUR UAT-EV2 (DBIUAT) - MODIFIER L\u0027HEURE DE GENERATION DU RAPPORT BO COURS AUTOMATIQUES ET MANUELS HORS TOLéRANCE\nle 19.09 à 4h00\n            mail to DBInstrument, _bus_im_cid, jcb\n            format excel\n  \nle 19.09 à 5h10\n            mail to DBInstrument, _bus_im_cid, jcb\n            format excel",
-      "instruction_id": "PRE-6314-1",
-      "nominated_user": "MAHFOUDH Wassim"
+      "instruction_id": "PRE-6314-1"
     }
   ]
 }

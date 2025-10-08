@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5279,
   "title": "SETUP/SANITY CHECK - USERS PROVISIONNING STRUCTURE",
@@ -10,53 +10,53 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Define the structure for identified users - Move other RM in **DUMMY** Group.",
-      "instruction_id": "PRE-5279-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Prepare test desk (access for user + remove email function).",
-      "instruction_id": "PRE-5279-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Password activation on ATLAS (PROD-LIKE and TESTS environments).",
-      "instruction_id": "PRE-5279-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Provide password for onboarded users on tests phases.",
-      "instruction_id": "PRE-5279-4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-4"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Create structure in ATLAS (PME - GROUP) isolate user from UBP data.",
-      "instruction_id": "PRE-5279-5",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-5"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "",
       "instruction_title": "Provide the structure to ENGINE.",
-      "instruction_id": "PRE-5279-6",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-6"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "Map manager code in ENGINE.",
-      "instruction_id": "PRE-5279-7",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-5279-7"
     }
   ]
 }

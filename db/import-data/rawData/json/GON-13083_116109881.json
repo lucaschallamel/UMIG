@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 13083,
   "title": "AMBITFOCUS - EOD*1",
@@ -10,67 +10,67 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "THE MIGRATION IS THE SAME AS DARWIN MIGRATION AND MUST BE CONTROLED LIKE DARMIN MIGRATION",
-      "instruction_id": "GON-13083-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "usr_CalendarOverride.\nFOR THIS RUN, TEST THE MODIFICATION OF STORE PROC (WHICH UPDATE THIS DATE) FOR PUTTING THE SAME DATE AS ADVICED BY SGPBCHMigrationCoordination TEAM.",
-      "instruction_id": "GON-13083-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN THE AMBITFOCUS BATCH EOD *1",
-      "instruction_id": "GON-13083-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "INFORM AFTER THE BATCH IS COMPLETED",
-      "instruction_id": "GON-13083-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN SIT CHECKS BY AMBITFOCUS IT",
-      "instruction_id": "GON-13083-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN CHECKS BY RISK MANAGEMENT",
-      "instruction_id": "GON-13083-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "TREATMENT RUN IN APPLICATION : MARCO LEGAL",
-      "instruction_id": "GON-13083-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN BUSINESS CHECKS BY RISK MANAGEMENT",
-      "instruction_id": "GON-13083-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "- Check the logs\n  - Report the defect via Jira\\\"",
-      "instruction_id": "GON-13083-9",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-13083-9"
     }
   ]
 }

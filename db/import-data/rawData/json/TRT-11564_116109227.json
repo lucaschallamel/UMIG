@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11564,
   "title": "IQ - ALIMENTATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXECUTION CONTROL M PLAN FOR IQ REFRESH WITH RUN 3 DATA\n\nAPPLICATION : Sybase IQ",
-      "instruction_id": "TRT-11564-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11564-1"
     }
   ]
 }

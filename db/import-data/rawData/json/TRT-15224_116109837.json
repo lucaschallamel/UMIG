@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15224,
   "title": "ATLAS - ALL ACTIVE CLIENTS - PLEDGE ACTS, Cards, External Asset Managers - Part 3",
@@ -10,11 +10,11 @@
   "time_sequence": "CP - NANTISSEMENTS",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "INTEGRATION de Actes de nantissement\n\n---- comptage des clients modifiés suite envoi actes de nantissement \nselect cli.nbr_co_0145 as Société, count (*) as Nombre\n  from nhdbo.t_client cli, nhdbo.t_fu_client fu\n where nbr_co_0145 in (201,007)\n and cli.code_pledge_client_0145 > 0\n and cli.nbr_co_0145 = fu.nbr_co_1057\n and cli.nbr_client_0145 = fu.nbr_client_1057\n group by cli.nbr_co_0145;",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "INTEGRATION de Actes de nantissement\n\n---- comptage des clients modifiés suite envoi actes de nantissement \nselect cli.nbr_co_0145 as Société, count (*) as Nombre\n  from nhdbo.t_client cli, nhdbo.t_fu_client fu\n where nbr_co_0145 in (201,007)\n and cli.code_pledge_client_0145 \u003e 0\n and cli.nbr_co_0145 = fu.nbr_co_1057\n and cli.nbr_client_0145 = fu.nbr_client_1057\n group by cli.nbr_co_0145;",
-      "instruction_id": "TRT-15224-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-15224-1"
     }
   ]
 }

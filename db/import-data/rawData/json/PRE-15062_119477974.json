@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15062,
   "title": "QA - Align Users rights after Refresh - Prod Like",
@@ -10,18 +10,18 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "QA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXECUTE SQL Query : Giving  authorizations and Access for Business User on ATLAS ProdLike",
-      "instruction_id": "PRE-15062-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15062-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "QA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Grant access for user in the LIST on ATLAS  and on Prod Like",
-      "instruction_id": "PRE-15062-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15062-2"
     }
   ]
 }

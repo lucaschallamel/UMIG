@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12399,
   "title": "TAX - Check SGPBS pool value presence in BT Pub",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check SGPBS Fatca, QI pool and CRS reportability values presence in BT Pub.",
-      "instruction_id": "TRT-12399-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12399-1"
     }
   ]
 }

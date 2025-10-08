@@ -1,41 +1,41 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 1563,
-  "title": "ATLAS - VTRA CHECKS  \u0026amp; SQL REQUEST CONTROL (CODE FREQUENCE MODIFICATION)",
+  "title": "ATLAS - VTRA CHECKS  &amp; SQL REQUEST CONTROL (CODE FREQUENCE MODIFICATION)",
   "predecessor": "IGO-5360",
   "successor": "CHK-11992",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GG - ATLAS PHASE 0, 1 AND 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "VTRAs Checks",
-      "instruction_id": "CHK-1563-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-1563-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "SQL execution : Code frequency statment update for all migrated clients (update code CODE_FREQ_STMT_0145 to 2 - DAILY), to be sure of treating estimates advices in EOD*1 and EOD*2",
-      "instruction_id": "CHK-1563-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-1563-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "SQL execution : code estimation frequency update for all migrated clients (update code CODE_FREQ_PORT_0145 to 2 -DAILY for advices)",
-      "instruction_id": "CHK-1563-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-1563-3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "SQL execution : Code display graphic analyse update (Update CODE-TYPE-PORT-0145 : imput 1 instead of 0 for all integrated clients.",
-      "instruction_id": "CHK-1563-4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-1563-4"
     }
   ]
 }

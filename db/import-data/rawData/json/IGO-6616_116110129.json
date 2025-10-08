@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 6616,
   "title": "SECLI TEST-ENV REFRESH CHECK",
@@ -10,25 +10,25 @@
   "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Following refresh of SECLI TEST-ENV from PROD, check that the environment is OK and fit for the purpose of migration.\n\nIn particular we want to check that only the DBSECLI database has been refreshed, and that the EXABN has not been altered.",
-      "instruction_id": "IGO-6616-1",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "SECLI",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check that server date and user accounts have not been changed.",
-      "instruction_id": "IGO-6616-2",
-      "nominated_user": ""
+      "instruction_id": "IGO-6616-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
+      "instruction_title": "Check that server date and user accounts have not been changed.",
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-6616-2"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "SECLI",
       "instruction_title": "Perform Sanity Checks",
-      "instruction_id": "IGO-6616-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-6616-3"
     }
   ]
 }

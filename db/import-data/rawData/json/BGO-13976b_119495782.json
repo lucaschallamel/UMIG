@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": null,
-  "title": "MANAGEMENT - GO/ NO GO -  INVARIANT ID CHECK AFTER CONTROL FILES ON CHILDREN FILES - P\u0026amp;C",
+  "title": "MANAGEMENT - GO/ NO GO -  INVARIANT ID CHECK AFTER CONTROL FILES ON CHILDREN FILES - P&amp;C",
   "predecessor": "TRT-14643",
   "successor": "TRT-13971",
   "primary_team": "IT_MGMT",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GB - ANONYMISATION AND INTEGRATION OF P1 TO P99 FILES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GB - ANONYMISATION AND INTEGRATION OF P1 TO P99 FILES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "NUKOVIC Hugo",
       "instruction_assigned_team": "IT_MGMT",
-      "associated_controls": "",
       "instruction_title": "Mail from IT_Cutover to  PGU  : GO / NO GO -  INVARIANT ID CHECK AFTER CONTROL FILES ON CHILDREN FILES",
-      "instruction_id": "BGO-13976",
-      "nominated_user": "NUKOVIC Hugo"
+      "associated_controls": "",
+      "instruction_id": "BGO-13976"
     }
   ]
 }

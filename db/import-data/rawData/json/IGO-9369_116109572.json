@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 9369,
-  "title": "RUN1",
+  "title": "SATELLITES - AFTER EOD*2 - SMS &amp; MAIL TO SATELLITES THAT EOD * 1 AND 2 CAN START",
   "predecessor": "PRE-2808",
   "successor": "PRE-2808",
   "primary_team": "IT_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send SMS to ODS + MIS + SYSPARAM + KONDOR + AMBITFOCUS",
-      "instruction_id": "IGO-9369-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-9369-1"
     }
   ]
 }

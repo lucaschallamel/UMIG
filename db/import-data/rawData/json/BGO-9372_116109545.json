@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 9372,
   "title": "BUSINESS CHECK - GO NO/GO DECISION",
@@ -6,15 +6,15 @@
   "successor": "DUM-9272",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "GO NO/GO DECISION - Post Star 2",
-      "instruction_id": "BGO-9372-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-9372-1"
     }
   ]
 }

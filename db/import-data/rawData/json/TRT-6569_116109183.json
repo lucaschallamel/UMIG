@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6569,
   "title": "SECLI SWITZERLAND - FOR BASE TIERS PRIVEE - reprise des indices PWC et calcul fiche risque au niveau de la personne",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IP: reprise des indices PWC et calcul fiche risque au niveau de la personne après l’envoi des tiers vers Atlas cad le samedi (procédure BCL_P_RISK_PWC_INSERT). Pas de mise à jour atlas, puisque données personnes uniquement. Par contre, certaines de ces données sont stockées dans la base tiers privée. Il faudra donc faire cette tâche avant la tâche d’envoi des messages privés vers la base tiers privée.",
-      "instruction_id": "TRT-6569-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6569-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the logs\nReport the defect via Jira",
-      "instruction_id": "TRT-6569-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6569-2"
     }
   ]
 }

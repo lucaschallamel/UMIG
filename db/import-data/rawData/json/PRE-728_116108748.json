@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 728,
-  "title": "ATLAS - CHECK THAT CLIENTS \u0026amp; ACCOUNTS ARCHIVING IS DEACTIVATED",
+  "title": "ATLAS - CHECK THAT CLIENTS &amp; ACCOUNTS ARCHIVING IS DEACTIVATED",
   "predecessor": "IGO-7340",
   "successor": "IGO-7340",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_INTEGRATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Desactivates jobs below :\n\nCONTROL-M : EVX\nAPPLICATION : EX_ATLAS\nSOUS-APPLICATION : EX_CORE_BANKING\n\nJOB : P_SITUAM_1\nJOB : P_SITUAM_1_1\nJOB : P_SITUAM_1_2\nJOB : P_SITUAM_1_3\nJOB : P_SITUAM_2\n\n**PROD Deactivation only applicable for Go-LIve migartion:**\n\nCONTROL-M : PROD\nAPPLICATION : ATLAS\nSOUS-APPLICATION : N_CORE_BANKING",
-      "instruction_id": "PRE-728-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-728-1"
     }
   ]
 }

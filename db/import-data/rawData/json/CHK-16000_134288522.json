@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 16000,
   "title": "ATLAS - PHASE 0 - G ACCOUNT VOLUMETRY CHECKS",
@@ -10,32 +10,32 @@
   "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check ENGINE FILE EXISTING AND SIZE:**/files/data/PFU/FACCC4.QSAM**/files/data/PFU/FACCR1.QSAM",
-      "instruction_id": "CHK-16000-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-16000-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please check CLIENT ACCOUNT & G ACCOUNT VOLUMETRY",
       "associated_controls": "",
-      "instruction_title": "Please check CLIENT ACCOUNT \u0026 G ACCOUNT VOLUMETRY",
-      "instruction_id": "CHK-16000-2",
-      "nominated_user": ""
+      "instruction_id": "CHK-16000-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Pas de comptes G   à créer - Etat EFUF attendu vide",
-      "instruction_id": "CHK-16000-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-16000-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Pas de comptes réféchis à créer - Etat EFU9 attendu vide",
-      "instruction_id": "CHK-16000-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-16000-4"
     }
   ]
 }

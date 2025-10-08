@@ -1,41 +1,41 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14323,
-  "title": "EXPLOITATION - CONSOLIDATED EOM (PART 1 \u0026amp; PART 2) PREPARATION",
+  "title": "EXPLOITATION - CONSOLIDATED EOM (PART 1 &amp; PART 2) PREPARATION",
   "predecessor": "PRE-13219",
   "successor": "PRE-13219",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "In case of Automated \\\"monté au plan\\\" do : Hold and SET-TO OK FOR E3_T001BMC_UPDT_E1H01 & E3_T001BMC_LOAD_E1H01 jobs",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "In case of Automated \\\"monté au plan\\\" do : Hold and SET-TO OK FOR E3_T001BMC_UPDT_E1H01 \u0026 E3_T001BMC_LOAD_E1H01 jobs",
-      "instruction_id": "PRE-14323-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-14323-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONFIRM EOM 1PART BY E3_PHASE-0.0-EOM_1PART job",
-      "instruction_id": "PRE-14323-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14323-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**PHASE A DONNER A IT ENV  SI UN BATCH DE FIN DE MOIS EST UN VENDREDI ET SEULEMENT POUR UNE FIN DE MOIS POUR LA PREPARATION DE LEUR WO DE PREPARATION DU BATCH**\n\nUPDATE ON OKCOURS E3_OKCOURS_Boucl_Vendredi :\n     a. DELETE TIMEFROM FROM 08 :00 TO EMPTY VALUE\n     b. CONFIRM E3_OKCOURS_Boucl_Vendredi to start automatically after E3_38-START_Pseudo-batch_Boucl_Vendredi",
-      "instruction_id": "PRE-14323-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14323-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "**PHASE A DONNER A IT ENV  POUR QU'ILS NOUS METTENT DANS LE WO DE PREPARAION DU BATCH DE FAIRE CES ACTIONS SI NECESSAIRES**\n\nLaunch all treatments included in the table below. This is to make sure all relevant prices are taken into account in the consolidated EOM batch.\n\nApplication : TOOLS-INTG-BANK\nGroupe : E3_T001-ATL-GESTIONS-COURS-ATLAS\nTable : E3_T001-TOO-ATL-GESTIONS-COURS-ATLAS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "**PHASE A DONNER A IT ENV  POUR QU\u0027ILS NOUS METTENT DANS LE WO DE PREPARAION DU BATCH DE FAIRE CES ACTIONS SI NECESSAIRES**\n\nLaunch all treatments included in the table below. This is to make sure all relevant prices are taken into account in the consolidated EOM batch.\n\nApplication : TOOLS-INTG-BANK\nGroupe : E3_T001-ATL-GESTIONS-COURS-ATLAS\nTable : E3_T001-TOO-ATL-GESTIONS-COURS-ATLAS",
-      "instruction_id": "PRE-14323-4",
-      "nominated_user": ""
+      "instruction_id": "PRE-14323-4"
     }
   ]
 }

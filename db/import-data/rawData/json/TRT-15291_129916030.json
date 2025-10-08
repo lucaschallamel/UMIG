@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15291,
   "title": "Secli - DB Secli - Data Validation",
@@ -10,32 +10,32 @@
   "time_sequence": "CG - DATA LOADING IN SECLI TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Tiers Validation",
-      "instruction_id": "TRT-15291-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-15291-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Person Validation",
-      "instruction_id": "TRT-15291-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-15291-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "CONTROL PRESENCE OF K&E FIELD VALUES",
       "associated_controls": "",
-      "instruction_title": "CONTROL PRESENCE OF K\u0026E FIELD VALUES",
-      "instruction_id": "TRT-15291-3",
-      "nominated_user": ""
+      "instruction_id": "TRT-15291-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "STATS PREPARATION - issue KPI to Control Teams",
-      "instruction_id": "TRT-15291-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-15291-4"
     }
   ]
 }

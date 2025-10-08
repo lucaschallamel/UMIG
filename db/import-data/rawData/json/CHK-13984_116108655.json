@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 13984,
   "title": "CONFIRM ALL RECEIVED FILES WITH NO NAME ERROR/NO VOLUME DISCREPANCY",
@@ -10,11 +10,11 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYTOOLS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ANONYTOOLS to 5 X run **SURFACE **pre-check scripts on files received, generate file **structures **stats report and report OK or ERRORS to DATA_FILES\n_- Received files stats\n                AnalysisStatsV2.sh\n - - Prepare specific files\n\n                prepIDC_6110.sh\n\n                prepDOCUMENTUM_603x_604x.sh\n\n                prepKYC_603x.sh\n\n                prepLBRM_6406_6407.sh\n_- Surface verification\n\n                surfaceHeadEndv2.sh",
-      "instruction_id": "CHK-13984-1",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-13984-1"
     }
   ]
 }

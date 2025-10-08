@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15222,
   "title": "ENGINE - PLAR10 Generation and Dump",
@@ -10,11 +10,11 @@
   "time_sequence": "EB - TUESDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PLAR10 Generation and Dump",
-      "instruction_id": "TRT-15222-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15222-1"
     }
   ]
 }

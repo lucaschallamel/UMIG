@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11106,
   "title": "ODS - AFTER ATLAS EOD*2 - FILES TO BE SAVED",
@@ -10,60 +10,60 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 15 No 6 - removeLogs.ksh - Nettoyage des logs",
-      "instruction_id": "IGO-11106-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 16 No 6 - removeSems.ksh - Nettoyage des sémaphores",
-      "instruction_id": "IGO-11106-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 17 No 3 - cleanWorkTables.ksh - Nettoyage des tables temporaires des positions",
-      "instruction_id": "IGO-11106-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 18 No  - #Contrôle# - Contrôler que tous les fichiers sont présents (cf. Liste Fichiers Atlas)",
-      "instruction_id": "IGO-11106-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 19 No 3 - shakeEvals.ksh - Traitement du fichier F98E",
-      "instruction_id": "IGO-11106-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 20 No 1 - STAR1_Step01.ksh - Chargement des fichiers dans les tables de copie de chargement",
-      "instruction_id": "IGO-11106-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 21 No 1 - STAR1_Step02.ksh - Déplacement des fichiers reçus d’Atlas",
-      "instruction_id": "IGO-11106-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ODS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 22 No  - THYME4_Star1-2_StLUX.sql - Contrôle de l’alimentation des tables de chargement",
-      "instruction_id": "IGO-11106-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11106-8"
     }
   ]
 }

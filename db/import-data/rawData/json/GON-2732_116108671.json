@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 2732,
   "title": "ATLAS - PHASE 6.2 - EOD*2",
@@ -6,15 +6,15 @@
   "successor": "GON-2732",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GP - GO - NOGO",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Go to launch ATLAS EOD*2",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

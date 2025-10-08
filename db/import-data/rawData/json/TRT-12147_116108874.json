@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12147,
   "title": "SECLI - SUBSET ACTIVE CLIENTS : SEND 10 TIERS TO ATLAS - TEST-ENV",
@@ -10,18 +10,18 @@
   "time_sequence": "CK - SENDING OF CLIENTS TO ATLAS - TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Activate trigger for bus",
-      "instruction_id": "TRT-12147-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12147-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Flow test : 10 Clients sent - LDN - 302\n\nFlow test : 10 Clients sent - JRS - 303\n\nFlow test : 10 Clients sent - GER - 304\n\nFlow test : 10 Clients sent - GIB - 305",
-      "instruction_id": "TRT-12147-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12147-2"
     }
   ]
 }

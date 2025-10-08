@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 12060,
   "title": "CID - COMMUNIQUER LES NUMEROS DES INSTRUMENTS ET PRIX A LAISSER PASSER",
@@ -6,15 +6,15 @@
   "successor": "BUS-12065",
   "primary_team": "CID",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "CID",
-      "associated_controls": "",
       "instruction_title": "COMMUNIQUER LES NUMEROS DES INSTRUMENTS ET PRIX A LAISSER PASSER",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

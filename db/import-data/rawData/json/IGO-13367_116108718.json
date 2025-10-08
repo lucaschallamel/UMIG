@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13367,
   "title": "SECLI - REFRESH CHECK ON TEST-ENV",
@@ -10,32 +10,32 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Process Sanity check to be sure that the restore from **PROD **is correct and can be used",
-      "instruction_id": "IGO-13367-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "IGO-13367-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Check all memory and log parameters on **TEST ENVIRONMENT**, to confirm that they will be fit for purpose to process the migration.\nPrint out SP_CONFIGURE parameters as a proof of check.",
-      "instruction_id": "IGO-13367-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-13367-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "Check SECLI **TEST ENVIRONMENT** FTP CONFIGURATION, USER & PASSWORD, …",
       "associated_controls": "",
-      "instruction_title": "Check SECLI **TEST ENVIRONMENT** FTP CONFIGURATION, USER \u0026 PASSWORD, …",
-      "instruction_id": "IGO-13367-3",
-      "nominated_user": ""
+      "instruction_id": "IGO-13367-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "_  **Drop all the content of root folder /backup, if not empty, **before the migration starts. Note that if this folder has been brought from PROD without being truncated, it would contain all the hourly backups performed in PROD, ammountiung to several Gb of useless data, which might compromise our backup plan.",
-      "instruction_id": "IGO-13367-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-13367-4"
     }
   ]
 }

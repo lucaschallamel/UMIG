@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15168,
-  "title": "RUN0",
+  "title": "Tarif - To Generate and send Checks after politic code and particular conditions treatments",
   "predecessor": "TRT-5675",
   "successor": "IGO-12798",
   "primary_team": "TARIF",
@@ -10,25 +10,25 @@
   "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "C7010: Nbre de conditions particulières Total",
-      "instruction_id": "CHK-15168-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15168-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "C7050 Number of third-parties per political code",
-      "instruction_id": "CHK-15168-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15168-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send Controls to [ IT_CUTOVER ](#)",
-      "instruction_id": "CHK-15168-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15168-3"
     }
   ]
 }

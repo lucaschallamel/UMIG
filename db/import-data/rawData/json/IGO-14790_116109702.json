@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14790,
   "title": "VALIDATE IT CONTROL - (C2256 - List of clients not existing in ATLAS after integration) on Test Environment",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "FRIEDLI laurent",
       "instruction_assigned_team": "IT_MNGMT",
-      "associated_controls": "[ C2256 ](#)",
       "instruction_title": "PGU to Validate control results on Test Environemnt : \nC2256 - List of clients not existing in ATLAS after integration",
-      "instruction_id": "IGO-14790-1",
-      "nominated_user": "FRIEDLI laurent"
+      "associated_controls": "[ C2256 ](#)",
+      "instruction_id": "IGO-14790-1"
     }
   ]
 }

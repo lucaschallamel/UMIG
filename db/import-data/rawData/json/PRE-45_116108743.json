@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 45,
   "title": "ENVIRONMENTS - SERVER BACKUPS PREPARATION",
@@ -10,60 +10,60 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "Do Some Cleaning on BACKUP Repo (Confidential AND Secret) servers to adequately store the BACKUPS of the VICTORIA MIGRATION.\n\nProvide enough free disk space on relevant ENVIRONMENTS, according to the asset needs, as detailed here: [Backup topography and volume analysis](https://confluence.corp.ubp.ch/spaces/E0013782/pages/104670587/Backup+topography+and+volume+analysis)\n_- **For all other APPS**: Cleanup the COMMON/EVx storage cluster of 36Tb according to the rules below \n- **For CUTOVER**, consider doing some cleanup and space reservation too on the PROD Cluster of 40TB",
-      "instruction_id": "PRE-45-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB, Data backup of RUN 1 will be deleted when RUN 3 will be finished no needs to backup that on NetBackup",
-      "instruction_id": "PRE-45-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB, Data of RUN 2 will be deleted when DR 1 will be finished  no needs to backup that on NetBackup",
-      "instruction_id": "PRE-45-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB,Data of RUN 3 will be deleted when DR 2  will be finished  no needs to backup that on NetBackup",
-      "instruction_id": "PRE-45-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB,Data of DR1 (Client + position) needs backup  on NetBackup with  Retention period of 10 years",
-      "instruction_id": "PRE-45-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB,Data of DR2 (Client + position) needs backup  on NetBackup with  Retention period of 10 years",
-      "instruction_id": "PRE-45-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "On the COMMON/EVX backup cluster of 36TB, Data of Final Cutover (Client + position) needs backup  on NetBackup with  No end of retention perdiod",
-      "instruction_id": "PRE-45-7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "Data of Final Cutover will be deleted from repo 3 months after the Final Cutover",
-      "instruction_id": "PRE-45-8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45-8"
     }
   ]
 }

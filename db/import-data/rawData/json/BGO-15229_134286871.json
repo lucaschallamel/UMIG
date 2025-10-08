@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15229,
   "title": "BUSINESS - SUN File Mapping",
@@ -10,11 +10,11 @@
   "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Provide SUN File Mapping to Engine",
-      "instruction_id": "BGO-15229-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-15229-1"
     }
   ]
 }

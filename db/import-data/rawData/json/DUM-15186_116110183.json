@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15186,
-  "title": "RUN0",
+  "title": "DBA - DUMP FENICS + RESTORE KONDOR+ and FENICS",
   "predecessor": "DUM-15186",
   "successor": "DUM-15186",
   "primary_team": "DBA",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Back up FENICS PRD - No restore",
-      "instruction_id": "DUM-15186-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-15186-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Automated Kondor+ PRD Dump completed at 6H00 - Please RESTORE KONDOR+ on Ev0 based on Automated Kondor+ Dump",
-      "instruction_id": "DUM-15186-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-15186-2"
     }
   ]
 }

@@ -1,41 +1,41 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13224,
-  "title": "RUN1",
+  "title": "CID - SETTING-UP BATCH PRICES TELEKURS VACATION",
   "predecessor": "TRT-14278",
   "successor": "PRE-6783",
   "primary_team": "CID",
   "impacted_teams": "",
   "macro_time_sequence": "",
-  "time_sequence": "WEEK 1-\u0026gt;2",
+  "time_sequence": "WEEK 1-&gt;2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Prepare mask for Telekurs Price Batch",
-      "instruction_id": "PRE-13224-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13224-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Manually set-up price reco job (Cours Telekurs)",
-      "instruction_id": "PRE-13224-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13224-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check ASIE1 and verify ATLAS Prod Like has received the file",
-      "instruction_id": "PRE-13224-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13224-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check ASIE2 and verify ATLAS Prod Like has received the file",
-      "instruction_id": "PRE-13224-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13224-2"
     }
   ]
 }

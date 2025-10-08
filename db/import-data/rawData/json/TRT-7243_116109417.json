@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7243,
   "title": "PRINTNET - Verification de la présence de tous les clients FUSION dans la base de PrintNet",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PRINTNET",
+      "instruction_title": "- Vérification de la présence de tous les clients Fusion dans la base de PrintNet\n- Vérification ST_PIL00_FUSION monté dans EOD STAR 1 et 2\n- Vérification de la date de paramètre   s_DtFinDoc := 'YYYYMMDD' dans la fonction :  F_PILOTAGE_FUSION_STEP_0\n- SI MANQUANT, GO A Secli POUR RAFRAICHISSEMENT BASE TIERS SUR RACR (ETAPES CI-DESSOUS)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "- Vérification de la présence de tous les clients Fusion dans la base de PrintNet\n- Vérification ST_PIL00_FUSION monté dans EOD STAR 1 et 2\n- Vérification de la date de paramètre   s_DtFinDoc := \u0027YYYYMMDD\u0027 dans la fonction :  F_PILOTAGE_FUSION_STEP_0\n- SI MANQUANT, GO A Secli POUR RAFRAICHISSEMENT BASE TIERS SUR RACR (ETAPES CI-DESSOUS)",
-      "instruction_id": "TRT-7243-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-7243-1"
     }
   ]
 }

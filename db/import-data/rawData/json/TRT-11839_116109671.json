@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11839,
-  "title": "SECLI - LOAD DOCUMENTUM FILE \u0026quot;DCTM_to_SECLI_Reconciliation\u0026quot;",
+  "title": "SECLI - LOAD DOCUMENTUM FILE &quot;DCTM_to_SECLI_Reconciliation&quot;",
   "predecessor": "TRT-11839",
   "successor": "TRT-11839",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CJ - DOCUMENTUM FLOW CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI TO LOAD and INTEGRATE DOCUMENTUM FILE \\\"DCTM_to_SECLI_Reconciliation\\\"",
-      "instruction_id": "TRT-11839-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11839-1"
     }
   ]
 }

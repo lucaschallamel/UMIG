@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 5550,
   "title": "BUSINESS - INTERVENTION - EOM ACCOUNTING VALIDATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the EOW results",
-      "instruction_id": "BGO-5550-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-5550-1"
     }
   ]
 }

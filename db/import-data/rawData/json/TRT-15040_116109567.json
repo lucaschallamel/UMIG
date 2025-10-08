@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15040,
-  "title": "ATLAS - FIN PHASE 6.3 – (PERFORMANCE CLIENTS INTEGRATION \u0026amp; STATEMENT GENERATION PREPARATION)",
+  "title": "ATLAS - FIN PHASE 6.3 – (PERFORMANCE CLIENTS INTEGRATION &amp; STATEMENT GENERATION PREPARATION)",
   "predecessor": "CHK-11114",
   "successor": "TRT-14374",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "54b-PH6.3 : \nJOB : /prod/script/job/FU_PFMR1.ksh\nINPUT FILE :\n/files/data/PFU/FPFMR1.QSAM",
-      "instruction_id": "TRT-15040-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15040-1"
     }
   ]
 }

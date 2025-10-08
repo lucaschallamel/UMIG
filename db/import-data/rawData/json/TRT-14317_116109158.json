@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14317,
   "title": "SECLI - PROVIDE [PERSON ID SG Vs PERSON ID UBP] EXTRACT TO BUSINESS FOR SIT",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Before starting SIT, provide the excel file with Client id SG PBS Vs Client id UBP file and \nshare it with Catherine,\nTo be stored on a secret folder ?",
-      "instruction_id": "TRT-14317-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14317-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 18006,
   "title": "Secli - Pre-Staging Data loading - FPS Files",
@@ -10,18 +10,18 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Check that pre-staging tables are empty\nTake a snapshot of key SECLI Tables",
-      "instruction_id": "TRT-18006-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18006-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Pre-Staging Data loading - FPS Files",
-      "instruction_id": "TRT-18006-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18006-2"
     }
   ]
 }

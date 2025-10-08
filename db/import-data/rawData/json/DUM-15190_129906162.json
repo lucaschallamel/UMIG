@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15190,
   "title": "DBA - Murex Back Up",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "-",
-      "associated_controls": "",
       "instruction_title": "DBA - Murex Back Up",
-      "instruction_id": "DUM-15190-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "DUM-15190-1"
     }
   ]
 }

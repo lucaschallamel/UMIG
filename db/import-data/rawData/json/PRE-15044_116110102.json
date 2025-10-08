@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15044,
   "title": "ATLAS - Reinitialize last treatment date for OL90 - internal Valuation statement - after Star 2",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "Reinitialize last treatment date for OL90 - internal Valuation statement - after Star 1",
-      "instruction_id": "PRE-15044-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-15044-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14546,
-  "title": "RUN0",
+  "title": "SECLI - START/KEEP OPEN BUS SERVICE FOR OBA/SWIFT ON PROD",
   "predecessor": "PRE-14546",
   "successor": "PRE-14546",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "SECLI - START/KEEP OPEN BUS SERVICE FOR OBA/SWIFT ON PROD:\n\non migration Friday CSD Weekend 1 → to allow SWIFT to continue working.",
-      "instruction_id": "PRE-14546-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-14546-1"
     }
   ]
 }

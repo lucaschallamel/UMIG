@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 6671,
   "title": "PROD LIKE ENVIRONMENT - BASE TIERS PUBLIC - SANITY CHECKS",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "BTPUB",
-      "associated_controls": "",
       "instruction_title": "BASE TIERS PUBLIC SANITY CHECKS on PROD LIKE ENVIRONMENT",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

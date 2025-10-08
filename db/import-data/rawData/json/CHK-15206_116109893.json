@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15206,
   "title": "ATLAS - Reconciliation K+ / Atlas - Fidu",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reconciliation K+ / Atlas - Fidu",
-      "instruction_id": "CHK-15206-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15206-1"
     },
     {
+      "nominated_user": "TREUSSIER Vincent",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send reconciliation output to Kondor+ Team and TT Business",
-      "instruction_id": "CHK-15206-2",
-      "nominated_user": "TREUSSIER Vincent"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15206-2"
     }
   ]
 }

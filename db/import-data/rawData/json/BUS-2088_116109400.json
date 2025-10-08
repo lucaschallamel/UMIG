@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 2088,
-  "title": "BUS - ATLAS \u0026amp; DARWIN ISOLATION INPUT (CLOSE PRICE ONLINE AND FTP)",
+  "title": "BUS - ATLAS &amp; DARWIN ISOLATION INPUT (CLOSE PRICE ONLINE AND FTP)",
   "predecessor": "BUS-2088",
   "successor": "BUS-2088",
   "primary_team": "SPOC_MIDDLEWARE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Suspend all subscriptions to ATLAS /DW, sauf P.SWIFT*. (close price online)\n\nSCRIPT :\nstep_05_atlas_dw_create_isolation_input_except_ftp.sh",
-      "instruction_id": "BUS-2088-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-2088-1"
     }
   ]
 }

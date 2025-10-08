@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12381,
-  "title": "RUN1",
+  "title": "SECLI - ESTIMATIVE FREQUENCY CODE UPDATE TO SECLI'S SATELLITES",
   "predecessor": "TRT-12381",
   "successor": "TRT-12381",
   "primary_team": "SECLI",
@@ -10,74 +10,74 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPDATE ESTIMATIVES FEQUENCY CODE - SECLI to “set” the Clients Statements reporting frequency to initial value for all migrated clients.",
-      "instruction_id": "TRT-12381-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SEND CLIENTS FLAGGED CONTACT USERS",
-      "instruction_id": "TRT-12381-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ACTIVATE TRIGGER FOR BUS",
-      "instruction_id": "TRT-12381-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SEND NEW CLIENTS IN BUS",
-      "instruction_id": "TRT-12381-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING CLIENTS FROM SECLI FLOW VIA BUS To Atlas",
-      "instruction_id": "TRT-12381-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING CLIENTS FROM SECLI FLOW VIA BUS To Base Tiers Public",
-      "instruction_id": "TRT-12381-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING CLIENTS FROM SECLI FLOW VIA BUS To Base Tiers Privée",
-      "instruction_id": "TRT-12381-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING CLIENTS FROM SECLI FLOW VIA BUS To Tarif",
-      "instruction_id": "TRT-12381-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING CLIENTS FROM SECLI FLOW VIA BUS To Fund Desk",
-      "instruction_id": "TRT-12381-9",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Confirmation received from all satellites that data have been received",
-      "instruction_id": "TRT-12381-10",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12381-10"
     }
   ]
 }

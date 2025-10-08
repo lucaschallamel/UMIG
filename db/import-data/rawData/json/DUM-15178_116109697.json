@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15178,
   "title": "DUMP SECLI - TEST AND RESTORE IN PROD LIKE ENVIRONMENT",
@@ -10,11 +10,11 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 140\n****_Phase name:_ SECLI_PROD_AFTER_CLIENT_SENT_ATLAS\n_Phase to restore:_ 120 \n_Phase tag should contain_******_:_ SEC_AFT_CLIENT_SENT_ATL****\n\n_****Description:****_\n\nFor **SECLI**, **AFTER CLIENT SENT TO ATLAS **proceed with the following **RESTORE **activities.\n\nOn **PROD-LIKE**: **RESTORE** **SECLI FROM AFTER CLIENT SENT TO ATLAS BACKUP**",
-      "instruction_id": "DUM-15178-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-15178-1"
     }
   ]
 }

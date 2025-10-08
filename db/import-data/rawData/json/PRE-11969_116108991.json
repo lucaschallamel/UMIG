@@ -1,69 +1,69 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11969,
-  "title": "ATLAS - SQL EXECUTION FOR MODIFY SECURITIES \u0026amp; PRICES WITH BUSINESS DATE EQUAL TO BUSINESS CUTOVER DATE",
+  "title": "ATLAS - SQL EXECUTION FOR MODIFY SECURITIES &amp; PRICES WITH BUSINESS DATE EQUAL TO BUSINESS CUTOVER DATE",
   "predecessor": "BUS-6918",
   "successor": "BGO-5550",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**SQL Query 1 :**\n\n-- Secrities with one price and > migration date\nselect   u.nbr_secur_0148, u.nbr_secur_tk_0148, t.nbr_sub_secur_0190 from nhdbo.t_sec_prce t,  nhdbo.t_secrity u\nwhere t.date_value_pack_0190 > XXXXXXXX                                                                                                                                                                                                                                and t.nbr_secur_0190 = u.nbr_secur_0148\nand t.nbr_sub_secur_0190 = u.nbr_sub_secur_0148\nand (t.nbr_secur_0190, t.nbr_sub_secur_0190)\nin \n(select x.nbr_secur_0190, x.nbr_sub_secur_0190 from  nhdbo.t_sec_prce x\ngroup by x.nbr_secur_0190, x.nbr_sub_secur_0190\nhaving count(*) = 1)",
       "associated_controls": "",
-      "instruction_title": "**SQL Query 1 :**\n\n-- Secrities with one price and \u003e migration date\nselect   u.nbr_secur_0148, u.nbr_secur_tk_0148, t.nbr_sub_secur_0190 from nhdbo.t_sec_prce t,  nhdbo.t_secrity u\nwhere t.date_value_pack_0190 \u003e XXXXXXXX                                                                                                                                                                                                                                and t.nbr_secur_0190 = u.nbr_secur_0148\nand t.nbr_sub_secur_0190 = u.nbr_sub_secur_0148\nand (t.nbr_secur_0190, t.nbr_sub_secur_0190)\nin \n(select x.nbr_secur_0190, x.nbr_sub_secur_0190 from  nhdbo.t_sec_prce x\ngroup by x.nbr_secur_0190, x.nbr_sub_secur_0190\nhaving count(*) = 1)",
-      "instruction_id": "PRE-11969-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "If Request 1 returns some records, execute **SQL Query 2 :**\n\nATTENTION : add line with OR as many times as there are some securities to update (change the nbr_secur impacted in bold blue)\n\nupdate nhdbo.t_secrity t  set t.date_rate_last_0148  = BUSINESS DATE YYYY.MM.DD, t.date_rate_first_0148 = BUSINESS DATE YYYY.MM.DD, t.date_value_pack_0190 = BUSINESS DATE YYYY.MM.DD\nWHERE (t.nbr_secur_0148 = 287648   AND t.nbr_sub_secur_0148 = 0)\nOR (t.nbr_secur_0148 = 287649     AND t.nbr_sub_secur_0148 = 0)",
-      "instruction_id": "PRE-11969-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-11969-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**SQL Query 3A :**\n\n-- Count Prices created with date post migration\nselect distinct v.nbr_secur_tk_0148, t.nbr_secur_0190, t.nbr_sub_secur_0190, t.date_value_pack_0190, t.price_purch_secur_0190, t.date_time_crea_rec_0190, t.created_by_0190, t.date_time_updt_rec_0190, t.updated_by_0190 from nhdbo.t_sec_prce t, nhdbo.t_secrity v\nwhere t.date_value_pack_0190 > BUSINESS DATE YYYY.MM.DD\nand t.nbr_secur_0190 = v.nbr_secur_0148\nand t.nbr_sub_secur_0190 = v.nbr_sub_secur_0148\norder by 1, 2, 3",
       "associated_controls": "",
-      "instruction_title": "**SQL Query 3A :**\n\n-- Count Prices created with date post migration\nselect distinct v.nbr_secur_tk_0148, t.nbr_secur_0190, t.nbr_sub_secur_0190, t.date_value_pack_0190, t.price_purch_secur_0190, t.date_time_crea_rec_0190, t.created_by_0190, t.date_time_updt_rec_0190, t.updated_by_0190 from nhdbo.t_sec_prce t, nhdbo.t_secrity v\nwhere t.date_value_pack_0190 \u003e BUSINESS DATE YYYY.MM.DD\nand t.nbr_secur_0190 = v.nbr_secur_0148\nand t.nbr_sub_secur_0190 = v.nbr_sub_secur_0148\norder by 1, 2, 3",
-      "instruction_id": "PRE-11969-3",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "IF Request 3A result is not empty :\n1. Do an Excel export and send it to CID Team (JCB) specifying it's the list of prices deleted before EOW, EOD*1, EOD*2 or EOD SGPBS.\n2. Execute SQL Query 3B :\n\ndelete nhdbo.t_sec_prce t \nwhere t.date_value_pack_0190 > BUSINESS DATE YYYY.MM.DD",
       "associated_controls": "",
-      "instruction_title": "IF Request 3A result is not empty :\n1. Do an Excel export and send it to CID Team (JCB) specifying it\u0027s the list of prices deleted before EOW, EOD*1, EOD*2 or EOD SGPBS.\n2. Execute SQL Query 3B :\n\ndelete nhdbo.t_sec_prce t \nwhere t.date_value_pack_0190 \u003e BUSINESS DATE YYYY.MM.DD",
-      "instruction_id": "PRE-11969-4",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**SQL Query 4A :**\n\n-- Count securities with last price date > post migration\nselect * from nhdbo.t_secrity v \nwhere v.date_rate_last_0148 > BUSINESS DATE YYYY.MM.DD;",
       "associated_controls": "",
-      "instruction_title": "**SQL Query 4A :**\n\n-- Count securities with last price date \u003e post migration\nselect * from nhdbo.t_secrity v \nwhere v.date_rate_last_0148 \u003e BUSINESS DATE YYYY.MM.DD;",
-      "instruction_id": "PRE-11969-5",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**IF Request 4A result is not empty :**\n\n-- Update of last received rate date for permit to P_VALDEP.ksh to execute without abend (With some Chance ;P)\n\n1. Desactivate Update triggers on T_SECRITY and T_SEC_PRCE\n\n2. update nhdbo.t_secrity t \nset t.date_rate_last_0148 = BUSINESS DATE YYYY.MM.DD\nwhere t.date_rate_last_0148 > BUSINESS DATE YYYY.MM.DD;\n\n3. delete nhdbo.t_sec_prce t \nwhere t.date_value_pack_0190 > BUSINESS DATE YYYY.MM.DD",
       "associated_controls": "",
-      "instruction_title": "**IF Request 4A result is not empty :**\n\n-- Update of last received rate date for permit to P_VALDEP.ksh to execute without abend (With some Chance ;P)\n\n1. Desactivate Update triggers on T_SECRITY and T_SEC_PRCE\n\n2. update nhdbo.t_secrity t \nset t.date_rate_last_0148 = BUSINESS DATE YYYY.MM.DD\nwhere t.date_rate_last_0148 \u003e BUSINESS DATE YYYY.MM.DD;\n\n3. delete nhdbo.t_sec_prce t \nwhere t.date_value_pack_0190 \u003e BUSINESS DATE YYYY.MM.DD",
-      "instruction_id": "PRE-11969-6",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**SQL Query 5A :**\n\n-- Count securities with first price date > post migration\nselect *  from nhdbo.t_secrity v \nwhere v.date_rate_first_0148 > BUSINESS DATE YYYY.MM.DD",
       "associated_controls": "",
-      "instruction_title": "**SQL Query 5A :**\n\n-- Count securities with first price date \u003e post migration\nselect *  from nhdbo.t_secrity v \nwhere v.date_rate_first_0148 \u003e BUSINESS DATE YYYY.MM.DD",
-      "instruction_id": "PRE-11969-7",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**IF Request 5A result is not empty :**\n\n1. Desactivate Update triggers on T_SECRITY and T_SEC_PRCE\n\n2. update nhdbo.t_secrity t \nset t.date_rate_first_0148 = BUSINESS DATE YYYY.MM.DD\nwhere t.date_rate_first_0148 > BUSINESS DATE YYYY.MM.DD;",
       "associated_controls": "",
-      "instruction_title": "**IF Request 5A result is not empty :**\n\n1. Desactivate Update triggers on T_SECRITY and T_SEC_PRCE\n\n2. update nhdbo.t_secrity t \nset t.date_rate_first_0148 = BUSINESS DATE YYYY.MM.DD\nwhere t.date_rate_first_0148 \u003e BUSINESS DATE YYYY.MM.DD;",
-      "instruction_id": "PRE-11969-8",
-      "nominated_user": ""
+      "instruction_id": "PRE-11969-8"
     }
   ]
 }

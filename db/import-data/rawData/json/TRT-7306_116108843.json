@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7306,
   "title": "ATLAS - PHASE 5.1 – PERFORMANCE CLIENTS INTEGRATION FU_PFMR1",
@@ -10,32 +10,32 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "45-PH5.1 : \nJOB : /prod/script/job/FU_PFMR1.ksh\nINPUT FILE : /files/data/PFU/FPFMR1.QSAM",
-      "instruction_id": "TRT-7306-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7306-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Check logs & reports",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check logs \u0026 reports",
-      "instruction_id": "TRT-7306-2",
-      "nominated_user": ""
+      "instruction_id": "TRT-7306-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mail To TORONTOMigrationCoordination \n 1 - Inform that the extraction and transfer are done \n 2 - to give the volumetry",
-      "instruction_id": "TRT-7306-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7306-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Report Volumetry",
-      "instruction_id": "TRT-7306-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7306-4"
     }
   ]
 }

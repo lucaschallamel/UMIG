@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6278,
   "title": "ATLAS - 48H TREATMENT",
@@ -10,25 +10,25 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "GO FOR 48H operation TREATMENT: 65-PH6.5\nReprise des placements 48H\nEtat : EFVB, EFVC\nIM : FPLAR10.QSAM\nOM : FPLAR9.QSAM",
-      "instruction_id": "TRT-6278-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-6278-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Exécution du job : Ex_PHASE-7.0-AFTER_MIGRATION du groupe Ex_T_TOO-GESTIONS-SPOC_INTEGRATION-BANQUE\n(ne contient que les 48h pour SGPBS, exécute le job ATLAS FU_PLAR10.ksh)",
-      "instruction_id": "TRT-6278-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-6278-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check 48h treatement Volumetry",
-      "instruction_id": "TRT-6278-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-6278-3"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14445,
   "title": "ATLAS - PHASE 5.2 - EOD*1 PREPARATION ATLAS TEAM",
@@ -6,29 +6,29 @@
   "successor": "PRE-7337",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GM - ATLAS PHASE 5.2 - STAR 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Update dates in columns :\nrate_last\nrate_first\nTABLE : T_SECRITY (security prices too early)",
-      "instruction_id": "PRE-14445-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-14445-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "In case of THERE IS no EOD*2 PLANNED , and only if the migration takes place at the end of a month, ask to SPOC_EXPLOITATION to schedule :\nCC_TAR20.ksh\nCC_TAR21.ksh\nCC_TAR22.ksh\nELSE\nDO NOT SCHEDULE \nCC_TAR20.ksh\nCC_TAR21.ksh\nCC_TAR22.ksh\nFOR eod *1",
-      "instruction_id": "PRE-14445-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-14445-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check PR_SOG01.ksh is not scheduled for EOD *1",
-      "instruction_id": "PRE-14445-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-14445-3"
     }
   ]
 }

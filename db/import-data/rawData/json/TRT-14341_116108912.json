@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14341,
-  "title": "SECLI - SET STATUS OF CLITECH TO \u0027RADI\u0027",
+  "title": "SECLI - SET STATUS OF CLITECH TO 'RADI'",
   "predecessor": "TRT-11987",
   "successor": "TRT-11987",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "Please set the status of the CLITECH to ‘RADI’ , for all migrated companies, after the tiers are successfully sent to ATLAS & SATELLITES",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Please set the status of the CLITECH to ‘RADI’ , for all migrated companies, after the tiers are successfully sent to ATLAS \u0026 SATELLITES",
-      "instruction_id": "TRT-14341-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-14341-1"
     }
   ]
 }

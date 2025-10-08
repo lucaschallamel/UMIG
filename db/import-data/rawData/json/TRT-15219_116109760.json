@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15219,
   "title": "MUREX - Send MUREX ID and Number of Remaining Fixing to Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MUREX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send MUREX ID and Number of Remaining Fixing to Atlas for Accu / Deccu Equity",
-      "instruction_id": "TRT-15219-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15219-1"
     }
   ]
 }

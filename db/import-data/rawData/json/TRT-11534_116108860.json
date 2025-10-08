@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11534,
   "title": "SECLI SWITZERLAND GENEVA - EXPORT DE LA LISTE DES COMPTES GERÉS PAR LA TRUST",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI SWITZERLAND GENEVA - EXPORT DE LA LISTE DES COMPTES GERÉS PAR LA TRUST",
-      "instruction_id": "TRT-11534-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11534-1"
     }
   ]
 }

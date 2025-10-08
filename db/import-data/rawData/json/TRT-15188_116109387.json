@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15188,
   "title": "ENGINE - PROVIDE Updated List and Number of INVARIANT ID files produced FOR CURRENT RUN (P4 to P8)",
@@ -10,11 +10,11 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please provide all invariant files produced",
-      "instruction_id": "TRT-15188-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15188-1"
     }
   ]
 }

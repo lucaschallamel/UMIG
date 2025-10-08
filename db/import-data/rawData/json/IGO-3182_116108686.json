@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 3182,
   "title": "PROD LIKE - CMS - SANITY CHECKS",
@@ -10,18 +10,18 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "",
       "instruction_title": "CMS SANITY CHECKS on **PROD LIKE** before start of the CSD Migration",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "CMS",
+      "instruction_title": "**RUN/DR ONLY - PROOF OF DATA CURRENCY**:\nImplement the control you have defined beforehand to check and proove that the database restored in PROD LIKE is the exact copy of teh snapshot used for refresh, as of\n\nYou may elect the technique of your choice:\n_- You may have inserted a subtle **marker **in your data (via UI or DB) before the PROD snapshot, typically in a free text field for y record of the snapshot day for instance.\n- You may be able to run an SQL type (SELECT *) statement in your database to prove that you don'te have any records older than the cutober date\n- If you can thing of any other method, please advise here",
       "associated_controls": "",
-      "instruction_title": "**RUN/DR ONLY - PROOF OF DATA CURRENCY**:\nImplement the control you have defined beforehand to check and proove that the database restored in PROD LIKE is the exact copy of teh snapshot used for refresh, as of\n\nYou may elect the technique of your choice:\n_- You may have inserted a subtle **marker **in your data (via UI or DB) before the PROD snapshot, typically in a free text field for y record of the snapshot day for instance.\n- You may be able to run an SQL type (SELECT *) statement in your database to prove that you don\u0027te have any records older than the cutober date\n- If you can thing of any other method, please advise here",
-      "instruction_id": "2",
-      "nominated_user": "-"
+      "instruction_id": "2"
     }
   ]
 }

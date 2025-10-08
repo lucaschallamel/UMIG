@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 2377,
-  "title": "RUN0",
+  "title": "SECLI - CREATE MAPPING TABLE ON DOCUMENTUM SWITZERLAND LDN and JRS",
   "predecessor": "TRT-12083",
   "successor": "TRT-2544",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Transfer of the mapping table to DOCUMENTUM (SMSA server) \n\nCREATE MAPPING TABLE ON DOCUMENTUM LDN and JRS\n-    dbsecli..V_PREVIOUS_NUMBER (mapping between CustomerID and Tiers number)\n-    dbsecli..V_PREVIOUS_NUMBER_PERSON_ALL (mapping between CustomerID and Person number)",
-      "instruction_id": "TRT-2377-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-2377-1"
     }
   ]
 }

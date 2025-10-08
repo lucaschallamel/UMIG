@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": null,
   "title": "SG PBS TEAM CONFIRM DOCUMENT FILES DROPPED through SFTP",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please confirm once Document files are dropped in Documentum",
-      "instruction_id": "TRT-13947",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13947"
     }
   ]
 }

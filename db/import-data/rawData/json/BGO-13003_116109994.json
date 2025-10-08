@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13003,
   "title": "BUSINESS CHECKS - SECLI CH/GVA- ISOLATION CHECKS ON PROD-LIKE",
@@ -10,18 +10,18 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "EXECUTE ALL BUSINESS CHECKS REQUIRED TO VALIDATE THE MIGRATION START from a business perspective (Please complete at your discretion)",
-      "instruction_id": "BGO-13003-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-13003-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "In Particular:\n\n→ Check SECLI is READ ONLY\n\n→ Confirm that the Appway downtime message is correct.",
-      "instruction_id": "BGO-13003-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-13003-2"
     }
   ]
 }

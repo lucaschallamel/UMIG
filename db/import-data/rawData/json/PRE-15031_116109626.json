@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15031,
   "title": "Exploitation - Flush plans in Oracle memory before the EOD*1 batch",
@@ -6,22 +6,22 @@
   "successor": "PRE-15031",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GM - ATLAS PHASE 5.2 - STAR 1",
   "task_list": [
     {
+      "nominated_user": "MICHON Christian",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "As part of ATLAS Sanity Checks, we want to make sure that the TITJOU job will run properly when time comes. AS such, our DBAs have to clear up all the plans sitting in memory on the PROD-LIKE environment.\n\nPlease run this command on ATLAS ORACLE DB server in PROD Like:\n\n**alter system flush shared_pool;**\n\n\n\n\n**Demander a l'operateur de déclencher le job :**\n\nEV3 : E3_T001ORA_FLUSH\n\n** \n_\n**",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "As part of ATLAS Sanity Checks, we want to make sure that the TITJOU job will run properly when time comes. AS such, our DBAs have to clear up all the plans sitting in memory on the PROD-LIKE environment.\n\nPlease run this command on ATLAS ORACLE DB server in PROD Like:\n\n**alter system flush shared_pool;**\n\n\n\n\n**Demander a l\u0027operateur de déclencher le job :**\n\nEV3 : E3_T001ORA_FLUSH\n\n** \n_\n**",
-      "instruction_id": "PRE-15031-1",
-      "nominated_user": "MICHON Christian"
+      "instruction_id": "PRE-15031-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reply DONE to the initial CUTOVER email.",
-      "instruction_id": "PRE-15031-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15031-2"
     }
   ]
 }

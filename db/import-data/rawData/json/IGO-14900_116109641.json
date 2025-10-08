@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14900,
   "title": "ATLAS - ACTION ON PLEDGE FILES BEFORE EOW/EOM",
@@ -6,15 +6,15 @@
   "successor": "IGO-14900",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Contrôle if PLEDGE file & Quartal file  exist for JOB : CR_ART46.ksh",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Contrôle if PLEDGE file \u0026 Quartal file  exist for JOB : CR_ART46.ksh",
-      "instruction_id": "IGO-14900-1",
-      "nominated_user": ""
+      "instruction_id": "IGO-14900-1"
     }
   ]
 }

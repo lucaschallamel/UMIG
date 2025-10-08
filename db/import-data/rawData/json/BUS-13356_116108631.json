@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 13356,
   "title": "BUS - ISOLATION OF APPLICATIONS NOT INVOLVED - ONLY SECLI - BUS ATLAS IN",
@@ -10,11 +10,11 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "",
       "instruction_title": "Isolation du Bus et connexion à ATLAS **TEST ENVIRONMENT**\n \n• De tous les flux du Secli (abo de la table « secli »), ne sont conservés actifs que ceux vers Atlas, ceux à la diffusion des erreurs par email ou par Nimsoft.\n• De tous les flux vers Atlas, ne sont conservés que ceux du Secli .\n \n1) le sql Isolation Secli Atlas pour environnement secondaire.sql avec le COMMIT associé\n2) le script /bus/iib/bin/iib_db_tables_subs_make.sh all",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

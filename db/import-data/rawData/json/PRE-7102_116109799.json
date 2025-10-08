@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7102,
-  "title": "CONTROL-M - USUAL SCRIPT / BACTHES DEACTIVATION - DEACTIVATION OF THE USUAL CONTROL-M PLA",
+  "title": "CONTROL-M - USUAL SCRIPT / BACTHES DEACTIVATION - DEACTIVATION OF THE USUAL CONTROL-M PLAN",
   "predecessor": "PRE-7102",
   "successor": "PRE-7102",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DESACTIVATION DU CTRL-M STANDARD BANQUE QUI DOIT ÊTRE MONTé AU PLAN A 15H\n\nNote : Reactivation of Standard CTRL-M plan is done in IP Task [PRE-11709](PRE-11709_116109798.html)",
-      "instruction_id": "PRE-7102-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-7102-1"
     }
   ]
 }

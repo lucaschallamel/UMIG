@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15177,
   "title": "ENGINE - Generate C2256 and C2460 - List of Non existing Clients on Atlas After Integration - Test Environment AND Prod Like Environement",
@@ -10,130 +10,130 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Following Tasks are done based on Atlas - Test Environment Inputs_",
-      "instruction_id": "CHK-15177-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
-      "instruction_id": "CHK-15177-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15177-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_AFTER_INSERT",
-      "instruction_id": "CHK-15177-2",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-15177-3",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-15177-4",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-15177-5",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-15177-6",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
-      "instruction_id": "CHK-15177-7",
-      "nominated_user": ""
+      "instruction_id": "CHK-15177-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
       "associated_controls": "",
-      "instruction_title": "Please verify control result for C2460 and email conclusion to IT_CUTOVER.",
-      "instruction_id": "CHK-15177-8",
-      "nominated_user": ""
+      "instruction_id": "CHK-15177-3"
     },
     {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-4"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-5"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-6"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15177-7"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "Please verify control result for C2460 and email conclusion to IT_CUTOVER.",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-8"
+    },
+    {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Following Tasks are done based on Atlas - Prod Like Environment_",
-      "instruction_id": "CHK-15177-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
-      "instruction_id": "CHK-15177-10",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15177-10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_AFTER_INSERT",
-      "instruction_id": "CHK-15177-11",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-15177-12",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-15177-13",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-15177-14",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-15177-15",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
-      "instruction_id": "CHK-15177-16",
-      "nominated_user": ""
+      "instruction_id": "CHK-15177-11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
       "associated_controls": "",
+      "instruction_id": "CHK-15177-12"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-13"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-14"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-15"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15177-16"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
       "instruction_title": "Please verify control result for C2460 and email conclusion to IT_CUTOVER.",
-      "instruction_id": "CHK-15177-17",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-15177-17"
     }
   ]
 }

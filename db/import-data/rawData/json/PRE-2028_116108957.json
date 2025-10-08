@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2028,
   "title": "DARWIN - PREPARATION STAR 1",
@@ -6,15 +6,15 @@
   "successor": "IGO-3187",
   "primary_team": "DARWIN",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DARWIN",
-      "associated_controls": "",
       "instruction_title": "Verify in file :\nmigr@ddarwinprd/opt/repository/DarWin/migrCheck\nline : 37 \nSet in comment : day=`date +%w`\nUncomment day=4",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 6715,
   "title": "EXPLOITATION - RESTORE FILES TO PREPARE DARWIN EOD*2",
@@ -6,15 +6,15 @@
   "successor": "DUM-6715",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following instructions for \n\n**\n_Phase ID:_ 330\n****_Phase name:_ REFRESH_DARWIN_FILES_S2**",
-      "instruction_id": "DUM-6715-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "DUM-6715-2"
     }
   ]
 }

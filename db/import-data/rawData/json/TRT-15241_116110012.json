@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15241,
   "title": "DOCUMENTUM - Provide Index File to CMS",
@@ -10,11 +10,11 @@
   "time_sequence": "CJ - DOCUMENTUM FLOW CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "BLUSZEZ Laurent",
       "instruction_assigned_team": "DOCUMENTUM",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**Provide Index File to CMS**",
-      "instruction_id": "TRT-15241-1",
-      "nominated_user": "BLUSZEZ Laurent"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15241-1"
     }
   ]
 }

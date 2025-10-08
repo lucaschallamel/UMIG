@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 9097,
-  "title": "RUN0",
+  "title": "PRINTNET - SAUVEGARDE DES ESTIMATIFS",
   "predecessor": "BUS-9057",
   "successor": "PRE-9323",
   "primary_team": "PRINTNET",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PRINTNET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BACKUP DE TOUS LES FICHIERS PRODUITS DANS LES RÉPERTOIRES ARCHIVAGE",
-      "instruction_id": "PRE-9097-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-9097-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PRINTNET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BACK UP à disposition de PG (Aka TNO e-banking)",
-      "instruction_id": "PRE-9097-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-9097-1"
     }
   ]
 }

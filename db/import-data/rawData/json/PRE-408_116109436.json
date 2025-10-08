@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 408,
   "title": "ATLAS - SAVE LOGS",
@@ -6,15 +6,15 @@
   "successor": "PRE-9171",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**Copy the folder /prod/log with script **\n/home/migsup/tools/10_Backup_log.ksh \n\noption 2\n\nVider répertoire Y",
-      "instruction_id": "PRE-408-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-408-1"
     }
   ]
 }

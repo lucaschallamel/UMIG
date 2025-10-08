@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2808,
   "title": "EXPLOITATION - DARWIN EOD*2 PREPARATION",
@@ -6,15 +6,15 @@
   "successor": "IGO-11253",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Mount the following Phase : \n\nE3_PHASE-6.3-DARWIN_STAR2\nE3_10-PH6.3_CLEAN_CONDITIONS_DARWIN_STAR2\nE3_20-PH6.3_CLEAN_CONDITIONS_DARWIN_STAR2**E3_30-PH6.3_CLEAN_CONDITIONS_DARWIN_STAR2**E3_40-PH6.3_MAP_EOD_DARWIN_STAR2",
-      "instruction_id": "PRE-2808-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2808-1"
     }
   ]
 }

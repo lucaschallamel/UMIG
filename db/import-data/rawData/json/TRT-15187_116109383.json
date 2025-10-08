@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15187,
   "title": "ENGINE - GENERATE CHILDREN FILES P4 to P8  FROM SG",
@@ -10,11 +10,11 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please proceed with the following data:\n\nP4 to P8 files generation - Generate invariants and associated reports",
-      "instruction_id": "TRT-15187-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15187-1"
     }
   ]
 }

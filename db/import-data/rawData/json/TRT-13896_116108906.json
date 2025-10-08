@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13896,
   "title": "ENGINE TO CREATE JSON BASED ON THE FINALISED DSS FILES",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please create the JSON extracts for SECLI team based on  the last finlaised snapshot of DSS files  \n(AllDss.json + Headers.csv)\n\nThe DSS files are available on the following link :\n\n[https://spconfidential/projects/victoria-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Fvictoria%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS](https://spconfidential/projects/victoria-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Fvictoria%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS)",
-      "instruction_id": "TRT-13896",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13896"
     }
   ]
 }

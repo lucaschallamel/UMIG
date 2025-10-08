@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 12916,
-  "title": "BUSINESS CHECKS - EOD*2 STATEMENTS\u0027 CHECK",
+  "title": "BUSINESS CHECKS - EOD*2 STATEMENTS' CHECK",
   "predecessor": "TRT-14862",
   "successor": "TRT-11242",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "instruction_title": "EOD*2 CLIENT STATEMENTS' CHECK",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "EOD*2 CLIENT STATEMENTS\u0027 CHECK",
-      "instruction_id": "BGO-12916-1",
-      "nominated_user": ""
+      "instruction_id": "BGO-12916-1"
     }
   ]
 }

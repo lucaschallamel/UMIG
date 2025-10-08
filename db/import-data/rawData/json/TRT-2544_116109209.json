@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 2544,
   "title": "SECLI - CREATE MAPPING TABLE ON BASE TIERS PUBLIC AND BASE TIERS PRIVEE",
@@ -10,18 +10,18 @@
   "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CREATE MAPPING TABLE ON BASE TIERS PUBLIC - Prod Like",
-      "instruction_id": "TRT-2544-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-2544-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CREATE MAPPING TABLE ON BASE TIERS PRIVEE - Prod Like",
-      "instruction_id": "TRT-2544-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-2544-2"
     }
   ]
 }

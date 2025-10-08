@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6616,
-  "title": "RUN1",
+  "title": "MyTitle",
   "predecessor": "PRE-6616",
   "successor": "PRE-6616",
   "primary_team": "-",
@@ -10,18 +10,18 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "-",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Phase 3.1 – TDIN\n12-PH31 : TDINEMEX\nCréation et mises à jour des comptes de liaison entre SGPBS/UBP.\nMise a jour de la table SPI TCOMEXXX.",
-      "instruction_id": "PRE-6616-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-6616-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "-",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Phase 3.2 – EOW FUSION\n- DATES CTRLM à générer",
-      "instruction_id": "PRE-6616-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-6616-2"
     }
   ]
 }

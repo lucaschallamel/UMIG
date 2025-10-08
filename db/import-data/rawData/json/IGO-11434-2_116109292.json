@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11434,
   "title": "BUS - SANITY CHECKS ON TEST_ENV",
@@ -10,11 +10,11 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "BRIDENNE Alexandre",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BUS SANITY CHECKS on TEST Environment before start of the CSD Migration\nPlease also check BUS Package version + iib_check_bus.sh",
-      "instruction_id": "IGO-11434-2",
-      "nominated_user": "BRIDENNE Alexandre"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11434-2"
     }
   ]
 }

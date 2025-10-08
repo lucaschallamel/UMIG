@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14348,
-  "title": "RUN1",
+  "title": "CLIENT DOC - PRINTING AND ARCHIVING OF THE WELCOME LETTERS",
   "predecessor": "TRT-14343",
   "successor": "TRT-13167",
   "primary_team": "PRINTNET",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "JANKOWIAK Laurent",
       "instruction_assigned_team": "PRINTNET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PRINTING AND ARCHIVING OF THE LETTERS - _Support of Business needed_",
-      "instruction_id": "TRT-14348-1",
-      "nominated_user": "JANKOWIAK Laurent"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14348-1"
     }
   ]
 }

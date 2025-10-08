@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": null,
   "title": "CONFIRM ALL RECEIVED FILES WITH NO NAME ERROR/NO VOLUME DISCREPANCY",
@@ -6,15 +6,15 @@
   "successor": "CHK-13578",
   "primary_team": "ANONYMTOOL",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ANONYTOOLS to 5 X run **SURFACE **pre-check scripts on files received, generate file **structures **stats report and report OK or ERRORS to DATA_FILES\n_- Received files stats\n                AnalysisStatsV2.sh\n - - Prepare specific files\n\n                prepIDC_6110.sh\n\n                prepDOCUMENTUM_603x_604x.sh\n\n                prepKYC_603x.sh\n\n                prepLBRM_6406_6407.sh\n_- Surface verification\n\n                surfaceHeadEndv2.sh",
-      "instruction_id": "CHK-13984",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-13984"
     }
   ]
 }

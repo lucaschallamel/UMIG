@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2177,
-  "title": "RUN1",
+  "title": "DARWIN - MIGRATION ONLINE DEACTIVATION",
   "predecessor": "BUS-1430",
   "successor": "PRE-6576",
   "primary_team": "SPOC_MIDDLEWARE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MIGRATION ONLINE DEACTIVATION - To be Done on Friday : In an EOM scenario, stop here on Friday night",
-      "instruction_id": "PRE-2177-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-2177-1"
     }
   ]
 }

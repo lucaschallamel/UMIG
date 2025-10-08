@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15257,
   "title": "EXPLOITATION - CRS Chain Unhold",
@@ -10,11 +10,11 @@
   "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BATCH ENGINEERING - CRS Chain Unhold\n\nP-CLI-XXCUSTOMER et P-ENG-* sur le Control M serveur PRD-GVA-**SEC**-DC sur la ODATE 23.05.2025\n\n+\n\nP001-ENG-ENG-R000 + P001-ENG-ENG-R020 + P001-ENG-ENG-R030 sur CTRLM PRD-GVA-**COM**-DC sur la ODATE 23.05.2025",
-      "instruction_id": "TRT-15257-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15257-1"
     }
   ]
 }

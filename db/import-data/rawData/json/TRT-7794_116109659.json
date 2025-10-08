@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7794,
   "title": "SECLI SWITZERLAND / GENEVA - LOAD  CARD",
@@ -6,15 +6,15 @@
   "successor": "TRT-7794",
   "primary_team": "SECLI",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "LOAD CARD FILE OUTPUT TO SECLI",
-      "instruction_id": "TRT-7794-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7794-1"
     }
   ]
 }

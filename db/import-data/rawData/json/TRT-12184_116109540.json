@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12184,
-  "title": "RUN1",
+  "title": "ATLAS - PHASE 5.1 – PERFORMANCE CLIENTS INTEGRATION FU_PFMR1 -  REFRESH AFTER *2",
   "predecessor": "TRT-12179",
   "successor": "BGO-11247",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "45-PH5.1 : \nJOB : /prod/script/job/FU_PFMR1.ksh\nINPUT FILE : /files/data/PFU/FPFMR1.QSAM",
-      "instruction_id": "TRT-12184-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12184-1"
     }
   ]
 }

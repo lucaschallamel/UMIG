@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15224,
   "title": "KONDOR+ - Check and Clear queues before deisolation",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check and Clear queues before deisolation - ConvFromHost (On-Line), Treasury Link (On-Line), Treasury Link Deposit (Incoming)",
-      "instruction_id": "CHK-15224-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15224-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check and Clear queues before deisolation - HostLink FX (On-Line), HostLink MM (On Line), LinkVision Export, Cours Spot Minute (Outgoing)",
-      "instruction_id": "CHK-15224-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15224-2"
     }
   ]
 }

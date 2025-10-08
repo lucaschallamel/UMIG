@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 799,
-  "title": "RUN0",
+  "title": "Data Files - GO FROM UBP TO SG TO SEND DATA FILES",
   "predecessor": "GON-799",
   "successor": "GON-799",
   "primary_team": "DATA_FILES",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DATA_FILES",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Provide GO FROM UBP TO SG UK TO SEND DATA FILES as per the agreed process.",
-      "instruction_id": "GON-799-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-799-1"
     }
   ]
 }

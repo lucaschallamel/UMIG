@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 1602,
-  "title": "RUN1",
+  "title": "AmbitFocus - AFTER EOD*1 - FILES TO BE SAVED",
   "predecessor": "DUM-6170",
   "successor": "IGO-11459",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M JOB: 80-PH5.3_FUSION_MARCO_SAVE",
-      "instruction_id": "IGO-1602-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-1602-1"
     }
   ]
 }

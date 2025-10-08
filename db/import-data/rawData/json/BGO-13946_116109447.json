@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13946,
   "title": "BUSINESS - CONTROLS RECONCILIATION INTEGRITY (CID PART)",
@@ -6,15 +6,15 @@
   "successor": "IGO-6938",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Execute controls the below controls and send results to SG UK MigrationCoordination:\n\nK1008 List of positions without related instrument in UBP referential EJB\nK1022 Security attributes differences between SG UK and UBP NSU\n\nK1029 List of positions without related instrument in UBP referential EJB",
-      "instruction_id": "BGO-13946-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-13946-1"
     }
   ]
 }

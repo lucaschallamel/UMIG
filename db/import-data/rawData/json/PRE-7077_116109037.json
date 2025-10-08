@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7077,
   "title": "CID - BO REPORTS GENERATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS OBJECT",
+      "instruction_title": "REMETTRE LES PARAMèTRES D'ORIGINE du rapport BO Cours automatiques et manuels hors tolérance",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "REMETTRE LES PARAMèTRES D\u0027ORIGINE du rapport BO Cours automatiques et manuels hors tolérance",
-      "instruction_id": "PRE-7077-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-7077-1"
     }
   ]
 }

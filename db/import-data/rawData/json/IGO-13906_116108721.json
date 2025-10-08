@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13906,
   "title": "ATLAS - PHASE 2 controls",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "C2255                                                                                    C2140                                                                                    C2256                                                                                    C2460",
       "instruction_assigned_team": "CONTROL TEAM",
+      "instruction_title": "Verify controls below  and send results to TORONTO_CUTOVER:\n\nC2255 List of Clients already existing in ATLAS before migration\nC2140 Client Status SECLI / ENGINE\nC2256 List of clients not existing in ATLAS after integration\nC2460 SGPBCH Client ID <=> UBP Client ID mapping table",
       "associated_controls": "",
-      "instruction_title": "Verify controls below  and send results to TORONTO_CUTOVER:\n\nC2255 List of Clients already existing in ATLAS before migration\nC2140 Client Status SECLI / ENGINE\nC2256 List of clients not existing in ATLAS after integration\nC2460 SGPBCH Client ID \u003c=\u003e UBP Client ID mapping table",
-      "instruction_id": "IGO-13906-1",
-      "nominated_user": "C2255                                                                                    C2140                                                                                    C2256                                                                                    C2460"
+      "instruction_id": "IGO-13906-1"
     }
   ]
 }

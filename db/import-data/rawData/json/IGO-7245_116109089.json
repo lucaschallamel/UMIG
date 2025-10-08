@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 7245,
   "title": "IT MANAGEMENT - TO VALIDATE IT CONTROLS",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_MGMT",
-      "associated_controls": "",
       "instruction_title": "Validate control results : \n\nC1001 - Check volume of files before engine integration\nC1002 - Dummies count in DICO tables\nC1003 - Detail of Dummies in DICO tables\n\nC1243 - List of migration engine tables with referential integrity breach**C1243B - Tech. pre-check, integrity of all tables (stats)\n\nC1006 - C1006_ASSET_REPARTITION\n\nC1019 - C1019_ 2- Breakdown count of lines per received files",
-      "instruction_id": "IGO-7245-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-7245-1"
     }
   ]
 }

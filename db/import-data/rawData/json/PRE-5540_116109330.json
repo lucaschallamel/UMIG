@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5540,
-  "title": "RUN0",
+  "title": "IT_ENV - PRICE FILE - EOW - PREPARATION",
   "predecessor": "PRE-6352",
   "successor": "CHK-12899",
   "primary_team": "IT_ENV",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PUT ATLAS PRICE FILE on Prod Like Environment - Value date **29.08.2025**",
-      "instruction_id": "PRE-5540-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5540-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Set up simulation tool in order to inject price files",
-      "instruction_id": "PRE-5540-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5540-2"
     }
   ]
 }

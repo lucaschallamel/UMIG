@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15253,
   "title": "ATLAS - Integrate historical perf data sent by Engine",
@@ -6,15 +6,15 @@
   "successor": "TRT-15253",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ATLAS - Integrate historical perf data sent by Engine",
-      "instruction_id": "TRT-15253-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15253-1"
     }
   ]
 }

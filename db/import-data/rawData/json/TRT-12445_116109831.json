@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12445,
   "title": "TAX - PG Dashboard verification",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
+      "instruction_title": "PG Dashboard verification by CD&TS - Check that SGPBS clients are displayed in PG QI/FATCA dashboard",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "PG Dashboard verification by CD\u0026TS - Check that SGPBS clients are displayed in PG QI/FATCA dashboard",
-      "instruction_id": "TRT-12445-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-12445-1"
     }
   ]
 }

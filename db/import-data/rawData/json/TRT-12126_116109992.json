@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12126,
   "title": "DEPLOY LAST PRODUCTION PATCH OF SECLI ON TEST ENV",
@@ -10,11 +10,11 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "DEPLOY LAST PRODUCTION PATCH OF SECLI ON TEST ENV\n(If any, otherwise cancel)",
-      "instruction_id": "TRT-12126-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12126-1"
     }
   ]
 }

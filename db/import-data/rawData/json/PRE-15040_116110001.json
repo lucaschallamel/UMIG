@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15040,
   "title": "SECLI - Clean repositories",
@@ -10,18 +10,18 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Verify that the Pre Staging Tables are  empty.",
-      "instruction_id": "PRE-15040-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15040-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Perfom snapshot of Secli Table with last modification dates",
-      "instruction_id": "PRE-15040-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15040-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13947,
   "title": "SG UK Confirms that all files are sent",
@@ -6,22 +6,22 @@
   "successor": "TRT-11717",
   "primary_team": "SG UK",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "",
       "instruction_title": "Pre-checks on files to be sent to UBP",
-      "instruction_id": "TRT-13947-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-13947-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SG UK inform once all files are dropped into UBP transfer folder.",
-      "instruction_id": "TRT-13947-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13947-2"
     }
   ]
 }

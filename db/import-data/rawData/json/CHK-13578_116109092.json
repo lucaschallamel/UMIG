@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 13578,
-  "title": "RUN0",
+  "title": "ANONYTOOLS - CONFIRM SOURCE FILES RECEIVED IN THE TARGET DIRECTORY",
   "predecessor": "CHK-13984",
   "successor": "TRT-13483",
   "primary_team": "ANONYMTOOL",
@@ -10,18 +10,18 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please send to Hugo the list of received SOURCE files in the folder.\n\nIF NOT FOUND PLEASE CALL DATA_FILES TEAM",
-      "instruction_id": "CHK-13578-1",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-13578-1"
     },
     {
+      "nominated_user": "NUKOVIC Hugo",
       "instruction_assigned_team": "DATA_FILES",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please confirm that you received the SOURCE files in the folder, and ready to use it, with the MASTER file for controls : FILES_CONTROLS.xlsx",
-      "instruction_id": "CHK-13578-2",
-      "nominated_user": "NUKOVIC Hugo"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-13578-2"
     }
   ]
 }

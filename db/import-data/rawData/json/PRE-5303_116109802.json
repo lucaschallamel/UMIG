@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5303,
   "title": "USERS PROVISIONNING - REMOVE PIQUET ACCESS",
@@ -10,74 +10,74 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "USERS PROVISIONNING ACTIVITIES on ATLAS",
-      "instruction_id": "PRE-5303-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "USERS PROVISIONNING ACTIVITIES on CMS",
-      "instruction_id": "PRE-5303-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "USERS PROVISIONNING ACTIVITIES on SECLI",
-      "instruction_id": "PRE-5303-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "USERS PROVISIONNING ACTIVITIES on DARWIN",
-      "instruction_id": "PRE-5303-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on ATLAS",
-      "instruction_id": "PRE-5303-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on SECLI",
-      "instruction_id": "PRE-5303-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MANAGER CODE CREATION on ATLAS",
-      "instruction_id": "PRE-5303-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MANAGER CODE CREATION on SECLI",
-      "instruction_id": "PRE-5303-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ADVISORY CODE CREATION on ATLAS",
-      "instruction_id": "PRE-5303-9",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ADVISORY CODE CREATION on SECLI",
-      "instruction_id": "PRE-5303-10",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5303-10"
     }
   ]
 }

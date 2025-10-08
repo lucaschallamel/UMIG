@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 1181,
   "title": "ENGINE - IT CONTROL GENERATION FOR SECLI MAPPING TABLE INTEGRATION - Step 05 - RECONCILIATION INTEGRITY 2 PART  1",
@@ -10,53 +10,53 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_1_ATLAS_FU_CLIENT",
-      "instruction_id": "CHK-1181-1",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-1"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "FTP_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-1181-2",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-2"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-1181-3",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-3"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXCEL_C2140_SECLI_REPORT_COMPARE_ETAT",
-      "instruction_id": "CHK-1181-4",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-4"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "C2140- Comparaison des états des client SECLI v/s MOTEUR - Doit être vide -\nC2460C COMPARE CORRESPONDANCE BETWEEN CURRENT RUN & PREVIOUS RUN",
       "associated_controls": "",
-      "instruction_title": "C2140- Comparaison des états des client SECLI v/s MOTEUR - Doit être vide -\nC2460C COMPARE CORRESPONDANCE BETWEEN CURRENT RUN \u0026 PREVIOUS RUN",
-      "instruction_id": "CHK-1181-5",
-      "nominated_user": "DRAI Yohann"
+      "instruction_id": "CHK-1181-5"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mail to  ENGINE  GO FOR CHK-1181 - STEP - ENGINE - IT CONTROL GENERATION FOR SECLI MAPPING TABLE INTEGRATION - Step 05 - RECONCILIATION INTEGRITY 2 PART  1 : DONE",
-      "instruction_id": "CHK-1181-6",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Generate control C2140 - Client Status SECLI / ENGINE\nand email to IT_CUTOVER.",
-      "instruction_id": "CHK-1181-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1181-7"
     }
   ]
 }

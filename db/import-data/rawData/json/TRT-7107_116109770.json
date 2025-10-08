@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7107,
   "title": "CID ENV PREPARATION - Desactivation du flux CTLR M  CopieHostFile CID",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Desactivation du flux CTLR M  CopieHostFile CID\n\nNote : Reactivation is done within IP Task [PRE-11689](PRE-11689_116109769.html)",
-      "instruction_id": "TRT-7107-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7107-1"
     }
   ]
 }

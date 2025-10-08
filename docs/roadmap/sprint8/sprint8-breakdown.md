@@ -3,8 +3,8 @@
 **Sprint Duration**: September 30 - October 18, 2025 (17 working days) ✅ **EXTENDED Oct 8**
 **Current Date**: October 8, 2025 (Day 9 of sprint)
 **Team**: 1 developer (Lucas) + AI agent support
-**Sprint Commitment**: ~~55~~ ~~51.5~~ **66.5 points** (47 original + ~~8~~ 4.5 TD-016 + 15 new) ✅ **EXPANDED Oct 8**
-**Status**: Ahead of schedule (40 points complete, 26.5 remaining over 8 days) ✅ **US-098 100% COMPLETE Oct 6**
+**Sprint Commitment**: ~~55~~ ~~51.5~~ ~~66.5~~ **75 points** (47 original + 4.5 TD-016 + 15 TD-103/US-104 + 8.5 US-041A/B) ✅ **EXPANDED Oct 8**
+**Status**: 60% complete (40 points done, 35 remaining over 8 days) ✅ **US-041A/B ADDED Oct 8**
 
 ## Executive Summary
 
@@ -24,40 +24,44 @@ Sprint 8 focuses on establishing enterprise-grade test infrastructure (TD-014) a
 - ✅ US-098 100% COMPLETE (42 points) - Configuration management system ✅ **COMPLETE Oct 6** 🎉
 - 🆕 TD-103 ADDED (2 points) - Performance optimization indexes ✅ **ADDED Oct 8** (prerequisite for US-104)
 - 🆕 US-104 ADDED (13 points) - Production data import via Liquibase ✅ **ADDED Oct 8** (P0 Critical)
-- **Required Velocity**: 3.31 points/day (26.5 remaining ÷ 8 days) ⚠️ **INCREASED Oct 8** (reduced 13% buffer)
+- 🆕 US-041A ADDED (4.5 points) - Comprehensive Audit Logging (JSON-optimized) ✅ **ADDED Oct 8** (leverages existing schema)
+- 🆕 US-041B ADDED (2.5 points) - PILOT Instance Management ✅ **ADDED Oct 8** (component-based implementation)
+- **Required Velocity**: 4.38 points/day (35 remaining ÷ 8 days) ⚠️ **INCREASED Oct 8** (reduced to ~3% buffer)
 
 ## Sprint Health Assessment
 
 ### Current State (Day 9) ✅ **UPDATED Oct 8**
 
-- **Velocity**: Ahead of schedule (40 points complete, 60% of expanded sprint)
+- **Velocity**: 60% complete (40 points done, 35 remaining)
 - **Capacity**: Single developer with strong AI agent support
-- **Dependencies**: TD-103 must precede US-104 (performance indexes required)
-- **Risk Level**: Low-Medium (reduced buffer from 40% to 13%, but achievable velocity)
+- **Dependencies**: TD-103 → US-104 → US-041A → US-041B (strict sequence)
+- **Risk Level**: Medium (increased velocity pressure 32%, buffer reduced to ~3%)
 - **Notable Achievements**:
   - US-098 100% complete (42 story points delivered)
   - TD-020 core complete with 66% complexity reduction
   - Phase 5C manual testing validated by user
   - Production-ready configuration management system operational
   - Sprint expanded to accommodate P0 critical production data import (US-104)
+  - US-041A/B optimized for existing schema (8.5 pts vs potential 11-14 pts)
 
 ### Velocity Analysis
 
 ```
 Sprint 7 Performance: 224% (130/58 points) - Exceptional but unsustainable
-Sprint 8 Target: 100% (66.5/66.5 points) - Quality-focused sustainable delivery ✅ **REVISED Oct 8**
-Sprint 8 ACTUAL: 60% (40.0/66.5 points) complete with 8 days remaining ✅ **UPDATED Oct 8**
-Required Daily Velocity: 3.31 points/day (26.5 remaining ÷ 8 days) ⚠️ **INCREASED Oct 8**
+Sprint 8 Target: 100% (75/75 points) - Quality-focused sustainable delivery ✅ **REVISED Oct 8**
+Sprint 8 ACTUAL: 53% (40.0/75 points) complete with 8 days remaining ✅ **UPDATED Oct 8**
+Required Daily Velocity: 4.38 points/day (35 remaining ÷ 8 days) ⚠️ **INCREASED 32% Oct 8**
 
 Velocity Trend:
 - Week 1: 40 points complete (TD-015: 10 + TD-016: 4.5 + TD-017: 2 + TD-014-B: 6 + TD-020: 4.5 + US-098: 42 - Story point revision: -29)
 - US-098 Achievement: 100% complete (42 points delivered) ✅ **EXCEPTIONAL SUCCESS**
 - TD-014 Progress: 11 of 17 pts (65% complete) - TD-014-A ✅ + TD-014-B ✅
 - TD-020 Progress: 4.5 of 5 pts (90% complete) - Core implementation ✅
-- Sprint Expansion: +15 points (TD-103: 2 + US-104: 13) for production data import ✅ **ADDED Oct 8**
-- New Target: 3.31 points/day for remaining 8 days (achievable with reduced 13% buffer vs original 40%)
+- Sprint Expansion: +23.5 points (TD-103: 2 + US-104: 13 + US-041A: 4.5 + US-041B: 2.5 + merge: 1.5) ✅ **ADDED Oct 8**
+- New Target: 4.38 points/day for remaining 8 days (32% velocity increase, tight buffer ~3%)
+- US-041A/B Optimization: 8.5 points actual vs 11-14 potential (3+ point savings via existing schema)
 - Capacity Impact: TD-016 delivered 4.5 points (44% reduction from original 8 points) ✅
-- Buffer: ~13% built into remaining sprint work (reduced from 40%, still acceptable)
+- Buffer: ~3% built into remaining sprint work (reduced from 40%, minimal slack)
 - TD-017 Performance: 99.68% improvement (316× faster, 2.5× better than target)
 - TD-014-B Performance: Agent delegation validated (75-85% time savings, 100% quality)
 - TD-020 Performance: 66% complexity reduction (1 file vs 3 files planned)
@@ -501,6 +505,132 @@ CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
 
 ---
 
+### Phase 2C: Audit Logging & PILOT Features (Days 16-18, 7 points) 🆕 **ADDED Oct 8**
+
+**Objective**: Implement comprehensive audit logging infrastructure and PILOT instance management capabilities ✅ **SCHEMA-OPTIMIZED**
+
+**Context**: US-041 was strategically split into US-041A (audit logging) and US-041B (PILOT features) to enable focused implementation with optimized resource usage. US-041A achieves 3-point savings by leveraging existing `audit_log_aud` database schema with JSONB architecture.
+
+**Critical Discovery**: The `audit_log_aud` table already exists with complete JSONB column support (`aud_details`), eliminating 3 points of schema design/migration work and enabling direct implementation of JSON-based audit architecture.
+
+#### US-041A: Comprehensive Audit Logging Infrastructure (Day 16-17, 4-5 points)
+
+**Story**: JSON-based audit logging with entity-specific structure and GIN index optimization
+
+**Implementation Phases**:
+
+1. **Phase 1: GIN Index Optimization** (0.5 points)
+   - Create GIN indexes on `aud_details` JSONB column for query performance
+   - Index strategy: `(aud_details jsonb_path_ops)` for containment queries
+   - Performance target: <100ms for filtered audit queries
+   - Validation: Query plan analysis confirms index usage
+
+2. **Phase 2: AuditService & JSON Builders** (1.5 points)
+   - Implement `AuditService.groovy` with JSONB serialization
+   - Create entity-specific audit builders (Plans, Sequences, Phases, Steps, Teams, Users, etc.)
+   - JSON structure: `entitySpecific` object with typed data + hierarchy tracking
+   - Builder pattern for type-safe audit entry construction
+
+3. **Phase 3: Repository Integration** (1 point)
+   - Integrate audit logging into all repository operations (CREATE/UPDATE/DELETE)
+   - Leverage existing `audit_log_aud` table schema (no migrations needed)
+   - Capture before/after values with entity-specific context
+   - Session metadata: user_id, IP address, browser info
+
+4. **Phase 4: API Integration** (0.5-1 point)
+   - Add audit hooks to all v2 API endpoints
+   - Implement audit query API with JSONB filtering
+   - Export functionality (CSV/JSON) with date range filters
+   - Permission-based audit log access control
+
+5. **Phase 5: Admin GUI Integration** (0.5-1 point)
+   - Audit log viewer component with advanced filtering
+   - Entity-specific audit detail rendering (hierarchy-aware)
+   - Export interface with format selection
+   - Real-time audit stream for admin monitoring
+
+**Key Features**:
+
+- **JSONB Architecture**: Entity-specific data in `aud_details` with typed structure
+- **Hierarchy Tracking**: Full parent-child relationships in audit entries
+- **Query Optimization**: GIN indexes for fast JSONB searches
+- **Comprehensive Coverage**: All CRUD operations across all entities
+- **Export Capabilities**: CSV and JSON with filtering and date ranges
+
+**Dependencies**:
+
+- ✅ Existing `audit_log_aud` schema (7 columns including `aud_details JSONB`)
+- Sequential implementation: Indexes → Service → Repository → API → GUI
+- US-082-B completion required for Admin GUI integration
+
+**Success Criteria**:
+
+- GIN indexes deployed with <100ms query performance
+- AuditService handles all entity types with type-safe builders
+- 100% repository integration (all CREATE/UPDATE/DELETE operations)
+- Admin GUI displays entity-specific audit details correctly
+- Export functionality verified for both CSV and JSON formats
+
+#### US-041B: PILOT Instance Management (Day 18, 2-3 points)
+
+**Story**: Advanced instance entity management with hierarchical filtering and bulk operations
+
+**Implementation Phases**:
+
+1. **Phase 1: Component Integration Setup** (0.5 points)
+   - Configure instance entity specifications using US-082-B patterns
+   - Setup PILOT role validation and permissions
+   - Initialize EventBus communication for hierarchical operations
+   - Validate component architecture availability
+
+2. **Phase 2: Instance Entity CRUD** (1 point)
+   - Implement Plan Instance management with TableComponent
+   - Develop Sequence Instance operations with ModalComponent
+   - Create Phase Instance management with FormComponent
+   - Build Step Instance operations with validation
+
+3. **Phase 3: Advanced Features & Testing** (1-1.5 points)
+   - Implement hierarchical filtering (filter steps by phase instance)
+   - Develop bulk operations with progress indicators
+   - Complete integration testing with existing API endpoints
+   - Add user documentation for PILOT capabilities
+
+**Key Features**:
+
+- **Component-Based Architecture**: Leverages US-082-B reusable components
+- **Hierarchical Filtering**: Parent-child instance relationships (pli → sqi → phi → sti)
+- **Bulk Operations**: Multi-select status updates, team assignments, scheduling
+- **Advanced Operations**: Instance timeline management, cross-instance dependency validation
+
+**Dependencies**:
+
+- ⚠️ **US-082-B 100% Complete**: Component architecture MUST be fully implemented
+- Existing instance API endpoints (Plans, Sequences, Phases, Steps)
+- Authentication resolution (PILOT role validation)
+- US-041A audit logging (for PILOT action tracking)
+
+**Success Criteria**:
+
+- All instance entity CRUD operations functional (4 entity types)
+- Hierarchical filtering working for all parent-child relationships
+- Bulk operations with proper validation and rollback
+- PILOT role permissions validated for all operations
+- Integration with existing API endpoints maintaining <3s response times
+
+**Phase 2C Quality Gate**:
+
+- US-041A Complete: All 5 implementation phases delivered
+- GIN indexes: Query performance <100ms verified
+- Audit coverage: 100% repository integration (all entities)
+- US-041B Complete: All 3 implementation phases delivered
+- Component integration: US-082-B architecture successfully leveraged
+- Hierarchical filtering: 100% accurate parent-child relationships
+- Testing: 90%+ test coverage for all new functionality
+- Documentation: User guides complete for both audit logging and PILOT features
+- Performance: No degradation to existing system response times
+
+---
+
 ### Phase 3: Configuration Management Delivery (Days 2-7, 42 points) ✅ **100% COMPLETE Oct 6**
 
 **Objective**: Deliver environment-aware configuration management system with full test coverage ✅ **ACHIEVED**
@@ -555,12 +685,75 @@ CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
 
 ### Risk Matrix
 
-| Risk                          | Probability | Impact | Severity   | Mitigation Strategy                                     |
-| ----------------------------- | ----------- | ------ | ---------- | ------------------------------------------------------- |
-| Test Infrastructure Expansion | Low         | Medium | **MEDIUM** | TD-014 split into 4 sub-stories reduces complexity      |
-| Single Developer Capacity     | Low         | High   | **MEDIUM** | Leverage AI agents, maintain 3.08 pts/day velocity      |
-| US-098 Schema Compliance      | Low         | Medium | **MEDIUM** | TD-014-D (TR-20) enforces compliance, ADR-059 principle |
-| Quality vs Velocity Tension   | Medium      | Medium | **MEDIUM** | Explicit quality gates, sustainable 100% target         |
+| Risk                          | Probability | Impact | Severity        | Mitigation Strategy                                            |
+| ----------------------------- | ----------- | ------ | --------------- | -------------------------------------------------------------- |
+| Velocity Stretch              | Medium      | High   | **MEDIUM-HIGH** | 🆕 Schema optimization saves 3 pts, defer US-041B if needed    |
+| Test Infrastructure Expansion | Low         | Medium | **MEDIUM**      | TD-014 split into 4 sub-stories reduces complexity             |
+| Single Developer Capacity     | Medium      | High   | **MEDIUM-HIGH** | ⚠️ Increased to Medium-High due to 4.38 pts/day requirement    |
+| US-098 Schema Compliance      | Low         | Medium | **MEDIUM**      | TD-014-D (TR-20) enforces compliance, ADR-059 principle        |
+| Quality vs Velocity Tension   | Medium      | High   | **MEDIUM-HIGH** | ⚠️ Elevated with 32% velocity increase, quality gates critical |
+
+### Risk 0: Velocity Stretch - MEDIUM-HIGH 🆕 **ADDED Oct 8**
+
+**Description**: Sprint expanded from 66.5 to 75 points (+8.5 points, +13%) requiring 4.38 pts/day velocity (32% increase from 3.31 pts/day)
+
+**Context:**
+
+- US-041A/B addition: 6.5-8 points over Days 16-18
+- Required velocity: 4.38 pts/day (up from 3.31 pts/day)
+- Buffer reduced: From 13% to ~3% (2.5 points)
+- Critical discovery: audit_log_aud schema optimization saves 3 points
+
+**Indicators:**
+
+- Daily velocity falls below 4.0 points/day for 2+ consecutive days
+- Phase 2C start delayed beyond Day 16
+- US-082-B component architecture incomplete by Day 15
+- Quality metrics degradation (test coverage <85%, code quality <8.5/10)
+
+**Mitigation:**
+
+✅ **Optimization Strategies:**
+
+- US-041A reduced from 6-8 to 4-5 points via schema leverage
+- US-041B reduced from 5-6 to 2-3 points via component reuse
+- Clear implementation guides with JSON structure specifications
+- Sequential dependency chain: TD-103 → US-104 → US-041A → US-041B
+
+⚠️ **Active Monitoring:**
+
+- Track daily velocity against 4.38 pts/day target
+- Monitor Phase 2C readiness (US-082-B completion status)
+- Review quality gate compliance (testing, coverage, security)
+- Assess buffer consumption (current: ~3%, critical threshold: <2%)
+
+**Contingency:**
+
+🔴 **If velocity <4.0 pts/day by Day 12:**
+
+- Defer US-041B (2-3 points) to Sprint 9
+- Focus on US-041A only (audit logging critical for compliance)
+- Maintain quality standards over feature completion
+
+🟡 **If US-082-B delayed beyond Day 15:**
+
+- Implement US-041A independently (Days 16-17, 4-5 points)
+- Defer US-041B to Sprint 9 (component architecture dependency)
+- Ensure audit logging infrastructure complete for governance
+
+🟢 **If on track by Day 14:**
+
+- Proceed with full Phase 2C implementation
+- US-041A: Days 16-17 (audit logging, 4-5 points)
+- US-041B: Day 18 (PILOT features, 2-3 points)
+- Quality gate validation before Phase 2C completion
+
+**Strategic Justification:**
+
+- Audit logging (US-041A) is compliance-critical and optimized for quick delivery
+- PILOT features (US-041B) provide value but can be deferred if velocity pressured
+- 3-point savings from schema leverage makes sprint expansion feasible
+- Component architecture reuse minimizes US-041B implementation risk
 
 ### Risk 1: Test Infrastructure Expansion (MEDIUM - Reduced from HIGH)
 
@@ -586,28 +779,32 @@ CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
 - If TD-014-B behind schedule by Day 6: Reduce to 85% coverage, prioritize core repositories
 - If TD-014-C at risk by Day 8: Complete critical services only, defer edge cases
 
-### Risk 2: Single Developer Capacity (MEDIUM)
+### Risk 2: Single Developer Capacity (MEDIUM-HIGH) ⚠️ **ELEVATED Oct 8**
 
-**Description**: Lucas is sole developer, capacity constraints may limit velocity
+**Description**: Lucas is sole developer, capacity constraints amplified by 4.38 pts/day velocity requirement
 
 **Indicators:**
 
-- Daily velocity below 2.5 points/day for 2+ consecutive days
+- Daily velocity below 4.0 points/day for 2+ consecutive days ⚠️ **Updated from 2.5**
 - Burndown chart trending above ideal line
 - Developer fatigue or quality issues
+- Phase 2C start delayed beyond Day 16
 
 **Mitigation:**
 
 - ✅ Strong AI agent support (gendev-test-suite-generator, gendev-code-reviewer)
-- ✅ Realistic 3.08 points/day velocity (reduced from 3.46 due to early completion)
-- ✅ 12% buffer built into sprint planning (improved from original 8%)
+- ⚠️ Required velocity: 4.38 pts/day (increased from 3.08 pts/day, +42%)
+- ⚠️ Buffer reduced to ~3% (down from 12%, critical threshold)
 - ✅ Clear handoff documentation for agent collaboration
-- ✅ TD-014-A early completion provides velocity buffer
+- ✅ Schema optimization provides 3-point savings
+- ✅ Component architecture reuse reduces US-041B complexity
+- 🆕 US-041A/B deferral option available (prioritize US-041A if pressured)
 
 **Contingency:**
 
-- If capacity constrained: Request scope reduction, move US-098 to Sprint 9
-- If quality suffering: Add buffer day for technical debt, reduce new feature work
+- If capacity constrained: Defer US-041B (2-3 points) to Sprint 9, complete US-041A only
+- If quality suffering: Halt feature work, add buffer day for technical debt
+- If velocity <4.0 by Day 12: Invoke Phase 2C deferral strategy (US-041A only)
 
 ### Risk 3: US-098 Schema Compliance (MEDIUM)
 
@@ -631,28 +828,35 @@ CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
 - If schema issues discovered: Halt US-098 work, fix schema compliance in TD-014-D (TR-20)
 - If fundamental schema conflict: Escalate to architecture review, defer US-098
 
-### Risk 4: Quality vs Velocity Tension (MEDIUM)
+### Risk 4: Quality vs Velocity Tension (MEDIUM-HIGH) ⚠️ **ELEVATED Oct 8**
 
-**Description**: Pressure to match Sprint 7's 224% completion may compromise quality
+**Description**: 32% velocity increase (3.31 → 4.38 pts/day) creates pressure that may compromise quality
 
 **Indicators:**
 
-- Test coverage dropping below 80%
+- Test coverage dropping below 85% ⚠️ **Raised from 80%**
+- Code quality scores below 8.5/10 ⚠️ **New threshold**
 - Increasing technical debt
 - Code review feedback declining
 - Skipping quality gates
+- Phase 2C quality gate failures
 
 **Mitigation:**
 
-- ✅ Explicit message: Sprint 8 targets sustainable 100%, not exceptional 224%
-- ✅ Quality gates at each phase boundary
-- ✅ Mid-sprint checkpoint to reassess scope
+- ✅ Explicit message: Quality-first approach maintained despite velocity increase
+- ✅ Quality gates at each phase boundary (especially Phase 2C)
+- ⚠️ Mid-sprint checkpoint critical (Day 12 - assess Phase 2C feasibility)
 - ✅ Technical debt monitoring and management
+- 🆕 US-041A/B implementation guides reduce quality risk
+- 🆕 Schema optimization and component reuse reduce complexity
+- ✅ Deferral strategy ready: US-041B can move to Sprint 9 if quality pressured
 
 **Contingency:**
 
-- If quality declining: Reduce scope, focus on core acceptance criteria
-- If technical debt accumulating: Add dedicated refactoring time
+- If quality declining: Defer US-041B (2-3 points), maintain US-041A only
+- If technical debt accumulating: Add dedicated refactoring time, reduce feature scope
+- If test coverage <85%: Halt feature work, focus on test completion
+- If Phase 2C quality gate fails: Defer remaining US-041A/B work to Sprint 9
 
 ---
 

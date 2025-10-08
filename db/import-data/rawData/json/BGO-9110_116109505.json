@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 9110,
-  "title": "RUN0",
+  "title": "BUSINESS CHECKS - VALIDATION CONTROLS AFTER EOD*1 are OK",
   "predecessor": "BGO-12138",
   "successor": "BUS-12151",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GP - GO - NOGO",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ATLAS EOD*1 VALIDATION AND MANUAL CORRECTIONS",
-      "instruction_id": "BGO-9110-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-9110-1"
     }
   ]
 }

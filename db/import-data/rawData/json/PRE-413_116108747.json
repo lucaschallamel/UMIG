@@ -1,41 +1,41 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 413,
-  "title": "RUN0",
+  "title": "EXPLOITATION - EOD*1 PREPARATION",
   "predecessor": "SYS-13106",
   "successor": "PRE-14445",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Schedule Ascension\nCONTROL-M : TEST\nAPPLICATION : P_TOO_Tools \nTABLE : P_AJF-ATLAS-INTEGRATION-BANQUE\nJOB : P_PHASE-5.2-EOD_STAR1\nBUSINESS DATE : **29.08.2025**",
-      "instruction_id": "PRE-413-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-413-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Calc Date\nDATE : **29.08.2025**",
-      "instruction_id": "PRE-413-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-413-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Vérifier que le job **PR_CGA01 **est monté en dummy",
-      "instruction_id": "PRE-413-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-413-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Check that the following jobs are in Dummy mode:\n_- SC_POL01\n- SC_POL02\n- P_TITPOL\n- SC_POL03\n- P_POSHOR_2\n\n\n\n\nCheck that the job PL_AMJ01 is not on plan and the job FU_AMJ01 is on plan\n\nCheck that the job SC_POL03 is not on plan or in dummy mode",
-      "instruction_id": "PRE-413-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-413-4"
     }
   ]
 }

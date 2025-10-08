@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14397,
   "title": "SECLI  -  “FORCE” THE CLIENT STATEMENTS ON A “MONTHLY” BASIS",
@@ -10,11 +10,11 @@
   "time_sequence": "CG - DATA LOADING IN SECLI TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI to “force” the Client Statements on a “Monthly” basis for all migrated clients",
-      "instruction_id": "TRT-14397-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14397-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14132,
   "title": "DARWIN - CHANGE DB LOGIQUE DATE FOR PG ALIGNEMENT AFTER EOD*2",
@@ -6,15 +6,15 @@
   "successor": "TRT-14132",
   "primary_team": "DARWIN",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DARWIN",
-      "associated_controls": "",
       "instruction_title": "Mettre la date logique de la DB\n_- update de DWREFLogicalDate : mDate à la date logique attendue\n- update de DWREFBatchDates: mExecStatus vaut 0 à partir de la date logique\n\nIn file migr@[dbatchsrv:/opt/repository/DarWin/migrCheck](http://dbatchsrv/opt/repository/DarWin/migrCheck) (line 37)**- Uncomment line: #day=`date +%w` → day=`date +%w`**- Comment line: day=4 → #day=4",
-      "instruction_id": "TRT-14132-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-14132-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 12921,
-  "title": "RUN0",
+  "title": "BUSINESS CHECKS - PORTAIL GERANT VALIDATION",
   "predecessor": "BGO-12921",
   "successor": "BGO-12921",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "PORTAIL GERANT VALIDATION",
-      "instruction_id": "BGO-12921-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-12921-1"
     }
   ]
 }

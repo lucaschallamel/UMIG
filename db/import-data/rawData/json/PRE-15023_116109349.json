@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15023,
   "title": "STEP - DARWIN - PREPARATION",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DARWIN",
+      "instruction_title": "Verify in file :\nmigr@ddarwinprd/opt/repository/DarWin/migrCheck\non line 34:34\n#day='date +%W' is in comment\nand on line 35: day=4",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Verify in file :\nmigr@ddarwinprd/opt/repository/DarWin/migrCheck\non line 34:34\n#day=\u0027date +%W\u0027 is in comment\nand on line 35: day=4",
-      "instruction_id": "PRE-15023-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-15023-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DARWIN",
+      "instruction_title": "Verify new profils & Investment grid are in DARWIN database  Already delivered in PRD.",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Verify new profils \u0026 Investment grid are in DARWIN database  Already delivered in PRD.",
-      "instruction_id": "PRE-15023-2",
-      "nominated_user": ""
+      "instruction_id": "PRE-15023-2"
     }
   ]
 }

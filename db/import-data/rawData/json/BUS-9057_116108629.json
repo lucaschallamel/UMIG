@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 9057,
-  "title": "RUN0",
+  "title": "MIDDLEWARE - Check BUS error messages (erreurs AFTER EOD*1)",
   "predecessor": "TRT-9054",
   "successor": "PRE-9097",
   "primary_team": "MIDDLEWARE",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ANALYSER LES MESSAGES BLOQUES POUR DETECTER LES ANOMALIES. EVENTUELLEMENT DETRUIRE MESSAGES INUTILES OU ERRONES avec validation de [ IT_CUTOVER ](#)",
-      "instruction_id": "BUS-9057-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-9057-1"
     }
   ]
 }

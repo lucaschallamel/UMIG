@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15179,
   "title": "ATLAS - Reconciliation K+ / Atlas - Money Market (Bank)",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reconciliation K+ / Atlas - Money Market (Bank)",
-      "instruction_id": "CHK-15179-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15179-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send reconciliation results to Kondor+ Team and Business Team",
-      "instruction_id": "CHK-15179-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15179-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 2672,
   "title": "SECLI - DUMP - AFTER CLIENTS SENT TO ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 210\n****_Phase name:_ SECLI_PROD_AFTER_CLIENT_SENT_ATLAS **\n\n_**Description**_:\n\nFor **SECLI**, **AFTER CLIENT SENT TO ATLAS **proceed with the following **BACKUP **and **RESTORE **activities.",
-      "instruction_id": "DUM-2672-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-2672-1"
     }
   ]
 }

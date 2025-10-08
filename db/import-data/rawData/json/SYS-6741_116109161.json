@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 6741,
   "title": "ATLAS - OPEN IN DAY MODE",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Set ATLAS EV4 in Day Mode\n\nConfirmer le job : E4_00-STOP_AV_TX-SERIES\n\nCONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : E4_MODE-TX-DAY-DAY\nJob : E4_00-STOP_AV_TX-SERIES",
-      "instruction_id": "SYS-6741-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "SYS-6741-1"
     }
   ]
 }

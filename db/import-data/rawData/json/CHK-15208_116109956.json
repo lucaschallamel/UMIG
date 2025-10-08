@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15208,
-  "title": "TARIFF - TO GENERATE CONTROLS - TIERS RUBRIQUES \u0026amp; PARTICULAR CONDITIONS REPORT CREATION",
+  "title": "TARIFF - TO GENERATE CONTROLS - TIERS RUBRIQUES &amp; PARTICULAR CONDITIONS REPORT CREATION",
   "predecessor": "BGO-13809",
   "successor": "IGO-12835",
   "primary_team": "TARIF",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ C7050 ](#)",
       "instruction_title": "GENERATE AND SENDING OF THE LIST OF THIRD PARTIES : C7050",
-      "instruction_id": "CHK-15208-1",
-      "nominated_user": ""
+      "associated_controls": "[ C7050 ](#)",
+      "instruction_id": "CHK-15208-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ C7010 ](#)",
       "instruction_title": "GENERATE AND SENDING OF THE THIRD PARTY HEADING LIST: C7010",
-      "instruction_id": "CHK-15208-2",
-      "nominated_user": ""
+      "associated_controls": "[ C7010 ](#)",
+      "instruction_id": "CHK-15208-2"
     }
   ]
 }

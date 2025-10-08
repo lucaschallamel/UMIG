@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11739,
-  "title": "DOCUMENTUM - CH/GVA - CREDITS DOCUMENTS LOAD \u0026amp; TRANSFER TO BUSINESS",
+  "title": "DOCUMENTUM - CH/GVA - CREDITS DOCUMENTS LOAD &amp; TRANSFER TO BUSINESS",
   "predecessor": "TRT-11739",
   "successor": "TRT-11739",
   "primary_team": "DOCUMENTUM",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DOCUMENTUM",
+      "instruction_title": "DOCUMENTUM - CH/GVA - CREDITS DOCUMENTS LOAD & TRANSFER TO BUSINESS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "DOCUMENTUM - CH/GVA - CREDITS DOCUMENTS LOAD \u0026 TRANSFER TO BUSINESS",
-      "instruction_id": "TRT-11739-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-11739-1"
     }
   ]
 }

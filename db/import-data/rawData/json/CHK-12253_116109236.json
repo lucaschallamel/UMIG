@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 12253,
-  "title": "ATLAS - PHASE 0 - CLIENT ACCOUNT \u0026amp; G ACCOUNT",
+  "title": "ATLAS - PHASE 0 - CLIENT ACCOUNT &amp; G ACCOUNT VOLUMETRY CHECKS",
   "predecessor": "TRT-12112",
   "successor": "PRE-12106",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check ENGINE FILE EXISTING :\nFACCC4.QSAM\nFACCR1.QSAM",
-      "instruction_id": "CHK-12253-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-12253-1"
     }
   ]
 }

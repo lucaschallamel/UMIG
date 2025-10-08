@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15032,
   "title": "CID - Validate CID Back Up date",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "IT_CUTOVER",
       "instruction_assigned_team": "CID",
+      "instruction_title": "Validate with IT_Cutover the date at which the PROD back up should be taken for the P&C activities",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Validate with IT_Cutover the date at which the PROD back up should be taken for the P\u0026C activities",
-      "instruction_id": "PRE-15032-1",
-      "nominated_user": "IT_CUTOVER"
+      "instruction_id": "PRE-15032-1"
     }
   ]
 }

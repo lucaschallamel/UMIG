@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 9012,
-  "title": "ENGINE - FILE SENDING TO TARIF - TIERS RUBRIQUES \u0026amp; PARTICULAR CONDITIONS REPORT CREATION",
+  "title": "ENGINE - FILE SENDING TO TARIF - TIERS RUBRIQUES &amp; PARTICULAR CONDITIONS REPORT CREATION",
   "predecessor": "CHK-9012",
   "successor": "CHK-9012",
   "primary_team": "ENGINE COMMON",
@@ -10,39 +10,39 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "DTSX_FTC_MOTEUR_SYSPARAM_0044_TARIFS_TIERS",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXPORT_FTC_MOTEUR_SYSPARAM_0044_TARIFS_TIERS",
-      "instruction_id": "2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "GENERATION ET ENVOI DE LA Liste des tiers rubriques : C7051",
-      "instruction_id": "3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "GENERATION ET ENVOI DE LA Liste des tiers rubriques : C7052",
-      "instruction_id": "4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "4"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "GENERATION ET ENVOI DE LA Liste  de comparaison des conditions particulières : C7052",
-      "instruction_id": "5",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "5"
     }
   ]
 }

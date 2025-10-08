@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14970,
   "title": "IT_MGMT - VALIDATE IT CONTROL",
@@ -10,11 +10,11 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_MGMT",
+      "instruction_title": "Please validate the following controls :\n\nC2256 - Liste Des Clients Non Existant Sur Atlas Apres Integration\nC2460 - SG Client ID <=> UBP Client ID mapping Table\nC2460C COMPARE CORRESPONDANCE BETWEEN CURRENT RUN & PREVIOUS RUN",
       "associated_controls": "",
-      "instruction_title": "Please validate the following controls :\n\nC2256 - Liste Des Clients Non Existant Sur Atlas Apres Integration\nC2460 - SG Client ID \u003c=\u003e UBP Client ID mapping Table\nC2460C COMPARE CORRESPONDANCE BETWEEN CURRENT RUN \u0026 PREVIOUS RUN",
-      "instruction_id": "IGO-14970-1",
-      "nominated_user": ""
+      "instruction_id": "IGO-14970-1"
     }
   ]
 }

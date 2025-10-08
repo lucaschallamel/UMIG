@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 13109,
-  "title": "OPEN ATLAS IN NIGHT MODE",
+  "title": "EXPLOITATION - ENSURE ATLAS SYSTEM DATE IS SET TO CUTOVER DATE",
   "predecessor": "SYS-13109",
   "successor": "SYS-13109",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "_**FOR ATLAS: Set server dates to :**_\n\n**01/09**\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\nSur Controlm EVX\n\n**Si mode nuit :**\nHolder le groupe : E**x**_MODE-TX-NIGHT-NIGHT\nConfirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-NIGHT-NIGHT\nJOB : E**x**_15-STOP_AV_TX-SERIES\n\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l'environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev3txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**Si mode Nuit : **Démarrer atlas en mode nuit libérer les jobs suivants :\nE**x**_20-START_Prep_ORACLE_Batch\nE**x**_25-START_TX_Series_Nuit",
       "associated_controls": "",
-      "instruction_title": "_**FOR ATLAS: Set server dates to :**_\n\n**01/09**\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\nSur Controlm EVX\n\n**Si mode nuit :**\nHolder le groupe : E**x**_MODE-TX-NIGHT-NIGHT\nConfirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-NIGHT-NIGHT\nJOB : E**x**_15-STOP_AV_TX-SERIES\n\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l\u0027environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev3txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**Si mode Nuit : **Démarrer atlas en mode nuit libérer les jobs suivants :\nE**x**_20-START_Prep_ORACLE_Batch\nE**x**_25-START_TX_Series_Nuit",
-      "instruction_id": "SYS-13109-1",
-      "nominated_user": ""
+      "instruction_id": "SYS-13109-1"
     }
   ]
 }

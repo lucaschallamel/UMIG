@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 3093,
   "title": "CONTROL-M - EOW PREPARATION",
@@ -10,39 +10,39 @@
   "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Monter au plan en date du **29.08.2025**\n\n\n **(Après 15h00)**",
-      "instruction_id": "PRE-3093-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-3093-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Saisie Transaction ATLAS BI52",
-      "instruction_id": "PRE-3093-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-3093-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ATLAS Calc Date",
-      "instruction_id": "PRE-3093-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-3093-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**Hold the Secli batches :**\n\nDR2 :  E3_T007CLI_CJO004, E3_T004CLI_CJO004 et E3_T001CLI_CJO004\n\n**Cutover : P007CLI_CJO004, P004CLI_CJO004 et P001CLI_CJO004**",
-      "instruction_id": "PRE-3093-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-3093-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Atlas Start batch to be confirmed by [ IT_CUTOVER ](#) with unholding of SECLI batches",
-      "instruction_id": "PRE-3093-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-3093-5"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 2803,
   "title": "FENICS - Checks post  FX Options intergration in Kondor+",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check that Business Entries related to FX Options post Star1 are in Kondor+",
-      "instruction_id": "TRT-2803-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-2803-1"
     }
   ]
 }

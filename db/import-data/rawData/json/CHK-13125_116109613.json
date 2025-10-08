@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 13125,
   "title": "PMS - CHECK CASH ACCOUNT CREATION ON PMS",
@@ -6,22 +6,22 @@
   "successor": "CHK-13125",
   "primary_team": "PMS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PMS",
-      "associated_controls": "",
       "instruction_title": "Check that account have correctly been created before integrating positions.",
-      "instruction_id": "CHK-13125-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-13125-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PMS",
-      "associated_controls": "",
       "instruction_title": "Please provide number of account created.",
-      "instruction_id": "CHK-13125-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-13125-2"
     }
   ]
 }

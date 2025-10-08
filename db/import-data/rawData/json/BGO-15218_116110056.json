@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15218,
   "title": "KONDOR+ - Manual integration of Money Market Client - AFTER Star 2",
@@ -6,15 +6,15 @@
   "successor": "BGO-15218",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "instruction_title": "We don't have any detailed instructions, please advise [TAKASSI-KIKPA Audrey](https://confluence.corp.ubp.ch/display/~atk)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "We don\u0027t have any detailed instructions, please advise [TAKASSI-KIKPA Audrey](https://confluence.corp.ubp.ch/display/~atk)",
-      "instruction_id": "BGO-15218-1",
-      "nominated_user": ""
+      "instruction_id": "BGO-15218-1"
     }
   ]
 }

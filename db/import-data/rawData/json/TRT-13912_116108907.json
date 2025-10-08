@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13912,
-  "title": "RUN0",
+  "title": "SECLI LDN&amp;JRS - SEND TORIG FOR BASE TIERS PUBLIC",
   "predecessor": "TRT-11987",
   "successor": "TRT-11987",
   "primary_team": "SECLI",
@@ -10,25 +10,25 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SENDING ALL STEP -  SECLI GVA - SEND TORIG FOR BASE TIERS PUBLIC",
-      "instruction_id": "TRT-13912-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13912-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "TORIG reception verification in Base Tiers Public",
-      "instruction_id": "TRT-13912-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13912-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the logs\nReport the defect via Jira",
-      "instruction_id": "TRT-13912-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13912-3"
     }
   ]
 }

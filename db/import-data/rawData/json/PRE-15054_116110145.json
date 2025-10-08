@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15054,
   "title": "EXPLOITATION - Prepare EoW Batch CSD Week - PROD",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Hold the Secli Batch : **P007CLI_CJO004, P004CLI_CJO004 et P001CLI_CJO004**",
-      "instruction_id": "PRE-15054-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15054-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Atlas pour bloquer le démarrage du batch Atlas il faudra après 18h le vendredi après-midi holder les jobs suivants : 01-START-EOD plus tous les job du folder P_HOS_CORE-BANKING (uniquement les jobs pas le folder).",
-      "instruction_id": "PRE-15054-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15054-2"
     }
   ]
 }

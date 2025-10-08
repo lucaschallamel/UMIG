@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 196,
   "title": "ATLAS - CREDIT FILES CHECKS",
@@ -6,29 +6,29 @@
   "successor": "TRT-203",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GH - ATLAS PHASE 4.1 - ACCOUNT CREATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Mail to inform ATLAS - The transfer is done FOR \nFCLIR5.QSAM\nFCLIR12.QSAM\nFCLIR13.QSAM\nFCLIR3.QSAM\n2 - The volumetry can be checked",
-      "instruction_id": "CHK-196-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-196-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check ENGINE FILE :\nFCLIR5.QSAM\nFCLIR12.QSAM\nFCLIR13.QSAM\nFCLIR3.QSAM",
-      "instruction_id": "CHK-196-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-196-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Vérifier version du fichier \nFACCR1.QSAM et \nControle de la date en position 166 dans le fichier (DATIC)\nDoit être à la date de migration",
-      "instruction_id": "CHK-196-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-196-3"
     }
   ]
 }

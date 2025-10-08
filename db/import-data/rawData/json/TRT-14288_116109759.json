@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14288,
   "title": "ATLAS - PURGE MIGRATION FILES",
@@ -6,15 +6,15 @@
   "successor": "TRT-14288",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Purge Migration Files - SCRIPT : [axvgvatxbev301p:/home/migsup/tools/03_purge_files_PFU.ksh](http://axvgvatxbev301p/home/migsup/tools/03_purge_files_PFU.ksh)",
-      "instruction_id": "TRT-14288-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14288-1"
     }
   ]
 }

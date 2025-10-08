@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5256,
-  "title": "RUN0",
+  "title": "IT ENV - De-isolate Prod Like Environment on dedicated P9",
   "predecessor": "PRE-5256",
   "successor": "PRE-5256",
   "primary_team": "IT_ENV",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Request removal of ProdLike Atlas environment of Isolated P9\n\nNote : Upgrade was done in IP Task [PRE-5248](PRE-5248_116108759.html)",
-      "instruction_id": "PRE-5256-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5256-1"
     }
   ]
 }

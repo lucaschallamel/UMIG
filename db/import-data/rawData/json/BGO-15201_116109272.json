@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15201,
-  "title": "RUN0",
+  "title": "IT MGMT - CHECKS REVIEW AND VALIDATION - GO/NO GO",
   "predecessor": "TRT-13966",
   "successor": "TRT-15201",
   "primary_team": "IT_MGMT",
@@ -10,11 +10,11 @@
   "time_sequence": "CE - DATA LOADING IN PRE-STAGING",
   "task_list": [
     {
+      "nominated_user": "GUILLEMAU Pascal",
       "instruction_assigned_team": "CONTROLS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please validate the following controls",
-      "instruction_id": "BGO-15201-1",
-      "nominated_user": "GUILLEMAU Pascal"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15201-1"
     }
   ]
 }

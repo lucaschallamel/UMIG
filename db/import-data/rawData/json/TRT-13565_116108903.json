@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13565,
   "title": "ENGINE - Check INTEGRATED CHILDREN FILES FROM SG (P1-P4) - Send Stats",
@@ -10,18 +10,18 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Provide the following information to DATA_FILES:\nNumber of files (FPS / FPC) generated from P1-P4 source files.\nCount rows and size per file",
-      "instruction_id": "TRT-13565-1",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13565-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please provide all invariant files produced",
-      "instruction_id": "TRT-13565-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13565-2"
     }
   ]
 }

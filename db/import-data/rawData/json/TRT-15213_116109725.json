@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15213,
   "title": "KONDOR+ - Export pour Reco avec Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Export reconciliation file to Atlas",
-      "instruction_id": "TRT-15213-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15213-1"
     }
   ]
 }

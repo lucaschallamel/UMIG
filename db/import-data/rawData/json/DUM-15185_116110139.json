@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15185,
   "title": "EXPLOITATION - DUMP PRD - APPLICATIONS BEFORE TEST To PROD MIGRATION",
@@ -10,18 +10,18 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Note : Warning there are two tags for phase 240 → Chose the correct one._",
-      "instruction_id": "DUM-15185-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "DUM-15185-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please perform Back up:\n\nPhase **240**\n\nTag **ALL_APP_BFR_CSD_PRDMIG**",
-      "instruction_id": "DUM-15185-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-15185-1"
     }
   ]
 }

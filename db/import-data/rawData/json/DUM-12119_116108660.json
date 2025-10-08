@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 12119,
-  "title": "BACKUP \u0026amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST",
+  "title": "BACKUP &amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST",
   "predecessor": "PRE-63",
   "successor": "PRE-63",
   "primary_team": "IT_ENV",
@@ -10,25 +10,25 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "On   **29.08.2025**\nproceed with  **PRD Back ups for All standard applications**",
-      "instruction_id": "DUM-12119-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-12119-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "On **PROD LIKE**: **RESTORE** all applications based on  **PRODUCTION **backup made on step 1 - **Between 27th and 29th of August**",
-      "instruction_id": "DUM-12119-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-12119-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "On **TEST**: **RESTORE ****SECLI **and **ATLAS **based on **PRODUCTION **Backup made on step 1 - **On the 26th and 27th of August**",
-      "instruction_id": "DUM-12119-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-12119-3"
     }
   ]
 }

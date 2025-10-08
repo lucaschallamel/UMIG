@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13263,
   "title": "BUSINESS CHECK (MARKER) - SECLI UK - RESTORE CHECKS AFTER COPY FROM Prod Like TO SECLI Test",
@@ -10,25 +10,25 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Business checks on SECLI Test, before starting Client integration.\nLook for the Marker (for client) added on PROD Like. The same marker should be visible on Test Environment - GVA",
-      "instruction_id": "BGO-13263-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-13263-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check same Marker on London (302 and 303)",
-      "instruction_id": "BGO-13263-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-13263-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check same Marker on Jersey (304 and 305)",
-      "instruction_id": "BGO-13263-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-13263-3"
     }
   ]
 }

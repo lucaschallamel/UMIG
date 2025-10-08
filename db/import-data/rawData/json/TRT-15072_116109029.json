@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15072,
   "title": "ENGINE - SEND ENGINE KPI INBOUND FILE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "Send to Control team ENGINE KPIs inbound file by mail",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

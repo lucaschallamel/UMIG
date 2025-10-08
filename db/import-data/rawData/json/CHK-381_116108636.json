@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 381,
   "title": "ENGINE - STEP 13 - ATLAS / ENGINE RECONCILIATION BEFORE EOD*1",
@@ -6,155 +6,155 @@
   "successor": "IGO-13921",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C5007_LISTE_DES_COMPTES_COURANTS",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C5007_LISTE_DES_COMPTES_COURANTS",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C5100_LISTE_POSITIONS_BLOQUEES",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C5100_LISTE_POSITIONS_BLOQUEES",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0160_ACCOUNTS_CTRL_FACCX1_JUST_BEFORE_EOD",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0160_ACCOUNTS_CTRL_FACCX1_JUST_BEFORE_EOD",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0161_GL_ACCOUNTS_CTRL_FACCX2_JUST_BEFORE_EOD",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0161_GL_ACCOUNTS_CTRL_FACCX2_JUST_BEFORE_EOD",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0175_FOREX_FFORX1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0175_FOREX_FFORX1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_ATLAS_IN_FOREX_FFORX1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXPORT_FTC_MOTEUR_KONDOR_0146_FOREX_FFORR1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_MOTEUR_KONDOR_0146_FOREX_FFORR1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXPORT_FTC_MOTEUR_KONDOR_0146_FOREX_FFORX1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_MOTEUR_KONDOR_0146_FOREX_FFORX1",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C5540_ATLAS_FOREXFORW_DEAL_TRANSF_WITH_NOK_BAL",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C5540_ATLAS_FOREXFORW_DEAL_TRANSF_WITH_NOK_BAL",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C5560_ATLAS_FOREXFORW_DEAL_TRANSF_WITH_OTHER_ANOMALIES",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C5560_ATLAS_FOREXFORW_DEAL_TRANSF_WITH_OTHER_ANOMALIES",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C5580_ATLAS_FOREXFORW_DEAL_TRANSF_OK",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C5580_ATLAS_FOREXFORW_DEAL_TRANSF_OK",
-      "instruction_id": "CHK-381",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-381"
     }
   ]
 }

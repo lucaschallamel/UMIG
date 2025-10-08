@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15239,
   "title": "ENGINE - Phase 6-8 - Generate FTC for Documentum",
@@ -10,18 +10,18 @@
   "time_sequence": "CJ - DOCUMENTUM FLOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Phase 6-8 - Generate FTC for Documentum",
-      "instruction_id": "TRT-15239-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15239-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send Generated FTC to Documentum",
-      "instruction_id": "TRT-15239-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15239-2"
     }
   ]
 }

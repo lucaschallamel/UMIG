@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 5113,
-  "title": "BUSINESS CHECKS - SECLI GVA - BUSINESS UPDATE \u0026amp; BUSINESS AS USUAL \u0026amp; ADRESSE TICKET PRINT TESTING",
+  "title": "BUSINESS CHECKS - SECLI GVA - BUSINESS UPDATE &amp; BUSINESS AS USUAL &amp; ADRESSE TICKET PRINT TESTING",
   "predecessor": "BGO-6580",
   "successor": "BGO-5118",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "instruction_title": "BUSINESS UPDATES & BUSINESS AS USUAL & ADDRESS TICKET PRINT TESTING",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "BUSINESS UPDATES \u0026 BUSINESS AS USUAL \u0026 ADDRESS TICKET PRINT TESTING",
-      "instruction_id": "BGO-5113-1",
-      "nominated_user": ""
+      "instruction_id": "BGO-5113-1"
     }
   ]
 }

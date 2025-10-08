@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 249,
   "title": "ATLAS - PHASE 4.4 - PORTFOLIO FILES CHECKS",
@@ -6,15 +6,15 @@
   "successor": "TRT-256",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GK - ATLAS PHASE 4.4 - PORTFOLIO CREATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check ENGINE FILE :\nFPTFR1.QSAM",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

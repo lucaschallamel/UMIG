@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 17000,
   "title": "EXPLOITATION - Atlas Back Up After EoM",
@@ -6,15 +6,15 @@
   "successor": "IGO-14402",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**\n_Phase ID:_ 255\n****_Phase name: _ATL_AFT_EOM**\n\n**_Description:\n_**\n\nFor ATLAS only in the migration process, **AFTER EOW/EOM CONTROLS **please proceed with the following **BACKUP **activities.\n\nOn **PROD LIKE**: **BACKUP ****ATLAS PROD** and refresh on **ATLAS EV7** \n\n**_ _**",
-      "instruction_id": "DUM-17000-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "DUM-17000-1"
     }
   ]
 }

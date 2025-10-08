@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 7132,
   "title": "RUN1",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS - SECLI CH/GENEVA- CHECK TIERS ATLAS ON PROD LIKE",
-      "associated_controls": "",
       "instruction_title": "**",
-      "instruction_id": "BGO-7132",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-7132"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7214,
   "title": "ATLAS -  CONFIRMER LA RECEPTION DES NOUVEAUX CLIENTS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Only in Case of Additional Clients to be Created by the Business : VERIFIER LA RECEPTION DES NOUVEAUX CLIENTS",
-      "instruction_id": "TRT-7214-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7214-1"
     }
   ]
 }

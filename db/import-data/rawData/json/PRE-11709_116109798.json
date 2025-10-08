@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11709,
   "title": "EXPLOITATION - Reactivation du plan CTRL-M standard",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Reactivation du plan CTRL-M standard\n\nNote : Standard CTRL-M plan was deactivated in IP Task [PRE-7102](PRE-7102_116109799.html)",
-      "instruction_id": "PRE-11709-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-11709-1"
     }
   ]
 }

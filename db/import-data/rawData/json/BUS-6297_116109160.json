@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 6297,
   "title": "BUS - ISOLATION OF APPLICATIONS NOT INVOLVED - ONLY SECLI - BUS ATLAS IN",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "DEGERINE Sylvain",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Isolation du Bus et connexion à ATLAS ENV 7\n\nPut on BUS EV3, connect queue remote bus.hub.host.queue to ATLAS EV7\nIsolation du Bus et connexion à ATLAS ENV 7\nThis STEPS ENSURES that SECLI CH  EV4 can only  see ATLAS EV7",
-      "instruction_id": "BUS-6297-1",
-      "nominated_user": "DEGERINE Sylvain"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-6297-1"
     },
     {
+      "nominated_user": "DEGERINE Sylvain",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "• De tous les flux du Secli (abo de la table « secli »), ne sont conservés actifs que ceux vers  Atlas, ceux  à la diffusion des erreurs par email ou par Nimsoft.\n• De tous les flux vers Atlas, ne sont conservés que ceux du Secli .\n\n1) le sql Isolation Secli Atlas pour environnement secondaire.sql avec le COMMIT associé \nqui se trouve :\\\\srvfilesgva01\\im-developpement\\Domaines et Projets\\Support Technique\\Bus Applicatif\\Zone Travail du Groupe\\2018 LUXOR\\_COMMON\n2) le script /bus/iib/bin/iib_db_tables_subs_make.sh all",
-      "instruction_id": "BUS-6297-2",
-      "nominated_user": "DEGERINE Sylvain"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-6297-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5264,
   "title": "SPOC_INTEGRATION - DEACTIVATION INSTITUTIONAL TREAMENT - PROD ONLY",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "DEACTIVATION OF AUTOMATIC PURGE & BACKUP SCRIPT",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "DEACTIVATION OF AUTOMATIC PURGE \u0026 BACKUP SCRIPT",
-      "instruction_id": "PRE-5264-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-5264-1"
     }
   ]
 }

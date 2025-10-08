@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2023,
   "title": "ENGINE - ANTIVIRUS DEACTIVATION",
@@ -10,18 +10,18 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Deactivation has been performed at the beginning of Toronto Project → Therefore not needed for Victoria._",
-      "instruction_id": "PRE-2023-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2023-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Deactivate Antivirus on ENGINE\nServer PRD : [msvgvammiprd02p.corp.ubp.ch](http://msvgvammiprd02p.corp.ubp.ch)\n\nNote : Antivirus deactivation done by IP Task [PRE-11684](PRE-11684_116109768.html)",
-      "instruction_id": "PRE-2023-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-2023-1"
     }
   ]
 }

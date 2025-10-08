@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11462,
   "title": "ATLAS - Validate report files",
@@ -10,18 +10,18 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "AOUADI Khalil",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Validate C1200 and C1205 report file (Code gérants / apporteurs manquants)",
-      "instruction_id": "IGO-11462-1",
-      "nominated_user": "AOUADI Khalil"
+      "associated_controls": "",
+      "instruction_id": "IGO-11462-1"
     },
     {
+      "nominated_user": "AOUADI Khalil",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "C1018 - List of banks without assets.\n\nC1020 - List of Asset Manager with & without CLients\n\nC1047 : Statistics clients by code PM/RM",
       "associated_controls": "",
-      "instruction_title": "C1018 - List of banks without assets.\n\nC1020 - List of Asset Manager with \u0026 without CLients\n\nC1047 : Statistics clients by code PM/RM",
-      "instruction_id": "IGO-11462-2",
-      "nominated_user": "AOUADI Khalil"
+      "instruction_id": "IGO-11462-2"
     }
   ]
 }

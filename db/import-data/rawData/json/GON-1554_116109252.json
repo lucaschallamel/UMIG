@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 1554,
-  "title": "RUN1",
+  "title": "SG PBS - START SECLI SIT ON Prod Like POST ACTIVE CLIENTS INTEGRATION",
   "predecessor": "BGO-11658",
   "successor": "BGO-11658",
   "primary_team": "IT_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mail to SG PBS_TEAM + SG PBS_Migration_Communication : GO FOR GON-5558 - STEP - SG PBS_TEAM - SATELLITE ACTIVITES OF ACTIVE CLIENT MIG COMPLETE : DONE",
-      "instruction_id": "GON-1554-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-1554-1"
     }
   ]
 }

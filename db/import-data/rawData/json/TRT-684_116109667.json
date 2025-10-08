@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 684,
-  "title": "RUN1",
+  "title": "ATLAS - PHASE 7.1 - CHEQUE EVENTS CREATION",
   "predecessor": "TRT-684",
   "successor": "TRT-684",
   "primary_team": "ATLAS",
@@ -10,25 +10,25 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Control Cheque Events creation\nSQL : \\Core Banking\\LUXOR\\Stream Migration\\34-RUN0\\Chèques\\Controle chèques.sql",
-      "instruction_id": "TRT-684-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-684-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "80-PH7.1 : \nJOB : /prod/script/job/FU_CHQ01.ksh",
-      "instruction_id": "TRT-684-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-684-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Control Cheque Events creation\nSQL : \\Core Banking\\LUXOR\\Stream Migration\\34-RUN0\\Chèques\\Controle chèques.sql",
-      "instruction_id": "TRT-684-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-684-3"
     }
   ]
 }

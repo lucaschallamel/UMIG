@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 7117,
-  "title": "RUN1",
+  "title": "CONTROL_M -GO ASCENSION SCHEDULING 15:00 WITH Cutover Date Config file RELEASE PLAN on Prod Like Environment",
   "predecessor": "SYS-7117",
   "successor": "SYS-7117",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PREPARER LA MONTEE AU PLAN DE 15:00 DU EOD*1 at CUTOVER DATE:\n\n **29.08.2025**",
-      "instruction_id": "SYS-7117-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "SYS-7117-1"
     }
   ]
 }

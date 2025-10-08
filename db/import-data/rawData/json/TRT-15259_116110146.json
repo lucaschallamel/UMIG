@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15259,
   "title": "JFS - Stop CDWS WebServices connected to Secli DB On PRD Like Environment",
@@ -10,25 +10,25 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Note : CDWS services are restarted in IP Task [TRT-15260](https://confluence.corp.ubp.ch/spaces/E0013782/pages/114984774/TRT-15260)_",
-      "instruction_id": "TRT-15259-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-15259-0"
     },
     {
+      "nominated_user": "CHAVAN Vijay",
       "instruction_assigned_team": "JFS",
-      "associated_controls": "",
       "instruction_title": "Stop CDWS Web Service - London (Companies 302 and 305) on Prod Like Environment.",
-      "instruction_id": "TRT-15259-1",
-      "nominated_user": "CHAVAN Vijay"
+      "associated_controls": "",
+      "instruction_id": "TRT-15259-1"
     },
     {
+      "nominated_user": "CHAVAN Vijay",
       "instruction_assigned_team": "JFS",
-      "associated_controls": "",
       "instruction_title": "Stop CDWS Web Service - Jersey (Companies 303 and 304) on Prod Like Environment.",
-      "instruction_id": "TRT-15259-1",
-      "nominated_user": "CHAVAN Vijay"
+      "associated_controls": "",
+      "instruction_id": "TRT-15259-1"
     }
   ]
 }

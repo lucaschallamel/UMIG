@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": null,
   "title": "MANAGEMENT - GO/ NO GO - RECORD AND VALIDATION OF SOURCE FILE METRICS",
@@ -6,15 +6,15 @@
   "successor": "CHK-13942",
   "primary_team": "IT_MGMT",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "GUILLEMAU Pascal",
       "instruction_assigned_team": "IT_MGMT",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please provide GO/NO GO based on Source file metrics",
-      "instruction_id": "IGO-14629",
-      "nominated_user": "GUILLEMAU Pascal"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-14629"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14541,
-  "title": "RUN0",
+  "title": "SECLI LDN&amp;JRS - TECH USER RESTORE CHECKS - Prod Like Environment",
   "predecessor": "DUM-3547",
   "successor": "IGO-3567",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXECUTE ALL CHECKS RELATED TO VALIDATE THE RESTORE. EXAMPLE : NUMBER OF CLIENTS UBP AFTER RESTORE, NUMBER OF CLIENTS MIGRATED, …., VERIFICATION DES LOGS POUR VALIDER LA RESTORE SUR LA PROD",
-      "instruction_id": "IGO-14541-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-14541-1"
     }
   ]
 }

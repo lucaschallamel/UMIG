@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": null,
-  "title": "ENGINE - LATEST MAPPING TABLES ON Tests and Prod-Like Environments - WE P\u0026amp;C",
+  "title": "ENGINE - LATEST MAPPING TABLES ON Tests and Prod-Like Environments - WE P&amp;C",
   "predecessor": "DUM-14623",
   "successor": "TRT-813",
   "primary_team": "ENGINE COMMON",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the last mapping version in Test and Prod like environments are available and correct",
-      "instruction_id": "PRE-5355",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5355"
     }
   ]
 }

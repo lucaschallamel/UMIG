@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13824,
   "title": "STEP- SECLI BUSINESS - TO VALIDATE Post-SECLI CONTROLS (C2500,…,C4019)",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "MORE Catherine",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "instruction_title": "C2500: Number of Tiers per ENTITY_TYPE - LEGAL_FORM - INDUSTRY_ICB\nC2520: Number of accounts held by individuals\nC2540: Number of accounts held by legal entities\nC2541: Number of PM (company)by UBP company \nC2560.3: Nombre de personnes physiques avec rôle procuré actif sur compte actif (nb personnes et nb comptes) par société\nC3150 : Nombre de  Tiers par pays de nationalité du titulaire principal\nC2715 : Nombre d'adresses par pays\nC2740 : Nombre de personnes par domicile [tous les domiciles]",
       "associated_controls": "",
-      "instruction_title": "C2500: Number of Tiers per ENTITY_TYPE - LEGAL_FORM - INDUSTRY_ICB\nC2520: Number of accounts held by individuals\nC2540: Number of accounts held by legal entities\nC2541: Number of PM (company)by UBP company \nC2560.3: Nombre de personnes physiques avec rôle procuré actif sur compte actif (nb personnes et nb comptes) par société\nC3150 : Nombre de  Tiers par pays de nationalité du titulaire principal\nC2715 : Nombre d\u0027adresses par pays\nC2740 : Nombre de personnes par domicile [tous les domiciles]",
-      "instruction_id": "BGO-13824-1",
-      "nominated_user": "MORE Catherine"
+      "instruction_id": "BGO-13824-1"
     }
   ]
 }

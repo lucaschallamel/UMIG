@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 7230,
-  "title": "RUN1",
+  "title": "BUSINESS INTERVENTION - CLIENT DATA SCOPE VALIDATION ON Prod Like Environment",
   "predecessor": "CHK-7219",
   "successor": "BGO-11961",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Only in Case of Additional Clients to be Created by the Business : VERIFICATION DES ETATS CLIENTS GéNéRéS PAR LE MOTEUR.",
-      "instruction_id": "BGO-7230-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-7230-1"
     }
   ]
 }

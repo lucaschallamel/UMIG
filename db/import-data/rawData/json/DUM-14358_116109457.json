@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 14358,
-  "title": "RUN0",
+  "title": "EXPLOITATION - DUMP ATLAS AFTER EOD*1",
   "predecessor": "IGO-1595",
   "successor": "IGO-14407",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 280\n****_Phase name:_ ATLAS_PROD_AFTER_EOD_S1**\n\n_**Description:**_\n\nFor **ATLAS**, **AFTER EOD*1 **proceed with the following **BACKUP **and **RESTORE **activities.",
-      "instruction_id": "DUM-14358-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-14358-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14331,
-  "title": "RUN0",
+  "title": "SECLI - USE AND LOAD INET CONTRACT FILE EBANKING USER SUBSCRIPTIONS",
   "predecessor": "TRT-13627",
   "successor": "TRT-5737",
   "primary_team": "SECLI",
@@ -10,18 +10,18 @@
   "time_sequence": "CI - E-BANKING DATA LOADING",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "SECLI team please use the INET CONTRACT file provided Ebanking and LOAD INET CONTRACT FILE for users subscription",
-      "instruction_id": "TRT-14331-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-14331-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Provide the statistics on :\n_- Integrated in SECLI\n- Contract per persons\n- Number of persons “duplicated” from SG due to cross society",
-      "instruction_id": "TRT-14331-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-14331-2"
     }
   ]
 }

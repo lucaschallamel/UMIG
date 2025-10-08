@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15050,
   "title": "BATCH ENGINEERING - Hold CRS Engine Batch",
@@ -10,18 +10,18 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
+      "instruction_title": "ONLY FOR DR2 & CUTOVER",
       "associated_controls": "",
-      "instruction_title": "ONLY FOR DR2 \u0026 CUTOVER",
-      "instruction_id": "PRE-15050-0",
-      "nominated_user": ""
+      "instruction_id": "PRE-15050-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Hold CRS Engine Batch: We do not want the CRS engine to run during the night from 23.05 to 24.05\n\nHere are the jobs in scope:\n\n P-CLI-XXCUSTOMER et P-ENG-* sur le Control M server PRD-GVA-SEC-DC sur la ODATE 23.05.2025\n\n+\n\nP001-ENG-ENG-R000 + P001-ENG-ENG-R020 + P001-ENG-ENG-R030 sur CTRLM PRD-GVA-COM-DC sur la ODATE 23.05.2025 (ATTENTION: supprimer les CREATE_CONDITION automatique à 6h dans **Actions**)",
-      "instruction_id": "PRE-15050-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15050-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11344,
   "title": "RUN1",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
-      "instruction_assigned_team": "STEP - SMS TO ATLAS\u0027SATELLITES H-4 BEFORE EOD*1 END - ATLAS\u0027S EOD*1 STATUS",
-      "associated_controls": "",
+      "nominated_user": "",
+      "instruction_assigned_team": "STEP - SMS TO ATLAS'SATELLITES H-4 BEFORE EOD*1 END - ATLAS'S EOD*1 STATUS",
       "instruction_title": "**",
-      "instruction_id": "IGO-11344",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-11344"
     }
   ]
 }

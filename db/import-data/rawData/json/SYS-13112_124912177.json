@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 13112,
   "title": "EXPLOITATION - Change system date Secli",
@@ -10,18 +10,18 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "**CSD CUTOVER Date is : **29.08.2025**\n**\n\n**Environment is : **Secli PROD-LIKE",
-      "instruction_id": "SYS-13112-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "SYS-13112-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "**FOR SECLI******ChangeLinuxSystemDate job on control-M PRD-GVA-COM-DC with the following parameters:**To change **with** reboot SECLI's date****PARM1 : change**PARM2 : lxvjrssecev403s, lxvjrssecev303s, lxvldnsecev403s AND lxvldnsecev303s\n**PARM3 : **YYYY-MM-JJ****PARM4 :",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "**FOR SECLI******ChangeLinuxSystemDate job on control-M PRD-GVA-COM-DC with the following parameters:**To change **with** reboot SECLI\u0027s date****PARM1 : change**PARM2 : lxvjrssecev403s, lxvjrssecev303s, lxvldnsecev403s AND lxvldnsecev303s\n**PARM3 : **YYYY-MM-JJ****PARM4 :",
-      "instruction_id": "SYS-13112-1",
-      "nominated_user": ""
+      "instruction_id": "SYS-13112-1"
     }
   ]
 }

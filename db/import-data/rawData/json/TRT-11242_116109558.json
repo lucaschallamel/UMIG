@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11242,
   "title": "DOCUMENTUM - import confidentiel des estimatifs generes pour les comptes SGPBS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DOCUMENTUM",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "import confidentiel des estimatifs SGPBS",
-      "instruction_id": "TRT-11242-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11242-1"
     }
   ]
 }

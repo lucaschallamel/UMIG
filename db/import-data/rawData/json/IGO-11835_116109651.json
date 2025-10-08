@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11835,
   "title": "CMS TO CONFIRM FILE FROM DOCUMENTUM RECEIVED AND READY",
@@ -10,11 +10,11 @@
   "time_sequence": "CJ - DOCUMENTUM FLOW CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CHECK file from DOCUMENTUM received and avaiable : \\\"DCTM_to_CMS_URL\\\"",
-      "instruction_id": "IGO-11835-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11835-1"
     }
   ]
 }

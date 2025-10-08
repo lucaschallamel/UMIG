@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 13111,
   "title": "ATLAS - DUMP AFTER EOD*1",
@@ -6,15 +6,15 @@
   "successor": "DUM-13111",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following instructions for \n\n**\n_Phase ID:_ 300\n****_Phase name:_ BEFOREEODS2**\n\n**CONFIRM **Groupe **300_BEFOREEODS2_AAA_REFRESH_ORACLE_EV4**\n\n**CONFIRM **Sub-groupe **300_BEFOREEODS2****_AAA_REFRESH_ORACLE_ATLAS_EV4**\n\n           (=> Sub-groupe **30****0_BEFOREEODS2****_AAA_REFRESH_ORACLE_ATLAS_EV710**)",
       "associated_controls": "",
-      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following instructions for \n\n**\n_Phase ID:_ 300\n****_Phase name:_ BEFOREEODS2**\n\n**CONFIRM **Groupe **300_BEFOREEODS2_AAA_REFRESH_ORACLE_EV4**\n\n**CONFIRM **Sub-groupe **300_BEFOREEODS2****_AAA_REFRESH_ORACLE_ATLAS_EV4**\n\n           (=\u003e Sub-groupe **30****0_BEFOREEODS2****_AAA_REFRESH_ORACLE_ATLAS_EV710**)",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

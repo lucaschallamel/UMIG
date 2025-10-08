@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 7209,
   "title": "BUS - MODE DISCRETIONNAIRE - SECLI - ATLAS - GO POUR LAISSER PASSER POUR LES CLIENTS SAISIES PAR LE BUSINESS SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Only in Case of Additional Clients to be Created by the Business : GO POUR LAISSER PASSER POUR LES CLIENTS SAISIES PAR LE BUSINESS SECLI",
-      "instruction_id": "BUS-7209-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-7209-1"
     }
   ]
 }

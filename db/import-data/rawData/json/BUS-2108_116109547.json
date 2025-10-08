@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 2108,
-  "title": "RUN0",
+  "title": "BUS - ATLAS DESISOLATION OUT (OUTPUT)",
   "predecessor": "BUS-2098",
   "successor": "BUS-2113",
   "primary_team": "MIDDLEWARE",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GT - BUS DE-ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DESISOLATION OUTPUT ATLAS\n\nSCRIPTS :\nstep_45_atlas_odscro_resume_messages.sh\nstep_55_atlas_other_resume_message.sh\nstep_60_atlas_remove_isolation_output.sh",
-      "instruction_id": "BUS-2108-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-2108-1"
     }
   ]
 }

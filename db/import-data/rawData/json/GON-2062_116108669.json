@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 2062,
-  "title": "RUN0",
+  "title": "STEP - EOM",
   "predecessor": "BGO-2072",
   "successor": "BGO-2072",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONFIRM E3_T_HOS_INTG-BANQUE_EOM folder\n\n\n\n\n\n\n\nATTENTION SUR LA PROD IL FAUT ENLEVER LA CONDITION HORAIRE DU JOB TOPSAVE_Boucl_Vendredi",
-      "instruction_id": "GON-2062-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-2062-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M PLAN EXECUTION : END OF MONTH BANK PART 1\nPlease answer DONE when the following job is over:\n\n14-START_AP_Check_Satellites_Boucl_Vendredi",
-      "instruction_id": "GON-2062-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-2062-2"
     }
   ]
 }

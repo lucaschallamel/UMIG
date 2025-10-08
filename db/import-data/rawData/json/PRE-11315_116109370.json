@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11315,
   "title": "TAX - Drools Engines - Hold Institutional Jobs",
@@ -6,36 +6,36 @@
   "successor": "PRE-6622",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "HOLD INSTIT JOB RELATED TO Drools - Mifid Engine",
-      "instruction_id": "PRE-11315-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11315-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "HOLD INSTIT JOB RELATED TO Drools - CRS Engine",
-      "instruction_id": "PRE-11315-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11315-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "HOLD INSTIT JOB RELATED TO Drools - FATCA Engine\n\nP001-FATCA-EXPORT-TO-SECLI, P002-FATCA-EXPORT-TO-SECLI, P004-FATCA-EXPORT-TO-SECLI, P007-FATCA-EXPORT-TO-SECLI, P012-FATCA-EXPORT-TO-SECLI, P014-FATCA-EXPORT-TO-SECLI, P105-FATCA-EXPORT-TO-SECLI, P151-FATCA-EXPORT-TO-SECLI, P203-FATCA-EXPORT-TO-SECLI, P211-FATCA-EXPORT-TO-SECLI, P218-FATCA-EXPORT-TO-SECLI",
-      "instruction_id": "PRE-11315-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11315-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "HOLD INSTIT JOB RELATED TO Drools - QI Engine\n\nP001-QI-EXPORT-TO-SECLI, P002-QI-EXPORT-TO-SECLI, P004-QI-EXPORT-TO-SECLI, P007-QI-EXPORT-TO-SECLI, P012-QI-EXPORT-TO-SECLI, P014-QI-EXPORT-TO-SECLI, P105-QI-EXPORT-TO-SECLI, P151-QI-EXPORT-TO-SECLI, P203-QI-EXPORT-TO-SECLI, P211-QI-EXPORT-TO-SECLI, P218-QI-EXPORT-TO-SECLI",
-      "instruction_id": "PRE-11315-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11315-4"
     }
   ]
 }

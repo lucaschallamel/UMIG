@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7286,
   "title": "ATLAS - EOD*1 IT ACCOUNTING CHECKS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "EXTRACTION OF TAXE EU FILE FEUTR1.QSAM",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

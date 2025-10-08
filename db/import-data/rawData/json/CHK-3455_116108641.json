@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 3455,
   "title": "ENGINE - Step 05 - RECONCILIATION INTEGRITY 2 PART  3 - CLIENT MAPPING TABLE CHECKS AFTER ATLAS INTEGRATION",
@@ -10,60 +10,60 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
-      "instruction_id": "CHK-3455-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3455-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_AFTER_INSERT",
-      "instruction_id": "CHK-3455-2",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-3455-3",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-3455-4",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-3455-5",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
-      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-3455-6",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
-      "instruction_id": "CHK-3455-7",
-      "nominated_user": ""
+      "instruction_id": "CHK-3455-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
       "associated_controls": "",
+      "instruction_id": "CHK-3455-3"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
+      "associated_controls": "",
+      "instruction_id": "CHK-3455-4"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-3455-5"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
+      "associated_controls": "",
+      "instruction_id": "CHK-3455-6"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_MAPPING_GSG PBSNT_CLIENT",
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3455-7"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
       "instruction_title": "Please verify control result for C2460 and email conclusion to IT_CUTOVER.",
-      "instruction_id": "CHK-3455-8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-3455-8"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6980,
-  "title": "SECLI - ALL ACTIVE CLIENTS FROM LDN\u0026amp;JRS SENT TO ATLAS AND SATELLITES",
+  "title": "SECLI - ALL ACTIVE CLIENTS FROM LDN&amp;JRS SENT TO ATLAS AND SATELLITES",
   "predecessor": "TRT-6918",
   "successor": "TRT-6918",
   "primary_team": "SECLI",
@@ -10,32 +10,32 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Activate trigger for bus",
-      "instruction_id": "TRT-6980-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6980-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**FROM EACH COMPANIES (302, 303, 304, 305)** Send MASTER Clients and then SUB clients \nMISE A JOUR ET ENVOI DES COMPTES RUBRIQUES",
-      "instruction_id": "TRT-6980-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6980-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BTPUB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Clients reception verification in Base Tiers Public",
-      "instruction_id": "TRT-6980-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6980-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BTPUB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the logs - Report the defect via Jira in any\n\n**Please provide number of Tiers received in BTPub**",
-      "instruction_id": "TRT-6980-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6980-6"
     }
   ]
 }

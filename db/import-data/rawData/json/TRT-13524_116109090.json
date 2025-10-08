@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13524,
-  "title": "RUN0",
+  "title": "SG UK -  INFORM ONCE ALL FILES ARE DROPPED INTO UBP DESTINATION FOLDER",
   "predecessor": "CHK-13937",
   "successor": "CHK-13937",
   "primary_team": "SG UK",
@@ -10,18 +10,18 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "",
       "instruction_title": "Pre-checks on files to be sent to UBP",
-      "instruction_id": "TRT-13524-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-13524-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "",
       "instruction_title": "SG UK inform once all files are dropped into UBP transfer folder.",
-      "instruction_id": "TRT-13524-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-13524-2"
     }
   ]
 }

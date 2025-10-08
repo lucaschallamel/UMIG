@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": null,
-  "title": "ENGINE - BACKUP THE COUNTER OF ID_INVARIANT FILES - FROM THE LAST RUN- P\u0026amp;C WE",
+  "title": "ENGINE - BACKUP THE COUNTER OF ID_INVARIANT FILES - FROM THE LAST RUN- P&amp;C WE",
   "predecessor": "TRT-13896",
   "successor": "TRT-13896",
   "primary_team": "ANONYMTOOL",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Until RUN2 , reset all invariants to 0 - AFTER Run 2 DO NOTHING.",
-      "instruction_id": "TRT-13560",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13560"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Do a Backup of current INVARIANT ID FILES and provide the path \n\n(**WARNING**: Please consider special treatment for 12x NOSTRO Invariants)",
-      "instruction_id": "TRT-13560",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13560"
     }
   ]
 }

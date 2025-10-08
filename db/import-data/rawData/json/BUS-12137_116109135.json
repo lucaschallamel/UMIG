@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 12137,
-  "title": "BUS - CHECK BUS CONNECTS TO SECLI \u0026amp; ATLAS",
+  "title": "BUS - CHECK BUS CONNECTS TO SECLI &amp; ATLAS",
   "predecessor": "TRT-12345",
   "successor": "TRT-12645",
   "primary_team": "MIDDLEWARE",
@@ -10,11 +10,11 @@
   "time_sequence": "CE - DATA LOADING IN PRE-STAGING",
   "task_list": [
     {
+      "nominated_user": "DEGERINE Sylvain",
       "instruction_assigned_team": "MIDDLEWARE",
+      "instruction_title": "Check that BUS connect SECLI TEST EV  & ATLAS TEST EV \nFor DR and Cutover this is the expected status.\n\nIsolation was done in [BUS-13356](BUS-13356_116108631.html)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check that BUS connect SECLI TEST EV  \u0026 ATLAS TEST EV \nFor DR and Cutover this is the expected status.\n\nIsolation was done in [BUS-13356](BUS-13356_116108631.html)",
-      "instruction_id": "BUS-12137-1",
-      "nominated_user": "DEGERINE Sylvain"
+      "instruction_id": "BUS-12137-1"
     }
   ]
 }

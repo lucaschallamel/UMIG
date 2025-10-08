@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": null,
-  "title": "BUSINESS- GO/ NO GO - WE P\u0026amp;C",
+  "title": "BUSINESS- GO/ NO GO - WE P&amp;C",
   "predecessor": "IGO-13761",
   "successor": "PRE-5355",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "KELLY Eamon",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mail to Eamon Kelly to provide PRE-CHECK FILES statistics and confirm that we can GO Ahead\n\nControl reports as basis :\nC1006 - Asset Repartition\nC1006 A - Asset Repartition by currency\nC0200 - Global view with theorical mapping",
-      "instruction_id": "BGO-14648",
-      "nominated_user": "KELLY Eamon"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-14648"
     }
   ]
 }

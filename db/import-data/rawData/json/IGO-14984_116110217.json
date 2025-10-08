@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14984,
   "title": "ATLAS - PROD LOAD USERS CONTROL AFER MIGRATION",
@@ -6,15 +6,15 @@
   "successor": "IGO-14984",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Please remove programs loaded in the IP task - [IGO-14982](IGO-14982_116110166.html)",
-      "instruction_id": "IGO-14984-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-14984-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15065,
   "title": "EXPLOITATION - Reactivate Transactional pooling Cyclic jobs",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reactivate the positional pooling by  removing dummy mode on :\n_- SC_POL03_AM (Transactional Pooling)\n- SC_POL03_PM (Transactional Pooling)\n\nNote : These job were put in dummy within IP Task [PRE-15063](PRE-15063_119497642.html)",
-      "instruction_id": "PRE-15065-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15065-1"
     }
   ]
 }

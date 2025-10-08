@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15195,
   "title": "ACB - STOP API in PROD Like",
@@ -10,18 +10,18 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ACB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please STOP ACB Worker (LDN SECRET SERVER) that consumes F_ACB_TODO table from SECLI DB\n\nPlease STOP ACB Listener (LDN INTERNET BACK SERVER) services",
-      "instruction_id": "TRT-15195-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15195-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ACB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Stop API Account Blocking (IIS Server), Web Server dans la zone Internet Back, GVA Secret et London Secret  ([Procedure - Toronto Run EV3](https://confluence.corp.ubp.ch/spaces/ACB/pages/112004696/Procedure+-+Toronto+Run+EV3))",
-      "instruction_id": "TRT-15195-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15195-2"
     }
   ]
 }

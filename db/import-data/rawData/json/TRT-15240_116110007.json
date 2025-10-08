@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15240,
   "title": "EBANKING - Enrolment Creation",
@@ -10,11 +10,11 @@
   "time_sequence": "CI - E-BANKING DATA LOADING CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "Fabio CABRINIWesley SARIS",
       "instruction_assigned_team": "E-BANKING",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EBANKING - Enrolment Creation",
-      "instruction_id": "TRT-15240-1",
-      "nominated_user": "Fabio CABRINIWesley SARIS"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15240-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11684,
   "title": "ENGINE - ANTIVIRUS REACTIVATION",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reactiver l’antivirus pour le serveur de Prod (Engine) : [Msvgvammiprd03p.corp.ubp.ch](http://Msvgvammiprd03p.corp.ubp.ch)\n\nNote : Antivirus deactivation done by IP Task [PRE-2023](PRE-2023_116109767.html)",
-      "instruction_id": "PRE-11684-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11684-1"
     }
   ]
 }

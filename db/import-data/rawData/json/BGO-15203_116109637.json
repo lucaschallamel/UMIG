@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15203,
   "title": "Prices Aligment - SG prices Only",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "GUILLEMAU Pascal",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Prices Aligment - SG prices Only",
-      "instruction_id": "BGO-15203-1",
-      "nominated_user": "GUILLEMAU Pascal"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15203-1"
     }
   ]
 }

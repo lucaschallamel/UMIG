@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 12381,
-  "title": "ATLAS - CONTROL of DUMMIES \u0026amp; PRE-CHECKS sent by ENGINE",
+  "title": "ATLAS - CONTROL of DUMMIES &amp; PRE-CHECKS sent by ENGINE",
   "predecessor": "BGO-13774",
   "successor": "IGO-12976",
   "primary_team": "ENGINE COMMON",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "Execute controls on dummies and pre-checks:\n\nC1002 and C1003 (Dummies dans les tables DICO) : cannot be finalized at this point of the migration, so remains in progess until mapping of depositories is finalized (during first day of P&C migration)",
       "associated_controls": "",
-      "instruction_title": "Execute controls on dummies and pre-checks:\n\nC1002 and C1003 (Dummies dans les tables DICO) : cannot be finalized at this point of the migration, so remains in progess until mapping of depositories is finalized (during first day of P\u0026C migration)",
-      "instruction_id": "IGO-12381-1",
-      "nominated_user": ""
+      "instruction_id": "IGO-12381-1"
     }
   ]
 }

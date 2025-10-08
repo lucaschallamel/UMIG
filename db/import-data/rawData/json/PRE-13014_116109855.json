@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13014,
   "title": "CMS - GVA - ISOLATION on PROD ONLY",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CMS PROD PREPARATION\n\nNote: De-Isolation will be performed in IP Task [PRE-4784](PRE-4784_116109856.html)",
-      "instruction_id": "PRE-13014-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13014-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Stop of CMS - Secli Interface",
-      "instruction_id": "PRE-13014-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13014-2"
     }
   ]
 }

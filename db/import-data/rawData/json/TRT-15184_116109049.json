@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15184,
   "title": "ATLAS - FUTURE TREATMENTS (back to Production daily process)",
@@ -6,36 +6,36 @@
   "successor": "TRT-15184",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GM - ATLAS PHASE 5.2 - STAR 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Retour à la normal du process des deals futur ROUTING12\nRetour à la validation SX37 pour les deals ROUTING12\n\n\n\n\nPoste à supprimer\n\n_",
-      "instruction_id": "TRT-15184-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-15184-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Pour les décomptes validés passer le FLAG : \\\"AVIS\\\" à **NO sur les tables T_SE_TS et T_COM_DET.**\n\n\n\n\nupdate  nhdbo.t_se_Ts t\nset t.flag_advc_crea_0640 = 'N'\nwhere (t.nbr_co_bo_0640, t.nbr_oper_ts_sx_0640) in \n(select o.nbr_co_bo_0640_0641, o.nbr_oper_ts_sx_0640_0641 from nhdbo.t_migr_fut f, nhdbo.t_Se_Deal d, nhdbo.t_se_ord o\nwhere d.nbr_co_bo_0770   = f.nbr_co_bo_1142\nand   d.nbr_deal_sx_0770 = f.nbr_deal_sx_1142\nand   o.nbr_co_bo_0770_0641   = d.nbr_co_bo_0770\nand   o.nbr_deal_sx_0770_0641 = d.nbr_deal_sx_0770)\n;\n\nupdate nhdbo.t_com_det cd\nset cd.flag_advc_crea_0158 = 'N'\nwhere (cd.nbr_oper_ts_sx_0158) in \n(select o.nbr_oper_ts_sx_0640_0641 from nhdbo.t_migr_fut f, nhdbo.t_Se_Deal d, nhdbo.t_se_ord o\nwhere d.nbr_co_bo_0770   = f.nbr_co_bo_1142\nand   d.nbr_deal_sx_0770 = f.nbr_deal_sx_1142\nand   o.nbr_co_bo_0770_0641   = d.nbr_co_bo_0770\nand   o.nbr_deal_sx_0770_0641 = d.nbr_deal_sx_0770)\n;",
       "associated_controls": "",
-      "instruction_title": "Pour les décomptes validés passer le FLAG : \\\"AVIS\\\" à **NO sur les tables T_SE_TS et T_COM_DET.**\n\n\n\n\nupdate  nhdbo.t_se_Ts t\nset t.flag_advc_crea_0640 = \u0027N\u0027\nwhere (t.nbr_co_bo_0640, t.nbr_oper_ts_sx_0640) in \n(select o.nbr_co_bo_0640_0641, o.nbr_oper_ts_sx_0640_0641 from nhdbo.t_migr_fut f, nhdbo.t_Se_Deal d, nhdbo.t_se_ord o\nwhere d.nbr_co_bo_0770   = f.nbr_co_bo_1142\nand   d.nbr_deal_sx_0770 = f.nbr_deal_sx_1142\nand   o.nbr_co_bo_0770_0641   = d.nbr_co_bo_0770\nand   o.nbr_deal_sx_0770_0641 = d.nbr_deal_sx_0770)\n;\n\nupdate nhdbo.t_com_det cd\nset cd.flag_advc_crea_0158 = \u0027N\u0027\nwhere (cd.nbr_oper_ts_sx_0158) in \n(select o.nbr_oper_ts_sx_0640_0641 from nhdbo.t_migr_fut f, nhdbo.t_Se_Deal d, nhdbo.t_se_ord o\nwhere d.nbr_co_bo_0770   = f.nbr_co_bo_1142\nand   d.nbr_deal_sx_0770 = f.nbr_deal_sx_1142\nand   o.nbr_co_bo_0770_0641   = d.nbr_co_bo_0770\nand   o.nbr_deal_sx_0770_0641 = d.nbr_deal_sx_0770)\n;",
-      "instruction_id": "TRT-15184-2",
-      "nominated_user": "-"
+      "instruction_id": "TRT-15184-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Executer la requête :  SQL update flag advice SX Futures.sql disponible sur le SharePoint, dossier **Contrats futurs**\n\nFor RUN2, this was the path:\n\n[https://spconfidential/projects/victoria-it/02%20%20Migration%20Stream/02%20-%20Positions%20and%20Contracts/02.03-RUN%202/02.03.06%20Contrats%20Futures/02.06.10_SQL%20update%20flag%20advice%20SX%20Futures.sql](https://spconfidential/projects/victoria-it/02%20%20Migration%20Stream/02%20-%20Positions%20and%20Contracts/02.03-RUN%202/02.03.06%20Contrats%20Futures/02.06.10_SQL%20update%20flag%20advice%20SX%20Futures.sql)",
-      "instruction_id": "TRT-15184-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-15184-3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Modifier seuil tolerance prix de migration – prix ATLAS pour le flux du process FUTURE (englobant aussi ACCU-DECU + IRS) – Retour à la situation normale\n\nDe :\n\n_\n\nRepasser à :\n\n_",
-      "instruction_id": "TRT-15184-4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-15184-4"
     }
   ]
 }

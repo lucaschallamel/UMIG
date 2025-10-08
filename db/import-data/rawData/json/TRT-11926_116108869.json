@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11926,
-  "title": "RUN1",
+  "title": "ENGINE - LOAD OF POS PART 2 FILES",
   "predecessor": "IGO-11921",
   "successor": "IGO-5360",
   "primary_team": "ENGINE COMMON",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Step 01 - IMPORT ALL FILES FUSION - PART III",
-      "instruction_id": "TRT-11926-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11926-1"
     }
   ]
 }

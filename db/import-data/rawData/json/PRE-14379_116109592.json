@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14379,
   "title": "RUN1",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UBP_ACCESS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please remove the below PIQUET ++ accesses in PROD:\n\nList To be completed based on IP Task : [PRE-14872](PRE-14872_116109591.html)\n\nWO created by IT Cutover: **WO0000000741722**",
-      "instruction_id": "PRE-14379-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14379-1"
     }
   ]
 }

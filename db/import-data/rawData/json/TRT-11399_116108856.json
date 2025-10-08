@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11399,
   "title": "CHECK COMPONENTS ALIGNMENT SECLI, BUS AND ATLAS ONLY (TEST-ENV) AND SANITY CHECKS BEFORE MIGRATION",
@@ -10,11 +10,11 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "_- Deploy Last **PRODUCTION **PATCH FOR ALL APPLICATION IN SCOPE OF RUN/DR\n - - Check component alignment [Application to be in Iso Prod version + Hot fixes]\n\n_- Sanity checks [Check Environment space & temporary database table space] before migration on **TEST-ENV**",
       "associated_controls": "",
-      "instruction_title": "_- Deploy Last **PRODUCTION **PATCH FOR ALL APPLICATION IN SCOPE OF RUN/DR\n - - Check component alignment [Application to be in Iso Prod version + Hot fixes]\n\n_- Sanity checks [Check Environment space \u0026 temporary database table space] before migration on **TEST-ENV**",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

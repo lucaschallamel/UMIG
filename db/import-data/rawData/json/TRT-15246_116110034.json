@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15246,
   "title": "START MUREX EOD BATCH",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please Start MUREX EOD Batch, prior to ATLAS EOM on migration FRIDAY:\n\nON PRODLIKE: \n\n\n\n\n_",
-      "instruction_id": "TRT-15246-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15246-1"
     }
   ]
 }

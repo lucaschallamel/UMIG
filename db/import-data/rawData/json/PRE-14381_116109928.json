@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14381,
   "title": "PUT APPWAY CH OFFLINE on PROD-LIKE",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "APPWAY",
-      "associated_controls": "",
       "instruction_title": "Put Appway CH Offline on PROD-Like and apply specific TORONTO downtime message",
-      "instruction_id": "PRE-14381-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-14381-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "USING ROUTINE JOB  - **Ex_T001-APPWAY-IMS-STOP** , stop Appway on PROD-Like from Tuesday until Sunday On CSD Migration week",
-      "instruction_id": "PRE-14381-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-14381-2"
     }
   ]
 }

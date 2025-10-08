@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15210,
   "title": "BUSINESS - MANUAL INPUT OF FX Options in Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "LESTIBOUDOIS Florence",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MANUAL INPUT OF FX Options in Atlas",
-      "instruction_id": "BGO-15210-1",
-      "nominated_user": "LESTIBOUDOIS Florence"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15210-1"
     }
   ]
 }

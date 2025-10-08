@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6528,
   "title": "SGPBS - SENDING OF SECURITIES EXTRACTIONS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "TRANFER TO UBP : SECURITIES FILES",
-      "instruction_id": "TRT-6528-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6528-1"
     }
   ]
 }

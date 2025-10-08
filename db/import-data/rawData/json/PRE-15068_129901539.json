@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15068,
   "title": "SGUK - Send SUN Files to UBP",
@@ -10,11 +10,11 @@
   "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send SUN Files to UBP",
-      "instruction_id": "PRE-15068-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15068-1"
     }
   ]
 }

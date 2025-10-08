@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2713,
   "title": "ATLAS - CONTROL-M - PHASE 6.2 - EOD*2 PREPARATION",
@@ -6,50 +6,50 @@
   "successor": "PRE-2713",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GP - GO - NOGO",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Schedule Ascension\nConfirm : E3_00-PH6.2_CLEAN-CONDITIONS_STAR2\nBUSINESS DATE : **29.08.2025**",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Check that the following jobs are scheduled, but only if the migration takes place at the end of a month :\nCC_TAR20.ksh\nCC_TAR21.ksh\nCC_TAR22.ksh",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Check that the following job are not in dummy mode\n_- SC_POL01\n- SC_POL02\n- P_TITPOL\n\n\n\n\nCheck that the following jobs are in Dummy mode\n_- P_POSHOR_2\n\nCheck that the job PL_AMJ01 is not on plan and the job FU_AMJ01 is on plan\n\nCheck that the job SC_POL03 is not on plan or in dummy mode",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Schedule PR_SOG01.ksh (For standing order)",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Update dates in columns :\nrate_last\nrate_first\nTABLE : T_SECRITY (security prices too early)",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Delete Performance for migrated clients (Requêtes Performance/ Suppression perf avant EOD_star2.sql)",
-      "instruction_id": "PRE-2713",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2713"
     }
   ]
 }

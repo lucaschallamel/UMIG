@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 14932,
   "title": "CID - CHECK INSTRUMENTS AND PRICES ARE ALIGNED BTW CID AND ATLAS AND MUREX",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check that instruments and their related prices are aligned between CID and ATLAS\nCommunicate to MUREX extraction of NMP deals with the related caracteristics",
-      "instruction_id": "CHK-14932-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-14932-1"
     }
   ]
 }

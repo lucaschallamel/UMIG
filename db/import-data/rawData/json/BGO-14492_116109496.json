@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 14492,
-  "title": "RUN1",
+  "title": "BUSINESS INPUTS - MANUAL INPUT RELATED TO ADVANCE ACCOUNTS",
   "predecessor": "BGO-14174",
   "successor": "BGO-14497",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Manual updates related to advance accounts (comptes avance)",
-      "instruction_id": "BGO-14492-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-14492-1"
     }
   ]
 }

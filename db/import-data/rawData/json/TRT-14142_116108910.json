@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14142,
   "title": "ATLAS - FIN PHASE 5.3 – INITIALISATION OF FILE FU_AMO01",
@@ -6,15 +6,15 @@
   "successor": "TRT-14142",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "xx-PH5.3 : \nJOB : /home/migsup/tools/13_Touch_FU_AMO01.ksh\nINITIALISATION OF FILE FU_AMO01.",
-      "instruction_id": "TRT-14142-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-14142-1"
     }
   ]
 }

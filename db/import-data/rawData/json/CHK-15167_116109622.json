@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15167,
   "title": "Engine - Verify available space on files migration destination server",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE SECRET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Verify available space on files migration destination server",
-      "instruction_id": "CHK-15167-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15167-1"
     }
   ]
 }

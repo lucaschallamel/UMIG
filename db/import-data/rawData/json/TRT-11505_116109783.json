@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11505,
   "title": "MIDDLEWARE - OPEN SWIFT NETWORK ON PROD-LIKE",
@@ -10,18 +10,18 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "",
       "instruction_title": "**For RUN/DRs only:**\n\nAs we only have one TEST environment for GT Exchange and GT Match, our MIDDLEWARE team needs to perform a crossover and swap of environments. The GTX TEST platform must be connect to our PROD-like environment (via work order)",
-      "instruction_id": "TRT-11505-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-11505-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
+      "instruction_title": "**For RUN/DR/CUTOVER:**\n_- Ouverture du Réseau Swift (y compris les imprimantes et le serveur OBA-Secli)\n- Ouverture du Réseau SIC (Attention, réseau SIC indisponible du samedi 12H au dimanche 18h) -> Les messages partiront avec l’ouverture automatique des réseaux le lundi matin",
       "associated_controls": "",
-      "instruction_title": "**For RUN/DR/CUTOVER:**\n_- Ouverture du Réseau Swift (y compris les imprimantes et le serveur OBA-Secli)\n- Ouverture du Réseau SIC (Attention, réseau SIC indisponible du samedi 12H au dimanche 18h) -\u003e Les messages partiront avec l’ouverture automatique des réseaux le lundi matin",
-      "instruction_id": "TRT-11505-2",
-      "nominated_user": ""
+      "instruction_id": "TRT-11505-2"
     }
   ]
 }

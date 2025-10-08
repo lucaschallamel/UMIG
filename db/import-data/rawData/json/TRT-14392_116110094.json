@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14392,
-  "title": "SG PBS TO TAKE AVALOQ PROD COPY TO DUP ENV \u0026amp; PORTAL PROD COPY TO DUP ENV BEFORE START OF CSD MIG",
+  "title": "SG PBS TO TAKE AVALOQ PROD COPY TO DUP ENV &amp; PORTAL PROD COPY TO DUP ENV BEFORE START OF CSD MIG",
   "predecessor": "TRT-14392",
   "successor": "TRT-14392",
   "primary_team": "SGPBS",
@@ -10,11 +10,11 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please take backup of PROD - AVALOQ and S2i to ensure that there is a copy of PROD somewhere (if needed), in case there are issues found during the migration and we can go back to this PROD copy taken just before the start of the Migration.",
-      "instruction_id": "TRT-14392-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14392-1"
     }
   ]
 }

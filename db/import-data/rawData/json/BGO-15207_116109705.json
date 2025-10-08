@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15207,
-  "title": "RUN1",
+  "title": "CHECK TAG MARKER AFTER REFRESH ON PROD-LIKE ENVIRONMENT",
   "predecessor": "IGO-14541",
   "successor": "IGO-3567",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "Elif Kardes",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CHECK TAG MARKER SET ON TEST ENVIRONMENT ON PROD-LIKE ENVIRONMENT AFTER REFRESH",
-      "instruction_id": "BGO-15207-1",
-      "nominated_user": "Elif Kardes"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15207-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12112,
-  "title": "ENGINE - CLIENT ACCOUNT \u0026amp; G ACCOUNT PROCESSING",
+  "title": "ENGINE - CLIENT ACCOUNT &amp; G ACCOUNT PROCESSING",
   "predecessor": "PRE-11569",
   "successor": "CHK-12253",
   "primary_team": "ENGINE COMMON",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXPORT and Send FACCR1 file (Client Account)",
-      "instruction_id": "TRT-12112-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12112-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXPORT and Send FACCC4 file (G Account)",
-      "instruction_id": "TRT-12112-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12112-2"
     }
   ]
 }

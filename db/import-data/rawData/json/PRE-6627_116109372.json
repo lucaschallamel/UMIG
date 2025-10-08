@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6627,
   "title": "MIS - SPECIFIC TREATMENT BEFORE EOW - CTRL-M JOBS DEACTIVATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "Désactiver l'ensemble des jobs controlM de l'application MIS DU EOW EN DATE DU\n **31.03.2025**",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Désactiver l\u0027ensemble des jobs controlM de l\u0027application MIS DU EOW EN DATE DU\n **31.03.2025**",
-      "instruction_id": "PRE-6627-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-6627-1"
     }
   ]
 }

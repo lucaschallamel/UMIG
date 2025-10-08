@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 2144,
   "title": "PROD LIKE ENVIRONMENT - BANK RELEASE DEPLOYMENT",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "Deploy Bank release",
-      "instruction_id": "TRT-2144",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-2144"
     }
   ]
 }

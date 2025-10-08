@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15198,
-  "title": "RUN0",
+  "title": "ACB -  RESTART API",
   "predecessor": "TRT-15198",
   "successor": "TRT-15198",
   "primary_team": "ACB",
@@ -10,18 +10,18 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "Wesley SARIS",
       "instruction_assigned_team": "ACB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please RESTART Worker Process on Secret GVA Server that consumes F_ACB_TODO Table from SECLI DB\n\nPlease RESTART Listener Process on Internet Back server",
-      "instruction_id": "TRT-15198-1",
-      "nominated_user": "Wesley SARIS"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15198-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ACB",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Start API Account Blocking (IIS Server), Web Server dans la zone Internet Back, GVA Secret et London Secret  ([Procedure - Toronto Run EV3](https://confluence.corp.ubp.ch/display/ACB/Procedure+-+Toronto+Run+EV3))",
-      "instruction_id": "TRT-15198-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15198-2"
     }
   ]
 }

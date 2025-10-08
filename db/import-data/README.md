@@ -5,14 +5,17 @@ Source files for US-104 Production Data Import (15,282+ records across 15 tables
 ## Excel Files
 
 ### Master Data
+
 - `applications.xlsx` - 80 application records with technical metadata
 - `teams.xlsx` - 100 team records with ownership relationships
 - `users.xlsx` - 200 user records with roles and team assignments
 
 ### Sequence Data
+
 - `sequences.xlsx` - 500 sequence records with execution order and dependencies
 
 ### Reference Data
+
 - `step_types.xlsx` - Step type definitions and templates
 
 ## Quality Reports (CSV)

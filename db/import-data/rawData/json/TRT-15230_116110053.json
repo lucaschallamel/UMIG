@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15230,
   "title": "EXPLOITATION - Start MUREX EoD at the end of Migration activities",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXPLOITATION - Start MUREX EoD at the end of Migration activities",
-      "instruction_id": "TRT-15230-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15230-1"
     }
   ]
 }

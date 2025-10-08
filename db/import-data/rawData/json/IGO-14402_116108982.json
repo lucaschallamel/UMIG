@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14402,
   "title": "ATLAS - REFRESH CHECK ON EV7 AFTER RESTORE ON PROD LIKE",
@@ -6,15 +6,15 @@
   "successor": "IGO-6775",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**SCRIPT :**\n[nhev3txb:/home/migsup/tools/02_Ctrl_refresh.ksh](http://nhsittxb/home/migsup/tools/Ctrl_refresh.ksh) EV7\n\n**In case of difficulty with the script, execute :**\n**1. SQL Query : **\n\ncount (*)  from T_TRA_DET t  where code_chain_0195 = '17' \ncount (*)  from T_TRA_DET t  where code_chain_0195 = '32' \non the 2 servers\n\n**2. SQL Query : **\n\nfor check the last date process in T_COMPANY :\nSelect t.date_process_last_0143 from NHDBO.t_company t Where t.nbr_co_0143 = 001\n\n**3. Access control for QSAM files on the 2 servers :**\nCmd 1 : wc -l /files/data/P92/F92E.QSAM\n\nCmd 2 : sed -n '1p' /files/data/P92/F92E.QSAM",
       "associated_controls": "",
-      "instruction_title": "**SCRIPT :**\n[nhev3txb:/home/migsup/tools/02_Ctrl_refresh.ksh](http://nhsittxb/home/migsup/tools/Ctrl_refresh.ksh) EV7\n\n**In case of difficulty with the script, execute :**\n**1. SQL Query : **\n\ncount (*)  from T_TRA_DET t  where code_chain_0195 = \u002717\u0027 \ncount (*)  from T_TRA_DET t  where code_chain_0195 = \u002732\u0027 \non the 2 servers\n\n**2. SQL Query : **\n\nfor check the last date process in T_COMPANY :\nSelect t.date_process_last_0143 from NHDBO.t_company t Where t.nbr_co_0143 = 001\n\n**3. Access control for QSAM files on the 2 servers :**\nCmd 1 : wc -l /files/data/P92/F92E.QSAM\n\nCmd 2 : sed -n \u00271p\u0027 /files/data/P92/F92E.QSAM",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

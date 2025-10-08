@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 6260,
   "title": "RUN0",
@@ -10,18 +10,18 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : EX_MODE-TX-STOP-START\nJOB : EX_30-STOP_AP_TX-SERIES",
-      "instruction_id": "SYS-6260-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "SYS-6260-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Set ATLAS Prod Like in Day Mode\n\nCONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : E3_MODE-TX-DAY-DAY\nJob : E3_00-STOP_AV_TX-SERIES",
-      "instruction_id": "SYS-6260-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "SYS-6260-2"
     }
   ]
 }

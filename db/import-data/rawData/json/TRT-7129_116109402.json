@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7129,
   "title": "SECLI GVA - MAPPING TABLE EXTRACTION FOR ENGINE",
@@ -10,32 +10,32 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Update statistics",
-      "instruction_id": "TRT-7129-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7129-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Transfer of the mapping table FTC_SECLI_MOTEUR_999_CLIENTS_MATCHINGNOCLIENT.CSV to the Moteur + - FTC_SECLI_MOTEUR_999_CLIENT_CORRESP",
-      "instruction_id": "TRT-7129-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7129-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Transfer of the mapping table to DOCUMENTUM (SMSA server):  FTC_SECLI_MOTEUR_999_CLIENT_CORRESP",
-      "instruction_id": "TRT-7129-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7129-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Transfer data to BTPub, BTPriv and Extra Codification",
-      "instruction_id": "TRT-7129-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7129-4"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13392,
   "title": "START/KEEP OPEN MQ service FOR CMS on PROD-like",
@@ -10,18 +10,18 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "",
       "instruction_title": "START/KEEP OPEN BUS SERVICE FOR CMS on PROD-like, on migration Friday at 08:00 AM to allow for the PG Look-Ups",
-      "instruction_id": "PRE-13392-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-13392-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "",
       "instruction_title": "VIDER la queue  POUR METTRE A JOUR LES UPDATES BUSINESS",
-      "instruction_id": "PRE-13392-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-13392-2"
     }
   ]
 }

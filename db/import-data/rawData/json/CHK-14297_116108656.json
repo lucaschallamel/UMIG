@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 14297,
   "title": "SECLI - CONFIRM FPS FILES RECEIVED FROM SECRET ENGINE IN THE TARGET DIRECTORY",
@@ -10,18 +10,18 @@
   "time_sequence": "CC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "Please confirm that you recevied the FTS and FTC files in the folder, \n\n\n_- [jrsecli@lxvjrssecev403s.corp.ubp.ch](mailto:jrsecli@lxvjrssecev403s.corp.ubp.ch):/REFRESH/jr/MIGRATION/VICTORIA/DATA/RUN2\n- [ldsecli@lxvldnsecev403s.corp.ubp.ch:/REFRESH/ld/MIGRATION/VICTORIA/DATA/RUN](mailto:ldsecli@lxvldnsecev403s.corp.ubp.ch:/REFRESH/ld/MIGRATION/VICTORIA/DATA/RUN1#ls)2\n\n\n\n\nfor file in *.csv; do [ -f \\\"$file\\\" ] && echo \\\"$(stat -c%s \\\"$file\\\");$(wc -l < \\\"$file\\\");$file\\\"; done```",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Please confirm that you recevied the FTS and FTC files in the folder, \n\n\n_- [jrsecli@lxvjrssecev403s.corp.ubp.ch](mailto:jrsecli@lxvjrssecev403s.corp.ubp.ch):/REFRESH/jr/MIGRATION/VICTORIA/DATA/RUN2\n- [ldsecli@lxvldnsecev403s.corp.ubp.ch:/REFRESH/ld/MIGRATION/VICTORIA/DATA/RUN](mailto:ldsecli@lxvldnsecev403s.corp.ubp.ch:/REFRESH/ld/MIGRATION/VICTORIA/DATA/RUN1#ls)2\n\n\n\n\nfor file in *.csv; do [ -f \\\"$file\\\" ] \u0026\u0026 echo \\\"$(stat -c%s \\\"$file\\\");$(wc -l \u003c \\\"$file\\\");$file\\\"; done```",
-      "instruction_id": "CHK-14297-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-14297-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Confirm to DATA_FILES team the list of all received files and provide file size and row count for each file.",
-      "instruction_id": "CHK-14297-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-14297-2"
     }
   ]
 }

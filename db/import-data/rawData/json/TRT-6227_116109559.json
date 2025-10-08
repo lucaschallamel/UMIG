@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6227,
   "title": "ENGINE - STEP - 16 - INVESTMENT CONSTRAINTS FOR DARWIN",
@@ -10,25 +10,25 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_DARWIN_MAPPING_RESTRICTION",
-      "instruction_id": "TRT-6227-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6227-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXPORT_FTC_MOTEUR_DARWIN_0149_PORTFOLIOS_CONSTR_FREETXT",
-      "instruction_id": "TRT-6227-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6227-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MAIL_FTC_MOTEUR_DARWIN_0149_PORTFOLIOS_CONSTR_FREETXT",
-      "instruction_id": "TRT-6227-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6227-3"
     }
   ]
 }

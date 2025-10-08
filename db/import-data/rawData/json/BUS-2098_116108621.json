@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 2098,
-  "title": "RUN0",
+  "title": "MIDDLEWARE - PREPARATION BEFORE DESISOLATION - AFTER ATLAS EOD*2",
   "predecessor": "DUM-9272",
   "successor": "BUS-2108",
   "primary_team": "MIDDLEWARE",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GT - BUS DE-ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ANALYSE SUSPENDED MESSAGES FOR DETECTING ERRORS.\nEVENTUALLY DESTROY UNWANTED OR ERRONOUS MESSAGES\nSauvegarder le résultat et l’envoyer à  SPOC_MW, toronto_rundr,  [DL_IT_VICTORIA_ATLAS@ubp.ch](mailto:DL_IT_TORONTO_ATLAS@ubp.ch), _HDDARWIN@ubp.ch, [blaise.glassey@ext.ubp.ch](mailto:blaise.glassey@ext.ubp.ch), [bruno.losada@ext.ubp.ch](mailto:bruno.losada@ext.ubp.ch), [guillaume.bordas@ubp.ch](mailto:guillaume.bordas@ubp.ch)\nSCRIPT :\nStat XXX.sql",
-      "instruction_id": "BUS-2098-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-2098-1"
     }
   ]
 }

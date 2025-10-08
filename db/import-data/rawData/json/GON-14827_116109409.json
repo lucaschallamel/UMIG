@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 14827,
   "title": "EOM",
@@ -6,15 +6,15 @@
   "successor": "PRE-138",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GE - ACTIONS BETWEEN EOM PART 1 AND PART 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Launch EOM BANK PART 2\n\nAction : Do a confirm of : OKCOURS_Boucl_Vendredi",
-      "instruction_id": "GON-14827-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-14827-1"
     }
   ]
 }

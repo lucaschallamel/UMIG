@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6856,
   "title": "ATLAS - Vérification que tous les messages générés par Atlas, SG UK ont bien été traités (MT950, MT535...)",
@@ -6,15 +6,15 @@
   "successor": "PRE-6856",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "FEY St&eacute;phane",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "VÉRIFICATION QUE TOUS LES MESSAGES GÉNÉRÉS PAR ATLAS ONT BIEN ÉTÉ TRAITÉS:\n\nMT535 :  relevé de positions (clients ou depositaire)\n\nMT540 :  TBD\n\nMT542 :  TBD\n\nMT940 : relevé d'operation  \n\nMT950 : relevé de compte clients (specific clients) \n\nLook in T_F96O\n\n**SQL request : **\n\n----------------------------------------------------------------\n\n-- Request #1. Look at all MT messages\n\n-- Request #2. Search for their statuses\n\n-- Request #3. Count how many transactions per type\n\n----------------------------------------------------------------\n\n-- Tab=Request  #1\n-- Records=ALL\n\nselect t.f96o_e_nettyp_1031,t.f96o_stat_gen_1031,\n                            t.f96o_nbr_seq_stelink_1031,\n                            t.f96o_d_status_1031,t.*\nfrom T_F96O t\n\nwhere  to_char(t.DATE_TIME_CREA_REC_1031,'YYYYMMDD') in ('20250715')\n--where t.f96o_e_nettyp_1031 in ('535','950')\norder by to_char(t.DATE_TIME_CREA_REC_1031,'YYYYMMDDHH24MISS') desc;\n\n\n\n\n-- Tab=Request  #2\n-- Records=ALL\n\nselect f96o_e_nettyp_1031,F96O_STAT_GEN_1031,count(*)  \nfrom  T_F96O t where  to_char(t.DATE_TIME_CREA_REC_1031,'YYYYMMDD') in ('20250715')\n--and t.f96o_e_nettyp_1031 in ('535','950')\ngroup by f96o_e_nettyp_1031,F96O_STAT_GEN_1031; \n\n-- Tab=Request  #3\n-- Records=ALL\n\nselect f96o_e_nettyp_1031,count(*)  \nfrom  T_F96O t \nwhere  to_char(t.DATE_TIME_CREA_REC_1031,'YYYYMMDD') in ('20250715')\n--and t.f96o_e_nettyp_1031 in ('535','950')\ngroup by f96o_e_nettyp_1031; ```",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "VÉRIFICATION QUE TOUS LES MESSAGES GÉNÉRÉS PAR ATLAS ONT BIEN ÉTÉ TRAITÉS:\n\nMT535 :  relevé de positions (clients ou depositaire)\n\nMT540 :  TBD\n\nMT542 :  TBD\n\nMT940 : relevé d\u0027operation  \n\nMT950 : relevé de compte clients (specific clients) \n\nLook in T_F96O\n\n**SQL request : **\n\n----------------------------------------------------------------\n\n-- Request #1. Look at all MT messages\n\n-- Request #2. Search for their statuses\n\n-- Request #3. Count how many transactions per type\n\n----------------------------------------------------------------\n\n-- Tab=Request  #1\n-- Records=ALL\n\nselect t.f96o_e_nettyp_1031,t.f96o_stat_gen_1031,\n                            t.f96o_nbr_seq_stelink_1031,\n                            t.f96o_d_status_1031,t.*\nfrom T_F96O t\n\nwhere  to_char(t.DATE_TIME_CREA_REC_1031,\u0027YYYYMMDD\u0027) in (\u002720250715\u0027)\n--where t.f96o_e_nettyp_1031 in (\u0027535\u0027,\u0027950\u0027)\norder by to_char(t.DATE_TIME_CREA_REC_1031,\u0027YYYYMMDDHH24MISS\u0027) desc;\n\n\n\n\n-- Tab=Request  #2\n-- Records=ALL\n\nselect f96o_e_nettyp_1031,F96O_STAT_GEN_1031,count(*)  \nfrom  T_F96O t where  to_char(t.DATE_TIME_CREA_REC_1031,\u0027YYYYMMDD\u0027) in (\u002720250715\u0027)\n--and t.f96o_e_nettyp_1031 in (\u0027535\u0027,\u0027950\u0027)\ngroup by f96o_e_nettyp_1031,F96O_STAT_GEN_1031; \n\n-- Tab=Request  #3\n-- Records=ALL\n\nselect f96o_e_nettyp_1031,count(*)  \nfrom  T_F96O t \nwhere  to_char(t.DATE_TIME_CREA_REC_1031,\u0027YYYYMMDD\u0027) in (\u002720250715\u0027)\n--and t.f96o_e_nettyp_1031 in (\u0027535\u0027,\u0027950\u0027)\ngroup by f96o_e_nettyp_1031; ```",
-      "instruction_id": "PRE-6856-1",
-      "nominated_user": "FEY St\u0026eacute;phane"
+      "instruction_id": "PRE-6856-1"
     }
   ]
 }

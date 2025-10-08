@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15214,
   "title": "TAX - IT Support for Business TAX Checks",
@@ -10,18 +10,18 @@
   "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Perform Sanity checks to prepare Business Tax controls",
-      "instruction_id": "CHK-15214-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15214-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Support Business during their controls",
-      "instruction_id": "CHK-15214-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15214-2"
     }
   ]
 }

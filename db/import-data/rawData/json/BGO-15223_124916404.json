@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15223,
   "title": "IT MGMT - Validation of Controls Phase 5.1",
@@ -6,15 +6,15 @@
   "successor": "BGO-15223",
   "primary_team": "IT_MGMT",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_MGMT",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please check the results of controls :\n\nC5007- Liste des comptes courants UBP issus de la migration VICTORIA\nC5100 - Liste des positions bloquées\nC5200 - List of Future / AQDQ / IRS",
-      "instruction_id": "BGO-15223-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15223-1"
     }
   ]
 }

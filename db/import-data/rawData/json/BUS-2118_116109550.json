@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 2118,
-  "title": "RUN0",
+  "title": "MIDDLEWARE - ATLAS DESISOLATION IN (INPUT)",
   "predecessor": "BUS-2113",
   "successor": "BUS-12650",
   "primary_team": "MIDDLEWARE",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GT - BUS DE-ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DESISOLATION INPUT ATLAS\n\nSCRIPTS : \nstep_70_atlas_resume_secur_batch.sh\nstep_74_fx_delete_notneeded.sh\nstep_75_atlas_resume_fx.sh\nstep_80_to_atlas_resume_all_messages.sh\nstep_85_atlas_remove_isolation_input.sh",
-      "instruction_id": "BUS-2118-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-2118-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12232,
   "title": "BUSINESS - VALIDATION DES MESSAGES SWIFT",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "VALIDATION DES MESSAGES SWIFT SWITZERLAND",
-      "instruction_id": "TRT-12232-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12232-1"
     }
   ]
 }

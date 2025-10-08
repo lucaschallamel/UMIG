@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7294,
   "title": "STOP BUS SERVICE on PROD-Like",
@@ -10,25 +10,25 @@
   "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "STOP SECLI BUSSRV on PROD-LIKE",
-      "instruction_id": "PRE-7294-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-7294-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "STOP Point to Point MQ - BTPub on PROD-LIKE",
-      "instruction_id": "PRE-7294-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-7294-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "STOP Point to Point MQ - BTPriv on PROD-LIKE",
-      "instruction_id": "PRE-7294-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-7294-3"
     }
   ]
 }

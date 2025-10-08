@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11908,
-  "title": "RUN1",
+  "title": "UBP - POS PART 2 RECON CHECKS VALIDATION",
   "predecessor": "TRT-11903",
   "successor": "GON-11913",
   "primary_team": "SGPBS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SGPBS PRE-CHECKS VALIDATION",
-      "instruction_id": "IGO-11908-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11908-1"
     }
   ]
 }

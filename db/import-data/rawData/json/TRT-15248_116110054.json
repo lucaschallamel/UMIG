@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15248,
   "title": "EXPLOITATION - Start SpeciCred Star2 Treatments",
@@ -6,15 +6,15 @@
   "successor": "TRT-15248",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Start SpeciCred Star2 Treatments - Launch E3_PHASE-6.3-SPECICRED_EOD_STAR2",
-      "instruction_id": "TRT-15248-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-15248-1"
     }
   ]
 }

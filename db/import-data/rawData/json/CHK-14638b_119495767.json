@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": null,
-  "title": "ENGINE SECRET - CHECKS ON CHILDREN FILES INVARIANTS + CONTROLS - P\u0026amp;C",
+  "title": "ENGINE SECRET - CHECKS ON CHILDREN FILES INVARIANTS + CONTROLS - P&amp;C",
   "predecessor": "TRT-14633",
   "successor": "TRT-13565",
   "primary_team": "CONTROLS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GB - ANONYMISATION AND INTEGRATION OF P1 TO P99 FILES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GB - ANONYMISATION AND INTEGRATION OF P1 TO P99 FILES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "AOUADI Khalil",
       "instruction_assigned_team": "CONTROLS",
-      "associated_controls": "",
       "instruction_title": "Please provide all KPI on invariants and compare figures with previous RUN/DR (C1001, C1019)",
-      "instruction_id": "CHK-14638",
-      "nominated_user": "AOUADI Khalil"
+      "associated_controls": "",
+      "instruction_id": "CHK-14638"
     }
   ]
 }

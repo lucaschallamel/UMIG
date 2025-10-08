@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7296,
   "title": "ATLAS - PHASE 5.1 – FUTURES VERIFICATION FU_FUTR1",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "42-PH5.3 : \nJOB : /prod/script/job/FU_FUTR1.ksh\nINPUT FILE : /files/data/PFU/FFUTR1.QSAM",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "SYS",
   "step_number": 6541,
   "title": "RUN1",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
-      "instruction_assigned_team": "ATLAS - ON Prod Like SYSTEM DATE CHANGE (IF NECESSARY) AND CHANGE CICS DAY MODE \u0026amp; DB ONLINE MODE",
-      "associated_controls": "",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS - ON Prod Like SYSTEM DATE CHANGE (IF NECESSARY) AND CHANGE CICS DAY MODE &amp; DB ONLINE MODE",
       "instruction_title": "**",
-      "instruction_id": "SYS-6541",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "SYS-6541"
     }
   ]
 }

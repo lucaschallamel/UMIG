@@ -2,17 +2,32 @@
 
 ## Story Metadata
 
-**Story ID**: US-041  
-**Epic**: Admin GUI Enhancement Suite  
-**Sprint**: Sprint 7 (Moved from Sprint 6)  
-**Priority**: P1 (High Value Enhancement)  
-**Story Points**: 5 points  
-**Status**: READY FOR SPRINT 7  
-**Created**: August 26, 2025  
-**Moved to Sprint 7**: September 10, 2025  
-**Owner**: Frontend Development  
-**Dependencies**: US-031 (Admin GUI Complete Integration) - MUST BE 100% COMPLETE  
+**Story ID**: US-041
+**Epic**: Admin GUI Enhancement Suite
+**Sprint**: ~~Sprint 7~~ **SPLIT INTO US-041A & US-041B** (October 8, 2025)
+**Priority**: P1 (High Value Enhancement)
+**Story Points**: ~~5 points~~ **SPLIT: 4-5 (US-041A) + 2-3 (US-041B) = 6.5-8 total**
+**Status**: ~~READY FOR SPRINT 7~~ **SUPERSEDED BY US-041A & US-041B**
+**Created**: August 26, 2025
+**Moved to Sprint 7**: September 10, 2025
+**Split into US-041A/B**: October 8, 2025 (Sprint 8, Days 16-18)
+**Owner**: Frontend Development
+**Dependencies**: US-031 (Admin GUI Complete Integration) - MUST BE 100% COMPLETE
 **Risk**: LOW (builds on proven US-031 patterns)
+
+**Story Split Notice** (October 8, 2025): This story was strategically split into two focused stories for Sprint 8 implementation:
+
+- **US-041A: Comprehensive Audit Logging Infrastructure** (4-5 points, Days 16-17)
+  - JSON-based audit logging with JSONB optimization
+  - Leverages existing `audit_log_aud` database schema (3-point savings)
+  - See: `US-041A-audit-logging-infrastructure.md`
+
+- **US-041B: PILOT Instance Entity Management** (2-3 points, Day 18)
+  - Component-based instance management (leverages US-082-B)
+  - Hierarchical filtering and bulk operations
+  - See: `US-041B-pilot-instance-management.md`
+
+**Rationale**: Requirements analyst recommended splitting to enable focused implementation with optimized resource usage. Critical discovery: existing `audit_log_aud` schema with JSONB support eliminates 3 points of schema design/migration work, making US-041A highly efficient for Sprint 8 delivery.
 
 **Sprint 6 Descope Note**: Originally planned for Sprint 6 but descoped on September 10, 2025, as Sprint 6 successfully completed all core objectives (US-042, US-043, TD-001, TD-002, US-082 epic planning) achieving full deployment readiness without requiring this enhancement.
 
@@ -29,6 +44,28 @@
 This story extends the Admin GUI with PILOT role capabilities for instance entity management (plan instances, sequence instances, phase instances, step instances) and implements comprehensive audit logging across all user actions. This enhancement enables full operational readiness and regulatory compliance while providing advanced users with the detailed control needed for complex cutover scenarios.
 
 **Built on US-031 Success**: Leverages all patterns, modal systems, and synchronization frameworks established in US-031 to deliver enhanced functionality with minimal integration complexity.
+
+---
+
+## Implementation Status (October 8, 2025)
+
+**This story has been superseded by focused implementation stories**:
+
+- ✅ **US-041A (Audit Logging)**: Scheduled for Sprint 8, Days 16-17 (4-5 points)
+  - Implementation Status: PENDING (awaiting Sprint 8 Phase 2C)
+  - Critical Discovery: Existing `audit_log_aud` schema with JSONB enables 3-point optimization
+  - Architecture: JSON-based audit with GIN indexes for performance
+  - See canonical specification: `US-041A-audit-logging-infrastructure.md`
+
+- ✅ **US-041B (PILOT Features)**: Scheduled for Sprint 8, Day 18 (2-3 points)
+  - Implementation Status: PENDING (depends on US-082-B component architecture)
+  - Architecture: Component-based implementation leveraging US-082-B patterns
+  - Deferral Option: Can move to Sprint 9 if velocity pressured
+  - See canonical specification: `US-041B-pilot-instance-management.md`
+
+**Sprint 8 Integration**: Both stories planned for Phase 2C (Days 16-18) with combined 7-point target. US-041A is compliance-critical and prioritized; US-041B provides value but can be deferred if needed.
+
+**Audit Compatibility**: ✅ Full compatibility maintained - US-041B PILOT features will leverage US-041A JSON-based audit infrastructure for comprehensive action tracking.
 
 ---
 

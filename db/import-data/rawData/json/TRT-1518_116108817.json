@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 1518,
-  "title": "TARIF - SPECIFIC TREATMENTS - EXTRACTION \u0026amp; UPDATE ON MIGRATION ENV.",
+  "title": "TARIF - SPECIFIC TREATMENTS - EXTRACTION &amp; UPDATE ON MIGRATION ENV.",
   "predecessor": "TRT-1422",
   "successor": "DUM-13471",
   "primary_team": "TARIF",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
+      "instruction_title": "Update / Envoi des codes politiques saisis dans l'environnement Tarif",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Update / Envoi des codes politiques saisis dans l\u0027environnement Tarif",
-      "instruction_id": "TRT-1518-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-1518-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RECEPTION DES CODES POLITIQUES",
-      "instruction_id": "TRT-1518-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-1518-2"
     }
   ]
 }

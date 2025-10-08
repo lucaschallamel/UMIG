@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 2909,
-  "title": "RUN1",
+  "title": "DARWIN - DUMP AFTER EOD*2 - PHASE 335",
   "predecessor": "IGO-11253",
   "successor": "GON-2900",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Launch the phase : 335_AFTEREODS2",
-      "instruction_id": "DUM-2909-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-2909-1"
     }
   ]
 }

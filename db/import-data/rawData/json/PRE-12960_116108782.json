@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 12960,
-  "title": "RUN1",
+  "title": "ATLAS - Mise à jour du BRIEF NAME dans COMPTES",
   "predecessor": "PRE-12960",
   "successor": "PRE-12960",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Composer la requête ci-dessous, exécuter le résultat et renvoyer le nombre de lignes. Le nombre attendu en modification est de: XXX\n\nselect 'UPDATE nhdbo.t_account SET name_short_acct_0115 = ''' || c.name_short_client_0145 || ''' WHERE nbr_co_0115 = ' || c.nbr_co_0145 || ' AND nbr_client_0115 = ' || c.nbr_client_0145 || ';' from nhdbo.t_account ac\njoin\nnhdbo.t_client c on ac.nbr_co_0115 = c.nbr_co_0145 AND ac.nbr_client_0115 = c.nbr_client_0145 \njoin\nnhdbo.t_fu_client f on f.nbr_co_1057 = c.nbr_co_0145 and f.nbr_client_1057 = c.nbr_client_0145\nwhere ac.name_short_acct_0115 like 'NA %'",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Composer la requête ci-dessous, exécuter le résultat et renvoyer le nombre de lignes. Le nombre attendu en modification est de: XXX\n\nselect \u0027UPDATE nhdbo.t_account SET name_short_acct_0115 = \u0027\u0027\u0027 || c.name_short_client_0145 || \u0027\u0027\u0027 WHERE nbr_co_0115 = \u0027 || c.nbr_co_0145 || \u0027 AND nbr_client_0115 = \u0027 || c.nbr_client_0145 || \u0027;\u0027 from nhdbo.t_account ac\njoin\nnhdbo.t_client c on ac.nbr_co_0115 = c.nbr_co_0145 AND ac.nbr_client_0115 = c.nbr_client_0145 \njoin\nnhdbo.t_fu_client f on f.nbr_co_1057 = c.nbr_co_0145 and f.nbr_client_1057 = c.nbr_client_0145\nwhere ac.name_short_acct_0115 like \u0027NA %\u0027",
-      "instruction_id": "PRE-12960-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-12960-1"
     }
   ]
 }

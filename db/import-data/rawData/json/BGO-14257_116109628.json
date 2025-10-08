@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 14257,
   "title": "BUSINESS CHECKS - SECLI - CLIENT REMEDIATION  ON SECLI Prod",
@@ -10,11 +10,11 @@
   "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI Business to perform critical remediations - identified during Runs and DR",
-      "instruction_id": "BGO-14257-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-14257-1"
     }
   ]
 }

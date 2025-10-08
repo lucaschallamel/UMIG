@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 14194,
-  "title": "RUN0",
+  "title": "BUSINESS - CONTROLS AFTER EOD*2 - C6700",
   "predecessor": "IGO-14189",
   "successor": "IGO-14146",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Verify below controls validated by IT:\n\nC6700 - Estimatif Client\nC6758 - Comparaison des performances \nC6755 - Estimatif Client - Comparaison des Nav Globales\nC6710 - Asset ATLAS by currency \nC6730 - Comparaison Nav Globale et Performance",
-      "instruction_id": "BGO-14194-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-14194-1"
     }
   ]
 }

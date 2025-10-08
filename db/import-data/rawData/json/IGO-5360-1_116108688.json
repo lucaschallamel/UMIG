@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 5360,
   "title": "ENGINE - DUMMIES REVIEW",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Clean all dummies (except technical if required)",
-      "instruction_id": "1",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "1"
     }
   ]
 }

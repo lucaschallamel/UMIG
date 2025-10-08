@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 1422,
   "title": "TARIF - SPECIFIC TREATMENTS - EXTRACTION Special conditions from Fusion ENV.",
@@ -10,11 +10,11 @@
   "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "specials conditions extraction from Fusion environment.",
-      "instruction_id": "TRT-1422-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-1422-2"
     }
   ]
 }

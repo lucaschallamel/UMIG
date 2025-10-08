@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11527,
   "title": "AmbitFocus - PREPARATION BEFORE EOD POSTMIG",
@@ -10,18 +10,18 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "REACTIVATION DU PLAN CONTROL-M Balance Sheet Manager (ex Ambitfocus)",
-      "instruction_id": "TRT-11527-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11527-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BSM (AMBITFOCUS)",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Modification value date de J-1 EN INDIQUANT LA DATE BUSINESS DE LA JOURNéE SGPBS",
-      "instruction_id": "TRT-11527-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11527-2"
     }
   ]
 }

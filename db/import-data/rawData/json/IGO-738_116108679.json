@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 738,
   "title": "PROD LIKE ENVIRONMENT - CID Cleaning Activities",
@@ -6,15 +6,15 @@
   "successor": "TRT-11414",
   "primary_team": "CID",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "ED - THURSDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "CID",
+      "instruction_title": "Cleaning AFTER CID Isolation :\n- Error mails routing     (Update dbiubp.Cid_Msg_Dest  set  MAIL_ADRESS='_bus_im_cid@[ubp.ch](http://ubp.ch)')\n- Verify table BUS_TODO is empty",
       "associated_controls": "",
-      "instruction_title": "Cleaning AFTER CID Isolation :\n- Error mails routing     (Update dbiubp.Cid_Msg_Dest  set  MAIL_ADRESS=\u0027_bus_im_cid@[ubp.ch](http://ubp.ch)\u0027)\n- Verify table BUS_TODO is empty",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

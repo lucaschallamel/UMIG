@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15210,
-  "title": "RUN1",
+  "title": "SECLI - CHECK THAT NO CHANGES HAVE BEEN MADE ON TEST ENVIRONMENT AFTER BACKUP USED FOR PROD LIKE RESTORE",
   "predecessor": "TRT-4930",
   "successor": "TRT-4930",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear SECLI Team,\n\nPlease ensure that no changes have been made on TEST environment since backup to ensure no discrepency appears with PROD LIKE environement",
-      "instruction_id": "CHK-15210-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15210-1"
     }
   ]
 }

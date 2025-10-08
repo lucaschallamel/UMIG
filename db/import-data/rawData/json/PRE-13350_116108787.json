@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13350,
-  "title": "TEST ENVIRONMENT - SECLI - UK - SCRIPT DEPLOYMENT \u0026amp; PURGE LOG AND TRACKING FILES",
+  "title": "TEST ENVIRONMENT - SECLI - UK - SCRIPT DEPLOYMENT &amp; PURGE LOG AND TRACKING FILES",
   "predecessor": "PRE-13350",
   "successor": "PRE-13350",
   "primary_team": "SECLI",
@@ -10,18 +10,18 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Purge logs and tracking files",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Scripts Deployment",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "2"
     }
   ]
 }

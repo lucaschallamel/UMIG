@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 3111,
   "title": "EOD/EOW BANK - CSD WEEK1",
@@ -10,32 +10,32 @@
   "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check that system date: **29.08.2025**\n\n\nIF not, please adjust.\n\nHold for Atlas and Secli are in place in IP Task : [PRE-3093](PRE-3093_116109293.html)",
-      "instruction_id": "GON-3111-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-3111-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M PLAN EXECUTION : END OF WEEK\n\nCONFIRM E3_T_HOS_INTG-BANQUE_EOD folder",
-      "instruction_id": "GON-3111-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-3111-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Unhold the Secli batch:\n\n-RUN / DR : E3_T007CLI_CJO004, E3_T004CLI_CJO004 et E3_T001CLI_CJO004\n\n- Cutover : P007CLI_CJO004, P004CLI_CJO004 et P001CLI_CJO004",
-      "instruction_id": "GON-3111-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-3111-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Launch EOW SECLI BATCH",
-      "instruction_id": "GON-3111",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-3111"
     }
   ]
 }

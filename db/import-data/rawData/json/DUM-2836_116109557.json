@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 2836,
-  "title": "RUN1",
+  "title": "ATLAS - DUMP AFTER EOD*2 (ATLAS ONLY)",
   "predecessor": "TRT-14979b",
   "successor": "IGO-9339",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Lancer la phase de backup : 310_AFTEREODS2 - du [Backup Plan](https://confluence.corp.ubp.ch/display/E0013782/Backup+Plan)",
-      "instruction_id": "DUM-2836-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-2836-1"
     }
   ]
 }

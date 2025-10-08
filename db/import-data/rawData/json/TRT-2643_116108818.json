@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 2643,
-  "title": "PROD LIKE",
+  "title": "SECLI LDN&amp;JRS- CLIENTS SENDING TO CMS ON PROD LIKE",
   "predecessor": "IGO-13297",
   "successor": "TRT-4930",
   "primary_team": "SECLI",
@@ -10,18 +10,18 @@
   "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV. CR - CMS ACTIVITIES FLOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Push all clients (actives and closed), all companies, to MOTUS DB ON PROD LIKE",
-      "instruction_id": "TRT-2643-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-2643-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "Loading CMS's stagging tables ON PROD LIKE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Loading CMS\u0027s stagging tables ON PROD LIKE",
-      "instruction_id": "TRT-2643-2",
-      "nominated_user": ""
+      "instruction_id": "TRT-2643-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 12077,
   "title": "ENGINE - CONTROL LIST GENERATION : (une partie du STE 03 - RECONCILIATION INTEGRITY 1)",
@@ -6,309 +6,309 @@
   "successor": "BGO-12120",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GE - ACTIONS BETWEEN EOM PART 1 AND PART 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "BREAKPOINT_2_JOB_AVANT_MIGRATION_ATLAS_REPORT_SECURITIES",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C1750_COMPARE_ESTIMATIF_FILE_WITH_ALL_FILES_RECEIVED",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C1750_COMPARE_ESTIMATIF_FILE_WITH_ALL_FILES_RECEIVED",
-      "instruction_id": "3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C1751_COMPARE_ESTIMATIF_SUM_POS_WITH_NAV_GLOBALE",
-      "instruction_id": "4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C1751_COMPARE_ESTIMATIF_SUM_POS_WITH_NAV_GLOBALE",
-      "instruction_id": "6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_CID_MOTEUR_0052_SECURITIES_INFOS_BIS",
-      "instruction_id": "7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_MAJ_FUSION_0701",
-      "instruction_id": "8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_SPOT_CURRENCY_#2",
-      "instruction_id": "9",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_URA001_#2",
-      "instruction_id": "10",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_TROL_27_#2",
-      "instruction_id": "11",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_MAJ_DICO_TB122_SPOT_CURRENCY_#2",
-      "instruction_id": "12",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "12"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_FUSION_0102_SECURITIES_POSITIONS_MULTI_CUR",
-      "instruction_id": "13",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "13"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0053_SECURITIES_LIGHT",
-      "instruction_id": "14",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "14"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_T_PRCE",
-      "instruction_id": "15",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "15"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_ATLAS_IN_T_PRCE",
-      "instruction_id": "16",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "16"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_ATLAS_IN_DOSSIER_SECURITIES",
-      "instruction_id": "17",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "17"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_TRUNC_DICO_REPR_NBR_SECURE",
-      "instruction_id": "18",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "18"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_INSERT_DICO_REPR_NBR_SECURE",
-      "instruction_id": "19",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "19"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K0003_SECURITIES_FUSION_NOK",
-      "instruction_id": "20",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "20"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K0003_SECURITIES_FUSION_NOK",
-      "instruction_id": "21",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "21"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K0008_SECURITIES_CID_NOK",
-      "instruction_id": "22",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "22"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K0008_SECURITIES_CID_NOK",
-      "instruction_id": "23",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "23"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K1004_SECURITIES_ATLAS_NOK",
-      "instruction_id": "24",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "24"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K1004_SECURITIES_ATLAS_NOK",
-      "instruction_id": "25",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "25"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K0006_SECURITIES_MULTI_CURRENCY",
-      "instruction_id": "26",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "26"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K0006_SECURITIES_MULTI_CURRENCY",
-      "instruction_id": "27",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "27"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K1001_SECURITIES_MULTI_PORTFOLIO",
-      "instruction_id": "28",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "28"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K1001_SECURITIES_MULTI_PORTFOLIO",
-      "instruction_id": "29",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "29"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_MAJ_LIST_DEPOSITAIRE",
-      "instruction_id": "30",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "30"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K1011_ATLAS_LIST_DEPOSITARIES",
-      "instruction_id": "31",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "31"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K1011_ATLAS_LIST_DEPOSITARIES",
-      "instruction_id": "32",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "32"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K0022_CONTROLE_ATTRIBUTS_SECURITIES",
-      "instruction_id": "33",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "33"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K0022_CONTROLE_ATTRIBUTS_SECURITIES",
-      "instruction_id": "34",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "34"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_K0029_CONTROLE_PRICE_SECURITIES",
-      "instruction_id": "35",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "35"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_K0029_CONTROLE_PRICE_SECURITIES",
-      "instruction_id": "36",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "36"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_DEPTRY",
-      "instruction_id": "37",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "37"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C1013_DEPOSITAIRE_MAPPE_NON_EXISTANT",
-      "instruction_id": "38",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "38"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C1013_DEPOSITAIRE_MAPPE_NON_EXISTANT",
-      "instruction_id": "39",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "39"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_SECURE_FROM_MARKET",
-      "instruction_id": "40",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "40"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_A_C1014_SECURITIES_NOT_EXISTING_ON_MARKET",
-      "instruction_id": "41",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "41"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C1014_A_SECURITIES_NOT_EXISTING_ON_MARKET",
-      "instruction_id": "42",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "42"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_B_C1014_SECURITIES_EXISTING_ON_MARKET",
-      "instruction_id": "43",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "43"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C1014_B_SECURITIES_EXISTING_ON_MARKET",
-      "instruction_id": "44",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "44"
     }
   ]
 }

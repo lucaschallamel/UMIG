@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 696,
-  "title": "RUN1",
+  "title": "ATLAS - PHASE 7.1 - PREPARATION CHEQUE EVENTS CREATION",
   "predecessor": "CHK-696",
   "successor": "CHK-696",
   "primary_team": "ATLAS",
@@ -10,25 +10,25 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check Existing File (given pby ENGINE) \nINPUT FILE : /files/data/PFU/FCHQR1.QSAM",
-      "instruction_id": "CHK-696-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-696-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Give the volumetry",
-      "instruction_id": "CHK-696-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-696-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Report Volumetry",
-      "instruction_id": "CHK-696-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-696-3"
     }
   ]
 }

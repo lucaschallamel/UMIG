@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 14623,
   "title": "ENGINE - BACK-UP FPC FILES AFTER RECEPTION +  PROVIDE THE LIST OF FILE RECEIVED",
@@ -10,11 +10,11 @@
   "time_sequence": "CC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please take a backup of files in a dedicated folder",
-      "instruction_id": "DUM-14623-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-14623-1"
     }
   ]
 }

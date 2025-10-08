@@ -1,83 +1,83 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 203,
-  "title": "ATLAS - PHASE 4.2 - ACCOUNT DATA \u0026amp; CREDIT INFORMATION",
+  "title": "ATLAS - PHASE 4.2 - ACCOUNT DATA &amp; CREDIT INFORMATION",
   "predecessor": "CHK-196",
   "successor": "TRT-6013",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GI - ATLAS PHASE 4.2 - IBAN CREATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "DUMMY",
-      "associated_controls": "",
       "instruction_title": "**15-PH4 : Mise à jour des clients avec leurs LEADER**\nJOB : /prod/script/job/FU_CLIR13.ksh\nINPUT FILE : FCLIR13.QSAM\nREPORT : EFVI",
-      "instruction_id": "TRT-203-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "DUMMY",
-      "associated_controls": "",
       "instruction_title": "Check LEADER Updates  \nREQUETE : 23-RUN2 / LOANS-CREDITS LEADERS.SQL",
-      "instruction_id": "TRT-203-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**17-PH4 : Reprise des instructions crédit INS-COR**\nJOB : /prod/script/job/FU_CLIR4.ksh\nINPUT FILE : FCLIR5.QSAM\nREPORT : EFUY, EFVD",
-      "instruction_id": "TRT-203-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**18-PH4 : Reprise des inforamtions crédit**\nJOB : /prod/script/job/FU_CLIR12.ksh\nINPUT FILE : FCLIR12.QSAM\nREPORT: none",
-      "instruction_id": "TRT-203-4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-4"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**19-PH4 : Reprise des limites crédits**\nJOB : /prod/script/job/FU_CLIR6.ksh\nINPUT FILE : FCLIR3.QSAM\nREPORT : EFUX",
-      "instruction_id": "TRT-203-5",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-5"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**20-PH4 : Création des comptes et des IBANs (Client Accounts creation)**\n\nVerify Client Accounts exist. If there are no reject, go to next steps : END OF ACCOUNT INTEGRATION\n_- **JOB : /prod/script/job/FU_ACCR1.ksh**\n- _**SQL CONTROL **_\n\nselect a1.nbr_co_0115, **       a1.nbr_acct_0115, **       a1.nbr_client_0115, **       a1.code_iban_acct_0115, **       a1.code_cat_acct_0115,**       cat.name_acct_fra_0106**       from nhdbo.t_account a1 **join nhdbo.t_fu_client f1 **     on f1.nbr_co_1057 = a1.nbr_co_0115 **     and f1.nbr_client_1057 = a1.nbr_client_0115 **     and a1.code_iban_acct_0115 <> '                                  '**     and a1.code_act_acct_0115 <> 2**join nhdbo.t_ac_catg cat on cat.code_cat_acct_0106 = a1.code_cat_acct_0115;**---------------------------------------**-- Regroupement par catégory de comptes**---------------------------------------**WITH t as (**select a1.code_cat_acct_0115 as CATG, count(*) as Nombre from nhdbo.t_account a1**join nhdbo.t_fu_client f1 on f1.nbr_co_1057 = a1.nbr_co_0115 and f1.nbr_client_1057 = a1.nbr_client_0115**where a1.code_iban_acct_0115 <> '                                  '**group by a1.code_cat_acct_0115)**select c.name_acct_fra_0106, t.* from t join nhdbo.t_ac_catg c on c.code_cat_acct_0106 = t.CATG;",
       "associated_controls": "",
-      "instruction_title": "**20-PH4 : Création des comptes et des IBANs (Client Accounts creation)**\n\nVerify Client Accounts exist. If there are no reject, go to next steps : END OF ACCOUNT INTEGRATION\n_- **JOB : /prod/script/job/FU_ACCR1.ksh**\n- _**SQL CONTROL **_\n\nselect a1.nbr_co_0115, **       a1.nbr_acct_0115, **       a1.nbr_client_0115, **       a1.code_iban_acct_0115, **       a1.code_cat_acct_0115,**       cat.name_acct_fra_0106**       from nhdbo.t_account a1 **join nhdbo.t_fu_client f1 **     on f1.nbr_co_1057 = a1.nbr_co_0115 **     and f1.nbr_client_1057 = a1.nbr_client_0115 **     and a1.code_iban_acct_0115 \u003c\u003e \u0027                                  \u0027**     and a1.code_act_acct_0115 \u003c\u003e 2**join nhdbo.t_ac_catg cat on cat.code_cat_acct_0106 = a1.code_cat_acct_0115;**---------------------------------------**-- Regroupement par catégory de comptes**---------------------------------------**WITH t as (**select a1.code_cat_acct_0115 as CATG, count(*) as Nombre from nhdbo.t_account a1**join nhdbo.t_fu_client f1 on f1.nbr_co_1057 = a1.nbr_co_0115 and f1.nbr_client_1057 = a1.nbr_client_0115**where a1.code_iban_acct_0115 \u003c\u003e \u0027                                  \u0027**group by a1.code_cat_acct_0115)**select c.name_acct_fra_0106, t.* from t join nhdbo.t_ac_catg c on c.code_cat_acct_0106 = t.CATG;",
-      "instruction_id": "TRT-203-6",
-      "nominated_user": "-"
+      "instruction_id": "TRT-203-6"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**21-PH4 : Contrôle présence des comptes dans ACCOUNT**\nJOB : /prod/script/job/FU_ACCC2.ksh\nINPUT FILE : FACCR3ALL.QSAM\nOUTPUT FILE : FACCC2.QSAM",
-      "instruction_id": "TRT-203-7",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-7"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**22-PH4 : Init date d'ouverture des comptes de contrepartie**\nJOB : /prod/script/job/FU_ACCR2.ksh",
       "associated_controls": "",
-      "instruction_title": "**22-PH4 : Init date d\u0027ouverture des comptes de contrepartie**\nJOB : /prod/script/job/FU_ACCR2.ksh",
-      "instruction_id": "TRT-203-8",
-      "nominated_user": "-"
+      "instruction_id": "TRT-203-8"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**31-PH4 (NEW RUN3) - FU_ACCR8: **check Other numbering\n\nIM: **FACCR6.QSAM**",
-      "instruction_id": "TRT-203-9",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-9"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "**32-PH4 (NEW RUN3) - FU_ACCR7: **init Account Sweeping\n\nIM: **FACCR7.QSAM**",
-      "instruction_id": "TRT-203-10",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-203-10"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5248,
   "title": "UNIX - Isolate Prod Like Environment on dedicated P9",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UNIX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please set up the EVx environments - 2 SafeHost P9 as follows :\n\nIBC-9040-MR9-78DA96X-14p : EV3\nIBC-9040-MR9-78DAD5X-12p : EV1, EV2, EV5, EV5, EV6, EV7\n\n\nIn this configuration, the EV3 batches will be \\\"alone\\\", in iso-PRD configuration and not in competition with another batches (EV1/EV2).\n\n\n\n\nNote : De-isolation is done within IP task [PRE-5256](PRE-5256_116109800.html)",
-      "instruction_id": "PRE-5248-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-5248-1"
     }
   ]
 }

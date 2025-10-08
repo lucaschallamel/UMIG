@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15030,
-  "title": "RUN0",
+  "title": "APPWAY CH - Online Mode",
   "predecessor": "PRE-15030",
   "successor": "PRE-15030",
   "primary_team": "APPWAY",
@@ -10,18 +10,18 @@
   "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please put Appway - CH back ONLINE\n\nRun - DR :\n\n\nE3_T001APW_SDO431\nE3_T001APW_SDU441\nE3_T001APW_SDO433\nE3_T001APW_SDO436\n\n\n\n\nCutover :\n\nP001APW_SDO431\nP001APW_SDU441\nP001APW_SDO433\nP001APW_SDO436\n\nNote : Appway was put on Read Only within IP Task PRE-15039",
-      "instruction_id": "PRE-15030-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15030-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "REMOVE DUMMY mode on P001ENG_CJO050",
-      "instruction_id": "PRE-15030-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15030-2"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 2896,
-  "title": "RUN1",
+  "title": "DARWIN'S SATELLITES - AFTER EOD*1 - SEND SMS to inform Darwin's sattellite about expected end: FILES TO BE SAVED",
   "predecessor": "GON-1680",
   "successor": "DUM-1685",
   "primary_team": "IT_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_CUTOVER",
+      "instruction_title": "Mail to  MIS + TARIF + PORTAIL GERANT to inform Darwin's sattellite about expected end: FILES TO BE SAVED",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Mail to  MIS + TARIF + PORTAIL GERANT to inform Darwin\u0027s sattellite about expected end: FILES TO BE SAVED",
-      "instruction_id": "IGO-2896-1",
-      "nominated_user": ""
+      "instruction_id": "IGO-2896-1"
     }
   ]
 }

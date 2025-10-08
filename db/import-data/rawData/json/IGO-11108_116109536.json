@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11108,
   "title": "UNIX - AFTER ATLAS EOD*2 MIS FILES TO BE SAVED",
@@ -6,29 +6,29 @@
   "successor": "IGO-9314",
   "primary_team": "UNIX",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_RUN and DR : Ev3 Server : lxvgvamisev301p_\n\n_CUTOVER : PRD Server : lxvgvamisprd01p_\n\n_**A Control M job has been created in order to automate Unix action which was (as a reminder):**_\n\n_tar cvf STAR2_ATLAS_MIS.dat /ESS_dataImportMIS/host/data/FDWT*/ESS_dataImportMIS/host/data/*.ok and /ESS_dataImportMIS/host/data/FSX*_\n\n_cd  /ESS_dataImportMIS/host/data/      \nrm FDWT*      \nrm *.ok      \nrm FSX*_",
-      "instruction_id": "IGO-11108-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-11108-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "**PRD - Exploitation, please execute the following Jobs : **\n\nSub App : P002-AAA-OND-AFTER-EOD-MIS-FILES-TO-BE-SAVED\n\nP002-AAA-OND-R002\n\nP002AAA_R002_NJO000",
-      "instruction_id": "IGO-11108-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-11108-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "**RUN/DR - Exploitation, please execute the following Jobs : **\n\nSub App : E3_T002-AAA-OND-AFTER-EOD-MIS-FILES-TO-BE-SAVED\n\nFolder : E3_T002-AAA-OND-R002\n\nJob : E3_T002AAA_R002_NJO000",
-      "instruction_id": "IGO-11108-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-11108-2"
     }
   ]
 }

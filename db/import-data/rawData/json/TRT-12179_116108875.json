@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12179,
-  "title": "RUN1",
+  "title": "ENGINE - EXTRACTION AND TREATMENT FOR PERFORMANCE",
   "predecessor": "TRT-12293",
   "successor": "TRT-12184",
   "primary_team": "ENGINE COMMON",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Refresh and Generate the Le fichier FPFMR1.QSAM est à disposition sur le serveur Atlas",
-      "instruction_id": "TRT-12179-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12179-1"
     }
   ]
 }

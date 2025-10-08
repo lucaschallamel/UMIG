@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15256,
   "title": "BATCH ENGINEERING - Unhold File Import",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_INTEGRATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BATCH ENGINEERING - Unhold File Import",
-      "instruction_id": "TRT-15256-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15256-1"
     }
   ]
 }

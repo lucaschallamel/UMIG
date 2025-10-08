@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15155,
   "title": "CID - CHECK THAT ORACLE STATS JOB IS MAINTAINED DURING THE WEEK-END",
@@ -6,15 +6,15 @@
   "successor": "TRT-14209d",
   "primary_team": "BATCH ENGINEERING",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BATCH ENGINEERING",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check that CTLM job for calculating Oracle stats during migration week-end is maintained",
-      "instruction_id": "CHK-15155-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15155-1"
     }
   ]
 }

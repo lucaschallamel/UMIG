@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15223,
   "title": "KONDOR+ - Check of Lux Fidu - 48h",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "KONDOR+ - Check of Lux Fidu - 48h",
-      "instruction_id": "CHK-15223-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15223-1"
     }
   ]
 }

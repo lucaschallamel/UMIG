@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13144,
   "title": "IT MGMT - Control on Positions and Accounts - Phase 4.4",
@@ -6,15 +6,15 @@
   "successor": "TRT-299",
   "primary_team": "IT_MGMT",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GK - ATLAS PHASE 4.4 - PORTFOLIO CREATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_MGMT",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "C4210 - List of positions futur who will be rejeceted (must be empty)\nC4200 - Check all portfolio with mapping futur and positions in error (must be empty)\nC4104 - Liste des positions Futures reçues\nC4110- Positions TORONTO reprises dans une devise différente chez UBP\nK4005 - Positions avec Quantité supérieures à 4 décimales",
-      "instruction_id": "BGO-13144-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-13144-1"
     }
   ]
 }

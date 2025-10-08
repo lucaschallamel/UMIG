@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14633,
   "title": "GENERATE CHILDREN FILES (based on P1, P2 and P3) AND INVARIANTS FROM SG",
@@ -10,11 +10,11 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please proceed with the following data:\n\nP01 to P03 Files treatment and Invariant Report Generation",
-      "instruction_id": "TRT-14633-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14633-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 243,
   "title": "ENGINE - PORTFOLIO PROCESSING",
@@ -6,29 +6,29 @@
   "successor": "CHK-249",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GK - ATLAS PHASE 4.4 - PORTFOLIO CREATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0091_PORTFOLIOS_FPTFR1",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0091_PORTFOLIOS_FPTFR1",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "Mail to inform ATLAS 1 - the transfer is done FOR**FPTFR1.QSAM**2 - The volumetry can be checked",
-      "instruction_id": "3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "3"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14601,
   "title": "PUT ON HOLD DROOLS IMPORT JOBS (CRS/QI/FATCA) FOR CH ON  PROD-LIKE",
@@ -10,18 +10,18 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "HERMANTIN Patrick",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "**DR and RUN**\n\nPlease ensure that QI/FATCA/CRS IMPORT JOBS - CH be PUT ON HOLD from Thursday until Sunday on Weekend 1, on PROD-Like.\n\n\n\n\n**DISABLE ENGINE** è put on HOLD mode all TALEND SUCC__ImportSECLI_TMP_ENGINE_STATUS\n\nType      Folder Name    Library Order Method  User Daily          Control-M Server           Checked out by                Synchronization State Synchronization Message        Last Synchronized        # Jobs\n\nChecked            E3_T007-ENG-ENG-R032                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T007-ENG-ENG-R022                         Specific User Daily       E3001  EVX-GVA-SEC-DC \n\nChecked            E3_T007-ENG-ENG-R012                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T004-ENG-ENG-R032                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T004-ENG-ENG-R022                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T004-ENG-ENG-R012                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T001-ENG-ENG-R032                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T001-ENG-ENG-R022                         Specific User Daily       E3001  EVX-GVA-SEC-DC\n\nChecked            E3_T001-ENG-ENG-R012                         Specific User Daily       E3001  EVX-GVA-SEC-DC \n\n\n\n\nNote : Dehold is done in IP Task [PRE-14447](PRE-14447_116109733.html)",
-      "instruction_id": "PRE-14601-1",
-      "nominated_user": "HERMANTIN Patrick"
+      "associated_controls": "",
+      "instruction_id": "PRE-14601-1"
     },
     {
+      "nominated_user": "HERMANTIN Patrick",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "**CUTOVER**\n\nPlease ensure that QI/FATCA/CRS IMPORT JOBS - CH be PUT ON HOLD from Thursday until Sunday on Weekend 1, on PROD-Like.\n\n\n\n\n**DISABLE ENGINE** è put on HOLD mode all TALEND SUCC__ImportSECLI_TMP_ENGINE_STATUS\n\nType      Folder Name    Library Order Method  User Daily          Control-M Server           Checked out by                Synchronization State Synchronization Message        Last Synchronized        # Jobs\n\nChecked            P007-ENG-ENG-R032                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P007-ENG-ENG-R022                         Specific User Daily       P001  EVX-GVA-SEC-DC \n\nChecked            P007-ENG-ENG-R012                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R032                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R022                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R012                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R032                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R022                         Specific User Daily       P001  EVX-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R012                         Specific User Daily       P001  EVX-GVA-SEC-DC \n\n\n\n\nNote : Dehold is done in IP Task [PRE-14447](PRE-14447_116109733.html)",
-      "instruction_id": "PRE-14601-2",
-      "nominated_user": "HERMANTIN Patrick"
+      "associated_controls": "",
+      "instruction_id": "PRE-14601-2"
     }
   ]
 }

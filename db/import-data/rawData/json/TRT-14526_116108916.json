@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14526,
   "title": "CMS MAP INVARIANT DATA",
@@ -10,11 +10,11 @@
   "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CMS to map invariant Ids to New Clients",
-      "instruction_id": "TRT-14526-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14526-1"
     }
   ]
 }

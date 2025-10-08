@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12848,
   "title": "PROD LIKE ENVIRONMENT - TARIF PATCH DEPLOYMENT",
@@ -10,11 +10,11 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "",
       "instruction_title": "Deploy LAST PRODUCTION PATCH OF TARIF ON PRD-LIKE IF NECESSARY",
-      "instruction_id": "TRT-12848",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-12848"
     }
   ]
 }

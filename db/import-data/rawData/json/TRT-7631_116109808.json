@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7631,
   "title": "SECLI SWITZERLAND / GENEVA - COLLECT AUM FROM MIS AND CALCULATE RISK CARD FOR POPULATION NOT BEING PWC",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RETREIVE AND LOAD MIS AUM FILE",
-      "instruction_id": "TRT-7631-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7631-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RECALCULATE RISK CARD FOR POPULATION BEING NOT PWC",
-      "instruction_id": "TRT-7631-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7631-2"
     }
   ]
 }

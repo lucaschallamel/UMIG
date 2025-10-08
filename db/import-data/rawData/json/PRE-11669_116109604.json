@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11669,
-  "title": "RUN1",
+  "title": "ATLAS - Conserver le fichier des avis après l’EOD SGPBS  afin de Bloquer les avis d'opening",
   "predecessor": "PRE-11669",
   "successor": "PRE-11669",
   "primary_team": "ATLAS",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Conserver le fichier des avis après l’EOD SGPBS afin de Bloquer les avis d'opening",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Conserver le fichier des avis après l’EOD SGPBS afin de Bloquer les avis d\u0027opening",
-      "instruction_id": "PRE-11669-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-11669-1"
     }
   ]
 }

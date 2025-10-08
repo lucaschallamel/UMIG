@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15206,
   "title": "CID - broadcast Murex ID into Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Broadcast Murex ID into Atlas",
-      "instruction_id": "TRT-15206-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15206-1"
     }
   ]
 }

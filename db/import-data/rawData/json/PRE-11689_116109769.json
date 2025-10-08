@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11689,
   "title": "CID -Reactivation du flux CTLR M  CopieHostFile CID",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reactivation du flux CTLR M  CopieHostFile CID\n\nNote : Deactivation is done within IP Task [TRT-7107](TRT-7107_116109770.html)",
-      "instruction_id": "PRE-11689-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11689-1"
     }
   ]
 }

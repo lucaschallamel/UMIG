@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 6159,
-  "title": "RUN0",
+  "title": "EXPLOITATION - BEFORE EOD*1 DARWIN (AFTER ATLAS EOD*1 )- SAVE DARWIN FILES TO REPO",
   "predecessor": "IGO-11461",
   "successor": "PRE-1675",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "**_**Exécuter le job:\n**_**Verifie qu'ATLAS a bien envoyé tous les fichiers attendus par le STAR1 DARWIN \n\n**\n_Group :_              **285_DARWIN_FILES_S1-EV3**\n_Application :_     **E3_T-AAA-INTGR-BANK**\n_TABLE :_        **285_DARWIN_FILES_S1_AAA_BCK_SYBASE_EV3/285_DARWIN_FILES_S1_AAA_SAVE_FILE_DARWIN_EV3**\n_JOBS :_                  \n****Job1** : 285-CHECK-EOD-FILES_STAR1 : Verification de presence des  fichiers necessaires a la migration EOD/EOW/EOM DARWIN envoyes par ATLAS\n**Job 3-4-5** : 285-DARWIN-SYBASE-SAVE : Sauvegarder dans le **REPO **et non sur le serveur DARWIN\n**Job 6 **: 285-RESET-DARWIN-EOD-FILE-INITIAL-STAR1 : Suppression des fichiers envoyes par ATLAS pour la migration EOD/EOW/EOM DARWIN dans host/Host/initial",
       "associated_controls": "",
-      "instruction_title": "**_**Exécuter le job:\n**_**Verifie qu\u0027ATLAS a bien envoyé tous les fichiers attendus par le STAR1 DARWIN \n\n**\n_Group :_              **285_DARWIN_FILES_S1-EV3**\n_Application :_     **E3_T-AAA-INTGR-BANK**\n_TABLE :_        **285_DARWIN_FILES_S1_AAA_BCK_SYBASE_EV3/285_DARWIN_FILES_S1_AAA_SAVE_FILE_DARWIN_EV3**\n_JOBS :_                  \n****Job1** : 285-CHECK-EOD-FILES_STAR1 : Verification de presence des  fichiers necessaires a la migration EOD/EOW/EOM DARWIN envoyes par ATLAS\n**Job 3-4-5** : 285-DARWIN-SYBASE-SAVE : Sauvegarder dans le **REPO **et non sur le serveur DARWIN\n**Job 6 **: 285-RESET-DARWIN-EOD-FILE-INITIAL-STAR1 : Suppression des fichiers envoyes par ATLAS pour la migration EOD/EOW/EOM DARWIN dans host/Host/initial",
-      "instruction_id": "DUM-6159-1",
-      "nominated_user": ""
+      "instruction_id": "DUM-6159-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BATCH ENGINEERING",
+      "instruction_title": "Procedure to follow in case of error:\n\nMessage to send to the SPOC_INTEGRATION and/or ATLAS team:\n\nIn the Control-M sysout, two scenarios may occur:\n\n**1st Case: Incorrect file size:**\n\nSysout:\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nCheck file size for FDWD.R699\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nTypically, the files /host/Host/Initial/FDWD.R699 and /host/Host/Initial/FDWD.R700 contain the complete performance history, and their size should be approximately:\n_- Verify that the file size of /host/Host/Initial/FDWD.R699 is > 200 MB\n- Verify that the file size of /host/Host/Initial/FDWD.R700 is > 500 MB\n\nAttach the sysout to the relevant teams.\n\nIn this cas please contact ATLAS TEAM to check provided files\n\n**For information:** On the ATLAS server, there is usually a version of the two files sent to ODS incrementally and another sent to Darwin in full.\n\n**2nd Case: Missing files:**\n\nIn this case, send the sysout containing the list of missing files to ATLAS Team. Once All the files are available in ATLAS repository, SPOC_EXPLOITATION and/or SPOC_INTEGRATION have to transfer these files again.\n\nOnce fixed, reRun the job and loop on this Step until it runs Sucessfully.",
       "associated_controls": "",
-      "instruction_title": "Procedure to follow in case of error:\n\nMessage to send to the SPOC_INTEGRATION and/or ATLAS team:\n\nIn the Control-M sysout, two scenarios may occur:\n\n**1st Case: Incorrect file size:**\n\nSysout:\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nCheck file size for FDWD.R699\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nTypically, the files /host/Host/Initial/FDWD.R699 and /host/Host/Initial/FDWD.R700 contain the complete performance history, and their size should be approximately:\n_- Verify that the file size of /host/Host/Initial/FDWD.R699 is \u003e 200 MB\n- Verify that the file size of /host/Host/Initial/FDWD.R700 is \u003e 500 MB\n\nAttach the sysout to the relevant teams.\n\nIn this cas please contact ATLAS TEAM to check provided files\n\n**For information:** On the ATLAS server, there is usually a version of the two files sent to ODS incrementally and another sent to Darwin in full.\n\n**2nd Case: Missing files:**\n\nIn this case, send the sysout containing the list of missing files to ATLAS Team. Once All the files are available in ATLAS repository, SPOC_EXPLOITATION and/or SPOC_INTEGRATION have to transfer these files again.\n\nOnce fixed, reRun the job and loop on this Step until it runs Sucessfully.",
-      "instruction_id": "DUM-6159-2",
-      "nominated_user": ""
+      "instruction_id": "DUM-6159-2"
     }
   ]
 }

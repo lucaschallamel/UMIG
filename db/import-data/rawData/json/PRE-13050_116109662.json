@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13050,
   "title": "EXPLOITATION - EOD OF Post Migration - BATCH PREPARATION",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M - EOD - PREPARATION : VERIFY THAT THE RIGHT PLAN HAS BEEN SCHEDULED :\n\nBatch Type: **EOD**\n\nBatch date: **01.09.2025**\n\nCheck to be done once the scheduled plan is confirmed : verify that it is the right plan. Vérification pour éviter que le mauvais plan soit monté et executé",
-      "instruction_id": "PRE-13050-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-13050-1"
     }
   ]
 }

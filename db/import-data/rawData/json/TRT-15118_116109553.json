@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15118,
-  "title": "RUN0",
+  "title": "TARIF - Check post load DES CODES POLITIQUES TARIFAIRES",
   "predecessor": "BUS-12650",
   "successor": "TRT-14979a",
   "primary_team": "TARIF",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check post load DES CODES POLITIQUES TARIFAIRES",
-      "instruction_id": "TRT-15118-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15118-1"
     }
   ]
 }

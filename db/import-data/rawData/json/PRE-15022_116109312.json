@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15022,
-  "title": "ATLAS - DEACTIVATE CLIENTS \u0026amp; ACCOUNTS ARCHIVING",
+  "title": "ATLAS - DEACTIVATE CLIENTS &amp; ACCOUNTS ARCHIVING",
   "predecessor": "PRE-721",
   "successor": "PRE-11871",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Put in Dummy mode the following jobs :\n\nCONTROL-M : EV3 (Prod Like)\nAPPLICATION : ATLAS\nSOUS-APPLICATION : N_CORE_BANKING\n\nCONTROL-M : EVX\nAPPLICATION : E3_ATLAS\nSOUS-APPLICATION : E3_CORE_BANKING\n\nJOB : P_SITUAM_1\nJOB : P_SITUAM_1_1\nJOB : P_SITUAM_1_2\nJOB : P_SITUAM_1_3\nJOB : P_SITUAM_2",
-      "instruction_id": "PRE-15022-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15022-1"
     }
   ]
 }

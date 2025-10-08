@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15220,
   "title": "KONDOR+ - Reconciliation K+ - CID",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Reconciliation K+ - CID",
-      "instruction_id": "CHK-15220-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15220-1"
     }
   ]
 }

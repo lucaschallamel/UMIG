@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12245,
-  "title": "RUN1",
+  "title": "DARWIN - CHANGE DB LOGIQUE DATE FOR PG ALIGNEMENT BEFORE EOD*2",
   "predecessor": "DUM-1685",
   "successor": "GON-1664",
   "primary_team": "DARWIN",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DARWIN",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mettre la date logique de la DB",
-      "instruction_id": "TRT-12245-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12245-1"
     }
   ]
 }

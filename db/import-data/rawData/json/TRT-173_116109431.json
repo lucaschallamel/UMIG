@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 173,
   "title": "ENGINE / ATLAS - Réactiver les triggers sur la table T_FU_COMPTE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Réactiver les triggers sur la table T_FU_COMPTE",
-      "instruction_id": "TRT-173-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-173-1"
     }
   ]
 }

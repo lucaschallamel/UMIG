@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13774,
   "title": "BUSINESS TO VALIDATE CONTROLS - (Client with Loans only)",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "VILLEMINEY Fr&eacute;d&eacute;ric",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Business to validate control C1017 - Client without assets",
-      "instruction_id": "BGO-13774-1",
-      "nominated_user": "VILLEMINEY Fr\u0026eacute;d\u0026eacute;ric"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-13774-1"
     }
   ]
 }

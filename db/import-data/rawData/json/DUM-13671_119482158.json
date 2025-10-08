@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 13671,
-  "title": "DBA - COPY FROM PROD TO RESTORE ON TEST-ENV FOR CLIENT MIGRATION \u0026amp; DUMP ENGINE",
+  "title": "DBA - COPY FROM PROD TO RESTORE ON TEST-ENV FOR CLIENT MIGRATION &amp; DUMP ENGINE",
   "predecessor": "DUM-13671",
   "successor": "DUM-13671",
   "primary_team": "DBA",
@@ -10,11 +10,11 @@
   "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
+      "instruction_title": "COPY FROM PROD TO RESTORE ON TEST-ENV FOR CLIENT MIGRATION & DUMP ENGINE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "COPY FROM PROD TO RESTORE ON TEST-ENV FOR CLIENT MIGRATION \u0026 DUMP ENGINE",
-      "instruction_id": "DUM-13671-1",
-      "nominated_user": ""
+      "instruction_id": "DUM-13671-1"
     }
   ]
 }

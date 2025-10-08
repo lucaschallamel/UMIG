@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 9309,
   "title": "BUSINESS CHECK - CHECK ACCOUNTING EOD*2",
@@ -6,169 +6,169 @@
   "successor": "IGO-9300",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Check Cash Accounting report :\n- Accounting balance sheet E01B",
-      "instruction_id": "BGO-9309-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Check Securities Accounting report :\n- Accounting balance sheet E155",
-      "instruction_id": "BGO-9309-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Check there is no accounting in date on 01\nIF KO, WE MUST REPLAY THE EOD*2",
-      "instruction_id": "BGO-9309-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Check Cas hAccounting report :\n- Rejects list E40C",
-      "instruction_id": "BGO-9309-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Check Securities Accounting report :\n- Rejects list E152",
-      "instruction_id": "BGO-9309-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C1440 - Fiduciary Deposits : Deal Transfers - without anomalies",
-      "instruction_id": "BGO-9309-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C1420 - Fiduciary Deposits : Deal Transfers - with other anomalies",
-      "instruction_id": "BGO-9309-7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C1400 - Fiduciary Deposits : Deal Transfers - with balance anomalies",
-      "instruction_id": "BGO-9309-8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6540 - Client Loans - deals transfers with other anomalies",
-      "instruction_id": "BGO-9309-9",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6520 - Client Loans - deals transfers without anomalies",
-      "instruction_id": "BGO-9309-10",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6480- Client Loans - deals transfers with balance anomalies",
-      "instruction_id": "BGO-9309-11",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6280 - Les comptes réconciliés sans différence de solde (Hors bilan)",
-      "instruction_id": "BGO-9309-12",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-12"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6260 - Les comptes réconciliés sans différence de solde (Au bilan)",
-      "instruction_id": "BGO-9309-13",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-13"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6141 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP)",
-      "instruction_id": "BGO-9309-14",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-14"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6121 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP)",
-      "instruction_id": "BGO-9309-15",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-15"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6140 - GL ACCOUNT / Les comptes réconciliés sans différence de solde Hors bilan",
-      "instruction_id": "BGO-9309-16",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-16"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6120 - GL ACCOUNT / Transfert without balance anomalie - Balance sheet accounts",
-      "instruction_id": "BGO-9309-17",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-17"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6100 - GL ACCOUNT / Transfert with balance anomalie - Off Balance sheet accounts",
-      "instruction_id": "BGO-9309-18",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-18"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6080 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts",
-      "instruction_id": "BGO-9309-19",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-19"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6580 - Forex Forwards - Deal transfers without anomalies",
-      "instruction_id": "BGO-9309-20",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-20"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6560 - Forex Forwards - Deal transfers with other anomalies",
-      "instruction_id": "BGO-9309-21",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-21"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "C6540 - Forex Forwards - Deal transfers with balance anomalies",
-      "instruction_id": "BGO-9309-22",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-9309-22"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "instruction_title": "C6005 - Comptes tiers UBP sans correspondance ex-VICTORIA qui ont bouge avant et apres l'EOD",
       "associated_controls": "",
-      "instruction_title": "C6005 - Comptes tiers UBP sans correspondance ex-VICTORIA qui ont bouge avant et apres l\u0027EOD",
-      "instruction_id": "BGO-9309-23",
-      "nominated_user": ""
+      "instruction_id": "BGO-9309-23"
     }
   ]
 }

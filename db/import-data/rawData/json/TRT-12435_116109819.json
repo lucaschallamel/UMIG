@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12435,
   "title": "ATLAS - Check calculated QI pools, Fatca statuses in Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check calculated QI pools and Fatca statuses in Atlas EV3 for TAX Team.\n/SECLI results (SGPBS pools/status, indicia) feed ATLAS - SGPBS pools and statuses in SECLI are fed into ATLAS/",
-      "instruction_id": "TRT-12435-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12435-1"
     }
   ]
 }

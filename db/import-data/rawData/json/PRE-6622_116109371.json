@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6622,
-  "title": "RUN1",
+  "title": "SYSPARAM - SPECIFIC TREATMENT BEFORE EOW - CTRL-M JOBS DEACTIVATION",
   "predecessor": "PRE-11315",
   "successor": "PRE-6627",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "Désactiver l'ensemble des jobs controlM de l'application SYSPARAM DU EOW EN DATE DU\n **29.08.2025**",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Désactiver l\u0027ensemble des jobs controlM de l\u0027application SYSPARAM DU EOW EN DATE DU\n **29.08.2025**",
-      "instruction_id": "PRE-6622-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-6622-1"
     }
   ]
 }

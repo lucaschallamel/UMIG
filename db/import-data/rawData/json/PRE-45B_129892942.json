@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": null,
   "title": "UNIX/DBA- SERVER BACKUPS PREPARATION",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "",
       "instruction_title": "Do Some Cleaning on BACKUP Repo (Confidential AND Secret) servers to adequately store the BACKUPS of the VICTORIA MIGRATION.\n\nProvide enough free disk space on relevant ENVIRONMENTS, according to the asset needs, as detailed here: [Backup topography and volume analysis](https://confluence.corp.ubp.ch/spaces/E0013782/pages/104670587/Backup+topography+and+volume+analysis)\n_- **For SECLI:** Cleanup the file system mounted in EV3 for SECLI backups (INTG_). Only keep backups from the last 2 RUNS/DRs",
-      "instruction_id": "PRE-45",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-45"
     }
   ]
 }

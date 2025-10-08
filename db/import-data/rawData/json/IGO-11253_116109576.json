@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11253,
-  "title": "RUN1",
+  "title": "DARWIN - SPECIFIC TREATMENT BEFORE EOD*2 (CHECK FICHIERS)",
   "predecessor": "PRE-2808",
   "successor": "DUM-15066",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Exécuter le job :\nGroup :              MIGRATION-CHECK\nApplication :   E3_DARWIN\nTABLE :              E3_T_DRW_CHECK_DARWIN\nJOB :                  E3_CHECK-EOD-FILES_STAR2",
-      "instruction_id": "IGO-11253-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11253-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IF Error Code is différent to 0:\nGive the sysout by email to TORONTOMigrationCoordinationand follow the errors to _IM_ATLAS.\nOnce corrections are done, relaunch the step 2 until success. Error Code  = 0",
-      "instruction_id": "IGO-11253-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-11253-2"
     }
   ]
 }

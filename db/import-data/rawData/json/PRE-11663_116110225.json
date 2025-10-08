@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11663,
   "title": "ATLAS - PROD ONLY - REACTIVER LA PURGE DES INSTRUMENTS",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "« remodifier » le JOB P_ARTITR afin de réactiver le programme P1515050 pour la purge des instruments.",
-      "instruction_id": "PRE-11663-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-11663-1"
     }
   ]
 }

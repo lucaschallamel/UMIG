@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 9364,
-  "title": "RUN1",
+  "title": "BUSINESS CHECKS - ATLAS EOD*2 VERIFICATION",
   "predecessor": "TRT-9358",
   "successor": "BGO-9372",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ATLAS EOD*2 VALIDATION AND MANUAL CORRECTIONS",
-      "instruction_id": "BGO-9364-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-9364-1"
     }
   ]
 }

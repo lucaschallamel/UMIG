@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 18004,
   "title": "Kondor+ - Extract data from K+ for Atlas reco",
@@ -6,57 +6,57 @@
   "successor": "TRT-18004",
   "primary_team": "KONDOR+",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GO - BUSSINESS DATA ENTRIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - BOE",
-      "instruction_id": "TRT-18004-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - Bonds",
-      "instruction_id": "TRT-18004-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - Cash Account Balance",
-      "instruction_id": "TRT-18004-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - FX Swap",
-      "instruction_id": "TRT-18004-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - IRS",
-      "instruction_id": "TRT-18004-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - Repo",
-      "instruction_id": "TRT-18004-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "",
       "instruction_title": "Extract Data and send Excel file to Atlas for Reconciliation - MM Bank",
-      "instruction_id": "TRT-18004-7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-18004-7"
     }
   ]
 }

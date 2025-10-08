@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15209,
   "title": "BUSINESS - Wealth Management Checks After Star1",
@@ -6,15 +6,15 @@
   "successor": "BGO-15209",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Please check the following Controls\n\nC6700 - Estimatif Client\nC6758 - Comparaison des performances \nC6755 - Estimatif Client - Comparaison des Nav Globales\nC6730 - Comparaison Nav Globale et Performance \n\nC6763: Securities by client :- Security transfers (all) with PMA = 0",
-      "instruction_id": "BGO-15209-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-15209-1"
     }
   ]
 }

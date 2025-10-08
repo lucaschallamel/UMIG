@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 11619,
   "title": "BUS - SPECIFIC TREATMENT - CHECKS DES MESSAGES RECU DIMANCHE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check messages sortis le dimanche",
-      "instruction_id": "BUS-11619-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-11619-1"
     }
   ]
 }

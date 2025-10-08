@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 4784,
-  "title": "CMS - LDN\u0026amp;JRS- DESISOLATION - PROD ONLY",
+  "title": "CMS - LDN&amp;JRS- DESISOLATION - PROD ONLY",
   "predecessor": "PRE-4784",
   "successor": "PRE-4784",
   "primary_team": "CMS",
@@ -10,18 +10,18 @@
   "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CMS Enable routine jobs\n\nNote: Isolation was performed in IP Task [PRE-13014](PRE-13014_116109855.html)",
-      "instruction_id": "PRE-4784-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-4784-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "- RESTART AUTMATIC CHECK ON JOB DURATION\n - RESTART STANDARD PROCECURE",
-      "instruction_id": "PRE-4784-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-4784-2"
     }
   ]
 }

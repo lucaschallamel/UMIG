@@ -145,11 +145,13 @@ CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
 **THEN**:
 
 - ✅ **applications_app.xlsx**: ≈150 application records created
-- ✅ **step_types_stt.xlsx**: ≈4 custom step types added (beyond MAN, AUT, VAL, DEC defaults)
-- ✅ **sequences_master_sqm.xlsx**: ≈40 base sequence records created with auto-generated `sqm_order`
+- ⚠️ **step_types_stt.xlsx**: 9 step types imported (TRT, CHK, IGO, BGO, DUM, SYS, GON, BUS, PRE) with color codes
+- ⚠️ **sequences_master_sqm.xlsx**: ≈40 base sequence records created with auto-generated `sqm_order`
 - ✅ **teams_tms.xlsx**: ≈30 team records created (lookup by `tms_name`, NOT tms_code)
 - ✅ **users_usr.xlsx**: ≈200 user records created with team associations
 - ✅ All records include audit trail fields populated correctly
+
+**Note**: ⚠️ indicates items requiring implementation (discovered 2025-10-08 during Phase 3 prep)
 
 **Team Lookup Logic** (CORRECTED):
 
@@ -426,11 +428,17 @@ WHERE usr.usr_code = 'ADM' AND sts.sts_name = 'PLANNING';
 
 **File Processing Order**:
 
-1. `applications_app.xlsx` (≈150 records, no dependencies)
-2. `step_types_stt.xlsx` (≈4 custom types beyond defaults)
-3. `sequences_master_sqm.xlsx` (≈40 records, depends on default plan)
-4. `teams_tms.xlsx` (≈30 records, lookup by tms_name)
-5. `users_usr.xlsx` (≈200 records, depends on roles, teams)
+1. ✅ `applications_app.xlsx` (≈150 records, no dependencies) - **COMPLETED**
+2. ⚠️ `step_types_stt.xlsx` (9 types: TRT, CHK, IGO, BGO, DUM, SYS, GON, BUS, PRE with colors) - **NEEDS IMPLEMENTATION**
+3. ⚠️ `sequences_master_sqm.xlsx` (≈40 records, depends on default plan) - **NEEDS IMPLEMENTATION**
+4. ✅ `teams_tms.xlsx` (≈30 records, lookup by tms_name) - **COMPLETED**
+5. ✅ `users_usr.xlsx` (≈200 records, depends on roles, teams) - **COMPLETED**
+
+**Phase 2 Status** (2025-10-08):
+
+- Items 1, 4, 5 completed successfully with 241/241 records imported
+- Items 2, 3 discovered missing during Phase 3 preparation
+- These must be completed before Phase 3 can proceed
 
 **Implementation Approach**:
 

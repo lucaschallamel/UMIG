@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11694,
   "title": "MIS - CTRL-M JOBS REACTIVATION",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "Réactiver L'ensemble des job du groupe/nœud \\\"\\\"MIS\\\"",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Réactiver L\u0027ensemble des job du groupe/nœud \\\"\\\"MIS\\\"",
-      "instruction_id": "PRE-11694-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-11694-1"
     }
   ]
 }

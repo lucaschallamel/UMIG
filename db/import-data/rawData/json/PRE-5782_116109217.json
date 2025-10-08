@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 5782,
-  "title": "ATLAS - OPERATIONS INPUT \u0026amp; VALIDATION - ONLY IF NO DATA INPUT (EMPTY BUSINESS DAY)",
+  "title": "ATLAS - OPERATIONS INPUT &amp; VALIDATION - ONLY IF NO DATA INPUT (EMPTY BUSINESS DAY)",
   "predecessor": "PRE-69",
   "successor": "DUM-13676",
   "primary_team": "IT_ENV",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Input Transactions VA & VC -> Done by QA",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Input Transactions VA \u0026 VC -\u003e Done by QA",
-      "instruction_id": "PRE-5782-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-5782-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Input Transaction SX3N -> Done by QA",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Input Transaction SX3N -\u003e Done by QA",
-      "instruction_id": "PRE-5782-2",
-      "nominated_user": ""
+      "instruction_id": "PRE-5782-2"
     }
   ]
 }

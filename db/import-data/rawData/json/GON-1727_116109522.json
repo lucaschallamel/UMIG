@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 1727,
-  "title": "RUN1",
+  "title": "KGR - TREATMENT",
   "predecessor": "TRT-1722",
   "successor": "GON-1732",
   "primary_team": "KONDOR+",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MGR TREATMENT :\nRéconciliation Kondor+ / KGR .\nVérification des limites pour la  Contrepartie SGPBCH",
-      "instruction_id": "GON-1727-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-1727-1"
     }
   ]
 }

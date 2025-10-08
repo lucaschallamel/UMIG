@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13483,
   "title": "ENGINE - INTEGRATE P0, P1 and P2 PARENT FILES FROM SG AND CREATE PARENT FPS + FPC FILES",
@@ -10,18 +10,18 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear ENGINE Team,\n\nPlease integrate the following  parent files :\n\nP0, P1 and P2 Files to be integrated (individu / intervenant data)",
-      "instruction_id": "TRT-13483-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13483-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Once all files processed, please proceed with a Backup a of all invariant files produced",
-      "instruction_id": "TRT-13483-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13483-2"
     }
   ]
 }

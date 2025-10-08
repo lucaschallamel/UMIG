@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 2113,
-  "title": "RUN0",
+  "title": "BUS - DARWIN DESISOLATION IN (INPUT)",
   "predecessor": "BUS-2108",
   "successor": "BUS-2118",
   "primary_team": "MIDDLEWARE",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GT - BUS DE-ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DESISOLATION DW\n\nSCRIPT :\nstep_50_atlas_dw_resume_messages.sh\nstep_65_dw_remove_isolation.sh",
-      "instruction_id": "BUS-2113-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-2113-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7267,
-  "title": "DOCUMENTUM - Stopper l\u0027import confidentiel des estimatifs SGPBS",
+  "title": "DOCUMENTUM - Stopper l'import confidentiel des estimatifs SGPBS",
   "predecessor": "TRT-7248",
   "successor": "TRT-12327",
   "primary_team": "DOCUMENTUM",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DOCUMENTUM",
+      "instruction_title": "Stopper l'import confidentiel des estimatifs SGPBS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Stopper l\u0027import confidentiel des estimatifs SGPBS",
-      "instruction_id": "TRT-7267-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-7267-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 13192,
-  "title": "RUN1",
+  "title": "DUMP BEFORE EOW",
   "predecessor": "IGO-6746",
   "successor": "DUM-14802",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Execute Phase : 060_BEFOREEOW\n\nPlease make sure all dumps are over before starting EOW batch",
-      "instruction_id": "DUM-13192-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-13192-1"
     }
   ]
 }

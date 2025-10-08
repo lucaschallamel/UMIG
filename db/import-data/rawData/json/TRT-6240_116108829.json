@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 6240,
   "title": "BASE TIERS PUBLIC - RAFRAICHISSEMENT BASE TIERS PUBLIC SUR ODR (BASE TIERS)",
@@ -10,32 +10,32 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RAFRAICHISSEMENT BASE TIERS SUR RACR",
-      "instruction_id": "TRT-6240-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6240-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "1.            Verify that the table (TIERS_PUBLIC.Tiers_extra_codification) is part of the REFRESH GROUP: TIERS_PUBLIC_FAST\n2.            Verify that the refresh group has been refreshed and the interval is correct.",
-      "instruction_id": "TRT-6240-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6240-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send confirmation to Secli Team when Task 1 and 2 are Done",
-      "instruction_id": "TRT-6240-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6240-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CHECK REFRESH OK",
-      "instruction_id": "TRT-6240-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-6240-4"
     }
   ]
 }

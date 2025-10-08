@@ -5,6 +5,7 @@ Scraped HTML files (1,177 files) serving as source for production data extractio
 ## Content
 
 HTML files containing structured production data exported from legacy system:
+
 - Application configurations and metadata
 - Sequence definitions with execution order
 - Team assignments and ownership
@@ -14,6 +15,7 @@ HTML files containing structured production data exported from legacy system:
 ## File Structure
 
 All HTML files follow consistent structure enabling automated extraction:
+
 - Structured tables with labeled data fields
 - Hierarchical relationships preserved in HTML structure
 - Metadata embedded in HTML attributes
@@ -21,11 +23,13 @@ All HTML files follow consistent structure enabling automated extraction:
 ## Processing
 
 ### Extraction Script
+
 - **Script**: `/db/import-data/scrape_data_batch_v4.ps1`
 - **Process**: Parses HTML → Extracts structured data → Generates Excel files
 - **Validation**: Quality checks during extraction with CSV reports
 
 ### Output
+
 - **Excel Files**: `/db/import-data/*.xlsx` (5 files)
 - **Quality Reports**: `/db/import-data/quality_report_*.csv`
 

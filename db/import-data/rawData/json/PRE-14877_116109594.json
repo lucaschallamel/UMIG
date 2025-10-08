@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14877,
   "title": "ATLAS - QSAM FILES TREATMENT FOR FIRE REPORTING",
@@ -6,64 +6,64 @@
   "successor": "PRE-14877",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "_For each saved after Star2 in IP Task [TRT-6254](TRT-6254_116109542.html), please do the Following Actions_\n\n_- Adapt the Tag of the backup to reflect Cutover date _\n\n_- Backup of the monthly file_\n_- Replacement of the monthly file by the EOD*2 file._",
-      "instruction_id": "PRE-14877-0",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 1: QSAM SECURITY FILE**\n\nMonthly file        : /files/data/PCR/ FCRK1/MENS.QSAM\n\nDaily file               : /files/data/PCR/FCRK1.QSAM\n\n\n\n\nCp /files/data/PCR/FCRK1/MENS.QSAM                   /files/data/PCR/FCRK1/MENS**_20250822**.QSAM\n\nCp /files/data/PCR/FCRK1.QSAM                              /files/data/PCR/FCRK1/FCRK1**FUSIONSTAR2**.QSAM       \n\nCp /files/data/PCR/FCRK1.QSAM                              /files/data/PCR/FCRK1/MENS.QSAM",
-      "instruction_id": "PRE-14877-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 2: QSAM FOREX FILE**\n\nMonthly file        : /files/data/P04/F04CMEN.QSAM\n\nDaily file               : /files/data/P04/F04C.QSAM\n\n\n\n\nCp /files/data/P04/F04CMEN.QSAM       /files/data/P04/F04CMEN**_20250822**.QSAM      \n\nCp /files/data/P04/F04C.QSAM                 /files/data/P04/F04C**FUSIONSTAR2**.QSAM         \n\nCp /files/data/P04/F04C.QSAM                 /files/data/P04/F04CMEN.QSAM",
-      "instruction_id": "PRE-14877-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 3: QSAM FUTURES FILE**\n\nMonthly file        : /files/data/PBC/FBCF2/MENS.QSAM\n\nDaily file               : /files/data/PBC/FBCF2.QSAM\n\n\n\n\nCp /files/data/PBC/FBCF2/MENS.QSAM                /files/data/PBC/FBCF2/MENS**_20250822**.QSAM\n\nCp /files/data/PBC/FBCF2.QSAM                              /files/data/PBC/FBCF2**FUSIONSTAR2**.QSAM      \n\nCp /files/data/PBC/FBCF2.QSAM                              /files/data/PBC/FBCF2/MENS.QSAM",
-      "instruction_id": "PRE-14877-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 4: QSAM OPTIONS FILE**\n\nMonthly file        : /files/data/PBC/FBCF3/MENS.QSAM\n\nDaily file               : /files/data/PBC/FBCF3.QSAM\n\n\n\n\nCp /files/data/PBC/FBCF3/MENS.QSAM                /files/data/PBC/FBCF3/MENS**_20250822**.QSAM\n\nCp /files/data/PBC/FBCF3.QSAM                              /files/data/PBC/FBCF3**FUSIONSTAR2**.QSAM      \n\nCp /files/data/PBC/FBCF3.QSAM                              /files/data/PBC/FBCF3/MENS.QSAM",
-      "instruction_id": "PRE-14877-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 5: QSAM PLACEMENT 48H FILE**\n\nMonthly file        : /files/data/PPL/FPLS/MENS.QSAM\n\nDaily file               : /files/data/PPL/FPLS.QSAM\n\n\n\n\nCp /files/data/PPL/FPLS/MENS.QSAM    /files/data/PPL/FPLS/MENS**_20250822**.QSAM   \n\nCp /files/data/PPL/FPLS.QSAM                  /files/data/PPL/FPLS**FUSIONSTAR2**.QSAM          \n\nCp /files/data/PPL/FPLS.QSAM                  /files/data/PPL/FPLS/MENS.QSAM",
-      "instruction_id": "PRE-14877-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 6: QSAM PLACEMENT FIXED TERM FILE**\n\nMonthly file        : /files/data/P25/F25BMENS.QSAM\n\nDaily file               : /files/data/P25/F25B.QSAM\n\n\n\n\nCp /files/data/P25/F25BMENS.QSAM     /files/data/P25/F25BMENS**_20250822**.QSAM    \n\nCp /files/data/P25/F25B.QSAM                 /files/data/P25/F25B**FUSIONSTAR2**.QSAM         \n\nCp /files/data/P25/F25B.QSAM                 /files/data/P25/F25BMENS.QSAM",
-      "instruction_id": "PRE-14877-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**STEP 7: QSAM MONEY MARKET FILE **\n\nMonthly file        : /files/data/P06/F06DMENS.QSAM\n\nDaily file               : /files/data/P06/F06D.QSAM\n\n\n\n\nCp /files/data/P06/F06DMENS.QSAM     /files/data/P06/F06DMENS**_20250822**.QSAM   \n\nCp /files/data/P06/F06D.QSAM                 /files/data/P06/F06D**FUSIONSTAR2**.QSAM        \n\nCp /files/data/P06/F06D.QSAM                 /files/data/P06/F06DMENS.QSAM\n\n\n\n\nMonthly file        : /files/data/PMK/FMKDMENS.QSAM\n\nDaily file               : /files/data/PMK/FMKD.QSAM\n\n\n\n\nCp /files/data/PMK/FMKDMENS.QSAM                /files/data/PMK/FMKDMENS**_20250822**.QSAM\n\nCp /files/data/PMK/FMKD.QSAM                             /files/data/PMK/FMKD**FUSIONSTAR2**.QSAM     \n\nCp /files/data/PMK/FMKD.QSAM                             /files/data/PMK/FMKDMENS.QSAM",
-      "instruction_id": "PRE-14877-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14877-7"
     }
   ]
 }

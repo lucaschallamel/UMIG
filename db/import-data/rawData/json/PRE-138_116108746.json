@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 138,
   "title": "EXPLOITATION - Schedule Ascension for Atlas Phases 0, 1 and 2",
@@ -6,15 +6,15 @@
   "successor": "TRT-15055",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Schedule Ascension for ATLAS :\n\nPHASE-0-REPRISE-CL-SECLI\nPHASE-1-DONNEES-STATIQUES\nPHASE-2.0-CONTROLES",
-      "instruction_id": "PRE-138-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-138-1"
     }
   ]
 }

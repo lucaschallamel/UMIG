@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13941,
   "title": "BUSINESS - CONTROLS RECONCILIATION INTEGRITY (ATLAS PART)",
@@ -6,15 +6,15 @@
   "successor": "BGO-13946",
   "primary_team": "IT_MGMT",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_MGMT",
+      "instruction_title": "Execute controls the below controls and send results to TORONTOMigrationCoordination:\n\nHigh Priority\nC1013 - Liste des dépositaires mappés non existant dans ATLAS \nK1011 - Liste des dépositaires en status Dummy \nK1006 - Nb multi-currency positions\nK1004 - Liste des instruments en position, absent du référentiel ATLAS\nK1003 - Liste des instruments en position, absent du référentiel TORONTO \nC1000 - Asset Repartition by client \nK1012 - Liste des comptes G Non mappés \nC1750B - Comparatif entre le fichier des estimatifs et fichier des positions des securities \nC1243B - Tech. pre-check, Integrity of all tables (Stat)\nC1243 - Tech. pre-check, Integrity of all tables \nC1099 - Assets received by company\nC1019 - Breakdown count of lines per received files \nC1018 - List of banks without assets\nC1017 - List of customers migrated without any assets \nC1012 - Liste des comptes de migration à créer obligatoirement \nC1008 - List of duplicate cash positions received \nC1005A - List of duplicate keys (Client + Cash Account) in TORONTO files  \nC1004 A - Details of customers closed with Asset \nC1006 A - Asset Repartition by currency\n\nLow Priority\nC1006 - Asset Repartition\nK1001 - Nb clients multi-portefeuilles \nC1750 - Comparatif entre le fichier des estimatifs et tous les autres fichiers\nC1004 - Customer Scope Analysis (Secli Only) \nC1004 - Customer scope analysis with asset details \nC1004 - Customer Scope Analysis\nC1003 - Detail of Dummies in DICO tables \nC1002 - Dummies account in DICO tables\nC1001 - File volume check before engine integration \nC1021 - List of Client detailled by Asset Manager \nC1020 - List of Asset Manager with & without CLients \nC1099 - Asset Repartition not identified / not mapped",
       "associated_controls": "",
-      "instruction_title": "Execute controls the below controls and send results to TORONTOMigrationCoordination:\n\nHigh Priority\nC1013 - Liste des dépositaires mappés non existant dans ATLAS \nK1011 - Liste des dépositaires en status Dummy \nK1006 - Nb multi-currency positions\nK1004 - Liste des instruments en position, absent du référentiel ATLAS\nK1003 - Liste des instruments en position, absent du référentiel TORONTO \nC1000 - Asset Repartition by client \nK1012 - Liste des comptes G Non mappés \nC1750B - Comparatif entre le fichier des estimatifs et fichier des positions des securities \nC1243B - Tech. pre-check, Integrity of all tables (Stat)\nC1243 - Tech. pre-check, Integrity of all tables \nC1099 - Assets received by company\nC1019 - Breakdown count of lines per received files \nC1018 - List of banks without assets\nC1017 - List of customers migrated without any assets \nC1012 - Liste des comptes de migration à créer obligatoirement \nC1008 - List of duplicate cash positions received \nC1005A - List of duplicate keys (Client + Cash Account) in TORONTO files  \nC1004 A - Details of customers closed with Asset \nC1006 A - Asset Repartition by currency\n\nLow Priority\nC1006 - Asset Repartition\nK1001 - Nb clients multi-portefeuilles \nC1750 - Comparatif entre le fichier des estimatifs et tous les autres fichiers\nC1004 - Customer Scope Analysis (Secli Only) \nC1004 - Customer scope analysis with asset details \nC1004 - Customer Scope Analysis\nC1003 - Detail of Dummies in DICO tables \nC1002 - Dummies account in DICO tables\nC1001 - File volume check before engine integration \nC1021 - List of Client detailled by Asset Manager \nC1020 - List of Asset Manager with \u0026 without CLients \nC1099 - Asset Repartition not identified / not mapped",
-      "instruction_id": "BGO-13941-1",
-      "nominated_user": ""
+      "instruction_id": "BGO-13941-1"
     }
   ]
 }

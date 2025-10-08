@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11854,
   "title": "SECLI  - CONFIRM CLIENTS OPENING DATE IS DIFFERENT FOR EACH CLIENT, ACCORDING TO HISTORICAL DATA",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "As it is a shared deal, SECLI “confirm that the opening date is different for each client, according to their historical client opening data”.",
-      "instruction_id": "TRT-11854-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11854-1"
     }
   ]
 }

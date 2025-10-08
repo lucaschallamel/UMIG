@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15125,
   "title": "IMTF - Integration of associated risks and Manual Risks Level",
@@ -10,11 +10,11 @@
   "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IMTF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Integration of associated risks and Manual Risks Level",
-      "instruction_id": "BGO-15125-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15125-1"
     }
   ]
 }

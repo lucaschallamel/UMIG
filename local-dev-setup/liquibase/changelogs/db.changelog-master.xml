@@ -40,6 +40,11 @@
     <include file="033_td015_consolidate_canonical_email_templates.sql" relativeToChangelogFile="true"/>
     <include file="034_td015_simplify_email_templates.sql" relativeToChangelogFile="true"/>
     <include file="035_us098_phase4_batch1_revised.sql" relativeToChangelogFile="true"/>
+    <include file="036-td-103-performance-optimization-pre-import.sql" relativeToChangelogFile="true"/>
+    <include file="037-us104-phase1-bootstrap-data.sql" relativeToChangelogFile="true"/>
+    <include file="038-us104-phase2-unique-indexes.sql" relativeToChangelogFile="true"/>
+    <include file="039-us104-phase2-remove-email-unique-constraint.sql" relativeToChangelogFile="true"/>
+    <include file="040-us104-phase2-unique-sequence-names.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

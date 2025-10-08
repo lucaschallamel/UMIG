@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 16001,
   "title": "SG UK - Provide Business KPIs",
@@ -10,11 +10,11 @@
   "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SG UK",
-      "associated_controls": "",
       "instruction_title": "SG UK - Provide Business KPIs",
-      "instruction_id": "CHK-16001-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-16001-1"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14458,
-  "title": "RUN0",
+  "title": "SECLI LDN&amp;JRS - DE-ISOLATION - PROD LIKE",
   "predecessor": "PRE-14458",
   "successor": "PRE-14458",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please set the SECLI EV3 users in normal mode (remove read only mode)",
-      "instruction_id": "PRE-14458-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14458-1"
     }
   ]
 }

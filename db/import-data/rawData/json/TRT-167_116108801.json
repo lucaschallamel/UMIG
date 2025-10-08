@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 167,
   "title": "ENGINE - Step 10 -  CLIENT ACCOUNT PROCESSING",
@@ -6,92 +6,92 @@
   "successor": "BGO-14893",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GH - ATLAS PHASE 4.1 - ACCOUNT CREATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_FUSION_0110_ACCOUNT_STATIC",
-      "instruction_id": "TRT-167-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C4254_POTFOLIO_WITHOUT_CASH_ACCOUNT",
-      "instruction_id": "TRT-167-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "MAIL_C4254_POTFOLIO_WITHOUT_CASH_ACCOUNT",
-      "instruction_id": "TRT-167-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CREATE_INVARIANT_ACCOUNT_NUMBER",
-      "instruction_id": "TRT-167-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_ATLAS_0000_TRIG_T_FU_COMPTE",
-      "instruction_id": "TRT-167-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "UPLOAD_FTC_MOTEUR_ATLAS_0000_T_FU_ACCOUNT",
-      "instruction_id": "TRT-167-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_ATLAS_0000_TRIG_T_FU_COMPTE_ENABLE",
-      "instruction_id": "TRT-167-7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "SQL_MOTEUR_ATLAS_0000_UPD_T_FU_COMPTE",
-      "instruction_id": "TRT-167-8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_T_CLIENT_NAME",
-      "instruction_id": "TRT-167-9",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0089_ACCOUNTS_FACCR1",
-      "instruction_id": "TRT-167-10",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0089_ACCOUNTS_FACCR1",
-      "instruction_id": "TRT-167-11",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "BREAKPOINT_WAIT_FOR_ATLAS_FINISH_AND_CREATE_FILE_OF_CORRESPONDANCE_ACCOUNT_FACCR3",
-      "instruction_id": "TRT-167-12",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-167-12"
     }
   ]
 }

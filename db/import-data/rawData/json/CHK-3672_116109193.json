@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 3672,
-  "title": "RUN1",
+  "title": "ENGINE - Step 05 - RECONCILIATION INTEGRITY 2 PART 1 - SECLI MAPPING TABLE",
   "predecessor": "PRE-3637",
   "successor": "CHK-3681",
   "primary_team": "ENGINE COMMON",
@@ -10,46 +10,46 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_1_ATLAS_FU_CLIENT",
-      "instruction_id": "CHK-3672-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3672-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "FTP_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-3672-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3672-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-3672-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3672-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXCEL_C2140_SECLI_REPORT_COMPARE_ETAT",
-      "instruction_id": "CHK-3672-4",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "MAIL_C2140_SECLI_REPORT_COMPARE_ETAT",
-      "instruction_id": "CHK-3672-5",
-      "nominated_user": ""
+      "instruction_id": "CHK-3672-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ C2140 ](#)",
+      "instruction_title": "MAIL_C2140_SECLI_REPORT_COMPARE_ETAT",
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3672-5"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
       "instruction_title": "Please verify control result for C2140 and email conclusion to IT_CUTOVER.",
-      "instruction_id": "CHK-3672-6",
-      "nominated_user": ""
+      "associated_controls": "[ C2140 ](#)",
+      "instruction_id": "CHK-3672-6"
     }
   ]
 }

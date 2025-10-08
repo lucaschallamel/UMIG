@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 12841,
-  "title": "PROD LIKE ENVIRONMENT - TARIF - DUMP \u0026amp; REFRESH FROM LAST FRODUCTION DUMP BEFORE MIGRATION",
+  "title": "PROD LIKE ENVIRONMENT - TARIF - DUMP &amp; REFRESH FROM LAST FRODUCTION DUMP BEFORE MIGRATION",
   "predecessor": "TRT-11394",
   "successor": "IGO-839",
   "primary_team": "",
@@ -10,18 +10,18 @@
   "time_sequence": "",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "In the phase : 02_SECLIPREMIG\nTag : SILVER_RUN2_DDMMYY_SECLIPREMIG",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Mail to  SPOC_EXPLOITATION\nCC: SPOC_INTEGRATION\nSPOC_DBA\nIT ENVIRONMENT MGT  GO FOR DUM-12841 - STEP - IT_ENV - TARIF  - DUMP & REFRESH FROM LAST PRD DUMP BEFORE MIGRATION ON EV4",
       "associated_controls": "",
-      "instruction_title": "Mail to  SPOC_EXPLOITATION\nCC: SPOC_INTEGRATION\nSPOC_DBA\nIT ENVIRONMENT MGT  GO FOR DUM-12841 - STEP - IT_ENV - TARIF  - DUMP \u0026 REFRESH FROM LAST PRD DUMP BEFORE MIGRATION ON EV4",
-      "instruction_id": "2",
-      "nominated_user": "-"
+      "instruction_id": "2"
     }
   ]
 }

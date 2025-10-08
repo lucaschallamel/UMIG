@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 11375,
-  "title": "RUN0",
+  "title": "BUSINESS - CHECKS CMS",
   "predecessor": "DUM-4686",
   "successor": "BGO-13020",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EA - MONDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BUSINESS CHECKS ON CMS AFTER DATA INTEGRATION",
-      "instruction_id": "BGO-11375-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-11375-1"
     }
   ]
 }

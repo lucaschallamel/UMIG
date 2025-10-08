@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14199,
   "title": "EXPLOITATION - EOD*1 STATEMENTS GENERATION",
@@ -10,18 +10,18 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "E_**x**__57-PH5.3_SAVE_ESTIMATIF",
-      "instruction_id": "TRT-14199-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-14199-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Provide number of client statements generated",
-      "instruction_id": "TRT-14199-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-14199-2"
     }
   ]
 }

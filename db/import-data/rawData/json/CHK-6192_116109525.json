@@ -1,188 +1,188 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 6192,
-  "title": "RUN0",
+  "title": "ATLAS - CONTROLS EOS EXTRACTIONS",
   "predecessor": "TRT-14374",
   "successor": "IGO-14189",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0060: \\\"E35I\\\" : Placements by issuer",
-      "instruction_id": "CHK-6192-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0070: \\\"EW29\\\" : APTF with subtotals by currency",
-      "instruction_id": "CHK-6192-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0210: \\\"EYY4\\\" : Term deposits by currency to deliver",
-      "instruction_id": "CHK-6192-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0680: EFUA : Liste des placements repris",
-      "instruction_id": "CHK-6192-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0740: EFUC : Reprise soldes C/C LUX - Opérations acceptées",
-      "instruction_id": "CHK-6192-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0800: EFUJ : Journal des émissions de placement par succursale émettrice",
-      "instruction_id": "CHK-6192-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0820: EFUK : Journal des émissions de placement par succursale cédante",
-      "instruction_id": "CHK-6192-7",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0982: EFVD : Etat des instructions crédits reprises",
-      "instruction_id": "CHK-6192-8",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0986: EFV9 : Liste des comptes G dont solde # zero",
-      "instruction_id": "CHK-6192-9",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0990: EFV1 : liste des positions titres des clients",
-      "instruction_id": "CHK-6192-10",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C0992: EFVA : Etat des positions titres différentes de zéro",
-      "instruction_id": "CHK-6192-11",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1040: E41G / E41K : mouvements sur comptes courant, daily / weekly",
-      "instruction_id": "CHK-6192-12",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-12"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1042: EYY6 / EYY7 : Listes échéances FX",
-      "instruction_id": "CHK-6192-13",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-13"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1044: E54Q : comptes débiteurs sans acte de nantissement",
-      "instruction_id": "CHK-6192-14",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-14"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1046: EB31 / EB32 / EB09 : Listes sur les placements",
-      "instruction_id": "CHK-6192-15",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-15"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1048: E50Q : depassement crédit",
-      "instruction_id": "CHK-6192-16",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-16"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1050: EJ09 : Performances en anomalie",
-      "instruction_id": "CHK-6192-17",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-17"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1052: E51Q / E52Q / E53Q : Listes de dépassement de crédit",
-      "instruction_id": "CHK-6192-18",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-18"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1056: EJ15 : Liste des comptes courants ouverts automatiquement",
-      "instruction_id": "CHK-6192-19",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-19"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1058: E04Z : Liste des operations de caisses / achat - vente de billets",
-      "instruction_id": "CHK-6192-20",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-20"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C1060: EH99 : Taxe EU ATLAS integrity check",
-      "instruction_id": "CHK-6192-21",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-21"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Etat E35I Position des dépôts par société émettrice",
-      "instruction_id": "CHK-6192-22",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-22"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Etat E36C Commissions courues pour Placements fiduciaires",
-      "instruction_id": "CHK-6192-23",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-23"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "EJ08  « Liste des performances qui ont bougé de plus de 5% »",
-      "instruction_id": "CHK-6192-24",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-24"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "C2440: Client statements printing (10 clients by RM to be defined) to validate :\n\n- asset amounts, performances, PMA",
-      "instruction_id": "CHK-6192-25",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-6192-25"
     }
   ]
 }

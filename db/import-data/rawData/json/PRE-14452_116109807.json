@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14452,
-  "title": "EXTRACTION \u0026quot;521\u0026quot; for CH Regulatory Reporting",
+  "title": "EXTRACTION &quot;521&quot; for CH Regulatory Reporting",
   "predecessor": "PRE-14452",
   "successor": "PRE-14452",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,18 +10,18 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Run an “521-BANK” extraction on EV1 with the following jobs:\nSB_CHBM2.ksh\nSB_CH002.ksh\nSB_CHFTP.ksh",
-      "instruction_id": "PRE-14452-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14452-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "At end of ATLAS extraction, please run job « FIRE-CH_GVA-ONCONFIRM ».",
-      "instruction_id": "PRE-14452-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14452-2"
     }
   ]
 }

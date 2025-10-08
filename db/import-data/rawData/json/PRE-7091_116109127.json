@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7091,
-  "title": "SECLI LDN\u0026amp;JRS - STOP IMPERVA AGENT ON SECLI  Prod Like Environment",
+  "title": "SECLI LDN&amp;JRS - STOP IMPERVA AGENT ON SECLI  Prod Like Environment",
   "predecessor": "IGO-3567",
   "successor": "PRE-3602",
   "primary_team": "UNIX",
@@ -10,11 +10,11 @@
   "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UNIX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN/DR : Run [root]# systemctl stop rainit.service on lxvjrssecev403s, lxvldnsecev403\n\n\n\n\nPRD : Run [root]# systemctl stop rainit.service on lxvjrssecev303s, lxvldnsecev303s",
-      "instruction_id": "PRE-7091-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-7091-1"
     }
   ]
 }

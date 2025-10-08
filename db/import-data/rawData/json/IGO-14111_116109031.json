@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14111,
   "title": "ATLAS - CONTROLS AFTER EOD*1",
@@ -6,15 +6,15 @@
   "successor": "IGO-14111",
   "primary_team": "CONTROLS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CONTROLS",
-      "associated_controls": "",
       "instruction_title": "Controles to be performed:\n\n\n\nC6940: Liste des positions par valeur sans différence \nC1880 - Liste des positions par dépositaire UBP \nC1840 - Etat Securities by Depo without anomalies \nC6960 - Liste des positions par client\nC6780 - Etat des Securities by client - transfers without anomalies \nC6820 - Etat des Securities by Depo. with anomalies \nC6762 - Etat des Securities by client - transfers with anomalies \nC6940 -  Liste des positions par valeur  \nC6882 - Table de mapping des dépositaires FU vers UBP \nC6881 - Liste des positions par dépositaire FU\nC6761 - Securities by client : Securities transfert with differences\nC6760 - Securities by client : Securities transfert with differences\n\nC6763: Securities by client :- Security transfers (all) with PMA = 0",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

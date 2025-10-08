@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15176,
   "title": "SECLI CH/GVA - DUMP - AFTER PERSONS INTEGRATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following instructions for \n\n**\n_Phase ID:_ 100\n****_Phase name:_ AFTER_PERSONS_INTG**\n\n**CONFIRM **Groupe **100_AFTER_PERSONS****_INTG_AAA_REFRESH_SYBASE_EV7**\n\n**CONFIRM **Sub-groupe **100_AFTER_PERSONS_INTG_AAA_REFRESH_SYBASE_SECLI_EV7**\n\n**CONFIRM **Groupe **101_AFTER_PERSONS_INTG_AAA_REFRESH_SYBASE_EV7**\n\n**CONFIRM **Sub-groupe **101_AFTER_PERSONS_INTG****_AAA_REFRESH_SYBASE_SECLI_EV7**",
-      "instruction_id": "DUM-15176-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-15176-1"
     }
   ]
 }

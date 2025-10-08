@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 6765,
   "title": "BUS - ATLAS ISOLATION FTP",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_MIDDLEWARE",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Suspendre les abonnements FTP vers ATLAS",
-      "instruction_id": "BUS-6765-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BUS-6765-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13340,
   "title": "SECLI - UK - TEST-ENV PREPARATION",
@@ -10,11 +10,11 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Sur machine UNIX SECLI, login UNIX SECLI :\n1- Créer les répertoires:\nmkdir $DATA/crendu\n2- Vider les tables de stagging SECLI\n3- Purger les logs et les tracking files\n4- Déploiement des scripts",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

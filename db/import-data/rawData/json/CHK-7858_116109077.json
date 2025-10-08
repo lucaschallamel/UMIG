@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 7858,
   "title": "SECLI SWITZERLAND / ZURICH - CLIENT CHECKS EXTRACTION",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Génération  DES LISTES DE CONTROL - Zurich",
-      "instruction_id": "CHK-7858-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-7858-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "ENVOI DES LISTES DE CONTROL AU BUSINESS",
-      "instruction_id": "CHK-7858-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-7858-2"
     }
   ]
 }

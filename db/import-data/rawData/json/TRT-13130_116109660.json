@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13130,
   "title": "EXPLOITATION - POSITIONS AND CONTRACTS LOADING in PMS",
@@ -6,22 +6,22 @@
   "successor": "TRT-13130",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Load : E3_PHASE-6.3-PMS-STAR2\n\n**Execute**  E3_PHASE-6.3-PMS-STAR2",
-      "instruction_id": "TRT-13130-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-13130-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "Confirm the following:\n\nE3_T001-PMS-PMS-R042_S2\n\nPMS-ON-DEMAND-INIT-OVERNIGHT-POS\n\n\n\n\nE3_T001-PMS-AAA-R001_S2\n\nE3_T001-PMS-02-AIGUILLAGE_S2",
-      "instruction_id": "TRT-13130-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-13130-2"
     }
   ]
 }

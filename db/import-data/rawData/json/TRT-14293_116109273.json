@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14293,
-  "title": "RUN1",
+  "title": "IT TAX - LAUNCH FORCING SCRIPTS IN SECLI FOR TAX ENGINES (QI, FATCA, CRS) - To be done AFTER Data migrated to BTPub",
   "predecessor": "PRE-13219",
   "successor": "PRE-13197",
   "primary_team": "SECLI",
   "impacted_teams": "",
   "macro_time_sequence": "",
-  "time_sequence": "WEEK 1-\u0026gt;2",
+  "time_sequence": "WEEK 1-&gt;2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI team launches the forcing script in SECLI to overwrite the SGPBCH pools calculated by the engine.",
-      "instruction_id": "TRT-14293-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14293-1"
     }
   ]
 }

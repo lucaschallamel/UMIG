@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 184,
   "title": "ATLAS - PHASE 4.1 - ACCOUNT STATIC DATA INTEGRATION",
@@ -6,50 +6,50 @@
   "successor": "CHK-186",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GH - ATLAS PHASE 4.1 - ACCOUNT CREATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Check CONTROL-M FILE :\n/home/ctmhost/load_date_ctm.ksh",
-      "instruction_id": "TRT-184-1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "10-PH4 : \nJOB : /prod/script/job/FU_INITPH4.ksh\nFILES :\nFACCR3ALL.QSAM\nFPTFR2ALL.QSAM",
-      "instruction_id": "TRT-184-2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "11-PH4 : \nInput file: FACCC4.QSAM\nJOB : /prod/script/job/FU_ACCC5.ksh\nPARM  : /prod/script/parm/SQL0008\nREPORT FILE : /files/data/PFU/RES.SQL0008.QSAM",
-      "instruction_id": "TRT-184-3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-3"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "12-PH4 : \nInput file: FACCC4.QSAM\nJOB : /prod/script/job/FU_ACCC3.ksh\nREPORT FILE : EFUF",
-      "instruction_id": "TRT-184-4",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-4"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "13-PH4 : \nJOB : /prod/script/job/FU_ACCR6.ksh\nINPUT FILE : /files/data/PFU/FACCR1.QSAM\nREPORT : EFU9",
-      "instruction_id": "TRT-184-5",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-5"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "14-PH4 : \nJOB : /prod/script/job/FU_ACCX1.ksh\nOUTPUT FILE : FACCX1.QSAM, FACCX2.QSAM",
-      "instruction_id": "TRT-184-6",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "TRT-184-6"
     }
   ]
 }

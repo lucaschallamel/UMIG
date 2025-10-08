@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11569,
   "title": "ODR - ALIMENTATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXECUTION CONTROL-M PLAN FOR INPUT RACR INFORMATION FROM ODS, ODSPOS, ODS-CRO, SYSPARAM-O, CID-R\n\nAPPLICATION : REFRESH-VM",
-      "instruction_id": "TRT-11569-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11569-1"
     }
   ]
 }

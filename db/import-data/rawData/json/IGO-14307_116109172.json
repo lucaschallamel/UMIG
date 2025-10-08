@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14307,
   "title": "PMS - TO VALIDATE IT CONTROL - (C9047    - Breakdown count of clients per Portfolio Manager)",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PMS  (Philippe SENELAS, [philippe.senelas@ubp.ch](mailto:philippe.senelas@ubp.ch))  to Validate control results : \nC9047- Breakdown count of clients per Relationship Manager\nControl is automatically produced by ENGINE",
-      "instruction_id": "IGO-14307-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-14307-1"
     }
   ]
 }

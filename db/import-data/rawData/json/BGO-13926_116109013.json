@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 13926,
   "title": "ATLAS - CONTROLS ENGINE RECONCILIATION BEFO",
@@ -10,25 +10,25 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ C5540 ](#) \n\n [ C5560 ](#) \n\n [ C5580 ](#)",
       "instruction_title": "Execute controls the below controls and send results to SGPBCHMigrationCoordination:\n\nC5540 Forex Forwards : - Deal transfers with balance anomalies. SGU\nC5560 Forex Forwards : - Deal transfers with other anomalies. SGU\nC5580 Forex Forwards : - Deal transfers without anomalies. SGU",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "[ C5540 ](#) \n\n [ C5560 ](#) \n\n [ C5580 ](#)",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ C5007 ](#)",
       "instruction_title": "Execute controls the below controls and send results to SGPBCHMigrationCoordination:\n\nC6007 List of UBP current accounts issued of the SGPBCH migration",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "associated_controls": "[ C5007 ](#)",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ C5100 ](#)",
       "instruction_title": "Execute controls the below controls and send results to SGPBCHMigrationCoordination:\n\nC5100 List of blocked positions",
-      "instruction_id": "3",
-      "nominated_user": ""
+      "associated_controls": "[ C5100 ](#)",
+      "instruction_id": "3"
     }
   ]
 }

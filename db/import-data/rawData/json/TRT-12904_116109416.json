@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12904,
-  "title": "RUN1",
+  "title": "ATLAS - PH0 - DAILY CLIENTS ACCOUNTS CHECKS AND G ACCOUNTS",
   "predecessor": "CHK-15156",
   "successor": "CHK-15158",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "**PH0 - DAILY CLIENTS ACCOUNTS CHECKS AND G ACCOUNTS (between Static data migration and P&C)**\n01 - PH0-FU_ACCC5 / IM : FACCC4.QSAM / Etat : EFV9\n01 - PH0-FU_ACCC3 / IM : FACCC4.QSAM / Etat : EFUF\n01 - PH0-FU_ACCR6 / IM : FACCR1.QSAM / Etat : EFU9\n\nEvery day of the next week for automatic execution at 8:00 AM",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "**PH0 - DAILY CLIENTS ACCOUNTS CHECKS AND G ACCOUNTS (between Static data migration and P\u0026C)**\n01 - PH0-FU_ACCC5 / IM : FACCC4.QSAM / Etat : EFV9\n01 - PH0-FU_ACCC3 / IM : FACCC4.QSAM / Etat : EFUF\n01 - PH0-FU_ACCR6 / IM : FACCR1.QSAM / Etat : EFU9\n\nEvery day of the next week for automatic execution at 8:00 AM",
-      "instruction_id": "TRT-12904-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-12904-1"
     }
   ]
 }

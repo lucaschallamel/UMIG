@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15192,
   "title": "ATLAS  - Confirm reception of 100 Clients in each companies by Atlas - PROD like Environment",
@@ -10,32 +10,32 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you've received the 100 first Tiers for company 302 on PROD LIKE environement",
       "associated_controls": "",
-      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received the 100 first Tiers for company 302 on PROD LIKE environement",
-      "instruction_id": "CHK-15192-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-15192-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 first Tiers for company 303 on PROD LIKE environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 first Tiers for company 303 on PROD LIKE environement",
-      "instruction_id": "CHK-15192-2",
-      "nominated_user": ""
+      "instruction_id": "CHK-15192-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 first Tiers for company 304 on PROD LIKE environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 first Tiers for company 304 on PROD LIKE environement",
-      "instruction_id": "CHK-15192-3",
-      "nominated_user": ""
+      "instruction_id": "CHK-15192-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 first Tiers for company 305 on PROD LIKE environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 first Tiers for company 305 on PROD LIKE environement",
-      "instruction_id": "CHK-15192-4",
-      "nominated_user": ""
+      "instruction_id": "CHK-15192-4"
     }
   ]
 }

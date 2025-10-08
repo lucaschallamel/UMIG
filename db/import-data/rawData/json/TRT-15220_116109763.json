@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15220,
   "title": "ATLAS - Send ACCU/DECCU file from MUREX to ENGINE",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send ACCU/DECCU file (ExportMappingMaster.xlsx) from MUREX to ENGINE",
-      "instruction_id": "TRT-15220-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15220-1"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "If the file from MUREX is not received before FFUTR1 creation by ENGINE, this task can be done after Star1 and the task [TRT-13099](TRT-13099_116108887.html) and will require a rerun of ENGINE step FFUTR1 creation ([TRT-6021](TRT-6021_116108828.html)).",
-      "instruction_id": "TRT-15220-2",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15220-2"
     }
   ]
 }

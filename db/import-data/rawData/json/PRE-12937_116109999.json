@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 12937,
-  "title": "PREPARATION - PURGE LOGS, TRACKING FILES \u0026amp; SCRIPT DEPLOYMENT ON TEST-ENV",
+  "title": "PREPARATION - PURGE LOGS, TRACKING FILES &amp; SCRIPT DEPLOYMENT ON TEST-ENV",
   "predecessor": "PRE-12937",
   "successor": "PRE-12937",
   "primary_team": "SECLI",
@@ -10,18 +10,18 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Purge logs and tracking files",
-      "instruction_id": "PRE-12937-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-12937-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Scripts Deployment",
-      "instruction_id": "PRE-12937-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-12937-2"
     }
   ]
 }

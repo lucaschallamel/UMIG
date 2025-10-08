@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15221,
   "title": "BUSINESS - Start of cleaning and preparation of Prod Like environment",
@@ -10,11 +10,11 @@
   "time_sequence": "EA - MONDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Start of cleaning and preparation of Prod Like environment - Accounting Cleansing",
-      "instruction_id": "BGO-15221-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15221-1"
     }
   ]
 }

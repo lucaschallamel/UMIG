@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14643,
   "title": "ENGINE - BACKUP THE COUNTER OF ID_INVARIANT FILES - FROM THE LAST RUN",
@@ -10,11 +10,11 @@
   "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please proceed with a backup of all Invariant files:\n\nINTERVENANTS\nINDIVIDUS\nROOT_ID\nCONTAINERS\nPERS_ID",
-      "instruction_id": "TRT-14643-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14643-1"
     }
   ]
 }

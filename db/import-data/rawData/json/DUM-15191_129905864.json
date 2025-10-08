@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 15191,
-  "title": "RUN0",
+  "title": "MUREX - Murex Refresh",
   "predecessor": "DUM-15191",
   "successor": "DUM-15191",
   "primary_team": "MUREX",
@@ -10,25 +10,25 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "EKMEKCI Alper",
       "instruction_assigned_team": "MUREX",
-      "associated_controls": "",
       "instruction_title": "Shut down Murex Application",
-      "instruction_id": "DUM-15191-1",
-      "nominated_user": "EKMEKCI Alper"
+      "associated_controls": "",
+      "instruction_id": "DUM-15191-1"
     },
     {
+      "nominated_user": "HARY Jean-Marcel",
       "instruction_assigned_team": "DBA",
-      "associated_controls": "",
       "instruction_title": "Refresh Murex Database",
-      "instruction_id": "DUM-15191-2",
-      "nominated_user": "HARY Jean-Marcel"
+      "associated_controls": "",
+      "instruction_id": "DUM-15191-2"
     },
     {
+      "nominated_user": "EKMEKCI Alper",
       "instruction_assigned_team": "MUREX",
-      "associated_controls": "",
       "instruction_title": "Configure and Restart Murex",
-      "instruction_id": "DUM-15191-2",
-      "nominated_user": "EKMEKCI Alper"
+      "associated_controls": "",
+      "instruction_id": "DUM-15191-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 3681,
   "title": "ENGINE - Step 05 - RECONCILIATION INTEGRITY 2 PART 2 - CLIENT MAPPING TABLE CHECKS BEFORE ATLAS CLIENT INTEGRATION",
@@ -10,60 +10,60 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_FTC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-3681-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPLOAD_FTC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-3681-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SQL_MOTEUR_ATLAS_0000_UPD_T_FU_CLIENT",
-      "instruction_id": "CHK-3681-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_T_CLIENT",
-      "instruction_id": "CHK-3681-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_BEFORE_INSERT",
-      "instruction_id": "CHK-3681-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXCEL_C2255_ATLAS_CLIENT_BEFORE_INTEGRATION",
-      "instruction_id": "CHK-3681-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MAIL_C2255_ATLAS_CLIENT_BEFORE_INTEGRATION",
-      "instruction_id": "CHK-3681-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
-      "instruction_id": "CHK-3681-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-3681-8"
     }
   ]
 }

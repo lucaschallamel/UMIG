@@ -15,6 +15,8 @@
 
 **Split From**: US-041 - Requirements analyst recommended splitting for focused implementation and proper dependency management
 
+**Audit Compatibility**: ✅ Fully compatible with US-041A JSON-based audit logging (see archived validation document for analysis)
+
 ---
 
 ## User Story Statement
@@ -213,7 +215,7 @@ class HierarchicalFilterManager {
 - Extend existing RBAC patterns to include instance-level permissions
 - PILOT role configuration for instance entity access
 - Permission validation for bulk operations
-- Audit logging integration for PILOT actions (leverages US-041A)
+- Audit logging integration for PILOT actions (leverages US-041A JSON-based audit with hierarchy tracking)
 
 **UI Component Role Integration**
 
@@ -420,10 +422,13 @@ class PilotRoleManager {
 ## Related Documentation
 
 - **US-082-B Component Architecture**: Required foundation for this implementation
+- **US-041A Audit Logging**: JSON-based audit infrastructure with full PILOT instance support
+- **Audit JSON Schema**: See US-041A for hierarchy structure in `aud_details -> entitySpecific -> hierarchy`
 - **Instance API Documentation**: Plans, Sequences, Phases, Steps instance endpoints
 - **RBAC Patterns**: ADR-042 authentication context and role validation
 - **Admin GUI Architecture**: Established patterns from US-031
 - **Database Schema**: Instance entity relationships and filtering patterns
+- **Archived Validation**: `US-041B-VALIDATION-pilot-instance-management.ARCHIVED.md` for compatibility analysis
 
 ---
 
@@ -458,10 +463,11 @@ class PilotRoleManager {
 
 ## Change Log
 
-| Date       | Version | Changes                                                | Author |
-| ---------- | ------- | ------------------------------------------------------ | ------ |
-| 2025-09-10 | 1.0     | Initial story creation from US-041 split               | System |
-| 2025-09-10 | 1.1     | Added detailed US-082-B dependency and component usage | System |
+| Date       | Version | Changes                                                       | Author |
+| ---------- | ------- | ------------------------------------------------------------- | ------ |
+| 2025-10-08 | 1.2     | Added audit compatibility notes and JSON hierarchy references | System |
+| 2025-09-10 | 1.1     | Added detailed US-082-B dependency and component usage        | System |
+| 2025-09-10 | 1.0     | Initial story creation from US-041 split                      | System |
 
 ---
 

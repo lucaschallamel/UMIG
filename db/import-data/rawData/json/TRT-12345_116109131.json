@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12345,
   "title": "SECLI GVA - RUN SECLI  MiFID CONTROL FROM STAGING TABLE",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN SECLI MiFID CONTROL FROM STAGING TABLE\ngénérer les rapports SECLI_MIFID_CONTROLS_PERSON et SECLI_MIFID_CONTROLS_TIERS, et à les enyoer à IT_CUTOVER.\nLes fichiers ont été exportés et vont être envoyés par email par l’équipe IT Client Data.",
-      "instruction_id": "TRT-12345-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12345-1"
     }
   ]
 }

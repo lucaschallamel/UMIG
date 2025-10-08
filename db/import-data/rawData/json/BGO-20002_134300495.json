@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 20002,
   "title": "BUSINESS - Business reconciliation validation - KBridge - Saturday",
@@ -6,15 +6,15 @@
   "successor": "BGO-20002",
   "primary_team": "BUSINESS_CUTOVER",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Business Validation for K+ reconciliation - After Saturday K+ bridge Run",
-      "instruction_id": "BGO-20002-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "BGO-20002-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11511,
   "title": "ATLAS - PREPARATION BEFORE BUSINESS INPUTS SGPBS",
@@ -10,32 +10,32 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "MODIFIER LE PARAMETRAGE DES TABLES SPI TABLES AFIN DE POUVOIR SAISIR DES ORDRES DE LA JOURNéE SGPBS SANS ROUTAGE AUTOMATIQUE DES ORDRES SUR LE MARCHéS - EXCEPTé le routing 61 qu'il faut laisser passer",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "MODIFIER LE PARAMETRAGE DES TABLES SPI TABLES AFIN DE POUVOIR SAISIR DES ORDRES DE LA JOURNéE SGPBS SANS ROUTAGE AUTOMATIQUE DES ORDRES SUR LE MARCHéS - EXCEPTé le routing 61 qu\u0027il faut laisser passer",
-      "instruction_id": "TRT-11511-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-11511-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Vérifier les dates valeurs, les dates comptable de la macro pour passer les grammes en once.",
-      "instruction_id": "TRT-11511-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-11511-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Mise à jour des tables SPI (SYTGBL01 et PLTPLA15) pour permettre la saisie des placements 48H : \n• Faire lancer le JOB \\\"TDIN13.ksh\\\" pour alimenter la table PLTPLA15.\n• Faire saisir dans la table SPI SYTGBL01 8 postes .",
-      "instruction_id": "TRT-11511-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-11511-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "Passer une requete pour lister les comptes métaux en gramme à reprendre en once",
-      "instruction_id": "TRT-11511-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-11511-4"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 14241,
   "title": "ATLAS _ PREPARATION FOR POSTMIG MONDAY EOD BATCH",
@@ -10,18 +10,18 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Modify the futures accounting code (query /futures contracts/query_Futures_Before_FIRST_EOD_BUSINESS.sql)",
-      "instruction_id": "PRE-14241-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14241-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Modify the IRS accounting code (query /IRS contracts/query_IRS_Before_FIRST_EOD_BUSINESS.sql)",
-      "instruction_id": "PRE-14241-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-14241-2"
     }
   ]
 }

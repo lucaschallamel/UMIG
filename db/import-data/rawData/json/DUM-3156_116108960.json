@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 3156,
-  "title": "BACKUP \u0026amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST",
+  "title": "BACKUP &amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST",
   "predecessor": "PRE-63",
   "successor": "PRE-63",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,25 +10,25 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "On the** CUTOVER DATE** proceed with the following **BACKUP **and **RESTORE **activities.\n\nOn **PRODUCTION**: **BACKUP **all applications related to migration based on **EOW/EOM** data",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "On **PROD LIKE**: **RESTORE** all applications based on  **PRODUCTION **backup made on step DUM-12119-1",
-      "instruction_id": "2",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "",
       "instruction_title": "On **TEST**: **RESTORE ****SECLI **and **ATLAS **based on **PRODUCTION **Backup made on step DUM-12119-1",
-      "instruction_id": "3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "3"
     }
   ]
 }

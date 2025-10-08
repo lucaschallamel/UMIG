@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13766,
   "title": "ATLAS - TO VALIDATE IT CONTROLS - (C1004, C1017, C1019, C1099)",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "",
       "instruction_title": "ATLAS  to Validate control results : \n\nC1004- Client Scope Analysis\n\nC1004A - Details of Customers closed with assets\nC1017- List of migrated clients without any assets.\nC1019- Breakdown count of lines per received files\nC1099- Received assets per company",
-      "instruction_id": "IGO-13766-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "IGO-13766-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15195,
   "title": "ATLAS  - Confirm reception of ALL Clients by Atlas - Test Environment",
@@ -10,11 +10,11 @@
   "time_sequence": "CK - SENDING OF CLIENTS TO ATLAS - TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you've received ALL clients :\n_- Company 302 on TEST environement\n- Company 303 on TEST environement\n- Company 304 on TEST environement\n- Company 305 on TEST environement\n\n**SQL request : **\n\n--TAB=COUNT_CLIENTS_1\n-- RECORDS=ALL\nSELECT CLI.NBR_CO_0145 AS SOCIÉTÉ,\n       count(*),\n       min(cli.nbr_client_0145) AS \\\"MIN_CLIENT\\\",\n       max(cli.nbr_client_0145) AS \\\"MIN_CLIENT\\\",\n       to_char(min(cli.date_time_crea_rec_0145), 'YYYY-MM-DD') AS \\\"BEGIN_DATE\\\",\n       to_char(max(cli.date_time_crea_rec_0145), 'YYYY-MM-DD') AS \\\"END_DATE\\\",\n       to_char(min(cli.date_time_crea_rec_0145), 'HH24:MI:SS') AS \\\"MIN_TIMESTAMP\\\",\n       to_char(max(cli.date_time_crea_rec_0145), 'HH24:MI:SS') AS \\\"MAX_TIMESTAMP\\\"\n       \n\n--COUNT(*) AS NOMBRE\n  FROM NHDBO.T_CLIENT CLI\n WHERE NBR_CO_0145 in (302, 303,304,305)\n   AND TRUNC(CLI.DATE_TIME_CREA_REC_0145) >= TRUNC(SYSDATE-3)\n   AND CLI.UPDATED_BY_0145 LIKE '%BIQ1%'\n GROUP BY CLI.NBR_CO_0145 --, to_char(CLI.Date_Time_Crea_Rec_0145,'YYYYMDD');\n order by 8 desc```",
       "associated_controls": "",
-      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received ALL clients :\n_- Company 302 on TEST environement\n- Company 303 on TEST environement\n- Company 304 on TEST environement\n- Company 305 on TEST environement\n\n**SQL request : **\n\n--TAB=COUNT_CLIENTS_1\n-- RECORDS=ALL\nSELECT CLI.NBR_CO_0145 AS SOCIÉTÉ,\n       count(*),\n       min(cli.nbr_client_0145) AS \\\"MIN_CLIENT\\\",\n       max(cli.nbr_client_0145) AS \\\"MIN_CLIENT\\\",\n       to_char(min(cli.date_time_crea_rec_0145), \u0027YYYY-MM-DD\u0027) AS \\\"BEGIN_DATE\\\",\n       to_char(max(cli.date_time_crea_rec_0145), \u0027YYYY-MM-DD\u0027) AS \\\"END_DATE\\\",\n       to_char(min(cli.date_time_crea_rec_0145), \u0027HH24:MI:SS\u0027) AS \\\"MIN_TIMESTAMP\\\",\n       to_char(max(cli.date_time_crea_rec_0145), \u0027HH24:MI:SS\u0027) AS \\\"MAX_TIMESTAMP\\\"\n       \n\n--COUNT(*) AS NOMBRE\n  FROM NHDBO.T_CLIENT CLI\n WHERE NBR_CO_0145 in (302, 303,304,305)\n   AND TRUNC(CLI.DATE_TIME_CREA_REC_0145) \u003e= TRUNC(SYSDATE-3)\n   AND CLI.UPDATED_BY_0145 LIKE \u0027%BIQ1%\u0027\n GROUP BY CLI.NBR_CO_0145 --, to_char(CLI.Date_Time_Crea_Rec_0145,\u0027YYYYMDD\u0027);\n order by 8 desc```",
-      "instruction_id": "CHK-15195-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-15195-1"
     }
   ]
 }

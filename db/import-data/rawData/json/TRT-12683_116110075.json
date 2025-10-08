@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12683,
   "title": "ODR - EXECUTE DETAILED POSITION AND DETAILED ACCOUNTS/PARTICIPANTS QUERY",
@@ -10,18 +10,18 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Job déclencheur à CONFIRMER\nApplication : E3_TOO_Tools\nGroupe :      E3_AJF-ATLAS-INTEGRATION-BANQUE\nJob :           E3_PHASE-ODR-MIFID_PG_ODS_CID_BT\n\nUne fois que ce job sera joué, les jobs à CONFIRMER pour les contrôles MiFID TORONTO sont :\n\nApplication : E3_REFRESH-VM\nGroupe :      E3_SELECT-MVIEW-TORONTO\nJob1  :         E3_MVIEW_SELECT_TORONTO_1  è (déclenche le “Select * from APP_TORONTO_R.TO_CTL_MIFID_PG_ODS_CID_BT_1;”)\n\nApplication : E3_REFRESH-VM\nGroupe :      E3_SELECT-MVIEW-TORONTO\nJob2  :         E3_MVIEW_SELECT_TORONTO_2  è (déclenche le “Select * from APP_TORONTO_R.TOR_CTL_MIFID_PG_ODS_CID_BT_2;”)",
-      "instruction_id": "TRT-12683-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12683-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CHECK that email with query result was generated.",
-      "instruction_id": "TRT-12683-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12683-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 83,
   "title": "Batch Engineering - Check Back Up Plan",
@@ -10,18 +10,18 @@
   "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "BATCH ENGINEERING",
-      "associated_controls": "",
       "instruction_title": "Check CONTROL-M - [Backup Plan](https://confluence.corp.ubp.ch/spaces/E0013781/pages/116112910/Backup+Plan) - BEFORE START OF CSD MIGRATION\n\nEnsure all jobs in the back up plan are ready to be used.",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BATCH ENGINEERING",
+      "instruction_title": "**DON'T FORGET TO UPDATE THE TAGGING TEMPLATE TO THE CURRENT SEQUENCE: **\n_- Job: E3_T001AAA_BCK_TAG_INTEGRATION_BANQUE\n- Variable (TBC): To be set to RUNx, or DRx, or CO",
       "associated_controls": "",
-      "instruction_title": "**DON\u0027T FORGET TO UPDATE THE TAGGING TEMPLATE TO THE CURRENT SEQUENCE: **\n_- Job: E3_T001AAA_BCK_TAG_INTEGRATION_BANQUE\n- Variable (TBC): To be set to RUNx, or DRx, or CO",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "instruction_id": "2"
     }
   ]
 }

@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15145,
-  "title": "RUN0",
+  "title": "Kondor+ - Automatic update FX forwards in Kondor+",
   "predecessor": "BGO-14497",
   "successor": "BGO-14952",
   "primary_team": "KONDOR+",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GO - BUSSINESS DATA ENTRIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "KONDOR+",
+      "instruction_title": "Automatic update FX forwards in Kondor by T&T IT Team",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Automatic update FX forwards in Kondor by T\u0026T IT Team",
-      "instruction_id": "BGO-15145-2",
-      "nominated_user": ""
+      "instruction_id": "BGO-15145-2"
     }
   ]
 }

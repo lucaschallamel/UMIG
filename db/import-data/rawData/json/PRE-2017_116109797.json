@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 2017,
-  "title": "RUN0",
+  "title": "DEACTIVATION OF AUTOMATIC PURGE &amp; BACKUP SCRIPT",
   "predecessor": "PRE-2017",
   "successor": "PRE-2017",
   "primary_team": "EXPLOITATION",
@@ -10,18 +10,18 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_Deactivation has been performed at the beginning of Toronto Project → Therefore not needed for Victoria._",
-      "instruction_id": "PRE-2017-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-2017-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "DEACTIVATION OF AUTOMATIC PURGE & BACKUP SCRIPT\n\nNote : Reactivation is done within IP Task [PRE-11704](PRE-11704_116109796.html)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "DEACTIVATION OF AUTOMATIC PURGE \u0026 BACKUP SCRIPT\n\nNote : Reactivation is done within IP Task [PRE-11704](PRE-11704_116109796.html)",
-      "instruction_id": "PRE-2017-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-2017-1"
     }
   ]
 }

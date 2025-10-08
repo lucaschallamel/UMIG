@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13245,
-  "title": "RUN0",
+  "title": "SECLI - RUN SECLI  MiFID CONTROL FROM STAGING TABLE",
   "predecessor": "IGO-11725",
   "successor": "TRT-11854",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN SECLI MiFID CONTROL FROM STAGING TABLE\ngénérer les rapports SECLI_MIFID_CONTROLS_PERSON et SECLI_MIFID_CONTROLS_TIERS, et à les enyoer à IT_CUTOVER.\nLes fichiers ont été exportés et vont être envoyés par email par l’équipe IT Client Data.",
-      "instruction_id": "TRT-13245-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13245-1"
     }
   ]
 }

@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "BUS",
   "step_number": 6324,
-  "title": "RUN0",
+  "title": "EXPLOITATION - CHECK - STOP PURGE SERVICE  JUSQU'À NOUVEL ORDRE",
   "predecessor": "PRE-11955",
   "successor": "PRE-11274",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
+      "instruction_title": "Check that below job is \\\"to Confirm\\\"\n\n     Application       : xx_x-BAB-XXXXXXXBUS\n     Groupe            : xx_x 001-BUS-PURGE\n     Jobname           : xx_x001BAB_CJO025\n\nxx_x => Correspond à l'environnement \\\"Prod Like\\\"\n\n\n\n\nNote : Job is confirmed in Task [BUS-11816](BUS-11816_116108630.html)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check that below job is \\\"to Confirm\\\"\n\n     Application       : xx_x-BAB-XXXXXXXBUS\n     Groupe            : xx_x 001-BUS-PURGE\n     Jobname           : xx_x001BAB_CJO025\n\nxx_x =\u003e Correspond à l\u0027environnement \\\"Prod Like\\\"\n\n\n\n\nNote : Job is confirmed in Task [BUS-11816](BUS-11816_116108630.html)",
-      "instruction_id": "BUS-6324-1",
-      "nominated_user": ""
+      "instruction_id": "BUS-6324-1"
     }
   ]
 }

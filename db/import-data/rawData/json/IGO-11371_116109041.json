@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 11371,
   "title": "CONTROL UPLOAD",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "UPLOAD SUR LE SHAREPOINT DES FICHIERS DE CONTROLS APRES EOD*1",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

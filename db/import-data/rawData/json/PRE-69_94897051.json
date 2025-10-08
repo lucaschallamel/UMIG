@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 69,
   "title": "ATLAS - EOM PREPARATION",
@@ -6,78 +6,78 @@
   "successor": "PRE-5782",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Purge Previous Migration Files + LIVE + LOG (with user migsup)**SCRIPT : [axvgvatxbEV301p:/home/migsup/tools/03_purge_files_PFU.ksh](http://axvgvatxbev401p/home/migsup/tools/purge_files_PFU.ksh)**SCRIPT : [axvgvatxbEV301p:/home/migsup/tools/03_purge_LIVE_LOG.ksh](http://axvgvatxbev401p/home/migsup/tools/purge_files_PFU.ksh)",
-      "instruction_id": "PRE-69-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Refresh last version program (include code fix from Previous RUN/DR)",
-      "instruction_id": "PRE-69-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "MANAGER NUMBER \n\n-----------------------------------------------------OLD MIG\nCreate manager number by default : (0035  / DESPER for RUN1)\nTRANSACTIONS  : BI12-1, BI12-2 & BI12-5\nFOR EACH COMPANY : 302,303,304,305\nFor the 3 mandats type (0, 1 & 3)\n------------------------------------------------------\n\nA toutes fins utiles, afin de générer un fichier R500.QSAM complet, c’est-à-dire permettant l’intégration de tous les clients, il faut que les codes managers créés soient dans un group. Pour le code par défaut 0035 , vérifier par BI12-3 que le group est bien renseigné",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "MANAGER NUMBER \n\n-----------------------------------------------------OLD MIG\nCreate manager number by default : (0035  / DESPER for RUN1)\nTRANSACTIONS  : BI12-1, BI12-2 \u0026 BI12-5\nFOR EACH COMPANY : 302,303,304,305\nFor the 3 mandats type (0, 1 \u0026 3)\n------------------------------------------------------\n\nA toutes fins utiles, afin de générer un fichier R500.QSAM complet, c’est-à-dire permettant l’intégration de tous les clients, il faut que les codes managers créés soient dans un group. Pour le code par défaut 0035 , vérifier par BI12-3 que le group est bien renseigné",
-      "instruction_id": "PRE-69-3",
-      "nominated_user": ""
+      "instruction_id": "PRE-69-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Confirmation application execution previous task - generation of the file to confirm the availability of the code_mngr_portf_anlzs_0145\nJob dw_exin5_13.ksh\nProvide the file in your feeback",
-      "instruction_id": "PRE-69-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Verify Intermediary code (code apporteur) by default (via BC21-2) with code:interm in param",
-      "instruction_id": "PRE-69-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Code-type-risk update in system code \nTransaction UT01\n(macro)",
-      "instruction_id": "PRE-69-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "**TECHNICAL BROKER**\nCheck the existance of the technical broker : 001/3203608 302/3203608 303/3203608 304/3203608 305/3203608\n\nTransaction : EN21 with office 001 and Param : A3203608\nTransaction : EN21 with office 302 and Param : A3203608\nTransaction : EN21 with office 303 and Param : A3203608\nTransaction : EN21 with office 304 and Param : A3203608\nTransaction : EN21 with office 305 and Param : A3203608",
-      "instruction_id": "PRE-69-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Check the availability of BIC code DBI in T_SEPA_BANK_DIRECT table (provide the extract)\n« select * from NHDBO.T_SEPA_BANK_DIRECT t where t.Code_Bic11_1099 like '%RUEGCHZZXXX%'  »",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check the availability of BIC code DBI in T_SEPA_BANK_DIRECT table (provide the extract)\n« select * from NHDBO.T_SEPA_BANK_DIRECT t where t.Code_Bic11_1099 like \u0027%RUEGCHZZXXX%\u0027  »",
-      "instruction_id": "PRE-69-8",
-      "nominated_user": ""
+      "instruction_id": "PRE-69-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Create FUSIGMA repository folder in EOS for saving EFU reports.",
-      "instruction_id": "PRE-69-9",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-69-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Update table LST-NUM (DNCA & DNDT)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Update table LST-NUM (DNCA \u0026 DNDT)",
-      "instruction_id": "PRE-69-10",
-      "nominated_user": ""
+      "instruction_id": "PRE-69-10"
     }
   ]
 }

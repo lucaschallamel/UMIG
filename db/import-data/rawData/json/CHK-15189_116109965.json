@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15189,
   "title": "ATLAS  - Confirm reception of 100 by Company Clients by Atlas - Test Environment",
@@ -10,32 +10,32 @@
   "time_sequence": "CK - SENDING OF CLIENTS TO ATLAS - TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you've received the 100 clients for company 302 on TEST environement",
       "associated_controls": "",
-      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received the 100 clients for company 302 on TEST environement",
-      "instruction_id": "CHK-15189-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-15189-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 clients for company 303 on TEST environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 clients for company 303 on TEST environement",
-      "instruction_id": "CHK-15189-2",
-      "nominated_user": ""
+      "instruction_id": "CHK-15189-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 clients for company 304 on TEST environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 clients for company 304 on TEST environement",
-      "instruction_id": "CHK-15189-3",
-      "nominated_user": ""
+      "instruction_id": "CHK-15189-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please confirm you've received the 100 clients for company 305 on TEST environement",
       "associated_controls": "",
-      "instruction_title": "Please confirm you\u0027ve received the 100 clients for company 305 on TEST environement",
-      "instruction_id": "CHK-15189-4",
-      "nominated_user": ""
+      "instruction_id": "CHK-15189-4"
     }
   ]
 }

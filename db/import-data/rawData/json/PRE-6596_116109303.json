@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 6596,
   "title": "CID - REOUVERTURE DE LA BASE /  GUI CID EN READ / WRITE (CHANGEMENT DE PASSWORD)",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "REOUVERTURE DE LA BASE/ GUI CID EN READ / WRITE (CHANGEMENT DE PASSWORD)",
-      "instruction_id": "PRE-6596-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-6596-1"
     }
   ]
 }

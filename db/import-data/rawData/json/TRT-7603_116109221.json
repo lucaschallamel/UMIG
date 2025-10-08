@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7603,
   "title": "SECLI GVA - EXPORT CREDIT CARD FILE TO SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "EA - MONDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SEND TO SECLI BUSINESS THE FILE CREDIT CARD",
-      "instruction_id": "TRT-7603-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7603-1"
     }
   ]
 }

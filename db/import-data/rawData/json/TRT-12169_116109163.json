@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12169,
   "title": "SECLI - SEND FINAL SET OF ALL CLIENTS TO ATLAS - TEST-ENV",
@@ -10,46 +10,46 @@
   "time_sequence": "CK - SENDING OF CLIENTS TO ATLAS - TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Activate trigger for bus",
-      "instruction_id": "TRT-12169-1",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Flow: Sending all clients - Company 302",
-      "instruction_id": "TRT-12169-2",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Flow: Sending all clients - Company 303",
-      "instruction_id": "TRT-12169-3",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Flow: Sending all clients - Company 304",
-      "instruction_id": "TRT-12169-4",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Flow: Sending all clients - Company 305",
-      "instruction_id": "TRT-12169-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Mail to IT_CUTOVER : Status report of the SPOC_INTEGRATION (rejeBCL,  completed, errors list)",
-      "instruction_id": "TRT-12169-6",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "TRT-12169-6"
     }
   ]
 }

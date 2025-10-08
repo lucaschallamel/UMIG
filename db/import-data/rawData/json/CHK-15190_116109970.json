@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15190,
   "title": "TARIF - Confirm reception of 100 Clients by Tarif and Fund desk - Test Environment",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
+      "instruction_title": "Dear Tarif Team,\nPlease confirm you've received the 100 first clients on TEST environment",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Dear Tarif Team,\nPlease confirm you\u0027ve received the 100 first clients on TEST environment",
-      "instruction_id": "CHK-15190-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-15190-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "FUND DESK PORTAL",
+      "instruction_title": "Dear Tarif Team,\nPlease confirm you've received the 100 first clients on TEST environment for FUND DESK as well",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Dear Tarif Team,\nPlease confirm you\u0027ve received the 100 first clients on TEST environment for FUND DESK as well",
-      "instruction_id": "CHK-15190-2",
-      "nominated_user": ""
+      "instruction_id": "CHK-15190-2"
     }
   ]
 }

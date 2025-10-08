@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 12292,
-  "title": "BUSINESS QUALITY CHECKS - SECLI LND\u0026amp;JRS - CLIENTS VALIDATION on Secli Test Environment",
+  "title": "BUSINESS QUALITY CHECKS - SECLI LND&amp;JRS - CLIENTS VALIDATION on Secli Test Environment",
   "predecessor": "BGO-13824",
   "successor": "IGO-13819",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "Elif Kardes",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI EV4 - Business Quality spot checks before pushing clients to ATLAS test",
-      "instruction_id": "BGO-12292-1",
-      "nominated_user": "Elif Kardes"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-12292-1"
     }
   ]
 }

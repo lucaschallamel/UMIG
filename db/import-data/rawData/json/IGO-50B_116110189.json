@@ -1,34 +1,34 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": null,
-  "title": "ENGINE - SANITY CHECKS AND CONNECTIONS - P\u0026amp;C WE",
+  "title": "ENGINE - SANITY CHECKS AND CONNECTIONS - P&amp;C WE",
   "predecessor": "IGO-50B",
   "successor": "IGO-50B",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "Check of user & password for file transfer (sftp, transfer to other application (Secli, Atlas, CID, …), connexion to T_FU_Client",
       "associated_controls": "",
-      "instruction_title": "Check of user \u0026 password for file transfer (sftp, transfer to other application (Secli, Atlas, CID, …), connexion to T_FU_Client",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "Check of user & password for  connexion to T_FU_CLIENT & T_FU_COMPTE\n\n\nUser : FUSION_ADMIN",
       "associated_controls": "",
-      "instruction_title": "Check of user \u0026 password for  connexion to T_FU_CLIENT \u0026 T_FU_COMPTE\n\n\nUser : FUSION_ADMIN",
-      "instruction_id": "2",
-      "nominated_user": "-"
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "Folder Purge before files reception from SG PBS",
-      "instruction_id": "3",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "3"
     }
   ]
 }

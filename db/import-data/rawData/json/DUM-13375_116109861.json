@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 13375,
   "title": "EXPLOITATION - ENSURE ALL APPLICATIONS INSTITUTIONAL DUMPS BEFORE AND AFTER EOD ARE TAGGED AND DUMPS MOVED TO EXTERNAL STORAGE - PROD ONLY",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "UNIX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Thanks to ensure that dumps before and after EOD are kept on storage",
-      "instruction_id": "DUM-13375-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-13375-1"
     }
   ]
 }

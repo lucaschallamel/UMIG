@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15225,
-  "title": "Check Report \u0026quot;New Clients\u0026quot; and remediate as needed",
+  "title": "Check Report &quot;New Clients&quot; and remediate as needed",
   "predecessor": "BGO-15225",
   "successor": "BGO-15225",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check Report \\\"New Clients\\\" and remediate as needed",
-      "instruction_id": "BGO-15225-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-15225-1"
     }
   ]
 }

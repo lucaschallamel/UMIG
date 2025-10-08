@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15275,
-  "title": "RUN0",
+  "title": "ENGINE - CID - Files Creation",
   "predecessor": "TRT-15275",
   "successor": "TRT-15275",
   "primary_team": "ANONYMTOOL",
@@ -10,18 +10,18 @@
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYMTOOL",
+      "instruction_title": "Create Weekly FPC based on Friday's data",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Create Weekly FPC based on Friday\u0027s data",
-      "instruction_id": "TRT-15275-1",
-      "nominated_user": "PETIT Yves"
+      "instruction_id": "TRT-15275-1"
     },
     {
+      "nominated_user": "PETIT Yves",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Push FPC files to common zone",
-      "instruction_id": "TRT-15275-2",
-      "nominated_user": "PETIT Yves"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15275-2"
     }
   ]
 }

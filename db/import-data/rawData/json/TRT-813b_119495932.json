@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": null,
-  "title": "ENGINE - FILES INTEGRATION (CONFIDENTIAL PART) - Step 01 - IMPORT ALL FILES FUSION - P\u0026amp;C",
+  "title": "ENGINE - FILES INTEGRATION (CONFIDENTIAL PART) - Step 01 - IMPORT ALL FILES FUSION - P&amp;C",
   "predecessor": "PRE-5355",
   "successor": "TRT-794",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
-  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P&amp;C)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_IMPORT_PART_I",
-      "instruction_id": "TRT-813",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-813"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Load all FPC Files",
-      "instruction_id": "TRT-813",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-813"
     }
   ]
 }

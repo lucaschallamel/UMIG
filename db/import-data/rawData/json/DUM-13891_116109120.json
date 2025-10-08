@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "DUM",
   "step_number": 13891,
-  "title": "RUN1",
+  "title": "DUMP SECLI SATELLITES [ATLAS, TARIF, BT PUB, CMS, DARWIN] BEFORE PUSHING CLIENTS  ON Prod Like",
   "predecessor": "BGO-12233",
   "successor": "PRE-12191",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DUMP SECLI satellites   (ATLAS, TARIF, BT PUB, DARWIN, CMS] b(defined in Phase) before pushing clients on Prod Like Environment. \nPhase  050_BEFORE_SECLSTL",
-      "instruction_id": "DUM-13891-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "DUM-13891-1"
     }
   ]
 }

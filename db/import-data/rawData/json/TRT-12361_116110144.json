@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12361,
-  "title": "DOCUMENTUM - UK\u0026amp;JRS - GENERATE KYC DOCUMENTS",
+  "title": "DOCUMENTUM - UK&amp;JRS - GENERATE KYC DOCUMENTS",
   "predecessor": "TRT-12361",
   "successor": "TRT-12361",
   "primary_team": "DOCUMENTUM",
@@ -10,11 +10,11 @@
   "time_sequence": "CJ - DOCUMENTUM FLOW",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "DOCUMENTUM",
+      "instruction_title": "DOCUMENTUM - UK&JRS - GENERATE KYC DOCUMENTS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "DOCUMENTUM - UK\u0026JRS - GENERATE KYC DOCUMENTS",
-      "instruction_id": "TRT-12361-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-12361-1"
     }
   ]
 }

@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15059,
-  "title": "RUN0",
+  "title": "PRINTNET - SAUVEGARDE DES ESTIMATIFS - After Star 1",
   "predecessor": "BUS-9057",
   "successor": "PRE-9323",
   "primary_team": "PRINTNET",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PRINTNET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BACKUP DE TOUS LES FICHIERS PRODUITS DANS LES RÉPERTOIRES ARCHIVAGE\n\nAll UBP statement pdf/Nothing will be stored in Documentum Secret and Documentum Common/banner Internal Only will be added on each pdf.\nAll will be stored in a dedicated directory not directly usable by RM  ( as backup )\nweekly\\awq\\ArchivageVictoriaConfidential.zip\nweekly\\awq\\ArchivageVictoriaNominative.zip",
-      "instruction_id": "PRE-15059-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15059-1"
     }
   ]
 }

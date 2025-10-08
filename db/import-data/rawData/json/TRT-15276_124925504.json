@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15276,
-  "title": "RUN0",
+  "title": "ENGINE - CID - Weekly report",
   "predecessor": "TRT-15276",
   "successor": "TRT-15276",
   "primary_team": "ENGINE COMMON",
@@ -10,25 +10,25 @@
   "time_sequence": "EA - MONDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Integrate FPC files into PROD ENGINE",
-      "instruction_id": "TRT-15276-1",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15276-1"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Push FPC files to CID on each Monday",
-      "instruction_id": "TRT-15276-2",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15276-2"
     },
     {
+      "nominated_user": "DRAI Yohann",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Provide Kxxxx reports",
-      "instruction_id": "TRT-15276-3",
-      "nominated_user": "DRAI Yohann"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15276-3"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12332,
-  "title": "RUN1",
+  "title": "SGPBS - Go to send Closed Clients files",
   "predecessor": "TRT-12495",
   "successor": "TRT-11895",
   "primary_team": "SGPBS",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send to UBP the closed client files",
-      "instruction_id": "TRT-12332-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12332-1"
     }
   ]
 }

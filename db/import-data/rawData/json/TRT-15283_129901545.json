@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15283,
   "title": "ANONYMTOOL - Anonymise SUN File",
@@ -10,11 +10,11 @@
   "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ANONYMTOOL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Anonymise SUN File",
-      "instruction_id": "TRT-15283-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15283-1"
     }
   ]
 }

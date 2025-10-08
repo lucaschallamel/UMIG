@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11279,
   "title": "QUARTAL IN (TRAILER FEES) - INITIALISATION POSITIONS",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "QUARTAL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DEMANDE DE LANCEMENT DE L INIT DES POSITIONS (E3_T001QRT_TAL_QTL-IN-HIST-EXTRACT-POS-INIT) VIA CTRL-M",
-      "instruction_id": "TRT-11279-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11279-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "QUARTAL",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DEMANDE DE LANCEMENT DE L INIT DES SALES STRUCTURES HIST (E3_T001QRT_TAL_QTL-IN-HIST-EXTRACT-SALES-STRUCTURE) VIA CTRL-M.",
-      "instruction_id": "TRT-11279-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11279-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 14312,
   "title": "PMS IT TO VALIDATE CONTROLS",
@@ -10,11 +10,11 @@
   "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
   "task_list": [
     {
+      "nominated_user": "Breakdown count of clients per Relationship Manager",
       "instruction_assigned_team": "C9047",
-      "associated_controls": "",
       "instruction_title": "[SENELAS Philippe](https://confluence.corp.ubp.ch/display/~pss) to validate the below controls :",
-      "instruction_id": "IGO-14312-1",
-      "nominated_user": "Breakdown count of clients per Relationship Manager"
+      "associated_controls": "",
+      "instruction_id": "IGO-14312-1"
     }
   ]
 }

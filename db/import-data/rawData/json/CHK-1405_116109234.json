@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 1405,
-  "title": "RUN1",
+  "title": "ENGINE - CLIENT MAPPING TABLE CHECKS AFTER ATLAS INTEGRATION",
   "predecessor": "IGO-13886",
   "successor": "TRT-13026",
   "primary_team": "ENGINE COMMON",
@@ -10,53 +10,53 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
-      "instruction_id": "CHK-1405-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1405-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ C2256 ](#)",
       "instruction_title": "EXCEL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-1405-2",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ C2256 ](#)",
+      "instruction_id": "CHK-1405-2"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
       "instruction_title": "MAIL_C2256_ATLAS_CLIENT_AFTER_INTEGRATION",
-      "instruction_id": "CHK-1405-3",
-      "nominated_user": ""
+      "associated_controls": "[ C2256 ](#)",
+      "instruction_id": "CHK-1405-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ C2460 ](#)",
       "instruction_title": "EXCEL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-1405-4",
-      "nominated_user": ""
-    },
-    {
-      "instruction_assigned_team": "ENGINE COMMON",
       "associated_controls": "[ C2460 ](#)",
+      "instruction_id": "CHK-1405-4"
+    },
+    {
+      "nominated_user": "",
+      "instruction_assigned_team": "ENGINE COMMON",
       "instruction_title": "MAIL_C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP",
-      "instruction_id": "CHK-1405-5",
-      "nominated_user": ""
+      "associated_controls": "[ C2460 ](#)",
+      "instruction_id": "CHK-1405-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXCEL_C0254_POTFOLIO_WITHOUT_CASH_ACCOUNT",
-      "instruction_id": "CHK-1405-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1405-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "MAIL_C0254_POTFOLIO_WITHOUT_CASH_ACCOUNT",
-      "instruction_id": "CHK-1405-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-1405-7"
     }
   ]
 }

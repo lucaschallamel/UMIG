@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7361,
   "title": "PORTAIL GERANT - INTERRUPTION PORTAIL GERANT LIGHT (POUR GFE)",
@@ -6,15 +6,15 @@
   "successor": "IGO-11460",
   "primary_team": "PG",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PG",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "ARRET IIS SUR SVRPORTALPRDC4 ET SRVPORTALPRDC5\n\nNote : PG is reactivated in Task [PRE-1](PRE-7361_116109464.html)1720",
-      "instruction_id": "PRE-7361-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-7361-1"
     }
   ]
 }

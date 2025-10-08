@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 15180,
   "title": "BUSINESS CHECK - VALIDATION OF DECOMPTES FUTURES",
@@ -10,11 +10,11 @@
   "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please review the following list of controls and provide your feedbacks:",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "1"
     }
   ]
 }

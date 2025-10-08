@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 6554,
   "title": "EXPLOITATION - CHECK END OF EOD BANK - CONFIRM THAT END OF DAY IS DONE",
@@ -10,11 +10,11 @@
   "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CHECK IF THE END OF DAY IS DONE and provide list of jobs in error to IT Cutover",
-      "instruction_id": "GON-6554-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-6554-1"
     }
   ]
 }

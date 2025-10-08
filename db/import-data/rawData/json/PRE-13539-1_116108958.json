@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13539,
   "title": "IT Env - SETUP DATE FOR CTRL-M REGARDING PLAN",
@@ -10,11 +10,11 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "Using below listed date, please create the Workorder and assign to SPOC_Exp team to setup the batches Ctrl M dates for CSD.\n\nFor EOD on 31.03.2025 using below dates:\nCalendar date    - 31.03.2025\nBusiness date (Batch Date) – 31.03.2025\n\nFor EOW using below dates:\nCalendar date    - 31.03.2025\nBusiness date (Batch Date) – 31.03.2025\n\nFor EOD ((After Mig) on 16.04.2025 use below dates\nCalendar date    - 31.03.2025\nBusiness date (Batch Date) – 31.03.2025\n\n\n\n\nCheck [PRE-13539-2](PRE-13539-2_116109614.html) for consistency",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

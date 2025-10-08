@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 11987,
   "title": "SECLI - SEND AGENT MESSAGE FOR BASE TIERS PUBLIC",
@@ -10,25 +10,25 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "SENDING ALL STEP -  SECLI LDN & JRS - SEND AGENT MESSAGE FOR BASE TIERS PUBLIC",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "SENDING ALL STEP -  SECLI LDN \u0026 JRS - SEND AGENT MESSAGE FOR BASE TIERS PUBLIC",
-      "instruction_id": "TRT-11987-1",
-      "nominated_user": ""
+      "instruction_id": "TRT-11987-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Agents reception verification in Base Tiers Public",
-      "instruction_id": "TRT-11987-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11987-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check the logs\nReport the defect via Jira",
-      "instruction_id": "TRT-11987-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-11987-3"
     }
   ]
 }

@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 11366,
-  "title": "TARIF - TIERS RUBRIQUES \u0026amp; PARTICULAR CONDITIONS REPORT COMPARISON",
+  "title": "TARIF - TIERS RUBRIQUES &amp; PARTICULAR CONDITIONS REPORT COMPARISON",
   "predecessor": "CHK-11366",
   "successor": "CHK-11366",
   "primary_team": "TARIF",
@@ -10,11 +10,11 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "",
       "instruction_title": "ANALYSE DES ETATS DE CONTROL TARIFS GENERES PAR LE MOTEUR\n\nControls C7010 and C7050",
-      "instruction_id": "CHK-11366",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "CHK-11366"
     }
   ]
 }

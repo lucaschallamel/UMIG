@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": null,
-  "title": "RUN1",
+  "title": "PRINTNET - GENERATE WELCOME LETTERS",
   "predecessor": "TRT-14979a",
   "successor": "DUM-2836",
   "primary_team": "PRINTNET",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PRINTNET",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Generate welcome letters.",
-      "instruction_id": "TRT-14979",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14979"
     }
   ]
 }

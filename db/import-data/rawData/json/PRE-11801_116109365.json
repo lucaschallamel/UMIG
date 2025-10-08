@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11801,
   "title": "CONTROL_M - HOLD ALL TREATMENTS on EV1, EV2, EV4 and EV5",
@@ -6,22 +6,22 @@
   "successor": "PRE-6292",
   "primary_team": "EXPLOITATION",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "_**A NE PAS FAIRE SI EV3 EST SUR UN P9 ISOLE **- IP Task [PRE-5248](PRE-5248_116108759.html)_",
-      "instruction_id": "PRE-11801-0",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-11801-0"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "arrêt de tous les chaines batchs sur les EV1/2/4/5 lors du DR1 et/ou DR2 position afin de ne pas venir perturber EV3 - et être ISO Week end du Cutover\n\nNote : dehold done in Task [PRE-11810](PRE-11810_116109750.html)",
-      "instruction_id": "PRE-11801-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11801-1"
     }
   ]
 }

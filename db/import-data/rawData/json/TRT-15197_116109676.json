@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15197,
   "title": "CID - Murex ID Creation in CID",
@@ -10,25 +10,25 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Insertion of MUREX ID in CID.RCID-3009",
-      "instruction_id": "TRT-15197-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15197-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send MUREX ID to Atlas using the BUS (Master updates)",
-      "instruction_id": "TRT-15197-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15197-2"
     },
     {
+      "nominated_user": "HITTERS Luz",
       "instruction_assigned_team": "CID",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CID extraction to be sent to MUREX",
-      "instruction_id": "TRT-15197-3",
-      "nominated_user": "HITTERS Luz"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15197-3"
     }
   ]
 }

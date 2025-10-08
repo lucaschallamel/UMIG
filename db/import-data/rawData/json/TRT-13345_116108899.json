@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13345,
   "title": "SECLI - GVA - PATCH DEPLOYMENT ON TEST-ENV (IF ANY)",
@@ -10,11 +10,11 @@
   "time_sequence": "PREMIG",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "",
       "instruction_title": "Deploy LAST **PRODUCTION **PATCH OF SECLI (IF NEEDED) ON **TEST ENVIRONMENT**",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

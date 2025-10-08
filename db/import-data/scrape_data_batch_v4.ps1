@@ -612,23 +612,30 @@ function Get-StepName {
 
 function Get-StepTitle {
     param([string]$Content)
-    
-    # Try the original pattern first (div with table-excerpt)
-    $titlePattern = '(?s)<div[^>]*class="table-excerpt tei[^"]*"[^>]*data-name="TITLE"[^>]*>.*?<strong>(.*?)</strong>'
+
+    # Pattern 1: NEW - Try table-excerpt with <p> tag (fixes RUN0/RUN1 issue)
+    # This pattern catches titles in <p> tags without <strong>
+    $titlePattern = '(?s)data-name="TITLE"[^>]*>.*?<p>(.*?)</p>'
     $titleMatch = [regex]::Match($Content, $titlePattern)
-    
-    # If not found, try the new table pattern (TH with TITLE followed by TD with content)
+
+    # Pattern 2: Try the original pattern (div with table-excerpt and <strong>)
+    if (-not $titleMatch.Success) {
+        $titlePattern = '(?s)<div[^>]*class="table-excerpt tei[^"]*"[^>]*data-name="TITLE"[^>]*>.*?<strong>(.*?)</strong>'
+        $titleMatch = [regex]::Match($Content, $titlePattern)
+    }
+
+    # Pattern 3: Try the table pattern (TH with TITLE followed by TD with content)
     if (-not $titleMatch.Success) {
         $titlePattern = '(?s)<th[^>]*class="confluenceTh"[^>]*>TITLE</th>\s*<td[^>]*class="confluenceTd"[^>]*>(?:<[^>]+>)*(?:<strong>)?(.*?)(?:</strong>)?(?:</[^>]+>)*</td>'
         $titleMatch = [regex]::Match($Content, $titlePattern)
     }
-    
-    # If still not found, try another pattern for nested strong tags
+
+    # Pattern 4: Try another pattern for nested strong tags
     if (-not $titleMatch.Success) {
         $titlePattern = '(?s)<th[^>]*>TITLE</th>\s*<td[^>]*>.*?<strong>(.*?)</strong>'
         $titleMatch = [regex]::Match($Content, $titlePattern)
     }
-    
+
     if ($titleMatch.Success) {
         $stepTitle = $titleMatch.Groups[1].Value
         $stepTitle = $stepTitle -replace '<[^>]+>', ''

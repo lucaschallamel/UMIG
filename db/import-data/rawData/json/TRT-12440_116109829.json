@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12440,
   "title": "TAX - Fitax package extraction",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "On-demand Fitax package extraction - Extraction package based on BTPub/ODS to feed Fitax with client/transaction info",
-      "instruction_id": "TRT-12440-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12440-1"
     }
   ]
 }

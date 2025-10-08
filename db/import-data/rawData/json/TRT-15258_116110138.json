@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15258,
   "title": "TARIF - Perform specific adaptations before billing",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "TARIF - Perform specific adaptations before billing",
-      "instruction_id": "TRT-15258-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15258-1"
     }
   ]
 }

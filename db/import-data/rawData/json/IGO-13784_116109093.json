@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13784,
   "title": "ENGINE - TO VALIDATE IT CONTROL - (C6500 - ATLAS Loan with anomaly)",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ C6500 ](#)",
       "instruction_title": "ENGINE Team  to Validate control results : \n\nC6500 - ATLAS Loan with anomaly.",
-      "instruction_id": "IGO-13784-1",
-      "nominated_user": ""
+      "associated_controls": "[ C6500 ](#)",
+      "instruction_id": "IGO-13784-1"
     }
   ]
 }

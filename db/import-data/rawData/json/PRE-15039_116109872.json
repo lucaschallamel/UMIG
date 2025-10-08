@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15039,
   "title": "APPWAY CH - Offline Mode on PROD-Like",
@@ -10,18 +10,18 @@
   "time_sequence": "CE-2 - SECLI ISOLATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Please put Appway - CH offline \n\nRun - DR :\n\nE3_T001APW_SDO411\nE3_T001APW_SDU411\nE3_T001APW_SDO415\nE3_T001APW_SDO413\n\nCutover :\n\nP001APW_SDO411\nP001APW_SDU411\nP001APW_SDO415\nP001APW_SDO413",
-      "instruction_id": "PRE-15039-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15039-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "PUT in DUMMY mode P001ENG_CJO050",
-      "instruction_id": "PRE-15039-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-15039-2"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 7097,
   "title": "SYSPARAM - CTRL-M JOBS DEACTIVATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Desactiver pour sysparam  \nTable  : P_ADL_COMPTA\n  Application : ADS\n  Group  : N_LOAD_COMPTA\n  Job Name : ComptaGene\n  File Name : ComptaGene.sh\n  File Path : /export/home/dbatrfp/tarif/shell\n\nNote : Control M job is reactivated in IP Task [PRE-11699](PRE-11699_116109793.html)",
-      "instruction_id": "PRE-7097-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-7097-1"
     }
   ]
 }

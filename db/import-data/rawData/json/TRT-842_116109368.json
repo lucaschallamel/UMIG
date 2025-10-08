@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 842,
   "title": "SGPBS - GENERATE CLIENT STATEMENTS + SEND THROUGH SFTP SECRET (FPS*)",
@@ -10,18 +10,18 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "-",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Task 1 details",
-      "instruction_id": "TRT-842-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-842-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "-",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Task 2 details",
-      "instruction_id": "TRT-842-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-842-2"
     }
   ]
 }

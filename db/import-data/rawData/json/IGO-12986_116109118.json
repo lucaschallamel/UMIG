@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 12986,
   "title": "IT CONTROL  - GENERATE AND ASSESS SECLI CONTROL ON PRE-STAGING TABLE",
@@ -10,11 +10,11 @@
   "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
   "task_list": [
     {
+      "nominated_user": "AOUADI Khalil",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "RUN SECLI CONTROLS ON PRE-STAGING TABLE AND SHARE THE FIGURES/STATISTICS to [ CONTROLS ](#) :\n_- Please produce report with \\\"skh_\\\" files\n- Please produce report with \\\"abn_\\\" files",
-      "instruction_id": "IGO-12986-1",
-      "nominated_user": "AOUADI Khalil"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "IGO-12986-1"
     }
   ]
 }

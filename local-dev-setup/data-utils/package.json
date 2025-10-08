@@ -1,0 +1,45 @@
+{
+  "name": "umig-data-utils",
+  "version": "1.0.0",
+  "description": "UMIG Production Data Import Utilities (US-104)",
+  "main": "cli/import-cli.js",
+  "scripts": {
+    "import:excel": "node cli/import-cli.js excel --all",
+    "import:excel:teams": "node cli/import-cli.js excel --teams ../../db/import-data/teams.xlsx",
+    "import:excel:users": "node cli/import-cli.js excel --users ../../db/import-data/users.xlsx",
+    "import:excel:apps": "node cli/import-cli.js excel --apps ../../db/import-data/applications.xlsx",
+    "import:hierarchy": "node cli/import-cli.js hierarchy",
+    "import:hierarchy:test": "node cli/import-cli.js hierarchy --batch-size 10 --dry-run",
+    "import:validate": "node cli/import-cli.js validate --report reports/validation.json",
+    "import:benchmark": "node cli/import-cli.js benchmark",
+    "import:all": "npm run import:excel && npm run import:hierarchy && npm run import:validate",
+    "import:dry-run": "npm run import:excel -- --dry-run && npm run import:hierarchy:test",
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration"
+  },
+  "keywords": [
+    "umig",
+    "data-import",
+    "migration",
+    "excel",
+    "postgresql"
+  ],
+  "author": "UMIG Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "xlsx": "^0.18.5",
+    "cheerio": "^1.0.0-rc.12",
+    "commander": "^11.1.0",
+    "chalk": "^5.4.1",
+    "p-limit": "^5.0.0",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

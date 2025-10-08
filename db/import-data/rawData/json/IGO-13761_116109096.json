@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 13761,
   "title": "UBP - IT CONTROL VALIDATION - PRE-CHECK FILES",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "NUKOVIC Hugo",
       "instruction_assigned_team": "CONTROLS",
-      "associated_controls": "",
       "instruction_title": "Controls to be done in priority - Please provide your GO on this IP task when these Controls are successful:\n\nC0200 - Global view with theorical mapping**C1006 - Asset Repartition**C1006 A - Asset Repartition by currency**C1019 - Breakdown count of lines per received files**C1001 - File volume check before engine integration**C2450 - List of files sent to Secli by Engine",
-      "instruction_id": "IGO-13761-1",
-      "nominated_user": "NUKOVIC Hugo"
+      "associated_controls": "",
+      "instruction_id": "IGO-13761-1"
     }
   ]
 }

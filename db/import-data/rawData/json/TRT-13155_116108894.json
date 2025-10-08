@@ -1,27 +1,27 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13155,
-  "title": "ATLAS - PHASE 0 - CLIENT ACCOUNT \u0026amp; G ACCOUNT VOLUMETRY CHECKS",
+  "title": "ATLAS - PHASE 0 - CLIENT ACCOUNT &amp; G ACCOUNT VOLUMETRY CHECKS",
   "predecessor": "TRT-13149",
   "successor": "PRE-6616",
   "primary_team": "ATLAS",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check ENGINE FILE EXISTING :\nFACCC4.QSAM\nFACCR1.QSAM",
-      "instruction_id": "TRT-13155-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13155-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ATLAS",
+      "instruction_title": "Please check CLIENT ACCOUNT & G ACCOUNT VOLUMETRY",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Please check CLIENT ACCOUNT \u0026 G ACCOUNT VOLUMETRY",
-      "instruction_id": "TRT-13155-2",
-      "nominated_user": ""
+      "instruction_id": "TRT-13155-2"
     }
   ]
 }

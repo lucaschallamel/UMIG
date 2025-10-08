@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 14969,
   "title": "SGPBS EBANKING - MOVE ALL USERS EXCEPT SUPERUSERS TO READ-ONLY (GTX; ORDER PLAT; EBANKING)",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SGPBS EBANKING - MOVE ALL USERS EXCEPT SUPERUSERS TO READ-ONLY (GTX; ORDER PLAT; EBANKING)",
-      "instruction_id": "TRT-14969-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-14969-1"
     }
   ]
 }

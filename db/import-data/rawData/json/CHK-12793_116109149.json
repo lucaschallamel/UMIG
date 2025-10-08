@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 12793,
   "title": "CONTROLS - VALIDATE PostSECLI CONTROL RESULTS EV4",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SECLI to generate CONTROL/ List of controls\n\nList of controls: \nPhase: PostSECLI\nReport results by email.",
-      "instruction_id": "CHK-12793-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-12793-1"
     }
   ]
 }

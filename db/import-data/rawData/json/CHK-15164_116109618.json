@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15164,
   "title": "Data Files - Check that DSS are in final state",
@@ -10,11 +10,11 @@
   "time_sequence": "-",
   "task_list": [
     {
+      "nominated_user": "NUKOVIC Hugo",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send confirmation to Engine that DSS Files are up to date and ready for JSON generation",
-      "instruction_id": "CHK-15164-1",
-      "nominated_user": "NUKOVIC Hugo"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15164-1"
     }
   ]
 }

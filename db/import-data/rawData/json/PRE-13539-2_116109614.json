@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 13539,
   "title": "IT_ENV - SETUP DATE FOR CTRL-M REGARDING BATCH PLAN",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "instruction_title": "Using below listed dates, please create the Workorder and assign to SPOC_Exp team to verify the batches Ctrl M dates for CSD and P&C rounds:\n\n**CSD weekend**:\n\n(calendar date/ business date)\n\nNo Batch Planned (Covered by P&C EoM Batch)\n\n\n\n\n**Weekend 1 → Weekend 2**:\n\nRun 1 : No Batch planned\n\n\n\n\n**P&C weekend:**\n\n(calendar date/ business date)\n29/09/2025 EoM -> **29.08.2025**\n\n30/09/2025 Star 1 -> **29.08.2025**\n\n01/10/2025 Star 2 -> **29.08.2025**\n\n\n02/10/2025 EoD -> **29.08.2025**\n\n\n\nFriday 03/10/2025 --> **01/09/2025** (PostMig EOD)\nMonday 06/10/2025 --> **02/09/2025** (Sun File Integration)",
       "associated_controls": "",
-      "instruction_title": "Using below listed dates, please create the Workorder and assign to SPOC_Exp team to verify the batches Ctrl M dates for CSD and P\u0026C rounds:\n\n**CSD weekend**:\n\n(calendar date/ business date)\n\nNo Batch Planned (Covered by P\u0026C EoM Batch)\n\n\n\n\n**Weekend 1 → Weekend 2**:\n\nRun 1 : No Batch planned\n\n\n\n\n**P\u0026C weekend:**\n\n(calendar date/ business date)\n29/09/2025 EoM -\u003e **29.08.2025**\n\n30/09/2025 Star 1 -\u003e **29.08.2025**\n\n01/10/2025 Star 2 -\u003e **29.08.2025**\n\n\n02/10/2025 EoD -\u003e **29.08.2025**\n\n\n\nFriday 03/10/2025 --\u003e **01/09/2025** (PostMig EOD)\nMonday 06/10/2025 --\u003e **02/09/2025** (Sun File Integration)",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "instruction_id": "1"
     }
   ]
 }

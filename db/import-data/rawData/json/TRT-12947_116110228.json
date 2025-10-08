@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 12947,
   "title": "TAX - Check QI/Fatca pool/status values in BT Pub after EOD",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "TAX - Check QI/Fatca pool/status values in BT Pub after EOD",
-      "instruction_id": "TRT-12947-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-12947-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 15187,
   "title": "TARIF - Confirm reception of 10 Clients by company by Tarif and Fund desk - PROD LIKE",
@@ -10,18 +10,18 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
+      "instruction_title": "Dear Tarif Team,\nPlease confirm you've receeived he 10 first clients for each company (302, 303, 304, 305) on PROD LIKE environment",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Dear Tarif Team,\nPlease confirm you\u0027ve receeived he 10 first clients for each company (302, 303, 304, 305) on PROD LIKE environment",
-      "instruction_id": "CHK-15187-1",
-      "nominated_user": ""
+      "instruction_id": "CHK-15187-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "FUNDDESK PORTAL",
+      "instruction_title": "Dear Tarif Team,\nPlease confirm you've received the 10 first clients for each company (302, 303, 304, 305) on PROD LIKE environment for FUND DESK as well",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Dear Tarif Team,\nPlease confirm you\u0027ve received the 10 first clients for each company (302, 303, 304, 305) on PROD LIKE environment for FUND DESK as well",
-      "instruction_id": "CHK-15187-2",
-      "nominated_user": ""
+      "instruction_id": "CHK-15187-2"
     }
   ]
 }

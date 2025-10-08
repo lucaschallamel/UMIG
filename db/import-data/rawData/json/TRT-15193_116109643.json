@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15193,
   "title": "Tarif - Extraction des Tiers pour envoie vers Atlas",
@@ -10,11 +10,11 @@
   "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TARIF",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Extraction des Tiers pour envoie vers Atlas",
-      "instruction_id": "TRT-15193-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15193-1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "IGO",
   "step_number": 1973,
   "title": "IT_ENV - PRD - SANITY CHECKS BEFORE MIGRATION",
@@ -6,288 +6,288 @@
   "successor": "TRT-13149",
   "primary_team": "IT_ENV",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : CMS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : CMS",
-      "instruction_id": "IGO-1973-1",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : MOTUS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : MOTUS",
-      "instruction_id": "IGO-1973-2",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : ATLAS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : ATLAS",
-      "instruction_id": "IGO-1973-3",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : DARWIN",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : DARWIN",
-      "instruction_id": "IGO-1973-4",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SYSPARAM_O",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SYSPARAM_O",
-      "instruction_id": "IGO-1973-5",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SYSPARAM",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SYSPARAM",
-      "instruction_id": "IGO-1973-6",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SYSPARAM (Other)",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SYSPARAM (Other)",
-      "instruction_id": "IGO-1973-7",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SYSPARAM_ARC",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SYSPARAM_ARC",
-      "instruction_id": "IGO-1973-8",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SYSPARAM_PDR",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SYSPARAM_PDR",
-      "instruction_id": "IGO-1973-9",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-9"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : ODS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : ODS",
-      "instruction_id": "IGO-1973-10",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-10"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : ADS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : ADS",
-      "instruction_id": "IGO-1973-11",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-11"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : IQ",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : IQ",
-      "instruction_id": "IGO-1973-12",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-12"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : RACR",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : RACR",
-      "instruction_id": "IGO-1973-13",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-13"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : SAVETAX",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : SAVETAX",
-      "instruction_id": "IGO-1973-14",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-14"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : CID",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : CID",
-      "instruction_id": "IGO-1973-15",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-15"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : CIDR",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : CIDR",
-      "instruction_id": "IGO-1973-16",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-16"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : KONDOR+",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : KONDOR+",
-      "instruction_id": "IGO-1973-17",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-17"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : AmbitFocus",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : AmbitFocus",
-      "instruction_id": "IGO-1973-18",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-18"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : FOCUS ALM",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : FOCUS ALM",
-      "instruction_id": "IGO-1973-19",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-19"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : MIS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : MIS",
-      "instruction_id": "IGO-1973-20",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-20"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : TMPIS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : TMPIS",
-      "instruction_id": "IGO-1973-21",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-21"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : FENICS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : FENICS",
-      "instruction_id": "IGO-1973-22",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-22"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : PORTAIL COMPLIANCE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : PORTAIL COMPLIANCE",
-      "instruction_id": "IGO-1973-23",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-23"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : APOLLO",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : APOLLO",
-      "instruction_id": "IGO-1973-24",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-24"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : BASE TIERS PUBLIC",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : BASE TIERS PUBLIC",
-      "instruction_id": "IGO-1973-25",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-25"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : BASE TIERS PRIVEE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : BASE TIERS PRIVEE",
-      "instruction_id": "IGO-1973-26",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-26"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : CAT",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : CAT",
-      "instruction_id": "IGO-1973-27",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-27"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : EBANKING",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : EBANKING",
-      "instruction_id": "IGO-1973-28",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-28"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : ENGINE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : ENGINE",
-      "instruction_id": "IGO-1973-29",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-29"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : GPMS",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : GPMS",
-      "instruction_id": "IGO-1973-30",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-30"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : THINKFOLIO",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : THINKFOLIO",
-      "instruction_id": "IGO-1973-31",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-31"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : KGR",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : KGR",
-      "instruction_id": "IGO-1973-32",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-32"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : EASYTAX RUBIK",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : EASYTAX RUBIK",
-      "instruction_id": "IGO-1973-33",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-33"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : EASYTAX TTP",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : EASYTAX TTP",
-      "instruction_id": "IGO-1973-34",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-34"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : QURTAL TRAILER FEES",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : QURTAL TRAILER FEES",
-      "instruction_id": "IGO-1973-35",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-35"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : QUARTAL",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : QUARTAL",
-      "instruction_id": "IGO-1973-36",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-36"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : FIRE",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : FIRE",
-      "instruction_id": "IGO-1973-37",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-37"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : PRINTNET CONFIDENTIAL",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : PRINTNET CONFIDENTIAL",
-      "instruction_id": "IGO-1973-38",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-38"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : PRINTNET SECRET",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : PRINTNET SECRET",
-      "instruction_id": "IGO-1973-39",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-39"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_ENV",
+      "instruction_title": "Check Environment space & temporary database table space for : PRINTNET",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Check Environment space \u0026 temporary database table space for : PRINTNET",
-      "instruction_id": "IGO-1973-40",
-      "nominated_user": ""
+      "instruction_id": "IGO-1973-40"
     }
   ]
 }

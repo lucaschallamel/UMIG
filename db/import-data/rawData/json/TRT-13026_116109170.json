@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 13026,
   "title": "PMS - LOAD CLIENT DATA TO PMS",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "EXECUTE CONTROL-M JOB TO:\n- Configure the import system (Talend ETL) with proper dates and import mode.\n- Intraday start (for third load) : E3_T001PMS_NJD010",
-      "instruction_id": "TRT-13026-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13026-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "PMS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "The files generated will be automatically processed by PMS.",
-      "instruction_id": "TRT-13026-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-13026-2"
     }
   ]
 }

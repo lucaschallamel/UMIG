@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15211,
-  "title": "RUN0",
+  "title": "SG CLASSIFICATION SNAPSHOT FROM BTPUB",
   "predecessor": "TRT-13912",
   "successor": "CHK-3455",
   "primary_team": "TAX",
@@ -10,18 +10,18 @@
   "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Check QI pools/ Fatca / CRS",
-      "instruction_id": "TRT-15211-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15211-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "TAX",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Snapshot of Classifications received from SECLI onto BTpub (QI/FATCA/CRS)",
-      "instruction_id": "TRT-15211-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15211-2"
     }
   ]
 }

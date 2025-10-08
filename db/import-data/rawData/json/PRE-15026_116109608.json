@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 15026,
-  "title": "SECLI - IMPORT INVARIANTS CREATED DURING PREVIOUS RUN/DR IN PROD-LIKE FOR TIERS \u0026amp; PERSONS",
+  "title": "SECLI - IMPORT INVARIANTS CREATED DURING PREVIOUS RUN/DR IN PROD-LIKE FOR TIERS &amp; PERSONS",
   "predecessor": "PRE-45",
   "successor": "PRE-45",
   "primary_team": "SECLI",
@@ -10,11 +10,11 @@
   "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
+      "instruction_title": "Dear SECLI Team,\nBased on previous RUN/DR Invariant calculation for TIERS & PERSONS please update **PROD-LIKE**.",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Dear SECLI Team,\nBased on previous RUN/DR Invariant calculation for TIERS \u0026 PERSONS please update **PROD-LIKE**.",
-      "instruction_id": "PRE-15026-1",
-      "nominated_user": ""
+      "instruction_id": "PRE-15026-1"
     }
   ]
 }

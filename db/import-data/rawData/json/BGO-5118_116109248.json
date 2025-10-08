@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 5118,
-  "title": "RUN1",
+  "title": "BUSINESS CHECKS - SECLI GVA - UPDATE &quot;ADRESSES DE GROUPAGE&quot; BASED ON BCL FILE",
   "predecessor": "BGO-5113",
   "successor": "BGO-5123",
   "primary_team": "BUSINESS_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Mise à jour MANUELLE des \\\"adresses de groupage\\\" sur base du fichier de référence de BCL",
-      "instruction_id": "BGO-5118-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "BGO-5118-1"
     }
   ]
 }

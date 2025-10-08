@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15185,
   "title": "ATLAS - FUTURE TREATMENTS (back to Production daily process) - PHASE 6.1",
@@ -10,11 +10,11 @@
   "time_sequence": "",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "",
       "instruction_title": "SEND MIGRATION FILES BY HARD DISK TO UBP",
-      "instruction_id": "1",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "1"
     }
   ]
 }

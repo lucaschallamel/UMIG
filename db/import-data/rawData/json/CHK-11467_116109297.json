@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 11467,
   "title": "ENGINE - IT CONTROL GENERATION FOR SECLI MAPPING TABLE INTEGRATION - Step 05 - RECONCILIATION INTEGRITY 2 PART  2",
@@ -10,53 +10,53 @@
   "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_FPC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT\nUPLOAD_FPC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT",
-      "instruction_id": "CHK-11467-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SQL_MOTEUR_ATLAS_0000_UPD_T_FU_CLIENT",
-      "instruction_id": "CHK-11467-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FPC_ATLAS_MOTEUR_0000_T_CLIENT",
-      "instruction_id": "CHK-11467-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_BEFORE_INSERT",
-      "instruction_id": "CHK-11467-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "",
       "instruction_title": "EXCEL_C2255_ATLAS_CLIENT_BEFORE_INTEGRATION",
-      "instruction_id": "CHK-11467-5",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-11467-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "C2255 - Liste Des Clients Deja Existants Sur Atlas Avant Integration - Doit être vide -",
-      "instruction_id": "CHK-11467-6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS\nGenerate control C2255 \\\"List of Existing Clients on Atlas Before Integration\nand email to IT_CUTOVER.",
-      "instruction_id": "CHK-11467-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-11467-7"
     }
   ]
 }

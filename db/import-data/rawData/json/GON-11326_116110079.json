@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "GON",
   "step_number": 11326,
   "title": "CONTROL-M PLAN EXECUTION : POSTMIG END OF DAY BANK",
@@ -10,11 +10,11 @@
   "time_sequence": "POSTMIG",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "CONTROL-M PLAN EXECUTION : POSTMIG END OF DAY BANK\n\n**Please run from 8:00PM**\n\nCTRLM Plan is set as of **05.05.2025**\n\nApplications are batching as of **01.05.2025** (ATLAS, DARWIN, ODS, AMBITFOCUS, SECLI)",
-      "instruction_id": "GON-11326-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "GON-11326-1"
     }
   ]
 }

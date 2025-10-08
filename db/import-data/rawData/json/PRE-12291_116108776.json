@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 12291,
-  "title": "PREPARE DEMANDS FOR PRODUCTION BACKUPS \u0026amp; ENVIRONMENT REFRESH FOR SECLI AND ATLAS ONLY (TEST_ENV)",
+  "title": "PREPARE DEMANDS FOR PRODUCTION BACKUPS &amp; ENVIRONMENT REFRESH FOR SECLI AND ATLAS ONLY (TEST_ENV)",
   "predecessor": "PRE-12291",
   "successor": "PRE-12291",
   "primary_team": "IT_ENV",
@@ -10,18 +10,18 @@
   "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
   "task_list": [
     {
+      "nominated_user": "-",
       "instruction_assigned_team": "IT_ENV",
-      "associated_controls": "",
       "instruction_title": "For SECLI and ATLAS only, refresh DB (+ QSAM files for ATLAS) + REQUIRED FILES on **TEST-ENV **from **PROD **\n_- For RUN/DR: Backup BEFORE EOD/EOM with NEXT RUN date\n- For CUTOVER: Backup / Restore AFTER EOD before migration weekend",
-      "instruction_id": "PRE-12291",
-      "nominated_user": "-"
+      "associated_controls": "",
+      "instruction_id": "PRE-12291"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "",
-      "associated_controls": "",
       "instruction_title": "**PROD ONLY**\n_- **SECLI**: Backup and restore on Friday 14.11 morning at 6:00AM, after SECLI batch completed OK - - **RESTORE only DBSECLI database on EV4** (exclude all others: exabn, dbswift, ...)\n\n- **ATLAS**: Backup and restore on Friday 14.11 morning at 6:00AM, after ATLAS batch completed OK",
-      "instruction_id": "PRE-12291",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "PRE-12291"
     }
   ]
 }

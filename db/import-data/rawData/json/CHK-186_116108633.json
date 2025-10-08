@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 186,
   "title": "ENGINE - STEP 08 - ATLAS PHOTO BEFORE MIGRATION",
@@ -6,71 +6,71 @@
   "successor": "TRT-706",
   "primary_team": "ENGINE COMMON",
   "impacted_teams": "",
-  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
   "time_sequence": "GH - ATLAS PHASE 4.1 - ACCOUNT CREATION",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0160_ACCOUNTS_CTRL_FACCX1_BEFORE_EOD",
-      "instruction_id": "1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0160_ACCOUNTS_CTRL_FACCX1_BEFORE_EOD",
-      "instruction_id": "2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0161_GL_ACCOUNTS_CTRL_FACCX2_BEFORE_EOD",
-      "instruction_id": "3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0161_GL_ACCOUNTS_CTRL_FACCX2_BEFORE_EOD",
-      "instruction_id": "4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_ FTC_ATLAS_MOTEUR_0161_ACCOUNTS_CTRL_FACCX2_BEFORE_EOD",
-      "instruction_id": "5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_DOSSIER_C6820",
-      "instruction_id": "6",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_REPORT_PLAC48_AV",
-      "instruction_id": "7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_REPORT_TAX_EU_AV",
-      "instruction_id": "8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "8"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0601_DOSSIER_ALL_POSITION_AV",
-      "instruction_id": "9",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "9"
     }
   ]
 }

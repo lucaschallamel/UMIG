@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "PRE",
   "step_number": 11569,
-  "title": "RUN1",
+  "title": "CONTROL-M - PREPARATION",
   "predecessor": "TRT-11569",
   "successor": "TRT-12112",
   "primary_team": "SPOC_EXPLOITATION",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SPOC_EXPLOITATION",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Schedule Ascension for ATLAS :\nE**x**_ATLAS\nE**x**_PHASE-0-REPRISE-CL-SECLI\nE**x**_01-PH0_FU_ACCC5\nEvery day of the next week for automatic execution at 8:00 AM",
-      "instruction_id": "PRE-11569-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "PRE-11569-1"
     }
   ]
 }

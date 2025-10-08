@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 7779,
   "title": "SECLI SWITZERLAND / GENEVA - LOAD CREDIT CARD",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SECLI",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "LOAD CREDIT CARD FILE OUTPUT TO SECLI",
-      "instruction_id": "TRT-7779-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-7779-1"
     }
   ]
 }

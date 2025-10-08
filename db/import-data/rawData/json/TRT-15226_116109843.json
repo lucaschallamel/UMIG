@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 15226,
   "title": "SGPBS - Confirm Reception of FX rates",
@@ -10,18 +10,18 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Confirm reception of Closing FX rates sent by UBP (automatically sent by Kondor+)",
-      "instruction_id": "TRT-15226-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15226-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "SGPBS",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "DO NOT INTEGRATE THESE RATES - WAIT FOR UBP VALIDATION",
-      "instruction_id": "TRT-15226-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-15226-2"
     }
   ]
 }

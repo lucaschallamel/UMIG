@@ -1,20 +1,20 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": null,
-  "title": "Data Files - Check that DSS are in final state - P\u0026amp;C WE",
+  "title": "Data Files - Check that DSS are in final state - P&amp;C WE",
   "predecessor": "TRT-13896",
   "successor": "TRT-13896",
   "primary_team": "DATA_FILES",
   "impacted_teams": "",
-  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "macro_time_sequence": "E - WEEK 1-&gt;2",
   "time_sequence": "EE - FRIDAY ACTIVITIES",
   "task_list": [
     {
+      "nominated_user": "NUKOVIC Hugo",
       "instruction_assigned_team": "DATA_FILES",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Send confirmation to Engine that DSS Files are up to date and ready for JSON generation",
-      "instruction_id": "CHK-15164",
-      "nominated_user": "NUKOVIC Hugo"
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-15164"
     }
   ]
 }

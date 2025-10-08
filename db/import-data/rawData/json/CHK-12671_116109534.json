@@ -1,7 +1,7 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 12671,
-  "title": "RUN1",
+  "title": "CONTROLS - VALIDATE AFTER EOD*2 CONTROL RESULTS",
   "predecessor": "BGO-14151",
   "successor": "TRT-12293",
   "primary_team": "IT_CUTOVER",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "IT_CUTOVER",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Validate control results of established controls:\n\nList of controls: 25_LUX_Controls_V11\nPhase: After EOD*2\n\nReport results by email.",
-      "instruction_id": "CHK-12671-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "CHK-12671-1"
     }
   ]
 }

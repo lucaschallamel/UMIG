@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "BGO",
   "step_number": 14648,
   "title": "BUSINESS - Accounting Validation before CSD migration",
@@ -10,11 +10,11 @@
   "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
   "task_list": [
     {
+      "nominated_user": "KELLY Eamon",
       "instruction_assigned_team": "BUSINESS_CUTOVER",
-      "associated_controls": "",
       "instruction_title": "Mail to Eamon Kelly to provide PRE-CHECK FILES statistics and confirm that we can GO Ahead\n\nControl reports as basis :\nC1006 - Asset Repartition**C1006 A - Asset Repartition by currency",
-      "instruction_id": "BGO-14648-1",
-      "nominated_user": "KELLY Eamon"
+      "associated_controls": "",
+      "instruction_id": "BGO-14648-1"
     }
   ]
 }

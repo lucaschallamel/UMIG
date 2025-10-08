@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "TRT",
   "step_number": 5752,
   "title": "ENGINE - Step 06_1 - CONTACT - TABLES CONTACT - LOAD eBanking DATABASE",
@@ -10,60 +10,60 @@
   "time_sequence": "WEEK-END 1",
   "task_list": [
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CREATE_INVARIANT_CONTACT_NUMBER",
-      "instruction_id": "TRT-5752-1",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-1"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPLOAD_FTC_MOTEUR_CONTACT_0000_TORONTO_5201_USERS",
-      "instruction_id": "TRT-5752-2",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-2"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPLOAD_FTC_MOTEUR_CONTACT_0000_TORONTO_5203_PORTFOLIOS",
-      "instruction_id": "TRT-5752-3",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-3"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPLOAD_FTC_MOTEUR_CONTACT_0000_TORONTO_0205_PAYMENT_TEMPLATE",
-      "instruction_id": "TRT-5752-4",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-4"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "UPLOAD_FTC_MOTEUR_CONTACT_0000_TORONTO_0208_USER_PERMISSIONS",
-      "instruction_id": "TRT-5752-5",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-5"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
+      "instruction_title": "Push du fichier au SECLI >CHECK with Client Data if there's a task to integrate the eBanking logins",
       "associated_controls": "[ - ](#)",
-      "instruction_title": "Push du fichier au SECLI \u003eCHECK with Client Data if there\u0027s a task to integrate the eBanking logins",
-      "instruction_id": "TRT-5752-6",
-      "nominated_user": ""
+      "instruction_id": "TRT-5752-6"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "Push du fichier au SECLI",
-      "instruction_id": "TRT-5752-7",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-7"
     },
     {
+      "nominated_user": "",
       "instruction_assigned_team": "ENGINE COMMON",
-      "associated_controls": "[ - ](#)",
       "instruction_title": "BREAKPOINT_CONTACT_WAIT_GO_FOR_SECLI",
-      "instruction_id": "TRT-5752-8",
-      "nominated_user": ""
+      "associated_controls": "[ - ](#)",
+      "instruction_id": "TRT-5752-8"
     }
   ]
 }

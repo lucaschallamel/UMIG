@@ -1,4 +1,4 @@
-﻿{
+{
   "step_type": "CHK",
   "step_number": 11898,
   "title": "RUN1",
@@ -10,11 +10,11 @@
   "time_sequence": "WEEK-END 2",
   "task_list": [
     {
-      "instruction_assigned_team": "SGPBS - CHECKS: Pre-checks \u0026amp; Transfer UBP",
-      "associated_controls": "",
+      "nominated_user": "",
+      "instruction_assigned_team": "SGPBS - CHECKS: Pre-checks &amp; Transfer UBP",
       "instruction_title": "**",
-      "instruction_id": "CHK-11898",
-      "nominated_user": ""
+      "associated_controls": "",
+      "instruction_id": "CHK-11898"
     }
   ]
 }
