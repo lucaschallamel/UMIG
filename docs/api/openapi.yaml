@@ -1,12 +1,12 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.12.0
+  version: 2.13.0
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   description:
-    "\n    **Version 2.12.0 - September 29, 2025:**\n    **System Administration & Dashboard Enhancement:** Added comprehensive system administration APIs and real-time dashboard capabilities.\n    **New APIs:** AdminVersionApi (system version info, health monitoring, component status, validation), DashboardApi (real-time metrics with caching, health checks, summary data),\n    DatabaseVersionsApi (Liquibase management, deployment packages, database health), RolesApi (role-based access control with hierarchy and permissions).\n    **Enterprise Features:** Complete system monitoring, automated deployment packaging, role hierarchy management, cached metrics for performance,\n    and comprehensive health validation across all system components. **Security Integration:** Full RBAC implementation with role hierarchy,\n    enterprise-grade monitoring, and automated system validation. **Performance Optimization:** Intelligent caching for dashboard metrics,\n    optimized health checks, and streamlined deployment workflows.\n\n    **Version 2.11.0 - September 16, 2025:**\n    **Complete Relationship API Integration:** Added comprehensive TeamsRelationshipApi and UsersRelationshipApi endpoints.\n    **New Features:** Team relationship management (/teams/{teamId}/environments, /teams/{teamId}/applications, /teams/{teamId}/labels, /teams/{teamId}/summary),\n    User relationship management (/users/{userId}/teams, /users/{userId}/environments, /users/{userId}/applications, /users/{userId}/summary).\n    **Enterprise Capabilities:** Full association management, comprehensive relationship summaries, enterprise-grade security,\n    and complete RBAC integration. **Documentation Coverage:** Achieved 100% API documentation coverage across entire UMIG ecosystem.\n    **Quality Standard:** All endpoints meet 9.4/10 enterprise documentation quality standard with comprehensive error handling,\n    security features, and performance optimizations.\n\n    **Version 2.10.0 - January 13, 2025:**\n    **Enterprise Security & Rate Limiting Enhancement:** Complete\
+    "\n    **Version 2.13.0 - October 8, 2025:**\n    **API Documentation Alignment & Enhancement:** Critical synchronization between OpenAPI specification and API documentation files.\n    **New Endpoint:** Added GET /users/current for current authenticated user retrieval with 11 response fields, 4 security scenarios (401, 403 variations),\n    admin cross-user query capability via ?username parameter, and ADR-042 dual authentication mechanism integration.\n    **Path Corrections:** Fixed 15 UserRelationships endpoint paths from incorrect /users/{userId}/* to correct /usersRelationship/users/{userId}/*\n    matching actual ScriptRunner implementation. Affected endpoints: teams, environments, applications, summary, delete-protection, activity,\n    soft-delete, restore, role, role/validate, batch operations. **Documentation Quality:** Achieved 100% alignment between OpenAPI spec\n    and API documentation files (UsersAPI.md, UserRelationshipsAPI.md, TeamRelationshipsAPI.md). **Security Enhancement:** Complete security\n    scenario documentation with distinct error codes (SESSION_INVALID, USER_NOT_REGISTERED, USER_DEACTIVATED, INSUFFICIENT_PRIVILEGES_CROSS_USER).\n\n    **Version 2.12.0 - September 29, 2025:**\n    **System Administration & Dashboard Enhancement:** Added comprehensive system administration APIs and real-time dashboard capabilities.\n    **New APIs:** AdminVersionApi (system version info, health monitoring, component status, validation), DashboardApi (real-time metrics with caching, health checks, summary data),\n    DatabaseVersionsApi (Liquibase management, deployment packages, database health), RolesApi (role-based access control with hierarchy and permissions).\n    **Enterprise Features:** Complete system monitoring, automated deployment packaging, role hierarchy management, cached metrics for performance,\n    and comprehensive health validation across all system components. **Security Integration:** Full RBAC implementation with role hierarchy,\n    enterprise-grade monitoring, and automated system validation. **Performance Optimization:** Intelligent caching for dashboard metrics,\n    optimized health checks, and streamlined deployment workflows.\n\n    **Version 2.11.0 - September 16, 2025:**\n    **Complete Relationship API Integration:** Added comprehensive TeamsRelationshipApi and UsersRelationshipApi endpoints.\n    **New Features:** Team relationship management (/teams/{teamId}/environments, /teams/{teamId}/applications, /teams/{teamId}/labels, /teams/{teamId}/summary),\n    User relationship management (/users/{userId}/teams, /users/{userId}/environments, /users/{userId}/applications, /users/{userId}/summary).\n    **Enterprise Capabilities:** Full association management, comprehensive relationship summaries, enterprise-grade security,\n    and complete RBAC integration. **Documentation Coverage:** Achieved 100% API documentation coverage across entire UMIG ecosystem.\n    **Quality Standard:** All endpoints meet 9.4/10 enterprise documentation quality standard with comprehensive error handling,\n    security features, and performance optimizations.\n\n    **Version 2.10.0 - January 13, 2025:**\n    **Enterprise Security & Rate Limiting Enhancement:** Complete\
     \ OpenAPI specification synchronization with enhanced API documentation.\n    **Security Features:** Added comprehensive\
     \ rate limiting responses (HTTP 429), enterprise security headers (X-Frame-Options, X-XSS-Protection, CSP),\n    and RBAC\
     \ integration documentation. **Error Handling:** Enhanced error schemas with SQL state mappings (23503\u2192400, 23505\u2192\
@@ -1876,7 +1876,7 @@ paths:
         "500": *id002
         "429": *id003
   # User Relationships API Endpoints
-  /users/{userId}/teams/{teamId}/validate:
+  /usersRelationship/users/{userId}/teams/{teamId}/validate:
     get:
       security:
         - ConfluenceUsers: []
@@ -1952,7 +1952,7 @@ paths:
         "404": *id004
         "500": *id002
         "429": *id003
-  /users/{userId}/delete-protection:
+  /usersRelationship/users/{userId}/delete-protection:
     get:
       security:
         - ConfluenceUsers: []
@@ -2026,7 +2026,7 @@ paths:
         "404": *id004
         "500": *id002
         "429": *id003
-  /users/{userId}/activity:
+  /usersRelationship/users/{userId}/activity:
     get:
       security:
         - ConfluenceUsers: []
@@ -2119,7 +2119,7 @@ paths:
         "404": *id004
         "500": *id002
         "429": *id003
-  /users/relationship-statistics:
+  /usersRelationship/users/relationship-statistics:
     get:
       security:
         - ConfluenceUsers: []
@@ -2187,7 +2187,7 @@ paths:
                     format: date-time
         "500": *id002
         "429": *id003
-  /users/{userId}/soft-delete:
+  /usersRelationship/users/{userId}/soft-delete:
     put:
       security:
         - ConfluenceAdministrators: []
@@ -2259,7 +2259,7 @@ paths:
         "409": *id005
         "500": *id002
         "429": *id003
-  /users/{userId}/restore:
+  /usersRelationship/users/{userId}/restore:
     put:
       security:
         - ConfluenceAdministrators: []
@@ -2330,7 +2330,7 @@ paths:
         "409": *id005
         "500": *id002
         "429": *id003
-  /users/{userId}/role:
+  /usersRelationship/users/{userId}/role:
     put:
       security:
         - ConfluenceAdministrators: []
@@ -2411,7 +2411,7 @@ paths:
         "409": *id005
         "500": *id002
         "429": *id003
-  /users/{userId}/role/validate:
+  /usersRelationship/users/{userId}/role/validate:
     put:
       security:
         - ConfluenceAdministrators: []
@@ -2516,7 +2516,7 @@ paths:
         "404": *id004
         "500": *id002
         "429": *id003
-  /users/cleanup-orphaned-members:
+  /usersRelationship/users/cleanup-orphaned-members:
     post:
       security:
         - ConfluenceAdministrators: []
@@ -2574,7 +2574,7 @@ paths:
                     format: date-time
         "500": *id002
         "429": *id003
-  /users/batch-validate:
+  /usersRelationship/users/batch-validate:
     post:
       security:
         - ConfluenceUsers: []
@@ -2655,7 +2655,7 @@ paths:
         "400": *id001
         "500": *id002
         "429": *id003
-  /users/batch-validate-relationships:
+  /usersRelationship/users/batch-validate-relationships:
     post:
       security:
         - ConfluenceUsers: []
@@ -8247,6 +8247,180 @@ paths:
         "409": *id005
         "500": *id002
         "429": *id003
+  /users/current:
+    get:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Users
+      summary: Get current authenticated user
+      description: |
+        Retrieves the currently authenticated user's profile with enhanced authentication validation.
+        Implements ADR-042 dual authentication mechanism.
+
+        **Admin Cross-User Query:** Administrators can view other users' data via the `username` query parameter.
+      operationId: getCurrentUser
+      parameters:
+        - name: username
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Admin-only - Username to view another user's data (requires administrator privileges)
+      responses:
+        "200":
+          description: Current user profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    description: UMIG database user ID
+                  username:
+                    type: string
+                    description: User's UMIG username (usr_code)
+                  confluenceUserId:
+                    type: string
+                    description: Confluence user identifier
+                  confluenceContextUsername:
+                    type: string
+                    description: Authenticated user's Confluence username from context
+                  firstName:
+                    type: string
+                    description: User's first name
+                  lastName:
+                    type: string
+                    description: User's last name
+                  email:
+                    type: string
+                    description: User's email address
+                  isAdmin:
+                    type: boolean
+                    description: Administrator flag
+                  roleId:
+                    type: integer
+                    description: User's role ID
+                  role:
+                    type: string
+                    description: User's role code (ADMIN, NORMAL, PILOT, or USER)
+                  isActive:
+                    type: boolean
+                    description: User active status
+                  source:
+                    type: string
+                    description: Always "current_user_endpoint" for this endpoint
+              examples:
+                standardUser:
+                  summary: Standard user request
+                  value:
+                    userId: 1001
+                    username: "JDO"
+                    confluenceUserId: "jdoe"
+                    confluenceContextUsername: "jdoe"
+                    firstName: "John"
+                    lastName: "Doe"
+                    email: "john.doe@example.com"
+                    isAdmin: false
+                    roleId: 2
+                    role: "NORMAL"
+                    isActive: true
+                    source: "current_user_endpoint"
+                adminCrossUserQuery:
+                  summary: Admin viewing another user
+                  value:
+                    userId: 1002
+                    username: "MSmith"
+                    confluenceUserId: "msmith"
+                    confluenceContextUsername: "admin"
+                    firstName: "Mary"
+                    lastName: "Smith"
+                    email: "mary.smith@example.com"
+                    isAdmin: false
+                    roleId: 2
+                    role: "NORMAL"
+                    isActive: true
+                    source: "current_user_endpoint"
+        "401":
+          description: Authentication failed - no valid Confluence session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authentication Required"
+                  errorCode:
+                    type: string
+                    enum: [SESSION_INVALID]
+                    example: "SESSION_INVALID"
+                  message:
+                    type: string
+                    example: "No valid Confluence session found"
+        "403":
+          description: Access denied - multiple scenarios with distinct error codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  errorCode:
+                    type: string
+                    enum:
+                      [
+                        USER_NOT_REGISTERED,
+                        USER_DEACTIVATED,
+                        INSUFFICIENT_PRIVILEGES_CROSS_USER,
+                      ]
+                  message:
+                    type: string
+                  details:
+                    type: object
+                  troubleshooting:
+                    type: array
+                    items:
+                      type: string
+                  links:
+                    type: object
+              examples:
+                userNotRegistered:
+                  summary: User authenticated but not registered in UMIG
+                  value:
+                    error: "Access Denied"
+                    errorCode: "USER_NOT_REGISTERED"
+                    message: "User 'jdoe' is authenticated in Confluence but not registered in UMIG"
+                    details:
+                      confluenceUsername: "jdoe"
+                      isAuthenticated: true
+                      isRegisteredInUmig: false
+                      requiredAction: "Contact your administrator to create a UMIG user account"
+                    troubleshooting:
+                      - "Verify user is registered in UMIG database (users_usr table)"
+                      - "Contact administrator to create user account"
+                      - "Check if auto-user-creation is enabled in UserService configuration"
+                    links:
+                      documentation: "/wiki/display/UMIG/User+Registration"
+                      support: "/wiki/display/UMIG/Contact+Administrator"
+                userDeactivated:
+                  summary: User exists but account is deactivated
+                  value:
+                    error: "Access Denied"
+                    errorCode: "USER_DEACTIVATED"
+                    message: "User account has been deactivated"
+                insufficientPrivileges:
+                  summary: Non-admin attempted cross-user query
+                  value:
+                    error: "Access Denied"
+                    errorCode: "INSUFFICIENT_PRIVILEGES_CROSS_USER"
+                    message: "Administrator privileges required to view other users' data"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "429":
+          $ref: "#/components/responses/RateLimit"
   /users/{id}:
     get:
       security:
@@ -9669,7 +9843,7 @@ paths:
           description: Internal server error
 
   # User Relationship Management API Endpoints
-  /users/{userId}/teams:
+  /usersRelationship/users/{userId}/teams:
     get:
       security:
         - ConfluenceUsers: []
@@ -9712,7 +9886,7 @@ paths:
         "500":
           description: Internal server error
 
-  /users/{userId}/environments:
+  /usersRelationship/users/{userId}/environments:
     get:
       security:
         - ConfluenceUsers: []
@@ -9757,7 +9931,7 @@ paths:
         "500":
           description: Internal server error
 
-  /users/{userId}/applications:
+  /usersRelationship/users/{userId}/applications:
     get:
       security:
         - ConfluenceUsers: []
@@ -9802,7 +9976,7 @@ paths:
         "500":
           description: Internal server error
 
-  /users/{userId}/summary:
+  /usersRelationship/users/{userId}/summary:
     get:
       security:
         - ConfluenceUsers: []

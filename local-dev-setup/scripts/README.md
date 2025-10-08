@@ -61,13 +61,14 @@ scripts/
 - API client services
 - Authentication utilities
 
-### utilities/ (11 Standalone Tools)
+### utilities/ (12 Standalone Tools)
 
 - Health check utilities
 - JDBC driver setup
 - Classpath management
 - Log viewing and analysis
 - Session authentication capture
+- API documentation validation (validate-documentation.js)
 
 ### infrastructure/ (Environment Setup)
 
@@ -129,6 +130,7 @@ npm run health:check         # System health validation
 npm run setup:groovy-jdbc    # JDBC driver setup
 npm run groovy:classpath:status # Classpath verification
 npm run auth:capture-session # Capture browser session
+npm run validate:openapi     # Validate API documentation
 ```
 
 ### Data Operations

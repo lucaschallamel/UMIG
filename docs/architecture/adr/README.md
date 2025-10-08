@@ -12,8 +12,8 @@ Comprehensive archive of architectural decisions for UMIG platform covering 72+ 
 
 ## Current Status (Sprint 8)
 
-**Total ADRs**: 72 documented decisions (ADR-001 through ADR-072)
-**Latest Updates**: Security Architecture (ADR-067 through ADR-071) - September 2025
+**Total ADRs**: 74 documented decisions (ADR-001 through ADR-074)
+**Latest Updates**: Security Architecture (ADR-067 through ADR-071), Environment Detection (ADR-073), Component Compatibility (ADR-074) - September 2025
 **Active Development**: Sprint 8 Security Architecture Enhancement
 **Implementation Tracking**: [ADR Implementation Tracker](ADR%20-%20Implementation%20Tracker.md)
 
@@ -122,9 +122,11 @@ Comprehensive archive of architectural decisions for UMIG platform covering 72+ 
 - **[ADR-070](ADR-070-Component-Lifecycle-Security.md)** - Component Lifecycle Security
 - **[ADR-071](ADR-071-Privacy-First-Security-Architecture.md)** - Privacy-First Security Architecture
 
-### Testing Architecture (ADR-072)
+### Testing & Environment Architecture (ADR-072 to ADR-074)
 
 - **[ADR-072](ADR-072-dual-track-testing-strategy.md)** - Dual-Track Testing Strategy - Manual Groovy + Automated Jest Integration
+- **[ADR-073](ADR-073-Enhanced-4-Tier-Environment-Detection-Architecture.md)** - Enhanced 4-Tier Environment Detection Architecture
+- **[ADR-074](ADR-074-ComponentLocator-ScriptRunner-Compatibility-Fix.md)** - ComponentLocator ScriptRunner Compatibility Fix
 
 ## ADR Categories
 
@@ -144,9 +146,9 @@ Technical debt methodology, authentication contexts, type casting standards, rep
 
 **Latest Sprint 8 Focus**: Enterprise component security (ADR-054), multi-agent workflows (ADR-055), entity migration (ADR-056), JavaScript module loading (ADR-057), SecurityUtils patterns (ADR-058), schema-first development (ADR-059), BaseEntityManager interface (ADR-060), StepView RBAC (ADR-061), pagination patterns (ADR-063), namespace prefixing (ADR-064), versioning strategy (ADR-066), **session security enhancement (ADR-067)**, **SecurityUtils enhancement (ADR-068)**, **component security boundaries (ADR-069)**, **component lifecycle security (ADR-070)**, **privacy-first architecture (ADR-071)**.
 
-### Testing Excellence (ADR-072)
+### Testing & Environment Excellence (ADR-072 to ADR-074)
 
-Dual-track testing strategy with manual Groovy and automated Jest integration.
+Dual-track testing strategy with manual Groovy and automated Jest integration (ADR-072), enhanced 4-tier environment detection for UAT/Production deployment (ADR-073), and ComponentLocator compatibility fixes for ScriptRunner environments (ADR-074).
 
 ## Key ADR Highlights
 
@@ -171,6 +173,8 @@ Dual-track testing strategy with manual Groovy and automated Jest integration.
 - ADR-052: Self-contained test architecture (100% pass rate)
 - ADR-053: Technology-prefixed test commands
 - ADR-072: Dual-track testing strategy (Jest + Groovy)
+- ADR-073: Enhanced 4-tier environment detection
+- ADR-074: ComponentLocator ScriptRunner compatibility
 
 ## ADR Process
 
@@ -197,4 +201,4 @@ Dual-track testing strategy with manual Groovy and automated Jest integration.
 
 ---
 
-**Status**: 72 documented decisions | Latest: ADR-072 (Dual-Track Testing) | Sprint 8: Security Architecture Enhancement
+**Status**: 74 documented decisions | Latest: ADR-074 (ComponentLocator Compatibility) | Sprint 8: Security Architecture Enhancement

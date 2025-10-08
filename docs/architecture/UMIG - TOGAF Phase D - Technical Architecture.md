@@ -585,10 +585,15 @@ Detailed PostgreSQL configuration and optimization guide.
 
 - ADR-042: Authentication Context Management (4-level fallback)
 - ADR-043: Type Safety Enforcement (explicit casting)
-- **ADR-067**: Session Security Enhancement - Multi-session detection with device fingerprinting
-- **ADR-068**: SecurityUtils Enhancement - Adaptive rate limiting with Redis coordination
-- **ADR-069**: Component Security Boundary Enforcement - Namespace isolation and state protection
-- **ADR-070**: Component Lifecycle Security - Comprehensive audit framework with multi-standard compliance
+- **ADR-067**: Session Security Enhancement - Multi-session detection with device fingerprinting (Sprint 8)
+- **ADR-068**: SecurityUtils Enhancement - Adaptive rate limiting with Redis coordination (Sprint 8)
+- **ADR-069**: Component Security Boundary Enforcement - Namespace isolation and state protection (Sprint 8)
+- **ADR-070**: Component Lifecycle Security - Comprehensive audit framework with multi-standard compliance (Sprint 8)
+- **ADR-073**: Enhanced 4-Tier Environment Detection Architecture (Sprint 8)
+- **ADR-074**: ComponentLocator ScriptRunner Compatibility Fix (Sprint 8)
+- **ADR-075**: Two-Parameter Environment Detection Design Pattern (Sprint 8)
+- **ADR-076**: Configuration Data Management Pattern (Sprint 8)
+- **ADR-077**: Fail-Secure Authentication Architecture - CWE-639 resolution, 9.0/10 security rating (Sprint 8)
 - ADR-046: DoS Protection via ImportQueue Configuration
 - ADR-048: URL Security & Sanitization
 - ADR-039: Secure Error Handling

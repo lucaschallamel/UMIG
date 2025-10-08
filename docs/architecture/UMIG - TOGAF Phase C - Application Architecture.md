@@ -79,26 +79,31 @@ Utility Applications (Infrastructure):
 │  - ScriptRunner Macros                              │
 │  - JavaScript Controllers                           │
 │  - Atlassian AUI Components                         │
+│  - Environment-Aware URL Construction (ADR-075)     │
 ├─────────────────────────────────────────────────────┤
 │         Business Process Layer                       │
 │  - API Endpoint Handlers                            │
 │  - Workflow Orchestration                           │
 │  - Business Rule Enforcement                        │
+│  - Fail-Secure Authentication (ADR-077)             │
 ├─────────────────────────────────────────────────────┤
 │      Business Objects Layer                          │
 │  - Domain Model Definitions                         │
 │  - Entity Classes                                   │
 │  - Value Objects                                    │
+│  - Configuration Management (ADR-076)               │
 ├─────────────────────────────────────────────────────┤
 │      Data Transformation Layer                       │
 │  - DTO Mappings                                     │
 │  - Repository Result Mappers                        │
 │  - API Response Builders                            │
+│  - Type-Safe Configuration Access (ADR-076)         │
 ├─────────────────────────────────────────────────────┤
 │         Data Access Layer (DAL)                      │
 │  - Repository Classes                               │
 │  - DatabaseUtil                                     │
 │  - SQL Query Builders                               │
+│  - Environment Detection (ADR-073, ADR-074)         │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -159,6 +164,424 @@ GET    /{resource}?planId={uuid}
 
 // Pagination
 GET    /{resource}?page={n}&size={n}
+```
+
+### 4.3 Environment Detection Architecture (Sprint 8 Enhanced)
+
+#### 4.3.1 4-Tier Hybrid Detection (ADR-073)
+
+**Design Philosophy**: Fail-secure environment detection with explicit configuration priority and self-discovery fallback.
+
+```yaml
+Tier 1 - System Property (Highest Priority):
+  Property: -Dumig.environment=UAT
+  Use Case: Explicit deployment configuration
+  Reliability: 100% when configured
+  Override: All other tiers
+  Examples:
+    - Production deployment with guaranteed environment
+    - CI/CD pipeline explicit configuration
+    - Docker/container environment variables
+
+Tier 2 - Environment Variable:
+  Variable: UMIG_ENVIRONMENT
+  Use Case: Container/cloud deployments
+  Reliability: High when set
+  Override: Tiers 3-4
+  Examples:
+    - Kubernetes ConfigMap/Secret
+    - Docker Compose environment files
+    - Cloud platform environment configuration
+
+Tier 3 - Database/URL Pattern Matching (Self-Discovery):
+  Method: Parse umig.web.root for hostname patterns
+  Use Case: Dynamic environment detection
+  Reliability: Good with consistent naming
+  Patterns:
+    - localhost → DEV
+    - *-dev.* → DEV
+    - *-uat.* → UAT
+    - *-prod.* → PROD
+  Fallback: If pattern matching fails → Tier 4
+
+Tier 4 - Fail-Safe Default (PROD):
+  Value: PROD (conservative default)
+  Use Case: Unknown environment protection
+  Rationale: Prevent accidental production data modification
+  Security: Fail-secure to most restrictive environment
+```
+
+#### 4.3.2 Two-Parameter Design Pattern (ADR-075)
+
+**Single Responsibility Principle Applied to Configuration**:
+
+```groovy
+// ADR-075: Two-Parameter Environment Detection Design Pattern
+class EnvironmentConfiguration {
+
+    // Parameter 1: Full URL for environment detection
+    String umigWebRoot         // e.g., "https://confluence-uat.company.com/confluence"
+
+    // Parameter 2: Servlet path for filesystem operations
+    String umigWebFilesystemRoot  // e.g., "/confluence"
+
+    // Usage Examples:
+
+    // Environment Detection (uses umigWebRoot)
+    def detectEnvironment() {
+        def url = ComponentLocator.getComponent(BandanaManager)
+                    .getValue(ConfluenceBandanaContext.GLOBAL_CONTEXT, 'umig.web.root')
+
+        if (url?.contains('-uat.')) return 'UAT'
+        if (url?.contains('-dev.')) return 'DEV'
+        if (url?.contains('localhost')) return 'DEV'
+        return 'PROD'  // Fail-safe default
+    }
+
+    // URL Construction (uses umigWebRoot)
+    def buildApiUrl(String endpoint) {
+        return "${umigWebRoot}/rest/scriptrunner/latest/custom${endpoint}"
+    }
+
+    // Filesystem Operations (uses umigWebFilesystemRoot)
+    def buildResourcePath(String resource) {
+        return "${umigWebFilesystemRoot}/download/resources/umig/${resource}"
+    }
+}
+```
+
+**Separation of Concerns Benefits**:
+
+| Parameter                  | Purpose                            | Used By                                     | Change Frequency           |
+| -------------------------- | ---------------------------------- | ------------------------------------------- | -------------------------- |
+| `umig.web.root`            | Full URL with protocol, host, port | Environment detection, API URL construction | Per environment            |
+| `umig.web.filesystem.root` | Servlet context path only          | Static resource loading, filesystem paths   | Rarely (deployment config) |
+
+#### 4.3.3 ComponentLocator Compatibility (ADR-074)
+
+**Deferred Lookup Pattern - Preventing ScriptRunner Race Conditions**:
+
+```groovy
+// ADR-074: ComponentLocator ScriptRunner Compatibility Fix
+class UrlConstructionService {
+
+    // WRONG: Eager initialization causes race conditions
+    // static BandanaManager bandanaManager = ComponentLocator.getComponent(BandanaManager)
+
+    // CORRECT: Lazy/deferred lookup pattern
+    private static BandanaManager getBandanaManager() {
+        return ComponentLocator.getComponent(BandanaManager)
+    }
+
+    // 3-Tier Fallback Hierarchy
+    def getBaseUrl() {
+        try {
+            // Tier 1: ComponentLocator (production)
+            def bandanaValue = getBandanaManager()
+                ?.getValue(ConfluenceBandanaContext.GLOBAL_CONTEXT, 'umig.web.root')
+
+            if (bandanaValue) {
+                return bandanaValue as String
+            }
+        } catch (Exception e) {
+            log.warn("ComponentLocator unavailable, falling back", e)
+        }
+
+        // Tier 2: System Property (explicit config)
+        def systemProperty = System.getProperty('umig.web.root')
+        if (systemProperty) {
+            return systemProperty
+        }
+
+        // Tier 3: Localhost default (development)
+        return 'http://localhost:8090/confluence'
+    }
+}
+```
+
+**Race Condition Prevention**:
+
+- **Problem**: ScriptRunner may not have initialized ComponentLocator when static fields are loaded
+- **Solution**: Defer ComponentLocator calls to method invocation time
+- **Benefit**: 100% reliable initialization regardless of ScriptRunner load order
+
+#### 4.3.4 Integration with Configuration Management (ADR-076)
+
+```groovy
+// Configuration Service Integration with Environment Detection
+class ConfigurationService {
+
+    def getCurrentEnvironment() {
+        // Use 4-tier hierarchy from ADR-073
+        return EnvironmentDetector.detectEnvironment()
+    }
+
+    def getEnvironmentSpecificConfig(String key) {
+        def env = getCurrentEnvironment()
+        def envId = resolveEnvironmentId(env)  // DB FK lookup
+
+        return DatabaseUtil.withSql { sql ->
+            sql.firstRow('''
+                SELECT scf_value, scf_data_type
+                FROM system_configuration_scf
+                WHERE env_id = ? AND scf_key = ? AND scf_is_active = true
+            ''', [envId, key])
+        }
+    }
+}
+```
+
+### 4.4 Authentication Architecture Enhancement (Sprint 8 Enhanced)
+
+#### 4.4.1 Fail-Secure Authentication (ADR-077)
+
+**CWE-639 Authorization Bypass Resolution - Security Rating: 6.5/10 → 9.0/10**:
+
+```groovy
+// ADR-077: Fail-Secure Authentication Architecture
+class UserService {
+
+    // BEFORE (ADR-042): 4-level fallback with query parameter vulnerability
+    // Security Rating: 6.5/10 (CWE-639: Authorization Bypass Through User-Controlled Key)
+
+    // AFTER (ADR-077): Session-only authentication with fail-secure design
+    // Security Rating: 9.0/10
+
+    def getCurrentUser() {
+        // Level 1: Session Cookie Authentication (PRIMARY & ONLY)
+        def sessionUser = getSessionAuthenticatedUser()
+        if (sessionUser) {
+            // Validate session with device fingerprinting (ADR-067)
+            if (validateSessionSecurity(sessionUser)) {
+                return sessionUser
+            } else {
+                log.warn("Session security validation failed for user: ${sessionUser.name}")
+                return null  // Fail secure
+            }
+        }
+
+        // Level 2: Atlassian ThreadLocal (Backend/ScriptRunner context)
+        def threadLocalUser = ComponentAccessor.jiraAuthenticationContext?.loggedInUser
+        if (threadLocalUser) {
+            return threadLocalUser
+        }
+
+        // Level 3: Secure Anonymous Fallback (Read-Only Operations)
+        // Only for explicitly allowed read-only endpoints
+        if (isReadOnlyEndpoint(currentRequest)) {
+            return createAnonymousReadOnlyUser()
+        }
+
+        // NO LEVEL 4: Query parameter authentication REMOVED
+        // No username/userId query parameters accepted
+
+        return null  // Fail secure - no authenticated user
+    }
+
+    // ADR-067: Session Security Enhancement
+    private boolean validateSessionSecurity(User user) {
+        def session = getCurrentHttpSession()
+        if (!session) return false
+
+        // Device fingerprinting validation
+        def currentFingerprint = generateDeviceFingerprint(request)
+        def storedFingerprint = session.getAttribute('device_fingerprint')
+
+        if (storedFingerprint && storedFingerprint != currentFingerprint) {
+            auditLog.warn("Device fingerprint mismatch for user ${user.name}")
+            return false
+        }
+
+        // IP collision detection (max 3 IP changes per session)
+        def ipChangeCount = session.getAttribute('ip_change_count') ?: 0
+        if (ipChangeCount > 3) {
+            auditLog.warn("Excessive IP changes detected for user ${user.name}")
+            return false
+        }
+
+        return true
+    }
+}
+```
+
+**Security Improvements** (ADR-077):
+
+| Aspect                   | Before (ADR-042)               | After (ADR-077)                       | Improvement                   |
+| ------------------------ | ------------------------------ | ------------------------------------- | ----------------------------- |
+| **Query Parameter Auth** | Accepted `?username=` fallback | REMOVED completely                    | Eliminates CWE-639            |
+| **Session Validation**   | Basic session check            | Device fingerprinting + IP monitoring | Multi-factor session security |
+| **Fail-Safe Behavior**   | Returns anonymous user         | Returns `null` for write operations   | Fail-secure design            |
+| **Security Rating**      | 6.5/10 (moderate risk)         | 9.0/10 (high security)                | +38% improvement              |
+| **OWASP Compliance**     | Partial (A01:2021)             | Full (A01:2021 resolved)              | Complete compliance           |
+
+#### 4.4.2 Dual Authentication Context (ADR-042 Enhanced with ADR-077)
+
+**Production Architecture**:
+
+```yaml
+Session Cookie Authentication (Primary - ADR-077):
+  Method: Confluence JSESSIONID
+  Validation: Device fingerprinting + IP monitoring (ADR-067)
+  Scope: All user-initiated requests
+  Security: Multi-factor session validation
+  Fail-Secure: Returns null if validation fails
+
+Atlassian ThreadLocal (Backend - ADR-042):
+  Method: ComponentAccessor.jiraAuthenticationContext
+  Validation: ScriptRunner trusted context
+  Scope: Backend service calls, scheduled tasks
+  Security: Platform-managed authentication
+  Use Case: Internal service-to-service calls
+
+Secure Anonymous Fallback (Read-Only - ADR-077):
+  Method: Explicit read-only user creation
+  Validation: Endpoint whitelist + operation type
+  Scope: Public documentation, help pages
+  Security: No write permissions, audited access
+  Enforcement: API-level RBAC (planned US-074)
+```
+
+#### 4.4.3 Frontend Context Injection (Trusted Macros Only)
+
+```velocity
+## Velocity macro context injection (Confluence page rendering)
+## ADR-042: Frontend authentication context for trusted macros
+
+#set($currentUser = $action.remoteUser)
+#set($userKey = $currentUser.key)
+#set($userName = $currentUser.fullName)
+
+<script type="text/javascript">
+    // Inject trusted authentication context
+    window.UMIG = window.UMIG || {};
+    window.UMIG.currentUser = {
+        key: '$userKey',
+        name: '$userName',
+        authenticated: true
+    };
+
+    // ADR-075: Inject environment-specific base URL
+    window.UMIG.baseUrl = '$bandanaManager.getValue("umig.web.root")';
+</script>
+```
+
+### 4.5 URL Construction Pattern (Sprint 8 Enhanced)
+
+#### 4.5.1 Two-Parameter URL Construction (ADR-075)
+
+**Service Implementation**:
+
+```groovy
+// ADR-075: UrlConstructionService with two-parameter pattern
+class UrlConstructionService {
+
+    // Build full API URL (uses umig.web.root)
+    static String buildApiUrl(String endpoint) {
+        def baseUrl = getConfigurationValue('umig.web.root')
+        return "${baseUrl}/rest/scriptrunner/latest/custom${endpoint}"
+    }
+
+    // Build resource path (uses umig.web.filesystem.root)
+    static String buildResourcePath(String resource) {
+        def filesystemRoot = getConfigurationValue('umig.web.filesystem.root')
+        return "${filesystemRoot}/download/resources/umig/${resource}"
+    }
+
+    // Build macro URL (uses umig.web.root)
+    static String buildMacroUrl(String macroName) {
+        def baseUrl = getConfigurationValue('umig.web.root')
+        return "${baseUrl}/plugins/servlet/umig/${macroName}"
+    }
+
+    // Environment-aware URL construction
+    static String buildEnvironmentAwareUrl(String path) {
+        def env = EnvironmentDetector.detectEnvironment()
+        def baseUrl = getConfigurationValue('umig.web.root')
+
+        // Add environment prefix for non-production
+        if (env != 'PROD') {
+            return "${baseUrl}/${env.toLowerCase()}${path}"
+        }
+        return "${baseUrl}${path}"
+    }
+}
+```
+
+#### 4.5.2 Frontend JavaScript API URL Helper (ADR-075)
+
+**Client-Side URL Construction**:
+
+```javascript
+// /src/groovy/umig/web/js/utils/api-url-helper.js
+// ADR-075: Client-side two-parameter URL construction
+
+class ApiUrlHelper {
+  constructor() {
+    // Use injected base URL from macro context (ADR-075)
+    this.baseUrl = window.UMIG?.baseUrl || this.detectBaseUrl();
+    this.environment = this.detectEnvironment();
+  }
+
+  // Detect base URL from current page location
+  detectBaseUrl() {
+    const { protocol, hostname, port } = window.location;
+    const portStr = port ? `:${port}` : "";
+    return `${protocol}//${hostname}${portStr}/confluence`;
+  }
+
+  // Detect environment from URL patterns (ADR-073)
+  detectEnvironment() {
+    const hostname = window.location.hostname;
+
+    if (hostname.includes("localhost")) return "DEV";
+    if (hostname.includes("-dev.")) return "DEV";
+    if (hostname.includes("-uat.")) return "UAT";
+    return "PROD";
+  }
+
+  // Build API endpoint URL
+  buildApiUrl(endpoint) {
+    return `${this.baseUrl}/rest/scriptrunner/latest/custom${endpoint}`;
+  }
+
+  // Build resource URL (uses filesystem root)
+  buildResourceUrl(resource) {
+    // Filesystem root is typically just the context path
+    const filesystemRoot = "/confluence";
+    return `${filesystemRoot}/download/resources/umig/${resource}`;
+  }
+
+  // Environment-aware URL construction
+  buildEnvironmentUrl(path) {
+    if (this.environment !== "PROD") {
+      return `${this.baseUrl}/${this.environment.toLowerCase()}${path}`;
+    }
+    return `${this.baseUrl}${path}`;
+  }
+}
+
+// Global instance
+window.ApiUrlHelper = new ApiUrlHelper();
+```
+
+**Usage in Frontend Components**:
+
+```javascript
+// Example: TeamsEntityManager.js using ApiUrlHelper
+class TeamsEntityManager extends BaseEntityManager {
+  constructor() {
+    super();
+    this.apiUrl = window.ApiUrlHelper.buildApiUrl("/api/v2/teams");
+  }
+
+  async loadTeams() {
+    const response = await fetch(this.apiUrl, {
+      method: "GET",
+      credentials: "include", // Include session cookie (ADR-077)
+    });
+    return await response.json();
+  }
+}
 ```
 
 ## 5. Application Components
@@ -1005,6 +1428,11 @@ Detailed API specifications in OpenAPI 3.0 format.
 - **ADR-068: SecurityUtils Enhancement with Advanced Rate Limiting and CSP Integration** (Sprint 8)
 - **ADR-069: Component Security Boundary Enforcement with Namespace Isolation** (Sprint 8)
 - **ADR-070: Component Lifecycle Security and Comprehensive Audit Framework** (Sprint 8)
+- **ADR-073: Enhanced 4-Tier Environment Detection Architecture** (Sprint 8)
+- **ADR-074: ComponentLocator ScriptRunner Compatibility Fix** (Sprint 8)
+- **ADR-075: Two-Parameter Environment Detection Design Pattern** (Sprint 8)
+- **ADR-076: Configuration Data Management Pattern** (Sprint 8)
+- **ADR-077: Fail-Secure Authentication Architecture** (Sprint 8)
 
 **User Stories**:
 
