@@ -1,0 +1,55 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12832,
+  "title": "RUN1",
+  "predecessor": "CHK-12832",
+  "successor": "CHK-12832",
+  "primary_team": "BSM (AMBITFOCUS)",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Execute AmbitFocus Positions \u0026 Contracts integration controls. \nCheck result of control C7160\nReport results by email.",
+      "instruction_id": "CHK-12832-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "RUN SIT CHECKS BY AMBITFOCUS IT",
+      "instruction_id": "CHK-12832-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "RUN CHECKS BY RISK MANAGEMENT",
+      "instruction_id": "CHK-12832-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TREATMENT RUN IN APPLICATION : MARCO LEGAL",
+      "instruction_id": "CHK-12832-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "RUN BUSINESS CHECKS BY RISK MANAGEMENT",
+      "instruction_id": "CHK-12832-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BSM (AMBITFOCUS)",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "- Check the logs\n  - Report the defect via Jira if any",
+      "instruction_id": "CHK-12832-6",
+      "nominated_user": ""
+    }
+  ]
+}

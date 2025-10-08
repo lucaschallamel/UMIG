@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 15188,
+  "title": "DBA - Hot back up Atlas and Restore on EV8 for EOD batch rehearsal",
+  "predecessor": "DUM-15188",
+  "successor": "DUM-15188",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Hot back up Production Atlas and Restore on EV8  with Snapshot (SBB) at 12:00PM on Monday\n\n(DB + QSAM files)",
+      "instruction_id": "DUM-15188-1",
+      "nominated_user": "COUTURE Karine"
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "",
+      "instruction_title": "Trigger the ATLAS EOD Batch on EV8 for sanity check purposes",
+      "instruction_id": "DUM-15188-2",
+      "nominated_user": "COUTURE Karine"
+    }
+  ]
+}

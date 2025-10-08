@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12304,
+  "title": "FISCAL STATEMENT - LOAD OF HISTORICAL DATA INTO ODS",
+  "predecessor": "TRT-12304",
+  "successor": "TRT-12304",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Missing detailed instructions, please ellborate",
+      "instruction_id": "TRT-12304-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Load of Historical data into ODS",
+      "instruction_id": "TRT-12304-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 12065,
+  "title": "MIDDLEWARE - MODE DISCRETIONNAIRE - CID - ATLAS - GO POUR LAISSER PASSER LES INSTRUMENTS ET PRIX DONT LES NUMEROS SONT COMMUNIQUES PAR CID",
+  "predecessor": "PRE-12060",
+  "successor": "PRE-12070",
+  "primary_team": "MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "MIDDLEWARE",
+      "associated_controls": "",
+      "instruction_title": "GO POUR LAISSER PASSER LES INSTRUMENTS ET PRIX DONT LES NUMEROS SONT COMMUNIQUES PAR CID",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

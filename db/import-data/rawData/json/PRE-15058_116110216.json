@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15058,
+  "title": "New ERA - Restart Front to allow orders",
+  "predecessor": "PRE-15058",
+  "successor": "PRE-15058",
+  "primary_team": "NEW ERA",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GU - RETURN TO BAU - INSTITUTIONAL TREATMENTS",
+  "task_list": [
+    {
+      "instruction_assigned_team": "NEW ERA",
+      "associated_controls": "",
+      "instruction_title": "New ERA - Restart Front to allow orders",
+      "instruction_id": "PRE-15058-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 1595,
+  "title": "ATLAS - EOD*1 IT ACCOUNTING CHECKS",
+  "predecessor": "IGO-1595",
+  "successor": "IGO-1595",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check Cash Accounting report :\n- Accounting balance sheet E01B",
+      "instruction_id": "IGO-1595-1",
+      "nominated_user": "EOS E01B"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check Securities Accounting report :\n- Accounting balance sheet E155",
+      "instruction_id": "IGO-1595-2",
+      "nominated_user": "EOS E155"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check there is no accounting in date on 01\n**_  IF KO, WE MUST REPLAY THE EOD*1**",
+      "instruction_id": "IGO-1595-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check Cas hAccounting report :\n- Rejects list E40C",
+      "instruction_id": "IGO-1595-4",
+      "nominated_user": "EOS E40C"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check Securities Accounting report :\n- Rejects list E152",
+      "instruction_id": "IGO-1595-5",
+      "nominated_user": "EOS E152"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Please check the follow Controls\n\n\n\n\nC1440 - Fiduciary Deposits : Deal Transfers - without anomalies \nC1420 - Fiduciary Deposits : Deal Transfers - with other anomalies\nC1400 - Fiduciary Deposits : Deal Transfers - with balance anomalies \nC6540 - Client Loans - deals transfers with other anomalies\nC6520 - Client Loans - deals transfers without anomalies \nC6480- Client Loans - deals transfers with balance anomalies \nC6280 - Les comptes réconciliés sans différence de solde (Hors bilan) \nC6260 - Les comptes réconciliés sans différence de solde (Au bilan)\nC6141 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP) \nC6121 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP) \nC6140 - GL ACCOUNT / Les comptes réconciliés sans différence de solde Hors bilan \nC6120 - GL ACCOUNT / Transfert without balance anomalie - Balance sheet accounts\nC6100 - GL ACCOUNT / Transfert with balance anomalie - Off Balance sheet accounts \nC6080 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts \nC6580 - Forex Forwards - Deal transfers without anomalies\nC6560 - Forex Forwards - Deal transfers with other anomalies\nC6540 - Forex Forwards - Deal transfers with balance anomalies\nC6005 - Comptes tiers UBP sans correspondance ex-TORONTO qui ont bouge avant et apres l\u0027EOD \nC6006 - Liste des comptes tiers UBP AVEC correspondance ex-TORONTO qui ont bouge avant et apres l\u0027EOD",
+      "instruction_id": "IGO-1595-6",
+      "nominated_user": ""
+    }
+  ]
+}

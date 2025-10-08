@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 3122,
+  "title": "IT_ENV - SANITY CHECKS AFTER EOD/EOW",
+  "predecessor": "GON-3111",
+  "successor": "GON-6554",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Results of EOD, in particular for ATLAS, ODS, DARWIN, SECLI",
+      "instruction_id": "IGO-3122-1",
+      "nominated_user": ""
+    }
+  ]
+}

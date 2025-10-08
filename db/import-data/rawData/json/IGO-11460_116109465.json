@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11460,
+  "title": "RUN1",
+  "predecessor": "PRE-7361",
+  "successor": "IGO-11461",
+  "primary_team": "ODS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Executer les tâches présentes à la section 4.1 du _Processus Manuel ODS_",
+      "instruction_id": "IGO-11460-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 13020,
+  "title": "BUSINESS CHECKS - CMS - CONTROL ADDRESSES",
+  "predecessor": "BGO-11375",
+  "successor": "BGO-11375",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EA - MONDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXECUTE ALL CHECKS  RELATED TO VALIDATE THE MIGRATION (ON CONTROL ADDRESSES ON CMS).",
+      "instruction_id": "BGO-13020-1",
+      "nominated_user": "MORE Catherine"
+    }
+  ]
+}

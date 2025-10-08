@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 11816,
+  "title": "BUS - START PURGE SERVICE",
+  "predecessor": "BUS-11816",
+  "successor": "BUS-11816",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm the following job:\n\n     Application       : xx_x-BAB-XXXXXXXBUS\n     Groupe            : xx_x001-BUS-PURGE\n     Jobname           : xx_x001BAB_CJO025\n\n\n\n\nNote : Job was hold in Task [BUS-6324](BUS-6324_116108627.html)\n\nNote de [ELLMANN Luc](https://confluence.corp.ubp.ch/display/~iuu)  : En production, le job n\u0027est pas \\\"On confirm\\\". Donc hold dans le plan courant du job afin qu\u0027il ne parte pas à 3h00 cette nuit.**Et mise à \\\"On confirm\\\" dans la planning du job comme il monte tous les jours.**Il faudra supprimer le \\\"On confirm\\\" **avant lundi 02 juin à 15h** –\u003e ajouter une tâche si cela n\u0027est pas prévu",
+      "instruction_id": "BUS-11816-1",
+      "nominated_user": ""
+    }
+  ]
+}

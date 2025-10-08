@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12070,
+  "title": "CID - SQL EXECUTION TO MODIFY SECURITIES \u0026amp; PRICES \u0026amp; VERIFICATION IN ATLAS , CIDR",
+  "predecessor": "BUS-12065",
+  "successor": "CHK-12077",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "",
+      "instruction_title": "Eventuellement création / modification manuelle instruments dans CID en fonction du résultat des listes K0022 ET K0029",
+      "instruction_id": "1",
+      "nominated_user": "K1022                                                                                    K1029"
+    },
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "",
+      "instruction_title": "Synchronisation ATLAS",
+      "instruction_id": "2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "",
+      "instruction_title": "Synchronisation CIDR",
+      "instruction_id": "3",
+      "nominated_user": "-"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 13627,
+  "title": "EBANKING - to GENERATE SECLI FILE FOR INET CONTRACT UPDATE",
+  "predecessor": "TRT-11663",
+  "successor": "TRT-11663",
+  "primary_team": "E-BANKING",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CI - E-BANKING DATA LOADING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "E-BANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "GENERATE AND PROVIDE THE INET FILE TO SECLI",
+      "instruction_id": "TRT-13627-1",
+      "nominated_user": ""
+    }
+  ]
+}

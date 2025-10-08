@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15186,
+  "title": "ATLAS  - Confirm reception of 10 Clients by Companies by Atlas - PROD like Environment",
+  "predecessor": "TRT-6794",
+  "successor": "CHK-15187",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received the 10 first clients in Company 302 on PROD LIKE environment",
+      "instruction_id": "CHK-15186-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Please confirm you\u0027ve received the 10 first clients in Company 303 on PROD LIKE environment",
+      "instruction_id": "CHK-15186-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Please confirm you\u0027ve received the 10 first clients in Company 304 on PROD LIKE environment",
+      "instruction_id": "CHK-15186-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Please confirm you\u0027ve received the 10 first clients in Company 305 on PROD LIKE environment",
+      "instruction_id": "CHK-15186-4",
+      "nominated_user": ""
+    }
+  ]
+}

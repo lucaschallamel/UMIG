@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15209,
+  "title": "CID - Check of Fenics deals Integration in CID (FX Options)",
+  "predecessor": "CHK-15209",
+  "successor": "CHK-15209",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check FX/OPTIONS are linked to the right FENICS deals .\n\nQuery in Jira /Confluence . RCID2902 : Extract_OPTFX_FenicID.sql",
+      "instruction_id": "CHK-15209-1",
+      "nominated_user": ""
+    }
+  ]
+}

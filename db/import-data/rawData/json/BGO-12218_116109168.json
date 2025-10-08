@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 12218,
+  "title": "BUSINESS CHECK MARKER ON SECLI LDN\u0026amp;JRS AFTER RESTORE COPY FROM Test Environment TO SECLI Prod Like",
+  "predecessor": "BGO-3587",
+  "successor": "TRT-11972",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "_Note : During Run, this task can also be performed by IT Secli Team_",
+      "instruction_id": "BGO-12218-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Business restore checks on SECLI PROD Like, after SECLI Test environment copied to SECLI PROD Like.\nPlease check the (added marker for a client on Test environment) should  be visible on SECLI LDN Like",
+      "instruction_id": "BGO-12218-1",
+      "nominated_user": "KARDES Elif"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Perform same check on Secli JRS",
+      "instruction_id": "BGO-12218-2",
+      "nominated_user": ""
+    }
+  ]
+}

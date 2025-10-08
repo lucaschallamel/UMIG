@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 13106,
+  "title": "RUN1",
+  "predecessor": "SYS-13106",
+  "successor": "SYS-13106",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "PREPARER LA MONTEE AU PLAN DE 15:00 DU EOD*1\n-    Confirmer le job E3_PHASE-5.2-EOD_STAR1",
+      "instruction_id": "SYS-13106-1",
+      "nominated_user": ""
+    }
+  ]
+}

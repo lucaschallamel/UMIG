@@ -1,0 +1,48 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 6303,
+  "title": "BUSINESS ACTION BEFORE THE START OF CSD MIG - ADD MARKER ON SECLI ON TEST Environment",
+  "predecessor": "PRE-13922",
+  "successor": "PRE-13922",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Business action before starting with Migration -\nPlease put a marker for a client on SECLI TEST LDN (302).",
+      "instruction_id": "BGO-6303-1",
+      "nominated_user": "Elif Kardes"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Put same marker on Secli TEST JRS (303)",
+      "instruction_id": "BGO-6303-2",
+      "nominated_user": "Elif Kardes"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Put same marker on Secli TEST GUR (304)",
+      "instruction_id": "BGO-6303-3",
+      "nominated_user": "Elif Kardes"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Put same marker on Secli TEST GIB (305)",
+      "instruction_id": "BGO-6303-4",
+      "nominated_user": "Elif Kardes"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please Communicate the markers to Secli IT Team",
+      "instruction_id": "BGO-6303-5",
+      "nominated_user": "Elif Kardes"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12181,
+  "title": "SECLI - CLIENT IT CONTROLS GENERATION / FILES EXTRACTION",
+  "predecessor": "CHK-12793",
+  "successor": "IGO-13814",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Error message coming from BUS ( ATLAS SPOC_INTEGRATION ERROR)",
+      "instruction_id": "CHK-12181-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Phase: PostSECLI on SECLI-TEST\n\nENGINE to generate the list of CONTROLS  : \nC2500 - Number of Tiers per ENTITY_TYPE\nC2504 - Number of Tiers per CURRENCY - TYPE - MANAGEMENT_TYPE\nC2520 - Number of accounts held by individuals\nC2540 - Number of accounts held by legal entities\nC2541 - Number of companies by company type\nC2560.3 - Number of physical person with role 3 active procured on active third-party (nr persons and nr third party) per company\nC2715 - Number of addresses per country [Nombre d\u0027adresses par pays]\nC2720 - Number of persons per country of nationality\nC2740 - Number of persons per country of domicile\nC2757 - Instructions without a blocking code\nC2780 - Number of accounts by language\nC2800.1 - Number of accounts in each reporting frequency\nC2800.2 - Number of accounts by frequency of production of estimates\nC2840 - Number of accounts by pool US TAX\nC2880 - Breakdown count of managed \u0027account\u0027 per risk profil \nC2940 - Breakdown count of documents types per \u0027account\u0027\nC3143 - Number of accounts managed by a particular and per management type (normally SUIVI) [follow-up if not suivi?]\nC3147 - Number of accounts and their rubric\nC3150 - Number of tiers per country of nationality of the main holder\nC3151 - Number of tiers per country of domicile of the main holder\nC3157 - Number of persons with/without legal adress\nC3163 - Number of accounts per type of management\nC3195 - Number of accounts with no currency or with no economic sector\nC3197 - Number of mailing instructions with no adress associated or no holdmail associated\nC4003 - Nombre de personnes avec passeport ou carte d\u0027identité\nC4013 - Number of accounts per MiFID category\nC4017 - Number of persons by role\nC4019 - Number of persons by MIFID knowledge \u0026 experience",
+      "instruction_id": "CHK-12181-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Report results by email.",
+      "instruction_id": "CHK-12181-3",
+      "nominated_user": ""
+    }
+  ]
+}

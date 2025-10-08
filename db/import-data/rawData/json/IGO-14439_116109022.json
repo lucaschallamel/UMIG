@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14439,
+  "title": "RUN0",
+  "predecessor": "PRE-7337",
+  "successor": "GON-439",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**Exécuter le job :\n**_Executer ce JOB **AVANT **le lancement du **STAR1 ATLAS** pour nettoyer les folders DARWIN sur le serveur DARWIN de tout autre fichiers précédemment créés \n\n_**Effacement de tous les fichiers de **_**host/Host/Initial**\n\n_**\n****Group :**_            MIGRATION-CHECK\n_**Application : **_  P**_DARWIN**\n_**JOB :**_                P_RESET-EOD-FILES",
+      "instruction_id": "IGO-14439-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IF Error Code is différent to 0:\nGive the sysout by email to IT CUTOVER and follow the errors to _IM_ATLAS.\nOnce corrections are done, relaunch the step 2 until success. Error Code  = 0",
+      "instruction_id": "IGO-14439-2",
+      "nominated_user": ""
+    }
+  ]
+}

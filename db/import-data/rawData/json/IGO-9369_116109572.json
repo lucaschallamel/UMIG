@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 9369,
+  "title": "RUN1",
+  "predecessor": "PRE-2808",
+  "successor": "PRE-2808",
+  "primary_team": "IT_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send SMS to ODS + MIS + SYSPARAM + KONDOR + AMBITFOCUS",
+      "instruction_id": "IGO-9369-1",
+      "nominated_user": ""
+    }
+  ]
+}

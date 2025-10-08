@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 7337,
+  "title": "RUN0",
+  "predecessor": "PRE-14445",
+  "successor": "IGO-14439",
+  "primary_team": "PRINTNET",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GK - ATLAS PHASE 4.4 - PORTFOLIO CREATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PRINTNET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "AJOUTER INTERNAL USE ONLY DANS PRINTNET PA : TECH_FILIGRANE (AIDE SI NECESSAIRE _PRINTNET)\n\nNote : Filigrane is removed in task [TRT-11573](TRT-11573_116109752.html)",
+      "instruction_id": "PRE-7337-1",
+      "nominated_user": ""
+    }
+  ]
+}

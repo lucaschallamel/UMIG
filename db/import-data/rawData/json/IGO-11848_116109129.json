@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11848,
+  "title": "SECLI - TIERS VALIDATION \u0026amp; CLIENTS CONFIDENTIAL \u0026amp; SECRET DATA CHECKS",
+  "predecessor": "DUM-7321",
+  "successor": "IGO-11725",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TIERS VALIDATION \u0026 \nSTATS PREPARATION",
+      "instruction_id": "IGO-11848-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CLIENT INTEGRITY VERIFICATION\nCONTROL PRESENCE OF K\u0026E FIELD VALUES",
+      "instruction_id": "IGO-11848-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 14469,
+  "title": "SGPBS - VERIFICATION NO 501 CONTRACTS AND DELETE IF ANY",
+  "predecessor": "BGO-6465",
+  "successor": "CHK-14789",
+  "primary_team": "SG UK",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SG UK",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify we don\u0027t have any 501 contracts (48H deposits) and delete them if we have any",
+      "instruction_id": "CHK-14469-1",
+      "nominated_user": ""
+    }
+  ]
+}

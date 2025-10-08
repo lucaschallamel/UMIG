@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14857,
+  "title": "SECLI - EXTRACT INSURANCE ACCOUNTS LIST FROM BTPUB",
+  "predecessor": "BGO-14888",
+  "successor": "IGO-13911",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Extract Insurance accounts list from BTPublic",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

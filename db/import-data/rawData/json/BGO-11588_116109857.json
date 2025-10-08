@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 11588,
+  "title": "BUSINESS COMMUNICATION - SECLI, ACB and Appway ARE NOT AVAILABLE and Tax are not updated",
+  "predecessor": "BGO-11588",
+  "successor": "BGO-11588",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Prepare a communication to all SECLI CH users that SECLI CH PROD will be in Read-only mode and in Isolation from Thursday (18:00 PM) until Saturday (7 AM) on migration weekend 1.",
+      "instruction_id": "BGO-11588-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Prepare a communication to all PG/NEW ERA users that APPWAY DCOB and DCUR workflows are unavailable from Thursday (18:00 PM) until Saturday (7 AM) on migration weekend 1.",
+      "instruction_id": "BGO-11588-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Prepare a communication to all ACB users that ACB will be unavailable from Thursday (18:00 PM) until Saturday (7 AM) on migration weekend 1.",
+      "instruction_id": "BGO-11588-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Prepare a communication to all Tax users that Tax will not be up to date from Thursday (18:00 PM) until Saturday (7 AM) on migration weekend 1.",
+      "instruction_id": "BGO-11588-4",
+      "nominated_user": ""
+    }
+  ]
+}

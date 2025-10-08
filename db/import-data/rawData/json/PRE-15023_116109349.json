@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15023,
+  "title": "STEP - DARWIN - PREPARATION",
+  "predecessor": "CHK-14912",
+  "successor": "PRE-6379",
+  "primary_team": "DARWIN",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DARWIN",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify in file :\nmigr@ddarwinprd/opt/repository/DarWin/migrCheck\non line 34:34\n#day=\u0027date +%W\u0027 is in comment\nand on line 35: day=4",
+      "instruction_id": "PRE-15023-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DARWIN",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify new profils \u0026 Investment grid are in DARWIN database  Already delivered in PRD.",
+      "instruction_id": "PRE-15023-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": null,
+  "title": "ENGINE - TRANSFER FPC FILES TO ENGINE",
+  "predecessor": "TRT-14618b",
+  "successor": "TRT-14618b",
+  "primary_team": "ANONYMTOOL",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ANONYMTOOL",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear ENGINE _SECRET Team,\n\nPlease transfer all Week 1 FPC files to ENGINE directory and profide file list",
+      "instruction_id": "TRT-14618",
+      "nominated_user": ""
+    }
+  ]
+}

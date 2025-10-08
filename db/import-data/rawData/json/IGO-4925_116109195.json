@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 4925,
+  "title": "TARIF - CHECK WITH BUSINESS - INPUT DONE",
+  "predecessor": "TRT-1422",
+  "successor": "TRT-1422",
+  "primary_team": "TARIF",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TARIF",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Contrôle que toutes les \\\"étapes\\\" dans la tarif Pré-prod ont été validées",
+      "instruction_id": "IGO-4925-1",
+      "nominated_user": ""
+    }
+  ]
+}

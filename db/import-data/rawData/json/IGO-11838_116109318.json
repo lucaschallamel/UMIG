@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11838,
+  "title": "ENGINE - Check good reception of files \u0026quot;Placement Fidu 48h\u0026quot;",
+  "predecessor": "PRE-11871",
+  "successor": "PRE-6407",
+  "primary_team": "ANONYTOOLS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ANONYTOOLS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**ENGINE - Check good reception of files \\\"Placement Fidu 48h\\\"**:\n\nFPC_6520_S2I_ATLAS_OP_FIDUCIAIRES \u0026 FPC_6511_S2I_ATLAS_PERIODES_OP_FIDUCIAIRE",
+      "instruction_id": "IGO-11838-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ANONYTOOLS",
+      "associated_controls": "",
+      "instruction_title": "**Verify that there are no more 48h products in the QSAM file PLAR10 \n**(based on files received on Thursday evening before CUTOVER)",
+      "instruction_id": "IGO-11838-2",
+      "nominated_user": ""
+    }
+  ]
+}

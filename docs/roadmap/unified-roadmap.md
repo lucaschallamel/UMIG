@@ -43,6 +43,7 @@ This roadmap delivers UMIG's next phase with aggressive AI-accelerated timelines
 - 2025-10-02: **TD-017 EMAIL SERVICE QUERY OPTIMIZATION COMPLETE** - Story completed on Day 3 of Sprint 8 achieving exceptional 99.68% performance improvement (120ms baseline → 0.38ms actual = 316× faster, 2.5× better than ≥40% target). 2 story points delivered with comprehensive implementation: (1) Optimized getAllStepDetailsById() query to single SQL statement with JOIN optimizations, (2) Enhanced query performance maintaining complete data integrity and ADR-031 type safety, (3) Comprehensive test validation with 11/11 unit tests passing (100%), (4) Database execution plan validation achieving 1.461ms execution time with 100% indexed access and optimal execution plan, (5) Risk assessment showing LOW overall risk with 98% confidence. **PRODUCTION READY**: Performance validated with all benchmarks passing, zero breaking changes, complete test coverage with production-ready quality. Validation reports created: TD-017-PHASE-3-VALIDATION-REPORT.md (793 lines) and TD-017-Phase3-Steps1-2-Validation-Report.md (556 lines). Updated Sprint 8 progress to 16.5 points complete (32%) with 35 points remaining over 13 days = 2.69 points/day sustainable velocity (13% buffer).
 - 2025-10-02: **TD-014-B REPOSITORY LAYER TESTING 100% COMPLETE** - Story completed on Day 3 of Sprint 8 (October 1-2, 2025) delivering 6.0 of 6.0 story points (100%) with exceptional quality and innovation validation. **Achievement Summary**: All 6 repositories complete (MigrationRepository, LabelRepository, PlanRepository, SequenceRepository, PhaseRepository, InstructionRepository) with 180 total tests, 9.92/10 average quality score (5 repos at perfect 10/10, 1 repo at exceptional 9.5+/10), 180/180 tests passing (100%), 95%+ coverage across all repositories. **Innovation Milestone**: Agent delegation workflow validated achieving 75-85% time savings vs traditional manual approach - InstructionRepository completed same day as other repositories demonstrating workflow efficiency. **Quality Excellence**: Zero external dependencies, complete TD-001 self-contained architecture compliance, comprehensive handler specificity ordering patterns, robust filter implementations with method + data + COUNT handlers. **Timeline**: MigrationRepository (Oct 1), all other repositories (Oct 2). Updated Sprint 8 progress to 22.5 of 51.5 points complete (44%), 29 points remaining over 13 days = 2.23 points/day (excellent sustainable velocity with 16% buffer). TD-014 overall progress: 11 of 17 points complete (77%) with TD-014-A + TD-014-B delivered.
 - 2025-10-06: **US-098 CONFIGURATION MANAGEMENT SYSTEM 100% COMPLETE** - Epic completed on Day 7 of Sprint 8 delivering all 5 phases (5A, 5B, 5D, 5E, 5C) with 42 story points total. **Verified Completion Evidence**: (1) Phase 5 EnhancedEmailService 100% complete with MailServerManager API fully integrated (Lines 14-1017), ConfigurationService overrides implemented, zero hardcoded credentials; (2) Migration 035 executed successfully (Oct 6 13:50:41, order 52) with 39 total configurations including 30 from Migration 035; (3) Phase 5E web root configs verified (6 configurations); (4) Phase 5C manual testing complete with user validation of production-ready email workflow. **Sprint 8 Final Status**: 40.0 of 51.5 points complete (78%), 11.5 points remaining over 8 days = 1.44 points/day (exceptional sustainable velocity with 40% buffer). **Production Ready**: Configuration management system fully operational, user-validated, and production-deployed with complete documentation.
+- 2025-10-08: **SPRINT 8 SCOPE EXPANSION - US-104 PRODUCTION DATA IMPORT ADDED** - Sprint 8 expanded from 51.5 to 66.5 points (+15 points) with timeline extension Oct 14→Oct 18 (+4 days) to accommodate P0 critical production data import capability. **NEW STORIES ADDED**: (1) TD-103 Performance Optimization Migration (2 points) - prerequisite performance indexes for import execution (recommendations #3, #4, #5), MUST complete before US-104; (2) US-104 Production Data Import via Liquibase (13 points) - comprehensive data import of 15,282+ records across 15 tables (Bootstrap: 5, Excel: ~414, JSON: ~14,900, Associations: ~2,200) enabling production deployment with real-world cutover scenarios. **SPRINT RATIONALE**: US-104 is P0 critical (blocks production deployment), eliminates 200+ hours manual data entry, provides immediate operational readiness. TD-103 reduces US-104 execution risk via performance indexes. **Updated Sprint 8 Status**: 40.0 of 66.5 points complete (60%), 26.5 points remaining over 8 days = 3.31 points/day (achievable with 13% buffer, reduced from original 40% but still sustainable). **IMPLEMENTATION APPROACH**: (1) TD-103 creates 11 performance indexes (lookup, partial nullable FK, junction tables) via Liquibase changeset performance-optimization-pre-import.xml (Days 9-10, 1-2 hours); (2) US-104 implements 5-phase data import (Bootstrap→Excel→JSON→Associations→Validation) with lookup-or-create patterns for sequences/phases/controls/teams, always-create for steps/instructions, granular per-file transactions, complete audit trail (created_by='migration', updated_at=created_at), <30 minute total execution target (Days 11-16). **CRITICAL DEPENDENCIES**: TD-103 MUST precede US-104, schema migrations 001-043 applied, Excel/JSON source files available. **RISK MITIGATION**: TD-103 prerequisite addresses performance degradation, granular rollback for parsing failures, team lookup by tms_name with standardized formats, stream processing if memory constraints observed. **SCHEMA COMPLIANCE** (ADR-059): No tms_code column (schema correct with tms_id+tms_name), no UNIQUE constraints on sequences/phases (managed via lookup queries), no CHECK constraints for statuses (managed via status_sts table), explicit updated_at=created_at on INSERT. **Sprint extended Oct 14→Oct 18** to maintain quality while delivering production-critical capability, proven 3.31 points/day velocity remains achievable.
 
 ## Strategic Overview
 
@@ -645,15 +646,15 @@ The following user stories were created based on project evolution and identifie
 - **Database Version Management**: US-088 foundation enables US-088-C enhanced capabilities
 - **Quality Standards**: Enterprise-grade patterns established and proven with 8.25 points/day velocity
 
-### 🚀 Sprint 8 (Sept 30 - Oct 14, 2025) - Test Infrastructure & Configuration Management **IN PROGRESS**
+### 🚀 Sprint 8 (Sept 30 - Oct 18, 2025) - Test Infrastructure, Configuration & Data Import **IN PROGRESS** ✅ **EXTENDED Oct 8**
 
-**Sprint Goal**: Establish enterprise-grade Groovy test coverage and deliver environment-aware configuration management system
+**Sprint Goal**: Establish enterprise-grade Groovy test coverage, deliver environment-aware configuration management, and enable production deployment via comprehensive data import ✅ **UPDATED Oct 8**
 **Sprint Start**: September 30, 2025 (Monday)
-**Sprint Duration**: 15 working days (Sept 30 - Oct 14, 2025)
-**Total Story Points**: 51.5 points (revised from 55 after TD-016 completion)
-**Sprint Status**: 🔄 **IN PROGRESS** - Day 7, exceptional progress with US-098 100% COMPLETE
-**Current Progress**: 40.0 of 51.5 points complete (78%)
-**Remaining Work**: 11.5 points over 8 days = 1.44 points/day (exceptional sustainable velocity with 40% buffer)
+**Sprint Duration**: 17 working days (Sept 30 - Oct 18, 2025) ✅ **EXTENDED Oct 8 (+4 days)**
+**Total Story Points**: 66.5 points (51.5 original + 15 added Oct 8) ✅ **EXPANDED Oct 8**
+**Sprint Status**: 🔄 **IN PROGRESS** - Day 9, ahead of schedule with US-098 100% COMPLETE ✅ **UPDATED Oct 8**
+**Current Progress**: 40.0 of 66.5 points complete (60%) ✅ **UPDATED Oct 8**
+**Remaining Work**: 26.5 points over 8 days = 3.31 points/day (achievable with 13% buffer vs original 40%) ⚠️ **INCREASED Oct 8**
 **Major Achievement**: ✅ **US-098 100% COMPLETE** - Configuration management system delivered (42 story points)
 **Additional Achievements**:
 
@@ -664,7 +665,7 @@ The following user stories were created based on project evolution and identifie
 - Build packaging core complete (TD-020: 4.5 points, 66% complexity reduction)
   **Sprint Focus**: Complete remaining TD-014 test coverage (TD-014-C, TD-014-D), finalize documentation
 
-#### 🎯 Sprint 8 Stories (51.5 points total - Quality & Configuration)
+#### 🎯 Sprint 8 Stories (66.5 points total - Quality, Configuration & Data Import) ✅ **UPDATED Oct 8**
 
 **Priority 1: Email Infrastructure (16.5 points - 100% COMPLETE):**
 
@@ -752,6 +753,68 @@ The following user stories were created based on project evolution and identifie
     - End-to-end workflow tested
   - **Quality Achievement**: All acceptance criteria met (100%)
   - **Production Status**: Fully operational and user-validated
+
+**Priority 4: Production Data Import (15 points - P0 Critical) 🆕 ADDED Oct 8:**
+
+- **TD-103: Performance Optimization Migration** (2 points) ⚠️ **PREREQUISITE - NOT STARTED**
+  - **Priority**: P0 Critical (MUST precede US-104)
+  - **Scope**: Implement performance indexes from schema validation recommendations #3, #4, #5
+  - **Critical Indexes**:
+    - Lookup Performance (idx_sqm_name_plm, idx_phm_name_sqm, idx_ctm_code_phm, idx_tms_name, idx_stm_phm, idx_inm_stm)
+    - Partial Nullable FK (idx_inm_ctm_not_null, idx_inm_tms_not_null)
+    - Junction Tables (idx_tms_x_usr_tms, idx_tms_x_usr_usr, idx_stm_x_tms_stm, idx_stm_x_tms_tms)
+  - **Deliverable**: `performance-optimization-pre-import.xml` Liquibase changeset
+  - **Duration**: 1-2 hours
+  - **Success Criteria**: All indexes created, execution plans validated, zero breaking changes
+  - **Target Date**: October 9-10, 2025
+
+- **US-104: Production Data Import via Liquibase Migration** (13 points) 🎯 **P0 CRITICAL - NOT STARTED**
+  - **Priority**: P0 Critical (blocks production deployment)
+  - **Business Value**: Immediate operational readiness with real-world cutover scenarios
+  - **Data Scale**: 15,282+ records across 15 tables
+    - Bootstrap: 3 roles, 1 team, 1 user, 1 plan, 1 migration
+    - Excel Files: ~414 records (Applications, Teams, Users, Step Types, Sequences)
+    - JSON Files: ~14,900 records (Sequences, Phases, Steps, Instructions, Controls)
+    - Associations: ~2,200 relationships (Team-User, Step-Team impacts)
+  - **Implementation Phases**:
+    1. Bootstrap Data Import (Day 11, ~1 point) - 5 foundational records
+    2. Excel Import (Day 11-12, ~3 points) - 5 files, ~414 records
+    3. JSON Hierarchical Import (Day 12-15, ~6 points) - 1,174 files, ~14,900 records
+    4. Association Import (Day 15-16, ~1 point) - ~2,200 relationships
+    5. Validation & Testing (Day 16, ~2 points) - Integrity, audit, idempotency, performance
+  - **Key Patterns**:
+    - Lookup-or-create: sequences (by sqm_name), phases (by phm_name), controls (by ctm_code), teams (by tms_name)
+    - Always-create: steps, instructions (preserve historical records)
+    - Transaction per file: granular rollback, continue on failure
+    - Audit trail: created_by='migration', updated_at=created_at
+  - **Critical Dependencies**:
+    - ✅ TD-103 MUST complete first (performance indexes required)
+    - ✅ Schema migrations 001-043 applied
+    - ✅ Excel/JSON source files available
+  - **Performance Targets**: <30 minutes total import (Bootstrap <1min, Excel <5min, JSON <20min, Associations <4min)
+  - **Success Criteria**: 15 acceptance criteria including data integrity (zero orphans), audit trail compliance, idempotency, performance targets
+  - **Documentation**: Developer Guide, Runbook, User Guide, ADR
+  - **Target Date**: October 11-16, 2025 (dependent on TD-103 completion)
+  - **Risk Mitigation**:
+    - TD-103 prerequisite addresses performance degradation
+    - Granular per-file rollback for JSON parsing failures
+    - Team lookup by tms_name with standardized formats
+    - Stream processing if memory constraints observed
+
+**Priority 5: Build Packaging Finalization (0.5 points - 90% COMPLETE):**
+
+- **TD-020: Revise Build Packaging Structure** (5 points total, 4.5 complete) ✅ **CORE COMPLETE - October 6, 2025**
+  - **Core Implementation**: ✅ COMPLETE (4.5 points, 90%)
+    - BuildOrchestrator.js enhanced deployment structure
+    - UAT build tested and validated (100% success)
+    - US-088 cross-reference established
+    - 66% complexity reduction (1 file vs 3 planned)
+  - **Remaining Work**: (~0.5 points, 10%)
+    - Production/dev build testing
+    - Cross-platform validation
+    - Build Artifact Specifications documentation
+    - Deployment Guide updates
+  - **Target Date**: October 10, 2025
 
 #### 🚀 Sprint 8 Foundation Advantages (Inherited from Sprint 7)
 
@@ -1152,4 +1215,4 @@ This AI-accelerated roadmap delivers comprehensive functionality in 54 working d
 
 ---
 
-> Last updated: October 6, 2025 | **Sprint 8: 🔄 IN PROGRESS** (Sept 30 - Oct 14, 2025) - **Day 7: 78% COMPLETE (40.0/51.5 points)** - ✅ **MAJOR MILESTONE: US-098 100% COMPLETE (42 story points delivered)** - Configuration Management System production-ready with all 5 phases complete (5A-5E, 5C), Migration 035 executed (39 configurations deployed), MailServerManager API fully integrated, zero hardcoded credentials, Phase 5C manual testing validated by user. **ADDITIONAL COMPLETIONS**: TD-015 Email Template Consistency (10 pts), TD-016 Email Notification Enhancements (4.5 pts), TD-017 Email Query Optimization 99.68% improvement (2 pts), TD-014-B Repository Testing 100% (6 pts, 180 tests, 9.92/10 quality), TD-020 Build Packaging Core (4.5 pts). **SPRINT STATUS**: Ahead of schedule with exceptional 40% buffer, only 11.5 points remaining over 8 days (1.44 points/day sustainable velocity). **REMAINING WORK**: TD-014-C Service Layer Testing (3 pts), TD-014-D Infrastructure Testing (3 pts), TD-020 final documentation (0.5 pts), TD-014 integration (5 pts). **PRODUCTION READY**: US-098 configuration management system fully operational and user-validated.
+> Last updated: October 8, 2025 | **Sprint 8: 🔄 IN PROGRESS** (Sept 30 - Oct 18, 2025) - **Day 9: 60% COMPLETE (40.0/66.5 points)** - ✅ **SPRINT EXPANDED**: Added US-104 Production Data Import (13 pts) + TD-103 Performance Optimization (2 pts) = 15 points for production-ready deployment capability. **Sprint extended Oct 14→Oct 18** (4 additional days) to maintain quality while delivering P0 critical data import. **Required velocity**: 3.31 points/day (26.5 remaining ÷ 8 days) with 13% buffer (reduced from original 40%). **MAJOR MILESTONE**: US-098 100% COMPLETE (42 story points delivered) - Configuration Management System production-ready with all 5 phases complete, Migration 035 executed (39 configurations deployed), MailServerManager API fully integrated, zero hardcoded credentials, Phase 5C manual testing validated by user. **ADDITIONAL COMPLETIONS**: TD-015 Email Template Consistency (10 pts), TD-016 Email Notification Enhancements (4.5 pts), TD-017 Email Query Optimization 99.68% improvement (2 pts), TD-014-B Repository Testing 100% (6 pts, 180 tests, 9.92/10 quality), TD-020 Build Packaging Core (4.5 pts). **NEW PRIORITIES**: TD-103 prerequisite for US-104 (performance indexes), US-104 enables production deployment with 15,282+ records (Bootstrap: 5, Excel: ~414, JSON: ~14,900, Associations: ~2,200) across 15 tables via Liquibase migration. **REMAINING WORK**: TD-014-C Service Layer Testing (3 pts), TD-014-D Infrastructure Testing (3 pts), TD-103 Performance Optimization (2 pts), US-104 Production Data Import (13 pts), TD-020 final documentation (0.5 pts), TD-014 integration (5 pts). **SPRINT RATIONALE**: US-104 is P0 critical (blocks production deployment), eliminates 200+ hours manual data entry, provides immediate operational readiness with real-world cutover scenarios. TD-103 reduces US-104 execution risk via performance indexes. Sprint remains achievable with proven 3.31 points/day velocity.

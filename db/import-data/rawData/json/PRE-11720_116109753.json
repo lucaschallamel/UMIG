@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 11720,
+  "title": "PORTAIL GERANT - DEMARRAGE PORTAIL GERANT LIGHT (POUR GFE)",
+  "predecessor": "PRE-11720",
+  "successor": "PRE-11720",
+  "primary_team": "PG",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GU - RETURN TO BAU - INSTITUTIONAL TREATMENTS",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PG",
+      "associated_controls": "",
+      "instruction_title": "START IIS SUR SVRPORTALPRDC4 ET SRVPORTALPRDC5\n\n\n\n\nNote : PG was deactivated in Task [PRE-7361](PRE-7361_116109464.html)",
+      "instruction_id": "PRE-11720-1",
+      "nominated_user": ""
+    }
+  ]
+}

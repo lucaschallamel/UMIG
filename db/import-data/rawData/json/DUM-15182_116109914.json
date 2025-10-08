@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 15182,
+  "title": "RUN1",
+  "predecessor": "DUM-15182",
+  "successor": "DUM-15182",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**\n_Phase ID:_ 255\n****_Phase name:_ ATLAS_PROD_AFTER_EOM**\n\n**_Description:\n_**\n\nFor **ATLAS**, **AFTER EOM **proceed with the following **BACKUP **and **RESTORE **activities.",
+      "instruction_id": "DUM-15182-1",
+      "nominated_user": ""
+    }
+  ]
+}

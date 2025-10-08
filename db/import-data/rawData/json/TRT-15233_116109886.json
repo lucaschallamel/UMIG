@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15233,
+  "title": "Kondor+ - Load MM Client",
+  "predecessor": "TRT-15233",
+  "successor": "TRT-15233",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GO - BUSSINESS DATA ENTRIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Load MM Client in Kondor+",
+      "instruction_id": "TRT-15233-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check MM Client integration in Kondor+",
+      "instruction_id": "TRT-15233-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send Reconciliation file to Atlas",
+      "instruction_id": "TRT-15233-3",
+      "nominated_user": ""
+    }
+  ]
+}

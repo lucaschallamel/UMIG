@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": null,
+  "title": "ENGINE - STEP - ENGINE - To Generate and send mapping file of the Tiers - Invariant to TARIF - C2460",
+  "predecessor": "TRT-5675",
+  "successor": "IGO-12798",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_dbo.P_TARIF_OUT_TIERS_HISTORY",
+      "instruction_id": "CHK-1416",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "DTSX_FTC_MOTEUR_SYSPARAM_0044_TARIFS_TIERS",
+      "instruction_id": "CHK-1416",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12293,
+  "title": "RUN1",
+  "predecessor": "CHK-12671",
+  "successor": "TRT-12197",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "modifier le fichier en entrée du BIGPFM02 : remplacer le F25BFUSION.QSAM par F25B.QSAM",
+      "instruction_id": "TRT-12293-1",
+      "nominated_user": ""
+    }
+  ]
+}

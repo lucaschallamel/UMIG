@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 7254,
+  "title": "CMT MEETING - GO / NOGO DECISION FOR POSITIONS AND CASH MIGRATION",
+  "predecessor": "BGO-7254",
+  "successor": "BGO-7254",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GG - ATLAS PHASE 0, 1 AND 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "DECISION BUSINESS APRES \n1 / LA PHASE DE GLOBAL PRE-RECONCILIATION\n2 / LA RECONCILIATION DES CLIENTS\n3/ LA RECONCILIATION DES INSTRUMENTS",
+      "instruction_id": "BGO-7254-1",
+      "nominated_user": ""
+    }
+  ]
+}

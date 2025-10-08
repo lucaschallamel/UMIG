@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 13824,
+  "title": "STEP- SECLI BUSINESS - TO VALIDATE Post-SECLI CONTROLS (C2500,…,C4019)",
+  "predecessor": "TRT-14317",
+  "successor": "BGO-12292",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "C2500: Number of Tiers per ENTITY_TYPE - LEGAL_FORM - INDUSTRY_ICB\nC2520: Number of accounts held by individuals\nC2540: Number of accounts held by legal entities\nC2541: Number of PM (company)by UBP company \nC2560.3: Nombre de personnes physiques avec rôle procuré actif sur compte actif (nb personnes et nb comptes) par société\nC3150 : Nombre de  Tiers par pays de nationalité du titulaire principal\nC2715 : Nombre d\u0027adresses par pays\nC2740 : Nombre de personnes par domicile [tous les domiciles]",
+      "instruction_id": "BGO-13824-1",
+      "nominated_user": "MORE Catherine"
+    }
+  ]
+}

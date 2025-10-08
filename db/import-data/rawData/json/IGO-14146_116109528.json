@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14146,
+  "title": "RUN0",
+  "predecessor": "BGO-14194",
+  "successor": "IGO-13178",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Execute the below controls:\n\n\nC6758 - Comparaison des performances \nC6755 - Estimatif Client - Comparaison des Nav Globales\nC6710 - Asset ATLAS by currency \nC6730 - Comparaison Nav Globale et Performance",
+      "instruction_id": "IGO-14146-1",
+      "nominated_user": ""
+    }
+  ]
+}

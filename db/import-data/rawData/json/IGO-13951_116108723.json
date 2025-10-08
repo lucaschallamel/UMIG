@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13951,
+  "title": "ATLAS - ACCOUNTING RECONCILIATION CONTROLS -CHECK FILE STRUCTURE ONLY",
+  "predecessor": "TRT-6986",
+  "successor": "BGO-13999",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GE - ACTIONS BETWEEN EOM PART 1 AND PART 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "K0002 - Search for records with exotic currencies \nK0000 - Comparaison des cours spot CHF entre VICTORIA et UBP\nC0180 - Assets Migrated On/Off balance \nC0103 - Assets reçus par devise et par entité \nC0102 - Assets reçus par type et par devise \nC0101 - Assets reçus par type \nC0100 - Assets reçus par devise \nC0095 - EYY4 : Opération SUR Change à Terme : LISTE PAR MONNAIE A RECEVOIR\nC0080 - EYY3 : Opération SUR Change à Terme : LISTE PAR MONNAIE A LIVRER\nC0070B : APTF acrual interest with subtotals by client and currency\nC0070 - EW29 : APTF with subtotals by currency\nC0060 - E25I : List of placements\nC0025 - E02C : Liste des soldes comptes (Excel)\nC0170 - List Of 48 H\nC0020 - E02C : Liste des soldes comptes\nC0160 - List Of Money Market Deal\nC0095 - EYY4 : Opération SUR Change à Terme : LISTE PAR MONNAIE A RECEVOIR\nC0080 - EYY3 : Opération SUR Change à Terme : LISTE PAR MONNAIE A LIVRER\nC0070 - EW29 : APTF with subtotals by currency",
+      "instruction_id": "IGO-13951-1",
+      "nominated_user": ""
+    }
+  ]
+}

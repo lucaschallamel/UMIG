@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13957,
+  "title": "ENGINE - GO/NO GO FROM YDR WITH THE CHECKS POST ENGINE CONTROLS GENERATION",
+  "predecessor": "CHK-11467",
+  "successor": "IGO-13799",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "[DRAI Yohann](https://confluence.corp.ubp.ch/display/~ydr)  to give a go / no go before proceeding to the next steps (push to atlas)",
+      "instruction_id": "IGO-13957-1",
+      "nominated_user": "DRAI Yohann"
+    }
+  ]
+}

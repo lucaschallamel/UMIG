@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11549,
+  "title": "SECLI SWITZERLAND GENEVA - EXPORT DE LA LISTE DES COMPTES GERÉS PAR LA TRUST CO",
+  "predecessor": "TRT-11534",
+  "successor": "TRT-11534",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT DE LA LISTE DES COMPTES GERER PAR LA TRUST CO et communiquer le fichier crypté a la securité",
+      "instruction_id": "TRT-11549-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Envoi du fichier par email à :\n BORDAS Guillaume \u003cgub@[ubp.ch](http://ubp.ch)\u003e; \nSAINT-ROCH Fabien \u003cfsr@[ubp.ch](http://ubp.ch)\u003e;",
+      "instruction_id": "TRT-11549-2",
+      "nominated_user": ""
+    }
+  ]
+}

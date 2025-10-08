@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15220,
+  "title": "BUSINESS - Business Tax Checks",
+  "predecessor": "BGO-15220",
+  "successor": "BGO-15220",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Business Tax Checks on Tax Classification :  QI, Fatca, CRS",
+      "instruction_id": "BGO-15220-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Business Tax Checks on Index",
+      "instruction_id": "BGO-15220-2",
+      "nominated_user": ""
+    }
+  ]
+}

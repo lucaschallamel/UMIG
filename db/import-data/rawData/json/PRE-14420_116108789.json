@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14420,
+  "title": "ATLAS - SAVE PERFORMANCE FILES \u0026amp; LOGS",
+  "predecessor": "IGO-426",
+  "successor": "PRE-408",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "PREMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Save performance file : launch script /home/migsup/tools/backup_file_performance.ksh",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Copy the folder :\n/prod/log\nin\n/backup/log_AFTER_MIGRATION\nSCRIPT: /home/migsup/tools/backup_log.ksh",
+      "instruction_id": "2",
+      "nominated_user": "-"
+    }
+  ]
+}

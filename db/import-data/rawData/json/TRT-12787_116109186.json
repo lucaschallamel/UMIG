@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12787,
+  "title": "SECLI TO SEND MAPPING FILES  TO EBANKING",
+  "predecessor": "TRT-11663",
+  "successor": "TRT-11663",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CI - E-BANKING DATA LOADING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CORRESPONDANCE DES PERSONNES vs INVARIANT",
+      "instruction_id": "TRT-12787-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TRANSFERT CSV FILEs TO EBANKING:\n\nTIERS_EXTRA_CODIFICATION\n\nV_PREVIOUS_NUMBER_PERSON_ALL\n\n\nVormetrics Destination :\n\\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Secret\\XXX\\SecliToMoteur",
+      "instruction_id": "TRT-12787-2",
+      "nominated_user": ""
+    }
+  ]
+}

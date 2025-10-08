@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 13839,
+  "title": "SECLI BUSINESS - TO VALIDATE CONTROL (C2255 - List of Clients already existing in ATLAS before migration)",
+  "predecessor": "IGO-13834",
+  "successor": "IGO-13834",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ C2255 ](#)",
+      "instruction_title": "Business to validate(C2255 - List of Clients already existing in ATLAS before migration)",
+      "instruction_id": "BGO-13839-1",
+      "nominated_user": "LY PITTET Sothia"
+    }
+  ]
+}

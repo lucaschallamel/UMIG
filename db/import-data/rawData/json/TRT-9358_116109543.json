@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 9358,
+  "title": "RUN1",
+  "predecessor": "TRT-6254",
+  "successor": "BGO-9364",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Rename PSC.FSCA1.QSAM\n(pour Lundi matin)",
+      "instruction_id": "TRT-9358-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Rename du FSCA1 du vendredi pour le EOD SGPBS",
+      "instruction_id": "TRT-9358-2",
+      "nominated_user": ""
+    }
+  ]
+}

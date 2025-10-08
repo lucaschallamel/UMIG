@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 13286,
+  "title": "SECLI SWITZERLAND/GENEVA - START BUS SERVICE FOR CMS",
+  "predecessor": "TRT-14531",
+  "successor": "DUM-4686",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "VIDER BUS  POUR METTRE A JOUR LES UPDATES BUSINESS",
+      "instruction_id": "PRE-13286-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "START BUS SERVICE FOR CMS",
+      "instruction_id": "PRE-13286-2",
+      "nominated_user": ""
+    }
+  ]
+}

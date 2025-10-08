@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12327,
+  "title": "SGPBS - Go to send Top Clients statement",
+  "predecessor": "TRT-7267",
+  "successor": "TRT-12495",
+  "primary_team": "SGPBS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send to UBP the top client statements",
+      "instruction_id": "TRT-12327-1",
+      "nominated_user": ""
+    }
+  ]
+}

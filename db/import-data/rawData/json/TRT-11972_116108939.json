@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11972,
+  "title": "SECLI LDN\u0026amp;JRS - ALL ACTIVE CLIENTS - PLEDGE ACTS, Cards, External Asset Managers - Part 1",
+  "predecessor": "BGO-12218",
+  "successor": "IGO-13297",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CP - NANTISSEMENTS",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "\\\"Envoi de \n- Actes de nantissement (ANT ANR FROM SUSP TO NULL – ABN_P_ANT_UPDATE)\\\"",
+      "instruction_id": "TRT-11972-1",
+      "nominated_user": ""
+    }
+  ]
+}

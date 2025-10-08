@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12142,
+  "title": "SECLI  - START BUS SERVICE ON TEST-ENV",
+  "predecessor": "BUS-6297",
+  "successor": "SYS-6741",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CK - SENDING OF CLIENTS TO ATLAS - TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Check Queue before opening BUS SRV",
+      "instruction_id": "PRE-12142-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "OPEN BUS SERVICE - London and Gibraltar",
+      "instruction_id": "PRE-12142-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "OPEN BUS SERVICE - Jersey and Guernsey",
+      "instruction_id": "PRE-12142-3",
+      "nominated_user": ""
+    }
+  ]
+}

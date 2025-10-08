@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15251,
+  "title": "BUSINESS - Print SG Sample Statements",
+  "predecessor": "TRT-15251",
+  "successor": "TRT-15251",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GH - ATLAS PHASE 4.1 - ACCOUNT CREATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BUSINESS - Print SG UK Sample Statements",
+      "instruction_id": "TRT-15251-1",
+      "nominated_user": "MORE Catherine"
+    }
+  ]
+}

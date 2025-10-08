@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14262,
+  "title": "ATLAS - VERIFICATION EXECUTION PHASE 0 (CONTROL OF CLIENTS WITHOUT ASSETS) @12:00",
+  "predecessor": "PRE-12106",
+  "successor": "TRT-14267",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verification execution phase 0 : control of clients without assets\\\"",
+      "instruction_id": "TRT-14262-1",
+      "nominated_user": ""
+    }
+  ]
+}

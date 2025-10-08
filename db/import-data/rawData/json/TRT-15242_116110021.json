@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15242,
+  "title": "SGPBS GFE - STOP THE FIMOUT DATAFLOW",
+  "predecessor": "TRT-15242",
+  "successor": "TRT-15242",
+  "primary_team": "SGPBS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "[DI GIUSEPPE Nunzio](https://confluence.corp.ubp.ch/display/~nug) to confirm FIM Dataflow STOPPED from SG.\n[RAYMOND Guillaume ](https://confluence.corp.ubp.ch/display/~rdg) FYI and confirm new flow coming from UBP to feed FIM",
+      "instruction_id": "TRT-15242-1",
+      "nominated_user": ""
+    }
+  ]
+}

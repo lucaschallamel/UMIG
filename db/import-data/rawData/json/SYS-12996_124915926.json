@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 12996,
+  "title": "ATLAS - ON Prod-Like SYSTEM DATE CHANGE TO Cutover Date AND CHANGE CICS NIGHT MODE \u0026amp; DB BATCH MODE",
+  "predecessor": "SYS-12996",
+  "successor": "SYS-12996",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "**Business Date  : **\n\n** **29.08.2025**\n**```",
+      "instruction_id": "SYS-12996-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**EVX (RUN - DR)**_\n\n\nSur Controlm EVX\n\n**mode nuit :****Holder le groupe : E**x**_MODE-TX-NIGHT-NIGHT**Confirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES**GROUPE : E**x**_MODE-TX-NIGHT-NIGHT**JOB : E**x**_15-STOP_AV_TX-SERIES\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l\u0027environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev4txb AND  nhev3txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**mode Nuit : **\n\nDémarrer atlas en mode nuit libérer les jobs suivants :**E**x**_20-START_Prep_ORACLE_Batch**E**x**_25-START_TX_Series_Nuit",
+      "instruction_id": "SYS-12996-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**PROD (CUTOVER)**_\n\n_Sur Controlm PRD_\n**mode nuit :**\nHolder le groupe : P_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : 15-STOP_AV_TX-SERIES\nGROUPE : MODE-TX-NIGHT-NIGHT\nJOB : 15-STOP_AV_TX-SERIES\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l\u0027environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhprdtxb\n\nParam3 : MMJJ\n\n_Sur Controlm PRD :_\n**mode nuit :** Démarrer atlas en mode nuit libérer les jobs suivants :\n20-START_Prep_ORACLE_Online\n25-START_TX_Series_Nuit",
+      "instruction_id": "SYS-12996-2",
+      "nominated_user": ""
+    }
+  ]
+}

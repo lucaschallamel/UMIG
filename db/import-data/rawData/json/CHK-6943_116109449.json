@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 6943,
+  "title": "ENGINE - GENERATE K1022 and K1029 reports for CID",
+  "predecessor": "IGO-6938",
+  "successor": "BGO-11338",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "GENERATE K1029",
+      "instruction_id": "CHK-6943-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "GENERATE K1022",
+      "instruction_id": "CHK-6943-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 7196,
+  "title": "ATLAS - TEST-ENV SANITY CHECKS POST REFRESH",
+  "predecessor": "IGO-6696",
+  "successor": "BUS-13356",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AC - TEST ENVIRONMENT PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **TEST ENVIRONMENT** DATABASE + QSAM refresh\n\nExecute \n\nSCRIPT :\nBy [nhprdtxb:/home/migsup/tools/02_Ctrl_refresh.ksh](http://nhprdtxb/home/migsup/tools/Ctrl_refresh.ksh) **TEST ENVIRONMENT**\n\nIn case of difficulty with the script, execute :\n1. SQL Query : count (*)  from T_TRA_DET t  where code_chain_0195 = \u002717\u0027 \ncount (*)  from T_TRA_DET t  where code_chain_0195 = \u002732\u0027 \non the 2 servers\n\n2. SQL Query : for check the last date process in T_COMPANY :\nSelect t.date_process_last_0143 from NHDBO.t_company t Where t.nbr_co_0143 = 211\n\n3. Access control for QSAM fileson the 2 servers \npiquet@[axvgvatxbsit01p:/files/data/P92/](http://axvgvatxbsit01p/files/data/P92/) $ wc -l F92E.QSAM 5260 F92E.QSAM",
+      "instruction_id": "IGO-7196-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **TEST ENVIRONMENT **COMPONENTS VERSION refresh",
+      "instruction_id": "IGO-7196-2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **TEST ENVIRONMENT **SYSTÈME DATE = Cutover Date",
+      "instruction_id": "IGO-7196-3",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **TEST ENVIRONMENT **FTP CONFIGURATION, USER \u0026 PASSWORD (engine)",
+      "instruction_id": "IGO-7196-4",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **TEST ENVIRONMENT **disk space",
+      "instruction_id": "IGO-7196-5",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Purge all **INBOUD** and **OUTBAND** queues",
+      "instruction_id": "IGO-7196-6",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Clean all Log files for data **after** CUTOFF date",
+      "instruction_id": "IGO-7196-7",
+      "nominated_user": "-"
+    }
+  ]
+}

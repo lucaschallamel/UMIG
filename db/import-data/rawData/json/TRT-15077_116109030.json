@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15077,
+  "title": "IT CONTROLS - UPDATE KPIs FILE ON SHAREPOINT",
+  "predecessor": "TRT-15077",
+  "successor": "TRT-15077",
+  "primary_team": "CONTROLS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CONTROLS",
+      "associated_controls": "",
+      "instruction_title": "UPDATE KPIs FILE ON SHAREPOINT",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

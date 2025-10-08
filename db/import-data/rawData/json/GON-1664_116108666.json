@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 1664,
+  "title": "RUN0",
+  "predecessor": "TRT-12245",
+  "successor": "IGO-5383",
+  "primary_team": "ODS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GP - GO - NOGO",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "",
+      "instruction_title": "Executer les tâches présentes à la section 4.1 du _Processus Manuel ODS_\n\n_Durée Prévue : 2 heures_",
+      "instruction_id": "GON-1664-1",
+      "nominated_user": ""
+    }
+  ]
+}

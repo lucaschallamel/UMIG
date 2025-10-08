@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15033,
+  "title": "RUN0",
+  "predecessor": "PRE-6576",
+  "successor": "BGO-7184",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Deactivate realtime inbound and outbound connectivity with Atlas on Prod Like Environment:\n - Incoming: ConvFromHost (On-Line), Treasury Link (On-Line), Treasury Link Deposit\n - Outgoing: HostLink FX (On-Line), HostLink MM (On Line), LinkVision Export, Cours Spot Minute\n\nDisable these jobs:\n\nFor me you have to run this job insted of the previous one : E3_T001APP_KDR_KILL-LOOP-START-CONVLINK\n\nFor me you have to run this job insted of the previous one : \n\nE3_T001KDR_NDO871\n\nE3_T001KDR_NDO881",
+      "instruction_id": "PRE-15033-1",
+      "nominated_user": "GROUT de BEAUFORT Ga\u0026euml;l"
+    }
+  ]
+}

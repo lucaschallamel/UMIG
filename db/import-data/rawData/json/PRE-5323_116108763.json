@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 5323,
+  "title": "SECLI - CLIENT RESERVATION FOR VICTORIA",
+  "predecessor": "PRE-5328",
+  "successor": "PRE-5328",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "SECLI CLIENT RESERVATION IN PRODUCTION FOR VICTORIA MIGRATION\n\n**Note**: Lesplages de tiers et de personnes à réserver dans la 303 (Jersey new) et 302 (UK new) ne doivent pas être en intersection avec respectivement 151 (Jersey existant) et 002 (UK existant). Cela permettra à UBP de faire le merge en Avril 2026 sans avoir à renuméroter",
+      "instruction_id": "PRE-5323-1",
+      "nominated_user": "-"
+    }
+  ]
+}

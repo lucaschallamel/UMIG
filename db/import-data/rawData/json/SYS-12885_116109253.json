@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 12885,
+  "title": "ENSURE - SYSTEM DATE IS SET TO CURRENT CUTOVER  DATE",
+  "predecessor": "SYS-12885",
+  "successor": "SYS-12885",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**FOR SECLI**_\n\nChangeLinuxSystemDate job on control-M PRD-GVA-COM-DC with the following parameters:\nTo change without reboot SECLI\u0027s date\n\nPARM1 : change\nPARM2 : lxvgvasecev403s  AND lxvgvasecev303s\nPARM3 : **2025.08.22**\nPARM4 :",
+      "instruction_id": "SYS-12885-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**FOR ATLAS :  Set server dates to**_** **29.08.2025**\n**\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\nSur Controlm EVX\n\n**Si mode nuit :**\nHolder le groupe : E**x**_MODE-TX-NIGHT-NIGHT\nConfirmer uniquement ce job : E**x**_15-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-NIGHT-NIGHT\nJOB : E**x**_15-STOP_AV_TX-SERIES\n\n**Si mode jour :**\nHolder le groupe : E**x**_T_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : E**x**_00-STOP_AV_TX-SERIES\nGROUPE : E**x**_MODE-TX-DAY-DAY\nJOB : E5_00-STOP_AV_TX-SERIES\n\n**A la fin du job ****:**\n\nSur Controlm PROD:\n\nchangeSystemDate lancer les cics sur l\u0027environnement cible\n\nParamètres :\n\nParam1 : --reboot\n\nParam2 : nhev4txb OR  nhev3txb\n\nParam3 : MMJJ\n\nSur Controlm EVX :\n\n\n**Si mode Nuit : **Démarrer atlas en mode nuit libérer les jobs suivants :\nE**x**_20-START_Prep_ORACLE_Batch\nE**x**_25-START_TX_Series_Nuit\n\n**Si mode jour :** Démarrer atlas en mode jour libérer les jobs suivants :\nE**x**_05-START_Prep_ORACLE_Online\nE**x**_10-START_TX_Series_Day\nE**x**_12-TRANSCU1",
+      "instruction_id": "SYS-12885-2",
+      "nominated_user": ""
+    }
+  ]
+}

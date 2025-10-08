@@ -38,7 +38,7 @@ MigrationTypesRepository getMigrationTypesRepository() {
  * - GET /migrationTypes/{id} -> returns a single migration type by ID
  * - GET /migrationTypes/code/{code} -> returns a single migration type by code
  */
-migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrationTypes(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         def extraPath = getAdditionalPath(request)
         def pathParts = extraPath?.split('/')?.findAll { it } ?: []
@@ -220,7 +220,7 @@ migrationTypes(httpMethod: "GET", groups: ["confluence-administrators"]) { Multi
  * - POST /migrationTypes -> creates a new migration type
  * - POST /migrationTypes/reorder -> reorders migration types
  */
-migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrationTypes(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         def extraPath = getAdditionalPath(request)
         def pathParts = extraPath?.split('/')?.findAll { it } ?: []
@@ -335,7 +335,7 @@ migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { Mult
  * - PUT /migrationTypes/{id} -> updates a migration type by ID
  * - PUT /migrationTypes/code/{code} -> updates a migration type by code
  */
-migrationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrationTypes(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         def extraPath = getAdditionalPath(request)
         def pathParts = extraPath?.split('/')?.findAll { it } ?: []
@@ -439,7 +439,7 @@ migrationTypes(httpMethod: "PUT", groups: ["confluence-administrators"]) { Multi
  * - DELETE /migrationTypes/{id} -> deletes a migration type by ID
  * - DELETE /migrationTypes/code/{code} -> deletes a migration type by code
  */
-migrationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrationTypes(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         def extraPath = getAdditionalPath(request)
         def pathParts = extraPath?.split('/')?.findAll { it } ?: []

@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 14829,
+  "title": "EXPLOITATION - Start EoW Batch after CSD Migration",
+  "predecessor": "GON-14829",
+  "successor": "GON-14829",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_Launch EoW Batch by following the below steps (hold done in IP Task [PRE-15054](PRE-15054_116110145.html))_",
+      "instruction_id": "GON-14829-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Unhold the Secli Batch : **P007CLI_CJO004, P004CLI_CJO004 et P001CLI_CJO004**",
+      "instruction_id": "GON-14829-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Unholder les jobs suivants : 01-START-EOD plus tous les job du folder P_HOS_CORE-BANKING (uniquement les jobs pas le folder).",
+      "instruction_id": "GON-14829-2",
+      "nominated_user": ""
+    }
+  ]
+}

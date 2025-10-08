@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 7117,
+  "title": "RUN1",
+  "predecessor": "SYS-7117",
+  "successor": "SYS-7117",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "PREPARER LA MONTEE AU PLAN DE 15:00 DU EOD*1 at CUTOVER DATE:\n\n **29.08.2025**",
+      "instruction_id": "SYS-7117-1",
+      "nominated_user": ""
+    }
+  ]
+}

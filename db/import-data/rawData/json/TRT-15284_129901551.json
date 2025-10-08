@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15284,
+  "title": "ENGINE - Process SUN File (QSAM Creation)",
+  "predecessor": "TRT-15284",
+  "successor": "TRT-15284",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Process SUN File (QSAM Creation)",
+      "instruction_id": "TRT-15284-1",
+      "nominated_user": ""
+    }
+  ]
+}

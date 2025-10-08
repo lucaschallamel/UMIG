@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 11679,
+  "title": "UBPACCESS - Mise à jour des profils citrix GFE",
+  "predecessor": "PRE-11679",
+  "successor": "PRE-11679",
+  "primary_team": "UBP_ACCESS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "UBP_ACCESS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mise à jour des profils citrix GFE",
+      "instruction_id": "PRE-11679-1",
+      "nominated_user": ""
+    }
+  ]
+}

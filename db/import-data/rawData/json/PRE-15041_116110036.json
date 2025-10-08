@@ -1,0 +1,55 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15041,
+  "title": "Exploitation - VERIFICATION DU PLAN CTRL-M A MONTER",
+  "predecessor": "PRE-11801",
+  "successor": "PRE-11955",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Calc Date en BUSINESS DATE du **29.08.2025**",
+      "instruction_id": "PRE-15041-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Transaction BI52\nBUSINESS DATE : **29.08.2025**",
+      "instruction_id": "PRE-15041-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHECK DESACTIVATION DES SAUVEGARDES INTERNES DES APPLICATIONS PAR DUMMY OU HOLD",
+      "instruction_id": "PRE-15041-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Execute POOLING-CONFIG on concerned env to consume the deployement file",
+      "instruction_id": "PRE-15041-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHECK JOB OK_COURS IS IN CONFIRM MODE",
+      "instruction_id": "PRE-15041-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "HOLD  job SC_PRC19 (Regarding CID PRICE FILE SPOC_INTEGRATION ORDER JPM FILE AT THE END ) ADVISE SDU AND PILOTE TEAM",
+      "instruction_id": "PRE-15041-6",
+      "nominated_user": ""
+    }
+  ]
+}

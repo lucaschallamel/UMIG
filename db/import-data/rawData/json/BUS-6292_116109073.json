@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 6292,
+  "title": "BUS - RE-ESTABLISH BUS On Test Environment",
+  "predecessor": "PRE-3602",
+  "successor": "PRE-3602",
+  "primary_team": "MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EA - MONDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "MIDDLEWARE",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "To check before\n    select *\n    from bus.subscription s\n    where s.desc_subscription like \u0027%BankIntegration%check%\u0027;\nDans SQL Developer Run SQL script  -\u003e Reintegration-SECLI-ATLAS-Pour-Env-Secondaire.sql + COMMIT\nRun script (sur la machine BUS) /bus/iib/bin/iib_db_tables_subs_make.sh all\nTo check after, in SQL Developer Run SQL Command :\n    select s.*, rowid\n    from bus.subscription s\n    where s.name_table_subs = \u0027secli\u0027\n    and s.flag_enabled = 1\n    and s.id_channel not in\n    (\u0027out.email.reply\u0027, \u0027out.bus.error_mngmt\u0027, \u0027out.null_subscriber\u0027)\n    and s.id_channel not like \u0027out.nhost%\u0027\n    order by s.id_topic;",
+      "instruction_id": "BUS-6292-1",
+      "nominated_user": ""
+    }
+  ]
+}

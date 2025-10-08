@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6268,
+  "title": "ATLAS - CHECK  CALCUL DES PMA SUR METAUX PRECIEUX",
+  "predecessor": "TRT-6268",
+  "successor": "TRT-6268",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check reception PMA from ODS\n\n**Requête SQL : **\n\nselect pma.* from nhdbo.t_ac_pma_pr pma, nhdbo.t_fu_client fcl\nwhere pma.nbr_co_1046 = fcl.nbr_co_1057\nand pma.nbr_cli12_1046 = fcl.nbr_client_1057",
+      "instruction_id": "TRT-6268-1",
+      "nominated_user": ""
+    }
+  ]
+}

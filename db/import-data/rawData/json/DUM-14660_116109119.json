@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 14660,
+  "title": "EXPLOITATION - SECLI DUMP - AFTER STAGING INTEGRATION",
+  "predecessor": "TRT-11717",
+  "successor": "TRT-11746",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CE - DATA LOADING IN PRE-STAGING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase\n\n**_Phase ID:_ 080\n****_Phase name:_ **SECLI_TEST_AFTER_STAGING_INTG****\n\n_**Description:**_\n\nFor **SECLI**, **AFTER STAGING INTEGRATION **proceed with the following **BACKUP **and **RESTORE **activities.",
+      "instruction_id": "DUM-14660-1",
+      "nominated_user": ""
+    }
+  ]
+}

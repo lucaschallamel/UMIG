@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": null,
+  "title": "RUN0",
+  "predecessor": "CHK-13984",
+  "successor": "TRT-13483",
+  "primary_team": "ANONYMTOOL",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ANONYMTOOL",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please send to Hugo the list of received SOURCE files in the folder.\n\nIF NOT FOUND PLEASE CALL DATA_FILES TEAM",
+      "instruction_id": "CHK-13578",
+      "nominated_user": "PETIT Yves"
+    },
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please confirm that you received the SOURCE files in the folder, and ready to use it, with the MASTER file for controls : FILES_CONTROLS.xlsx",
+      "instruction_id": "CHK-13578",
+      "nominated_user": "NUKOVIC Hugo"
+    }
+  ]
+}

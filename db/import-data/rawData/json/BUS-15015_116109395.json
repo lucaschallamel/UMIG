@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 15015,
+  "title": "BUS - MODE DISCRETIONNAIRE - CID - ATLAS - PREPARE BUS TO LET PASS LATEST INSTRUMENTS DISCREPANCIES FOUND",
+  "predecessor": "PRE-1510",
+  "successor": "CHK-14932",
+  "primary_team": "SPOC_MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_MIDDLEWARE",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "GO POUR LAISSER PASSER LES INSTRUMENTS ET PRIX DONT LES NUMEROS SONT COMMUNIQUES PAR CID",
+      "instruction_id": "BUS-15015-1",
+      "nominated_user": ""
+    }
+  ]
+}

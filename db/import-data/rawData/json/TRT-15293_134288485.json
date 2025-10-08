@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15293,
+  "title": "Engine - G Account processing for Phase 0",
+  "predecessor": "TRT-15293",
+  "successor": "TRT-15293",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT and Send FACCR1 file (Client Account)",
+      "instruction_id": "TRT-15293-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT and Send FACCC4 file (G Account)",
+      "instruction_id": "TRT-15293-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 13876,
+  "title": "BUSINESS TO VALIDATE CONTROL - C0254 - List of custody account ( Portfolio for UBP ) numbers with no linked cash account",
+  "predecessor": "IGO-13871",
+  "successor": "IGO-13881",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Business (MKE) to validate control  - (C0254 - List of custody account ( Portfolio for UBP ) numbers with no linked cash account)",
+      "instruction_id": "BGO-13876-1",
+      "nominated_user": ""
+    }
+  ]
+}

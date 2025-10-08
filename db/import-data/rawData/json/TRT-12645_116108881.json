@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12645,
+  "title": "SECLI SWITZERLAND/GENEVA - IBAN MAPPING TABLE EXTRACTION FOR ATLAS",
+  "predecessor": "BUS-12137",
+  "successor": "TRT-3617",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Generate mapping table of CLIENTS containing:\n- SG PBS Customer InvariantID\n- Linked UBP tiers\n- SG PBS Iban",
+      "instruction_id": "TRT-12645-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Transfer of the mapping table \u003c\u003cfile reference here\u003e\u003e to  ftp of the Engine.",
+      "instruction_id": "TRT-12645-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm reception of the mapping table file.",
+      "instruction_id": "TRT-12645-3",
+      "nominated_user": ""
+    }
+  ]
+}

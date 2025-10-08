@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7286,
+  "title": "ATLAS - EOD*1 IT ACCOUNTING CHECKS",
+  "predecessor": "BGO-5684",
+  "successor": "DUM-14358",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "EXTRACTION OF TAXE EU FILE FEUTR1.QSAM",
+      "instruction_id": "1",
+      "nominated_user": ""
+    }
+  ]
+}

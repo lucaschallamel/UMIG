@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13834,
+  "title": "RUN1",
+  "predecessor": "IGO-13829",
+  "successor": "BGO-13839",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ C2255 ](#)",
+      "instruction_title": "ATLAS to Validate control results : \nC2255- List of Clients already existing in ATLAS before migration",
+      "instruction_id": "IGO-13834-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12594,
+  "title": "ENGINE - ODS TRANSACTIONS LOAD",
+  "predecessor": "TRT-12592",
+  "successor": "TRT-12592",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0012_TAX_TRX",
+      "instruction_id": "TRT-12594-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0013_TAX_TRX_DET",
+      "instruction_id": "TRT-12594-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0014_TAX_TRX_CORPO",
+      "instruction_id": "TRT-12594-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0015_TAX_TRX_ASSET",
+      "instruction_id": "TRT-12594-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0016_TAX_TRX_POSITION",
+      "instruction_id": "TRT-12594-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_0017_TAX_TRX_CORPO_PRICES",
+      "instruction_id": "TRT-12594-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_FUSION_TRANSCO_IDS",
+      "instruction_id": "TRT-12594-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Provide NB of record pushed",
+      "instruction_id": "TRT-12594-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONFIRM MVMTS SEND =\u003e Provide nb record received",
+      "instruction_id": "TRT-12594-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mail to TORONTOMigrationCoordination : STEP - ENGINE - STEP 06_4 - ODS TRANSACTIONS LOAD : DONE",
+      "instruction_id": "TRT-12594-10",
+      "nominated_user": ""
+    }
+  ]
+}

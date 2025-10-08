@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 13032,
+  "title": "PMS IT CONTROLS- CHECK CLIENT DATA INTEGRATION ON PMS",
+  "predecessor": "TRT-13026",
+  "successor": "IGO-14307",
+  "primary_team": "PMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "[ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#)",
+      "instruction_title": "Execute PMS Client Data integration IT Controls: \nReport results by email.\n\nC9047 : Breakdown count of clients per Relationship Manager\n\nC9048, : Number of third-partys per Legal Form\n\nC9049 : Number of third-party per Currency ISO code\n\nC9050, : Number of persons per country of nationality\n\nC9051 : Number of persons per country of domicile\n\nC9052 : Number of high risk PEP persons\n\nC9053 : Number of managed accounts per risk profile\n\nC9054 : Number of third-parties under a discretionnary mandate and with no portfolio manager or no risk profile assigned",
+      "instruction_id": "CHK-13032-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Validate PMS Client Data integration control results.",
+      "instruction_id": "CHK-13032-2",
+      "nominated_user": ""
+    }
+  ]
+}

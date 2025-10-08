@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12425,
+  "title": "ATLAS - Check forced SGPBS pools/statuses presence in Atlas EV3",
+  "predecessor": "TRT-12425",
+  "successor": "TRT-12425",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Extract updated QI pool and Fatca statuses for the migrated clients for TAX Team.\n/SECLI results (SGPBS pools/status, indicia) feed ATLAS - SGPBS pools and statuses in SECLI are fed into ATLAS/",
+      "instruction_id": "TRT-12425-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TAX Team verify that Atlas extraction results return the migrated SGPBS QI pools, Fatca statuses.",
+      "instruction_id": "TRT-12425-2",
+      "nominated_user": ""
+    }
+  ]
+}

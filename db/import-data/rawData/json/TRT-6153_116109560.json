@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6153,
+  "title": "ENGINE - STEP 06_2 - GENERATE BUDGET ESTIMATIF GLOBALE AND STRUCTURE GERANCE",
+  "predecessor": "TRT-6227",
+  "successor": "TRT-12592",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_C4001_ODS_ESTIMATIF_GLOBAL",
+      "instruction_id": "TRT-6153-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C4001_ODS_ESTIMATIF_GLOBAL",
+      "instruction_id": "TRT-6153-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_C4002_ODS_STRUCTURE_GERANCE",
+      "instruction_id": "TRT-6153-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C4002_ODS_STRUCTURE_GERANCE",
+      "instruction_id": "TRT-6153-4",
+      "nominated_user": ""
+    }
+  ]
+}

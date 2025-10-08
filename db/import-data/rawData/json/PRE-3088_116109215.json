@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 3088,
+  "title": "ODS -  EOM - CUTOVER DATE - PREPARATION",
+  "predecessor": "PRE-12297",
+  "successor": "PRE-69",
+  "primary_team": "ODS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Modifier la date de traitement au \n\n **29.08.2025**\n\n\n par rapport à la date système du jour sur PROD-LIKE",
+      "instruction_id": "PRE-3088-1",
+      "nominated_user": ""
+    }
+  ]
+}

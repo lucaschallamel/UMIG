@@ -1,0 +1,118 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15162,
+  "title": "ATLAS - PHASE 5.1 - BEFORE EOD*1",
+  "predecessor": "CHK-15163",
+  "successor": "TRT-7306",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**43-PH5.1-Creation new poste in ATLAS-Table spi sytgbl01**\n\\\"Validation automatique pour les opérations futures routing 12\\\"",
+      "instruction_id": "TRT-15162-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**30-PH5.1 : Initialisations fichiers**\nJOB : FU_INITPH5.ksh\nFILES :\nFFORR2.QSAM\nFPRER2.QSAM\nFPLAR2.QSAM\nFPLAR3.QSAM",
+      "instruction_id": "TRT-15162-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**31-PH5.1 : Reprise soldes comptes courant**\nJOB : FU_ACCR4.ksh\nINPUT FILE : FACCR2.QSAM\nREPORT : EFUC, EFUD",
+      "instruction_id": "TRT-15162-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**32-PH5.1 : Reprise des prêts**\nJOB : FU_LOAR1.ksh\nINPUT FILE : FLOAR1.QSAM\nOUTPUT FILE : FLOAR3.QSAM\nREPORT: EFUL, EFUM",
+      "instruction_id": "TRT-15162-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**33-PH5.1 : Reprise des positions titres clients **\nJOB : FU_PTFR2.ksh\nINPUT FILE : FPTFR3.QSAM\nREPORT: EFUE",
+      "instruction_id": "TRT-15162-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**34-PH5.1 : Reprise des opérations de livraisons titres\n**\n\nJOB : FU_PTFR3.ksh\nIM : FPTFR5.QSAM",
+      "instruction_id": "TRT-15162-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**35-PH5.1 : Reprise des placements (VTRA14)**\nJOB : FU_PLAR1.ksh\nINPUT FILE :  FPLAR1.QSAM\nOUTPUT FILE :\nFPLAR4.QSAM\nFPLAR5.QSAM\n\n**In case Of rejects to recycle :**\nDelete VTRA14 :\n    delete from nhdbo.t_tra_det t\n    where t.code_chain_0149_0195 = \u002714\u0027 \n    and t.created_by_0195 like \u0027%FUGPLA01%\u0027",
+      "instruction_id": "TRT-15162-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**46-PH5.1: Reprise des Conditions particulière placements\n**JOB : FU_PLAR8.ksh\nIM : FPLAR8.QSAM",
+      "instruction_id": "TRT-15162-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Mail To ENGINE \n 1 - Inform that the extraction and transfer are done \n 2 - to give the volumetry",
+      "instruction_id": "TRT-15162-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**39-PH5.1 : Reprise des contrats Forex**\nJOB : FU_FORR1.ksh\nINPUT FILE : FFORR1.QSAM\nREPORT :EFUT,EFUU",
+      "instruction_id": "TRT-15162-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**40-PH5.1 : Extraction des Forex repris\n**JOB : FU_FORX1.ksh\nOM : FFORX1.QSAM",
+      "instruction_id": "TRT-15162-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**44-PH5.1 : Preparation pour les  futures - Alim T_MIGR_FUT**\nJOB : /prod/script/job/FU_FUT02.ksh\nIM: FFUTR1.QSAM",
+      "instruction_id": "TRT-15162-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**45-PH5.1 : Reprise des perf clients**\nJOB : FU_PFMR1.ksh\nIM : FPFMR1.QSAM",
+      "instruction_id": "TRT-15162-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**47-PH5.1 : Reprise des Money Market\n**JOB : FU_MOMR1.ksh\nIM : PFU/FMOMR1.QSAM \nOM : FMOMR3.QSAM",
+      "instruction_id": "TRT-15162-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**48-PH6.4 : FU_PLAR10\n**Reprise des placements 48H\nEtat : EFVB, EFVC\nIM : FPLAR10.QSAM\nOM : FPLAR9.QSAM",
+      "instruction_id": "TRT-15162-14",
+      "nominated_user": ""
+    }
+  ]
+}

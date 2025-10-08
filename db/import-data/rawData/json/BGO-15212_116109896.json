@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15212,
+  "title": "BUSINESS - Business reconciliation validation - FX Forward",
+  "predecessor": "BGO-15212",
+  "successor": "BGO-15212",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GO - BUSSINESS DATA ENTRIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BUSINESS - Business reconciliation validation - FX Forward",
+      "instruction_id": "BGO-15212-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Communicate Reconciliation conclusions to [ IT_CUTOVER ](#)",
+      "instruction_id": "BGO-15212-2",
+      "nominated_user": ""
+    }
+  ]
+}

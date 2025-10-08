@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13335,
+  "title": "ENGINE SECRET - SANITY CHECKS BEFORE STARTING MIGRATION",
+  "predecessor": "IGO-13335",
+  "successor": "IGO-13335",
+  "primary_team": "ENGINE SECRET",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE SECRET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Engine Secret Test Environment  FTP CONFIGURATION, USER \u0026 PASSWORD, …",
+      "instruction_id": "IGO-13335-1",
+      "nominated_user": ""
+    }
+  ]
+}

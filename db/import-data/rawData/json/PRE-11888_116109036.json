@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 11888,
+  "title": "PRINTNET - SETUP THE LIST OF ESTIMATES TO PRODUCE (ECHANTILLON)",
+  "predecessor": "PRE-11888",
+  "successor": "PRE-11888",
+  "primary_team": "PRINTNET",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PRINTNET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "coder la liste des échantillons dans la table ECH de printnet",
+      "instruction_id": "PRE-11888-1",
+      "nominated_user": ""
+    }
+  ]
+}

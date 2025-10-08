@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 12798,
+  "title": "IT CONTROLS - VALIDATE PostCliTARIF CONTROL RESULTS",
+  "predecessor": "CHK-1416a",
+  "successor": "BGO-13746",
+  "primary_team": "IT_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#) \n\n [ - ](#)",
+      "instruction_title": "Please ensure that figures provided in following controls are correct:\n_- C7010: Nbre de conditions particulières Total\n- C7050: Nbre de Tiers  par Code Politique\n- Controls that numbers are consistent between Runs / DR",
+      "instruction_id": "IGO-12798-1",
+      "nominated_user": ""
+    }
+  ]
+}

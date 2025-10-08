@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14343,
+  "title": "RUN1",
+  "predecessor": "TRT-15189",
+  "successor": "TRT-14348",
+  "primary_team": "PRINTNET",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PRINTNET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Composition of the pdf letter",
+      "instruction_id": "TRT-14343-1",
+      "nominated_user": ""
+    }
+  ]
+}

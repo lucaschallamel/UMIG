@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 439,
+  "title": "EXPLOITATION - PHASE 5.2 - EOD*1",
+  "predecessor": "IGO-14439",
+  "successor": "IGO-14439",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GM - ATLAS PHASE 5.2 - STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please proceed with EOD*1 : Deholder et confirmer le folder : E3_T_HOS_INTG-BANQUE-STAR1",
+      "instruction_id": "GON-439-1",
+      "nominated_user": ""
+    }
+  ]
+}

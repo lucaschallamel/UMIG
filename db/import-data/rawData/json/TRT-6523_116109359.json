@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6523,
+  "title": "RUN1",
+  "predecessor": "TRT-12311",
+  "successor": "CHK-6412",
+  "primary_team": "SGPBS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "11AM - STEP - UBP OPS: receive CID daily delivery (CID Team)\nCette étape est à faire le vendredi à 11h dès réception des fichiers securities. Le business doit ensuite controler les reports.\nSI LES FICHIERS NE SONT PAS LA RELANCER SGPBS",
+      "instruction_id": "TRT-6523-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TRANFER TO UBP : SECURITIES FILES",
+      "instruction_id": "TRT-6523-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15053,
+  "title": "UBP ACCESS - Restore MIM Refresh of Secli Read/Write Rights",
+  "predecessor": "PRE-15053",
+  "successor": "PRE-15053",
+  "primary_team": "UPB ACCESS",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EA - MONDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please Reactivate Secli MIM read/write updates",
+      "instruction_id": "PRE-15053-1",
+      "nominated_user": ""
+    }
+  ]
+}

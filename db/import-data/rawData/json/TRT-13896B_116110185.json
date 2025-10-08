@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": null,
+  "title": "ENGINE TO CREATE JSON BASED ON THE FINALISED DSS FILES - P\u0026amp;C WE",
+  "predecessor": "TRT-13896B",
+  "successor": "TRT-13896B",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please create the JSON extracts for SECLI team based on  the last finlaised snapshot of DSS files  \n(AllDss.json + Headers.csv)\n\nThe DSS files are available on the following link : \n\n[https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS)\n\n\n\n\nThe DSS for each source application are in their respective folders :\n_- For S2i in the folder \\\"S2i\\\" : [https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FS2i](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FS2i)\n\n\n - - For AVALOQ in the folder \\\"AVALOQ\\\" : [https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FAVALOQ](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FAVALOQ)\n\n\n - - For Bank and Priv DMS in the folder \\\"Bank_Priv_DMS\\\" : [https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FBank%5FPriv%5FDMS](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FBank%5FPriv%5FDMS)\n\n\n - - For GED files in the folder \\\"GED\\\" : [https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FGED](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FGED)\n\n\n\n_- For Miscellenous files in the fodler \\\"MISC\\\" : [https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FMISC](https://spconfidential/projects/toronto-it/07%20%20Cutover/Forms/AllItems.aspx?id=%2Fprojects%2Ftoronto%2Dit%2F07%20%20Cutover%2F09%20%2D%20Files%2FDSS%2FMISC)",
+      "instruction_id": "TRT-13896",
+      "nominated_user": ""
+    }
+  ]
+}

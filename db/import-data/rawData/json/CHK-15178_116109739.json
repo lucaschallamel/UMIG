@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15178,
+  "title": "ATLAS - Reconciliation K+ / Atlas - FX Forward",
+  "predecessor": "CHK-15178",
+  "successor": "CHK-15178",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GO - BUSSINESS DATA ENTRIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Reconciliation K+ / Atlas - FX Forward\n\nFor RUN3: details about the process can be found here:\n\n[https://spconfidential/projects/victoria-it/02](https://spconfidential/projects/victoria-it/02)  Migration Stream/02 - Positions and Contracts/02.04-RUN 3/02.04.26 Reco_Kondor_Atlas/EV3/FX_FORWARDS",
+      "instruction_id": "CHK-15178-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send reconciliation output to Kondor+ Team and TT Business",
+      "instruction_id": "CHK-15178-2",
+      "nominated_user": "TREUSSIER Vincent"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12004,
+  "title": "RUN1",
+  "predecessor": "TRT-12882",
+  "successor": "BGO-12047",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "GENERATE K1029",
+      "instruction_id": "CHK-12004-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ C1750 ](#)",
+      "instruction_title": "GENERATE K1022",
+      "instruction_id": "CHK-12004-2",
+      "nominated_user": ""
+    }
+  ]
+}

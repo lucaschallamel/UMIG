@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15202,
+  "title": "Replicate MUREX ID in Kondor+ / KSP",
+  "predecessor": "TRT-15202",
+  "successor": "TRT-15202",
+  "primary_team": "TREASURY TOOLS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TREASURY TOOLS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Replicate MUREX ID in Kondor",
+      "instruction_id": "TRT-15202-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "TREASURY TOOLS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Replicate MUREX ID in KSP",
+      "instruction_id": "TRT-15202-2",
+      "nominated_user": ""
+    }
+  ]
+}

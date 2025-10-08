@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12814,
+  "title": "ODS - CHECK P\u0026amp;C DATA INTEGRATION ON ODS",
+  "predecessor": "CHK-12814",
+  "successor": "CHK-12814",
+  "primary_team": "ODS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "",
+      "instruction_title": "After Data migration, please perform checks as per ODS migration runbook",
+      "instruction_id": "CHK-12814-1",
+      "nominated_user": ""
+    }
+  ]
+}

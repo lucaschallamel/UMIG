@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 14651,
+  "title": "GO /NO GO - After loading FPS and FTC Files in SECLI Staging",
+  "predecessor": "IGO-11781",
+  "successor": "TRT-12386",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "",
+      "instruction_title": "IT Cutover send mail to PGU to provide GO / NO GO based on file counting + FPC files sent by ENGINE to SECLI\n\nC1001_2- File volume check before engine integration**C1019_ 2- Breakdown count of lines per received files\nC2450 - List of files sent to Secli by Engine",
+      "instruction_id": "BGO-14651-1",
+      "nominated_user": "GUILLEMAU Pascal"
+    }
+  ]
+}

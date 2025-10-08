@@ -1,0 +1,90 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6013,
+  "title": "ENGINE - STEP 10 -  CLIENT ACCOUNT RETRIEVE FACCR3 TO CHECK",
+  "predecessor": "TRT-6013",
+  "successor": "TRT-6013",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GI - ATLAS PHASE 4.2 - IBAN CREATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Check ENGINE FILE :\nFACCR3.QSAM and FACCR3ALL.QSAM",
+      "instruction_id": "TRT-6013-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0155_ACCOUNTS_FACCR3",
+      "instruction_id": "TRT-6013-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0155_ACCOUNTS_FACCR3",
+      "instruction_id": "TRT-6013-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C4140_CHECK_ATLAS_CREATION_COMPTE",
+      "instruction_id": "TRT-6013-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C4140_CHECK_ATLAS_CREATION_COMPTE",
+      "instruction_id": "TRT-6013-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_ATLAS_CODE_IBAN_#2",
+      "instruction_id": "TRT-6013-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C4150_ATLAS_CODE_IBAN_CH",
+      "instruction_id": "TRT-6013-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C4150_ATLAS_CODE_IBAN_CH",
+      "instruction_id": "TRT-6013-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_WAIT_FOR_ATLAS_FINISH_AND_SEND_CASH_COUNT_SECLI",
+      "instruction_id": "TRT-6013-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_SECLI_0998_CC_CORRESP",
+      "instruction_id": "TRT-6013-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTE\n\n+UR_SECLI_0998_CC_CORRESP",
+      "instruction_id": "TRT-6013-11",
+      "nominated_user": ""
+    }
+  ]
+}

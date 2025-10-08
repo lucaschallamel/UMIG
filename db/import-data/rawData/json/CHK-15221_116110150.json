@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15221,
+  "title": "CMS - Check that Invariant Tables are full",
+  "predecessor": "CHK-15221",
+  "successor": "CHK-15221",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV. CR - CMS ACTIVITIES FLOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CMS - Check that Invariant Tables are full",
+      "instruction_id": "CHK-15221-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": null,
+  "title": "ENGINE - IT CONTROL GENERATION - PRE-CHECK FILES",
+  "predecessor": "DUM-13478",
+  "successor": "DUM-13478",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "ENGINE to generate Control/report - Customer Scope Analysis\n\nC0200 - Global view with theorical mapping\nC1006 - Asset Repartition\nC1006 A - Asset Repartition by currency\nC1019 - Breakdown count of lines per received files\nC1001 - File volume check before engine integration\nC2450 - List of files sent to Secli by Engine",
+      "instruction_id": "TRT-13554",
+      "nominated_user": "DRAI Yohann"
+    }
+  ]
+}

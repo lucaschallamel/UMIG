@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6254,
+  "title": "RUN0",
+  "predecessor": "BGO-11247",
+  "successor": "TRT-9358",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Lancer le script /home/migsup/tools/06_Backup_FIRE.ksh avec l\u0027option 1 :**- Sauvegarde du fichier   /files/data/PCR/FCRK1.QSAM (Security File)  dans /files/data/PCR/FCRK1FUSIONSTAR2.QSAM **- Sauvegarde du fichier   /files/data/P04/F04C.QSAM (Forex File) dans   /files/data/P04/F04CFUSIONSTAR2.QSAM**-Sauvegarde du fichier   /files/data/PBC/FBCF3.QSAM (Option File) dans /files/data/PBC/FBCF3FUSIONSTAR2.QSAM**- sauvegarde du fichier  /files/data/PFU/FPTFR3.QSAM dans /files/data/PFU/FPTFR3.QSAM.migrptf**- sauvegarde du fichier  /files/data/PFU/FPTFR5.QSAM dans /files/data/PFU/FPTFR5.QSAM.migrptf",
+      "instruction_id": "TRT-6254-1",
+      "nominated_user": ""
+    }
+  ]
+}

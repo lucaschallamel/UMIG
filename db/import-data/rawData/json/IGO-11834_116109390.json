@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11834,
+  "title": "SECLI LDN\u0026amp;JRS TO CONFIRM FILE FROM DOCUMENTUM RECEIVED AND READY",
+  "predecessor": "TRT-12356",
+  "successor": "TRT-12356",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CJ - DOCUMENTUM FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHECK file from DOCUMENTUM received and avaiable : \\\"DCTM_to_SECLI_Reconciliation\\\"",
+      "instruction_id": "IGO-11834-1",
+      "nominated_user": ""
+    }
+  ]
+}

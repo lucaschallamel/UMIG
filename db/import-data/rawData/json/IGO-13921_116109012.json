@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13921,
+  "title": "ATLAS - CONTROLS ENGINE RECONCILIATION BEFORE EOD*1",
+  "predecessor": "IGO-13921",
+  "successor": "IGO-13921",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Validate the below controls and send results to [ CONTROLS ](#)  + PGU:\n\n\n\n_- C5540 Forex Forwards : - Deal transfers with balance anomalies.\n- C5560 Forex Forwards : - Deal transfers with other anomalies.\n- C5580 Forex Forwards : - Deal transfers without anomalies.\n- C5007 List of UBP current accounts issued of the SGPBS migration\n- C5100 List of blocked positions",
+      "instruction_id": "1",
+      "nominated_user": ""
+    }
+  ]
+}

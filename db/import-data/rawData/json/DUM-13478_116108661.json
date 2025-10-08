@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 13478,
+  "title": "SECLI - BACK-UP FPS FILES AFTER RECEPTION +  PROVIDE THE LIST OF FILE RECEIVED",
+  "predecessor": "CHK-14297",
+  "successor": "TRT-13966",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please take a backup of files in a dedicated folder",
+      "instruction_id": "DUM-13478-1",
+      "nominated_user": ""
+    }
+  ]
+}

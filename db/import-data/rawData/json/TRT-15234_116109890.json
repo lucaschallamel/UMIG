@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15234,
+  "title": "Kondor+ - Load Fidu",
+  "predecessor": "TRT-15234",
+  "successor": "TRT-15234",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Load Fidu in Kondor+",
+      "instruction_id": "TRT-15234-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Fidu integration in Kondor+",
+      "instruction_id": "TRT-15234-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send Reconciliation file to Atlas",
+      "instruction_id": "TRT-15234-3",
+      "nominated_user": ""
+    }
+  ]
+}

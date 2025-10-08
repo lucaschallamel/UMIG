@@ -1,0 +1,293 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15165,
+  "title": "ATLAS - PHASE 5.3 - AFTER EOD*1 - CHECKS",
+  "predecessor": "TRT-12571",
+  "successor": "TRT-14199",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ C6700 ](#)",
+      "instruction_title": "C6700 - Estimatif Client",
+      "instruction_id": "CHK-15165-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ C6700 ](#)",
+      "instruction_title": "C6700 - Estimatif Positions - Spécial CID",
+      "instruction_id": "CHK-15165-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6099 - Assets integrated by company",
+      "instruction_id": "CHK-15165-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ C6760 ](#)",
+      "instruction_title": "C6760 - Etat des Securities by client - transfers with differeces",
+      "instruction_id": "CHK-15165-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6940: Liste des positions par valeur sans différence",
+      "instruction_id": "CHK-15165-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6940: Liste des positions par valeur avec différences",
+      "instruction_id": "CHK-15165-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1880 - Liste des positions par dépositaire UBP",
+      "instruction_id": "CHK-15165-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1840 - Etat Securities by Depo without anomalies",
+      "instruction_id": "CHK-15165-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6780 - Etat des Securities by client - transfers without anomalies",
+      "instruction_id": "CHK-15165-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6820 - Etat des Securities by Depo. with anomalies",
+      "instruction_id": "CHK-15165-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6762 - Etat des Securities by client - transfers with anomalies",
+      "instruction_id": "CHK-15165-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1756 - Tableau de Bord - Comparatif NAV des estimatifs",
+      "instruction_id": "CHK-15165-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1440 - Fiduciary Deposits : Deal Transfers - without anomalies",
+      "instruction_id": "CHK-15165-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1420 - Fiduciary Deposits : Deal Transfers - with other anomalies",
+      "instruction_id": "CHK-15165-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C1400 - Fiduciary Deposits : Deal Transfers - with balance anomalies",
+      "instruction_id": "CHK-15165-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6540 - Client Loans - deals transfers with other anomalies",
+      "instruction_id": "CHK-15165-16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6005 - Comptes tiers UBP sans correspondance ex-TORONTO qui ont bouge avant et apres l\u0027EOD",
+      "instruction_id": "CHK-15165-17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6520 - Client Loans - deals transfers without anomalies",
+      "instruction_id": "CHK-15165-18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6480- Client Loans - deals transfers with balance anomalies",
+      "instruction_id": "CHK-15165-19",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6280 - Les comptes réconciliés sans différence de solde (Hors bilan)",
+      "instruction_id": "CHK-15165-20",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6780 - Etat des Securities by client - transfers without anomalies",
+      "instruction_id": "CHK-15165-21",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6006 - Liste des comptes tiers UBP AVEC correspondance ex-TORONTO qui ont bouge avant et apres l\u0027EOD",
+      "instruction_id": "CHK-15165-22",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6940 -   Liste des positions par valeur",
+      "instruction_id": "CHK-15165-23",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6882 - Table de mapping des dépositaires FU vers UBP",
+      "instruction_id": "CHK-15165-24",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6881 - Liste des positions par dépositaire FU",
+      "instruction_id": "CHK-15165-25",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6820 - Etat des Securities by Depo. with anomalies",
+      "instruction_id": "CHK-15165-26",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6763: Securities by client :- Security transfers (all) with PMA = 0",
+      "instruction_id": "CHK-15165-27",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6762 - Etat des Securities by client - transfers to be checked",
+      "instruction_id": "CHK-15165-28",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6761 - Securities by client : Securities transfert with differences",
+      "instruction_id": "CHK-15165-29",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6760 - Securities by client : Securities transfert with differences",
+      "instruction_id": "CHK-15165-30",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6758 - Comparaison des performances",
+      "instruction_id": "CHK-15165-31",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6755 - Estimatif Client - Comparaison des Nav Globales",
+      "instruction_id": "CHK-15165-32",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6710 - Asset ATLAS by currency",
+      "instruction_id": "CHK-15165-33",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6730 - Comparaison Nav Globale et Performance",
+      "instruction_id": "CHK-15165-34",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6141 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP)",
+      "instruction_id": "CHK-15165-35",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6121 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP)",
+      "instruction_id": "CHK-15165-36",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6140 - GL ACCOUNT / Les comptes réconciliés sans différence de solde Hors bilan",
+      "instruction_id": "CHK-15165-37",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6120 - GL ACCOUNT / Transfert without balance anomalie - Balance sheet accounts",
+      "instruction_id": "CHK-15165-38",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6100 - GL ACCOUNT / Transfert with balance anomalie - Off Balance sheet accounts",
+      "instruction_id": "CHK-15165-39",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "C6080 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts",
+      "instruction_id": "CHK-15165-40",
+      "nominated_user": ""
+    }
+  ]
+}

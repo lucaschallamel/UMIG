@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12133,
+  "title": "RUN1",
+  "predecessor": "PRE-9323",
+  "successor": "GON-14127",
+  "primary_team": "PRINTNET",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PRINTNET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CLEAN IF NECESSARY THE PRINTNET DATABASE AFTER EOD*1 (and Before PrintNet EOD*2)",
+      "instruction_id": "PRE-12133-1",
+      "nominated_user": ""
+    }
+  ]
+}

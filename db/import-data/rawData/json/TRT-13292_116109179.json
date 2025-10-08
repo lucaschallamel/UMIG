@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 13292,
+  "title": "CMS - LDN\u0026amp;JRS - START FATCA AGENT  \u0026quot;CMS TO PUSH DATA TO SECLI via MQ\u0026quot; - ACTIVE CLIENTS",
+  "predecessor": "PRE-13286",
+  "successor": "DUM-4686",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Start FATCA agent for export data to SECLI.  Data is pushed though MQ bus - GESECEV1SRV-vip. directly to Secli, CMS is not concerned by EOD batch.",
+      "instruction_id": "TRT-13292-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Restore Export Secli",
+      "instruction_id": "TRT-13292-1",
+      "nominated_user": ""
+    }
+  ]
+}

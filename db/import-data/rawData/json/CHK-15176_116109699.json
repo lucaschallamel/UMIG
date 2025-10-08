@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15176,
+  "title": "ENGINE - Check correspondance files",
+  "predecessor": "CHK-15176",
+  "successor": "CHK-15176",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please check that you have received correspondance files from Secli",
+      "instruction_id": "CHK-15176-1",
+      "nominated_user": ""
+    }
+  ]
+}

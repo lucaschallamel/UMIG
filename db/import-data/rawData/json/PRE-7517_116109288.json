@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 7517,
+  "title": "UBP ACCESS - CREATE PIQUET ++ USER PROFILES IN PROD",
+  "predecessor": "PRE-14867",
+  "successor": "PRE-14995",
+  "primary_team": "IT_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Identify user needs PIQUET ++ profile and PROMOTE  SOME USERS IT TO PIQUET STATUS : Add company 000 with ALL in SAUT transaction",
+      "instruction_id": "PRE-7517-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "QA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please set-up  the below PIQUET ++ accesses in ATLAS PROD:\n\nKelly Eamon MKE\nGavard Julien JUG\nVouilloz Pierre PVZ\nCaillet Yann YCA\nVilleminey Frédéric  FVI\nDunand Raphaël  DUR\nComoli Laurent  CJL",
+      "instruction_id": "PRE-7517-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXECUTE SQL Query : Giving all authorizations on transaction with some users IT.",
+      "instruction_id": "PRE-7517-4",
+      "nominated_user": ""
+    }
+  ]
+}

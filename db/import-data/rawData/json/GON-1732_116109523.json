@@ -1,0 +1,69 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 1732,
+  "title": "RUN1",
+  "predecessor": "GON-1727",
+  "successor": "TRT-14973",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Text file received for the FX under \n/usr/kplushome/peripherals/ConvFromHost/INCOME_GPO.\nManual execution to integrate this flow.",
+      "instruction_id": "GON-1732-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Process GPO file for FX",
+      "instruction_id": "GON-1732-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Text file received for the FX under /usr/kplushome/peripherals/ConvFromHost/INCOME_GPO. The name of the file is AJUSTEMENT_CONVENTION_MIG .Manual execution to integrate this flow. This flow corresponds to missing GPO ajustements.",
+      "instruction_id": "GON-1732-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Process ad-hoc GPO file for FX",
+      "instruction_id": "GON-1732-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the logs of the adjustements sent by ATLAS. Logs located under /usr/kplushome/peripherals/ConvHost/logs",
+      "instruction_id": "GON-1732-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the trade deletion logs",
+      "instruction_id": "GON-1732-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "From the GPO   received from ATLAS compute adjustements by currencies and give the info the business",
+      "instruction_id": "GON-1732-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "- Check the logs\n  - Report the defect via Jira\n  - Volumetry control",
+      "instruction_id": "GON-1732-8",
+      "nominated_user": ""
+    }
+  ]
+}

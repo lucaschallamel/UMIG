@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 6170,
+  "title": "EXPLOITATION - Restore Star 1 Darwin Files",
+  "predecessor": "IGO-1625",
+  "successor": "IGO-1602",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Monter et Lancer la phase suivante\n\n\n\n\nAPPLICATION : TOOLS-INTG-BANK\nSUB-APPLICATION : E3_T001-ATL-AJF-ATLAS-INTEGRATION-BANQUE\nJOB : 320_DARWIN_REFRESH_FILES_S1",
+      "instruction_id": "DUM-6170-1",
+      "nominated_user": ""
+    }
+  ]
+}

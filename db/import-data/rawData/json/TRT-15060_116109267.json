@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15060,
+  "title": "RUN1",
+  "predecessor": "CHK-14789",
+  "successor": "GON-14779",
+  "primary_team": "SGPBS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SGPBS to change the permissions of the SQL user so that only reading the database is possible",
+      "instruction_id": "TRT-15060-1",
+      "nominated_user": ""
+    }
+  ]
+}

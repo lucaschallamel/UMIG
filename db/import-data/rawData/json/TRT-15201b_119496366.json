@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": null,
+  "title": "TRANSFER WE1 FPS/FPC FILES TO CMS - EBANKING - DOCUMENTUM - TARIF - IMTF",
+  "predecessor": "BGO-15201",
+  "successor": "PRE-5355",
+  "primary_team": "ANONYMTOOL",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "App. Dest.",
+      "associated_controls": "",
+      "instruction_title": "Make the following FPS/FPC files available to satellite applications in the respective folder/server :\n\nDocumentum - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Documentum\n\neBanking - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Secret\\ebanking\n\nTARIF - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Information_Technology\\TARIF_FILES\n\nCMS - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Secret\\Cutover\\CMS\n\nTAX - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Confidential\\Tax\n\nCompliance/IMTF - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Secret\\Compliance\n\nSpecicred - \\\\[corp.ubp.ch](http://corp.ubp.ch)\\sfs$\\S-Groups\\VICTORIA_Secret\\Specicred",
+      "instruction_id": "TRT-15201",
+      "nominated_user": "File Name"
+    }
+  ]
+}

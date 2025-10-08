@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6407,
+  "title": "ENGINE - DESACTIVATION EN PRODUCTION DE LA PROCEDURE DE CONTROL DES INSTRUMENTS ET DES PRIX",
+  "predecessor": "IGO-11838",
+  "successor": "PRE-9001",
+  "primary_team": "ENGINE SECRET",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE SECRET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "DESACTIVATION EN PRODUCTION DE LA PROCEDURE DE CONTROL DES INSTRUMENTS ET DES PRIX",
+      "instruction_id": "PRE-6407-1",
+      "nominated_user": ""
+    }
+  ]
+}

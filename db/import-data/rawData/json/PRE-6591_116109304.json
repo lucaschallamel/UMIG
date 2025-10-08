@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6591,
+  "title": "CID - PRE-CHECK BO REPORTS GENERATION - VERIFIER QUE LE RAPPORT COURS HORS TOLERANCE FONCTIONNE CORRECTEMENT",
+  "predecessor": "PRE-6596",
+  "successor": "PRE-5248",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "VERIFIER QUE LE RAPPORT COURS HORS TOLERANCE FONCTIONNE CORRECTEMENT\nCreation VM_ISPC_LAST_TMS_3008  filtre last_chg_tms \u003e= TO_DATE (\u002730.06.2025\u0027, \u0027DD/MM/YYYY\u0027)\n\nCreation VR_GET_LAST_AND_PREV_ISPC_3108  (remplacer DBIUBP.VM_ISPC_LAST_TMS par DBIUBP.VM_ISPC_LAST_TMS_3008 PRICE1    \n                                                                                                              \nRemplacer dans  améliorer le temps de création des rapports     AND PRICE1.LAST_CHG_TMS \u003e= to_date(\u002730.06.2025\u0027,\u0027DD.MM.YYYY\u0027)\n)\n\nExecuter un refresh de la Cours automatiques et manuels hors tolérance de la veille\nexecute DBMS_MVIEW.REFRESH(\u0027VM_ISPC_LAST_TMS_3008\u0027);\n\nPlanifier le rapport BO \nFiltre dans BO\nif DayOfWeek(CurrentDate) = 2 then CurrentDay := CurrentDate - 22 else CurrentDay := CurrentDate-22;\n\n\nATTENTION Pour le run Final lancer un refresh de la Vm avant execution du rapport\nexecute DBMS_MVIEW.REFRESH(\u0027VM_ISPC_LAST_TMS\u0027);",
+      "instruction_id": "PRE-6591-1",
+      "nominated_user": ""
+    }
+  ]
+}

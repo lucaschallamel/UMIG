@@ -1,0 +1,83 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 1748,
+  "title": "USERS PROVISIONNING - PREPARATION PROD",
+  "predecessor": "PRE-1748",
+  "successor": "PRE-1748",
+  "primary_team": "UPB ACCESS",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on ATLAS",
+      "instruction_id": "PRE-1748-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on CMS",
+      "instruction_id": "PRE-1748-2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on SECLI",
+      "instruction_id": "PRE-1748-3",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on DARWIN ( Sql file for Alexis (password)) =\u003e Darwin has to run in prod",
+      "instruction_id": "PRE-1748-4",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on ATLAS",
+      "instruction_id": "PRE-1748-5",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on SECLI",
+      "instruction_id": "PRE-1748-6",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "MANAGER CODE CREATION on ATLAS",
+      "instruction_id": "PRE-1748-7",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "",
+      "instruction_title": "MANAGER CODE CREATION on SECLI",
+      "instruction_id": "PRE-1748-8",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UPB ACCESS",
+      "associated_controls": "",
+      "instruction_title": "ADVISORY CODE CREATION on ATLAS",
+      "instruction_id": "PRE-1748-9",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "",
+      "instruction_title": "ADVISORY CODE CREATION on SECLI",
+      "instruction_id": "PRE-1748-10",
+      "nominated_user": "-"
+    }
+  ]
+}

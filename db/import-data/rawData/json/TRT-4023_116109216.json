@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 4023,
+  "title": "PRINTNET - Update of the Legacy Client statement sample table",
+  "predecessor": "TRT-12100",
+  "successor": "TRT-12100",
+  "primary_team": "PRINTNET",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PRINTNET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Update of the Legacy Client statement sample table to be able to produce only the statement sample (Checked during EoM Part 2 by WM)",
+      "instruction_id": "TRT-4023-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12592,
+  "title": "ENGINE - STEP 06_3 - PMA METAUX PRECIEUX",
+  "predecessor": "TRT-6153",
+  "successor": "TRT-12594",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_ODS_METAUX_PRECIEUX",
+      "instruction_id": "TRT-12592-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ODS_MOTEUR_CTS_MAP_TRX_TYPES",
+      "instruction_id": "TRT-12592-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ODS_MOTEUR_CTS_OPE_TYPES",
+      "instruction_id": "TRT-12592-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_TEMP_ODS_MAPPING_PMA_METAUX_PRECIEUX",
+      "instruction_id": "TRT-12592-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_MAPPING_PMA_METAUX_PRECIEUX",
+      "instruction_id": "TRT-12592-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ODS_ALL_CONTAINERS",
+      "instruction_id": "TRT-12592-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Mail to TORONTOMigrationCoordination : STEP - ENGINE - STEP 06_3 - PMA METAUX PRECIEUX : DONE",
+      "instruction_id": "TRT-12592-7",
+      "nominated_user": ""
+    }
+  ]
+}

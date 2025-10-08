@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 5772,
+  "title": "ENGINE - SEND ACCOUNT MAPPING TO SECLI",
+  "predecessor": "BGO-13916",
+  "successor": "TRT-11994",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Generate C1070 - FTP TO SEND MAPPING TABLE (ACCOUNT NUMBER ATLAS \u0026 ACCOUNT NUMBER  TO SECLI",
+      "instruction_id": "1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Inform Secli Mapping file is available",
+      "instruction_id": "2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11486,
+  "title": "BASE TIERS CIDR - RAFRAICHISSEMENT BASE TIERS SUR RACR (BASE TIERS CIDR)",
+  "predecessor": "TRT-11486",
+  "successor": "TRT-11486",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "RAFRAICHISSEMENT BASE TIERS SUR RACR",
+      "instruction_id": "TRT-11486-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ALIMENTATION DE  la table Tiers_extra_codification",
+      "instruction_id": "TRT-11486-2",
+      "nominated_user": ""
+    }
+  ]
+}

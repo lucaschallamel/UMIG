@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 733,
+  "title": "PROD LIKE ENVIRONMENT - CID - INPUT FLUX ISOLATION",
+  "predecessor": "TRT-11414",
+  "successor": "TRT-11414",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "ED - THURSDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "_**INPUT FLUX ISOLATION :**_\n\n_**For RUN AND DR use the follow instructions :**_\n\n_**- CONTROL-M : **_Put on hold all CTLM jobs in CID for environment mentioned in the STEP above.  Supprimer la condition applicative suivan l\u0027environnement pour ev3\n @-APPL-E**3**001-CCT-UP → EV3\n\n\n_**- COMBOX - Stop Combox :\n**_E**3**_T001APP_NDO770 →EV3\n\n_**- JUKEBOX - Stop Jukebox **_\n\nSupprimer la condition suivante :\n\nPour E3 : @-APPL-E3001-JUK-UP",
+      "instruction_id": "PRE-733-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "_**For CUTOVER :**_\n\n\n\n\nStop **Jukebox** :Sur le common et le secure supprimer la condition\n\n_@-APPL-P001-JUK-UP_\n\n** **\n\nStop **COMBOX**\n\nJob P001APP_NDO770\n\n\n\n\nStop **Control M**\n@-APPL-P001-CCT-UP\n\nJobs should not be re activated before CID validation.",
+      "instruction_id": "PRE-733-2",
+      "nominated_user": ""
+    }
+  ]
+}

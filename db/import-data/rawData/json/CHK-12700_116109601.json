@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12700,
+  "title": "PMS - CHECK P\u0026amp;C DATA INTEGRATION ON PMS",
+  "predecessor": "TRT-12694",
+  "successor": "CHK-13125",
+  "primary_team": "PMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "",
+      "instruction_title": "Execute PMS Positions \u0026 Contracts integration controls. \nCheck result of host comparison (across ODS and Atlas data)\nC9055\nReport results by email.",
+      "instruction_id": "CHK-12700-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "",
+      "instruction_title": "Validate PMS Positions \u0026 Contracts Data integration control results.",
+      "instruction_id": "CHK-12700-2",
+      "nominated_user": ""
+    }
+  ]
+}

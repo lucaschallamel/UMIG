@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 2836,
+  "title": "RUN1",
+  "predecessor": "TRT-14979b",
+  "successor": "IGO-9339",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Lancer la phase de backup : 310_AFTEREODS2 - du [Backup Plan](https://confluence.corp.ubp.ch/display/E0013782/Backup+Plan)",
+      "instruction_id": "DUM-2836-1",
+      "nominated_user": ""
+    }
+  ]
+}

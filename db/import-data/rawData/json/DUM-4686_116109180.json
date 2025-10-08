@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 4686,
+  "title": "CMS - LDN\u0026amp;JRS - BACKUP - ACTIVE CLIENT DONE",
+  "predecessor": "TRT-13292",
+  "successor": "BGO-11375",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "[ROYER Alain](https://confluence.corp.ubp.ch/display/~aro) Backup of the main databases involved on RUN/DR on the CMS server used for the RUN/DR in a specific folder on D drive at the following steps :\n_- Before start of RUN/DR (after Data refresh)\n- After  CMS/Secli interface process (middle of migration process)\n- After RUN/DR process completed",
+      "instruction_id": "DUM-4686-1",
+      "nominated_user": ""
+    }
+  ]
+}

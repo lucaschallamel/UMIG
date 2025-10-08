@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 3094,
+  "title": "CONTROL-M - EOM - PREPARATION",
+  "predecessor": "PRE-12297",
+  "successor": "PRE-12297",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Monter au plan en date du CID + SPOC_MIDDLEWARE",
+      "instruction_id": "PRE-3094-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Saisie Transaction ATLAS BI52, TZ(- If needed Débouclement des bilans consolidés K92A) -",
+      "instruction_id": "PRE-3094-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ATLAS Calc Date",
+      "instruction_id": "PRE-3094-3",
+      "nominated_user": ""
+    }
+  ]
+}

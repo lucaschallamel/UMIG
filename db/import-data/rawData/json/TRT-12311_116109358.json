@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12311,
+  "title": "ENGINE - Issue K0000 Report - Without SG Input",
+  "predecessor": "PRE-2023",
+  "successor": "TRT-6523",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Issue K0000 Report - Without SG Input. This is done in order to check Closing FX Spot prices in Atlas",
+      "instruction_id": "TRT-12311-1",
+      "nominated_user": ""
+    }
+  ]
+}

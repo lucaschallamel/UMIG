@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15292,
+  "title": "Atlas - Execute Program FU ACCR4 to integrate SUN Data in Atlas",
+  "predecessor": "TRT-15292",
+  "successor": "TRT-15292",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Execute Program FU ACCR4 to integrate SUN Data in Atlas in order to integrate the FACCR2 file.\n\n**Reprise soldes comptes courant (From Phase 5.1)****JOB : FU_ACCR4.ksh**INPUT FILE : FACCR2.QSAM**REPORT : EFUC, EFUD",
+      "instruction_id": "TRT-15292-1",
+      "nominated_user": ""
+    }
+  ]
+}

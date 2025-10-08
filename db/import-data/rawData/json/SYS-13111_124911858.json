@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 13111,
+  "title": "EXPLOITATION - Change system date Secli Day 2",
+  "predecessor": "SYS-13111",
+  "successor": "SYS-13111",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "**CSD CUTOVER Date is : **29.08.2025**\n**\n\n**Environment is : **Secli Test Environment",
+      "instruction_id": "SYS-13111-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**FOR SECLI******ChangeLinuxSystemDate job on control-M PRD-GVA-COM-DC with the following parameters:**To change **with** reboot SECLI\u0027s date****PARM1 : change**PARM2 : lxvjrssecev403s, lxvjrssecev303s, lxvldnsecev403s AND lxvldnsecev303s\n**PARM3 : **YYYY-MM-JJ****PARM4 :",
+      "instruction_id": "SYS-13111-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 14802,
+  "title": "RUN1",
+  "predecessor": "DUM-13192",
+  "successor": "DUM-13192",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Launch all dumps incuded in the Phase : 070_BEFOREEOM except Atlas (which will be done juste before launching the batch @10pm)\n\nPlease make sure all dumps are over before starting EOM batch",
+      "instruction_id": "DUM-14802-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "@10pm launch Atlas back-up",
+      "instruction_id": "DUM-14802-2",
+      "nominated_user": ""
+    }
+  ]
+}

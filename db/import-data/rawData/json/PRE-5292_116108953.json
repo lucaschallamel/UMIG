@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 5292,
+  "title": "PROD ENVIRONMENT - SETUP - IT USERS ACCESS MANAGEMENT",
+  "predecessor": "TRT-780",
+  "successor": "PRE-5279",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "PREMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Identify all users that need piquet ++ profile and promote some IT users to piquet status.\n\nUsers Identified DR1: [KELLY Eamon](https://confluence.corp.ubp.ch/display/~mke) [Laurent COMOLI](https://confluence.corp.ubp.ch/display/~cjl)",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "UBP_ACCESS",
+      "associated_controls": "",
+      "instruction_title": "Add company 000 with **ALL** in **SAUT** transaction to all identifyed users.\n\nUsers Identified DR1 : [KELLY Eamon](https://confluence.corp.ubp.ch/display/~mke) [Laurent COMOLI](https://confluence.corp.ubp.ch/display/~cjl)",
+      "instruction_id": "2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Check and confirm with all identifyed users piquet++ profile is well setup.",
+      "instruction_id": "3",
+      "nominated_user": "-"
+    }
+  ]
+}

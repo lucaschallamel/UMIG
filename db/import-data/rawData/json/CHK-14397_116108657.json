@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 14397,
+  "title": "ATLAS - CHECK AND PROVIDE VOLUMETRY ALL FILES POSITION",
+  "predecessor": "TRT-299",
+  "successor": "TRT-14247",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ENGINE FILE and volumetry:\nFACCR2.QSAM, FPRER1.QSAM\nFPTFR3.QSAM, FPTFR5.QSAM\nFPLAR1.QSAM\nFFUTR1.QSAM\nFFORR1.QSAM\nFPFMR1.QSAM\nHORS SCOPE POUR CETTE MIGRATION : FMOMR1.QSAM,  FCHQR1.QSAM",
+      "instruction_id": "CHK-14397-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check if Standard Rate ids different of Deposit Rate",
+      "instruction_id": "CHK-14397-2",
+      "nominated_user": "-"
+    }
+  ]
+}

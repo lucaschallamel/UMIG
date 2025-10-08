@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 3567,
+  "title": "RUN0",
+  "predecessor": "IGO-14541",
+  "successor": "PRE-7091",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXECUTE ALL CHECKS RELATED TO VALIDATE THE RESTORE. EXAMPLE : NUMBER OF CLIENTS UBP AFTER RESTORE, NUMBER OF CLIENTS MIGRATED, …., VERIFICATION DES LOGS POUR VALIDER LA RESTORE SUR LA PROD\n\nSecli : **LDN and JRS**",
+      "instruction_id": "IGO-3567-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6720,
+  "title": "ATLAS - SAUVEGARDE DES FICHIERS QSAM POUR REPORTING LEGAL CH AFTER EOD 1",
+  "predecessor": "TRT-6720",
+  "successor": "TRT-6720",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Lancer le script /home/migsup/tools/backup_file_reporting_legal_FIRE.ksh avec l\u0027option 1 :\n- Sauvegarde du fichier   /files/data/PCR/FCRK1.QSAM   dans /files/data/PCR/FCRK1FUSIONSTAR1.QSAM\n- Sauvegarde du fichier   /files/data/P04/F04C.QSAM     dans   /files/data/P04/F04CFUSIONSTAR1.QSAM\n-Sauvegarde du fichier   /files/data/PBC/FBCF3.QSAM  dans /files/data/PBC/FBCF3FUSIONSTAR1.QSAM\n- sauvegarde du fichier  /files/data/PFU/FPTFR3.QSAM dans /files/data/PFU/FPTFR3.QSAM.migrptf\n- sauvegarde du fichier  /files/data/PFU/FPTFR5.QSAM dans /files/data/PFU/FPTFR5.QSAM.migrptf",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

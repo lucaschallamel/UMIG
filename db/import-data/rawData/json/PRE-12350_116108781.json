@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12350,
+  "title": "RUN1",
+  "predecessor": "PRE-12350",
+  "successor": "PRE-12350",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mise à jour du code comptabilisation des contrats futurs (IRS/AQDQ/Fut) :  **02.02.06_query_Futures_Before_EOD_STAR2.sql**",
+      "instruction_id": "PRE-12350-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Control resultat",
+      "instruction_id": "PRE-12350-2",
+      "nominated_user": ""
+    }
+  ]
+}

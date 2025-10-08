@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 15081,
+  "title": "OPEN ATLAS IN DAY MODE",
+  "predecessor": "SYS-15081",
+  "successor": "SYS-15081",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**EVX (RUN - DR)**_\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\n\n\n\nSur Controlm EVX\n**Si mode jour :**\nHolder le groupe : E**x**_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : E**x_**00-STOP_AV_TX-SERIES\nGROUPE : E**x_**MODE-TX-DAY-DAY\nJOB : E**x_**00-STOP_AV_TX-SERIES\n\nSur Controlm EVX :\n**Si mode jour :** Démarrer atlas en mode jour libérer les jobs suivants :\nE**x_**05-START_Prep_ORACLE_Online\nE**x_**10-START_TX_Series_Day\nE**x_**12-TRANSCU1",
+      "instruction_id": "SYS-15081-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "_**PROD (CUTOVER)**_\n\nIf ATLAS ENV TX-SERIES IS UP Do\n\n\n\n\nSur Controlm PRD\n**Si mode jour :**\nHolder le groupe : P_HOS_BAT_NIGHT-DAY_FR\nConfirmer uniquement ce job : 00-STOP_AV_TX-SERIES\nGROUPE : MODE-TX-DAY-DAY\nJOB : 00-STOP_AV_TX-SERIES\n\nSur Controlm PRD :\n**Si mode jour :** Démarrer atlas en mode jour libérer les jobs suivants :\n05-START_Prep_ORACLE_Online\n10-START_TX_Series_Day\n12-TRANSCU1",
+      "instruction_id": "SYS-15081-2",
+      "nominated_user": ""
+    }
+  ]
+}

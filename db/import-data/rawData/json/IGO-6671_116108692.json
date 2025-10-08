@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 6671,
+  "title": "PROD LIKE ENVIRONMENT - BASE TIERS PUBLIC - SANITY CHECKS",
+  "predecessor": "IGO-6246",
+  "successor": "IGO-6246",
+  "primary_team": "BTPUB",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BTPUB",
+      "associated_controls": "",
+      "instruction_title": "BASE TIERS PUBLIC SANITY CHECKS on PROD LIKE ENVIRONMENT",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

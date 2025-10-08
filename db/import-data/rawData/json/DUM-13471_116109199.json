@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 13471,
+  "title": "TARIF - DUMP -  AFTER POLITIC CODES \u0026amp; PARTICULAR CONDITIONS",
+  "predecessor": "TRT-1518",
+  "successor": "TRT-5675",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**\n_Phase ID:_ 230\n****_Phase name:_ TARIFF_PROD_BEFORE_POLITIC_CODES **\n\n_**Description:**_\n\nFor **TARIF**, **BEFORE POLITIC CODES AND PARTICULAR CONDITIONS **proceed with the following **BACKUP **activites.\n\nOn **PROD LIKE**: **BACKUP** **TARIF**",
+      "instruction_id": "DUM-13471-1",
+      "nominated_user": ""
+    }
+  ]
+}

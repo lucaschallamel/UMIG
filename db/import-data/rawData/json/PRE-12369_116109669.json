@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12369,
+  "title": "ATLAS - Requete pour updater les futurs migrés",
+  "predecessor": "PRE-12369",
+  "successor": "PRE-12369",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "S’il y a eu des saisie des Futures, mise à jour du code comptabilisation (Requête : 02.06.10_query_Futures_Before_FIRST_EOD_BUSINESS.sql)\n\n**REQUETE 1  : liste des contrats futures repris à l\u0027état \u0027comptabilisé\u0027 qui seront à passer \u0027non Comptabilisé\u0027 avant le 1er EOD Business **\nselect t.*, f.* \nfrom NHDBO.T_COM_DET t,  NHDBO.T_FU_CLIENT f\nwhere t.code_record_type_0158 = \u0027C2\u0027\nand t.nbr_co_client_0158 = f.nbr_co_1057\nand t.nbr_client_0158 = f.nbr_client_1057\nand t.code_acctg_ent_crea_0158 = 1 -- comptabilisé --\n\n\n**Si résultt requete 1 \u003e 0**\n**REQUETE 2 : update à passer avant le 1er EOD Buisness - passage de 1 à 0 pour les COM-DET C2 des clients de la fusion ayant un contrat future **\nupdate NHDBO.T_COM_DET t \nset t.code_acctg_ent_crea_0158 = 0 -- passage à \u0027non comptabilisé\u0027 --\nwhere t.code_record_type_0158 = \u0027C2\u0027\nand t.code_acctg_ent_crea_0158 = 1 \nand t.ui_com_det_0158 in (\nselect distinct t.ui_com_det_0158 \nfrom NHDBO.T_COM_DET t, NHDBO.T_FU_CLIENT f\nwhere t.code_record_type_0158 = \u0027C2\u0027\nand t.nbr_co_client_0158 = f.nbr_co_1057\nand t.nbr_client_0158 = f.nbr_client_1057\n);",
+      "instruction_id": "PRE-12369-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Control resultat",
+      "instruction_id": "PRE-12369-2",
+      "nominated_user": ""
+    }
+  ]
+}

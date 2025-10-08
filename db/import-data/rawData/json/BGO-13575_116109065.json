@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 13575,
+  "title": "MANAGEMENT - GO/ NO GO - FOR FILES INTEGRATION IN MIGRATION DATABASES (SECLI+ENGINE)",
+  "predecessor": "BGO-13575",
+  "successor": "BGO-13575",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IT MGMT to provide approval to move forward based on INVARIANT ID STATS.\n\nConfirm that we can send FILES in COMMON ZONE and START Import of FPS+ (from SECRET zone -\u003e to be used by SECLI for SECLI Staging Load)",
+      "instruction_id": "BGO-13575-1",
+      "nominated_user": "GUILLEMAU Pascal"
+    }
+  ]
+}

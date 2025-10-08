@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15287,
+  "title": "Kondor+ - send the FX rates to Atlas at Business Cutover Date Value",
+  "predecessor": "TRT-15287",
+  "successor": "TRT-15287",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "EF - FX RATES ALIGNMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**For Run and DR**\n\nPlease send Manually the FX Rates of the business Cutover date : **29.08.2025**",
+      "instruction_id": "TRT-15287-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**For CUTOVER**\n\nPlease send Automatically the FX Rates of the Current Date (=Cutoverdate)",
+      "instruction_id": "TRT-15287-2",
+      "nominated_user": ""
+    }
+  ]
+}

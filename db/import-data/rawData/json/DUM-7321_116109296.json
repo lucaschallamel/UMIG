@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 7321,
+  "title": "SECLI - DUMP - AFTER ACTIVE CLIENTS INTEGRATION",
+  "predecessor": "TRT-11812",
+  "successor": "IGO-11848",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CG - DATA LOADING IN SECLI TABLES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\n**WHEN DAVID WILL CONFIRM IN CUTOVER ↔ EXPLOIT TEAMS**\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 100\n****_Phase name:_ **SECLI_TEST_AFTER_PERSONS_INTG  ****\n\n**_Description:_**\n\nFor **SECLI**, **AFTER PERSONS INTEGRATION **proceed with the following **BACKUP **and **RESTORE **activities.",
+      "instruction_id": "DUM-7321-1",
+      "nominated_user": ""
+    }
+  ]
+}

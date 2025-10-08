@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 13135,
+  "title": "PMS - POSITION COMPARISON WITH HOST",
+  "predecessor": "CHK-13135",
+  "successor": "CHK-13135",
+  "primary_team": "PMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "",
+      "instruction_title": "Check position comparison with host.",
+      "instruction_id": "CHK-13135-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "",
+      "instruction_title": "Please share relevant results of the check.",
+      "instruction_id": "CHK-13135-2",
+      "nominated_user": ""
+    }
+  ]
+}

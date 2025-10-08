@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 6337,
+  "title": "RUN0",
+  "predecessor": "TRT-14267",
+  "successor": "TRT-14267",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**Check results :**\n_- FU_ACCC5.ksh in daily basis : Contrôle des soldes des comptes G (etat EFV9)+ Liste de toutes les affaires des clients repris (fichier RES.SQL0008.QSAM__date_.txt dans /files/data/PFU)\n- FU_ACCC3.ksh : Edition de la liste des comptes G non ouvert (a renvoyer à Mr KELLY)\n- FU_ACCR6.ksh : Contrôle de la présence des comptes réféchis avant reprise des comptes (à renvoyer à Mr KELLY)",
+      "instruction_id": "CHK-6337-1",
+      "nominated_user": ""
+    }
+  ]
+}

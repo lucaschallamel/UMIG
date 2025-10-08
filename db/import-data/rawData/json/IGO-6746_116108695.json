@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 6746,
+  "title": "ATLAS - CONTROL REFRESH",
+  "predecessor": "BGO-11961",
+  "successor": "DUM-13192",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Execute \n\nSCRIPT :\n [nhev3txb:/home/migsup/tools/Ctrl_refresh.ksh](http://nhev3txb/home/migsup/tools/Ctrl_refresh.ksh) ENVXXXXX\n\nIn case of difficulty with the script, execute :\n1. SQL Query : count (*)  from T_TRA_DET t  where code_chain_0195 = \u002717\u0027 \ncount (*)  from T_TRA_DET t  where code_chain_0195 = \u002732\u0027 \non the 2 servers\n\n2. SQL Query : for check the last date process in T_COMPANY :\nSelect t.date_process_last_0143 from NHDBO.t_company t Where t.nbr_co_0143 = 001\n\n3. Access control for QSAM fileson the 2 servers \npiquet@nhev3txb[:/files/data/P92/](http://axvgvatxbsit01p/files/data/P92/) $ wc -l F92E.QSAM 5260 F92E.QSAM",
+      "instruction_id": "IGO-6746-1",
+      "nominated_user": ""
+    }
+  ]
+}

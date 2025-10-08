@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15046,
+  "title": "QUARTAL - Enable PR service",
+  "predecessor": "PRE-15046",
+  "successor": "PRE-15046",
+  "primary_team": "QUARTAL",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GU - RETURN TO BAU - INSTITUTIONAL TREATMENTS",
+  "task_list": [
+    {
+      "instruction_assigned_team": "QUARTAL",
+      "associated_controls": "",
+      "instruction_title": "Enable PR service",
+      "instruction_id": "PRE-15046-1",
+      "nominated_user": ""
+    }
+  ]
+}

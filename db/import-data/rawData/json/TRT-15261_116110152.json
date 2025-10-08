@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15261,
+  "title": "IMTF - Rerun IMTF Job",
+  "predecessor": "TRT-15261",
+  "successor": "TRT-15261",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please rerun the following job :\n_- Application : P-IRT-XXXXXXXIMTF\n- Sub Application : P001-IRT-BAT-05-GVA-OUT-PERSON\n- Job Name : P001IRT_R005_SJT025\n- Order date : **29.08.2025**",
+      "instruction_id": "TRT-15261-1",
+      "nominated_user": ""
+    }
+  ]
+}

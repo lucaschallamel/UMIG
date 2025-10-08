@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 6171,
+  "title": "RUN1",
+  "predecessor": "IGO-1625",
+  "successor": "IGO-1602",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "APPLICATION : E3_DARWIN\nSUB-APPLICATION : E3_MIGRATION-CHECK\nJOB : E3_RESET-EOD FILE",
+      "instruction_id": "DUM-6171-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Exécuter le job :**Group :              MIGRATION-CHECK**Application :   E3_DARWIN**TABLE :              E3_T_DRW_CHECK_DARWIN**JOB :                  E3_CHECK-EOD-FILES_STAR2",
+      "instruction_id": "DUM-6171-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IF Error Code is différent to 0:**Give the sysout by email to toronto_run_dr follow the errors to _IM_ATLAS.**Once corrections are done, relaunch the step 2 until success. Error Code  = 0",
+      "instruction_id": "DUM-6171-3",
+      "nominated_user": ""
+    }
+  ]
+}

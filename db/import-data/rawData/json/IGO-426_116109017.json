@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 426,
+  "title": "ATLAS - SANITY CHECKS",
+  "predecessor": "BGO-12726",
+  "successor": "PRE-14420",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS SYSTÈME DATE\n\nSous putty, taper la commande date",
+      "instruction_id": "1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check date in /home/ctmhost/load_date_ctm.ksh\n\nmigsup@[axvgvatxbev301p:/home/migsup/tools/](http://axvgvatxbev301p/home/migsup/tools/) $ 01_Check_file.ksh CTM",
+      "instruction_id": "2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Contrôle if PLEDGE et Quartal file exist for JOB : CR_ART46.ksh\nCreate files for all Society\n\nmigsup@[axvgvatxbev301p:/home/migsup/tools/](http://axvgvatxbev301p/home/migsup/tools/) $ 08_Touch_CR_ART46.ksh",
+      "instruction_id": "3",
+      "nominated_user": ""
+    }
+  ]
+}

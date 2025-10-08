@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 2900,
+  "title": "EXPLOITATION - Start DARWIN EOD*2",
+  "predecessor": "GON-2900",
+  "successor": "GON-2900",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "START DARWIN EOD*2 EXECUTION\n\nE3_PHASE-6.3-DARWIN_EOD_STAR2",
+      "instruction_id": "GON-2900-1",
+      "nominated_user": ""
+    }
+  ]
+}

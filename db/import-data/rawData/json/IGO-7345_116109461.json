@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 7345,
+  "title": "IT-CUTOVER - SMS / EMAIL TO ATLAS\u0027SATELLITES ONCE EOD*1 IS DONE",
+  "predecessor": "IGO-11344",
+  "successor": "PRE-7356",
+  "primary_team": "IT_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GM - ATLAS PHASE 5.2 - STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send e-mail to ODS + DARWIN + AMBITFOCUS + SPECICRED + PMS",
+      "instruction_id": "IGO-7345-1",
+      "nominated_user": ""
+    }
+  ]
+}

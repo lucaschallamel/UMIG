@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15163,
+  "title": "CHANGE STATUS ACCOUNTING FOR ACCU/DECU - RECONCILIATION INTEGRITY 1)",
+  "predecessor": "CHK-15163",
+  "successor": "CHK-15163",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "-",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mise à jour de la table des ID MUREX",
+      "instruction_id": "CHK-15163-1",
+      "nominated_user": ""
+    }
+  ]
+}

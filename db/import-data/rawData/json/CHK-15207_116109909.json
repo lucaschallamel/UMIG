@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15207,
+  "title": "ATLAS - Reconciliation K+ / Atlas - Money Market (Client) - After Star 2",
+  "predecessor": "CHK-15207",
+  "successor": "CHK-15207",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Reconciliation K+ / Atlas - Money Market (Client) - After Star 2",
+      "instruction_id": "CHK-15207-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send reconciliation results to Kondor+ Team and Business Team",
+      "instruction_id": "CHK-15207-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14506,
+  "title": "SECLI TO \u0026quot;SET\u0026quot; CLIENTS STATEMENTS REPORTING FREQUENCY TO INITIAL VALUES FOR ALL MIGRATED CLIENTS",
+  "predecessor": "TRT-14506",
+  "successor": "TRT-14506",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "PREMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "\\\"SECLI to “set” the Clients Statements reporting frequency to initial value for all migrated clients. \nFor CUTOVER - To be executed after the migration, during 1st week of May 2022.\nFor DR - To be executed in the week after the migration and CSD \u0026 P\u0026C is complete.\\\"",
+      "instruction_id": "TRT-14509",
+      "nominated_user": ""
+    }
+  ]
+}

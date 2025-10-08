@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 7132,
+  "title": "RUN1",
+  "predecessor": "TRT-2643",
+  "successor": "PRE-3637",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS - SECLI CH/GENEVA- CHECK TIERS ATLAS ON PROD LIKE",
+      "associated_controls": "",
+      "instruction_title": "**",
+      "instruction_id": "BGO-7132",
+      "nominated_user": ""
+    }
+  ]
+}

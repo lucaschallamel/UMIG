@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 12930,
+  "title": "SECLI  - RESTORE FROM PROD TO COPY ON SECLI TEST ENV FOR CLIENT MIGRATION - PROD ONLY",
+  "predecessor": "DUM-12930",
+  "successor": "DUM-12930",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please proceed with the following instructions for Restore Back up from PROD to Secli Test Environment\n\n**_Phase ID:_ 030\n****_Phase name:_ **PREMIG****",
+      "instruction_id": "DUM-12930-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15055,
+  "title": "EXPLOITATION - LAUNCH PHASE 0",
+  "predecessor": "PRE-138",
+  "successor": "TRT-13252",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Launch PHASE-0-REPRISE-CL-SECLI",
+      "instruction_id": "TRT-15055-1",
+      "nominated_user": ""
+    }
+  ]
+}

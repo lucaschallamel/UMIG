@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 13922,
+  "title": "CMS To STOP (disable) sending data (phone numbers/addresses) to SECLI using MQ -PROD LIKE",
+  "predecessor": "PRE-13922",
+  "successor": "PRE-13922",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "**PROD ONLY**\n\nStop CMS Fatca agent in PROD-LIKE - on Friday morning so that SECLI does not receive any data-feed from CMS.\n\nThe process that sends data to Secli using MQ runs at night (AROUND 9:30 pm)\n\nNote: The process is restored in IP Task [PRE-13927](PRE-13927_116109862.html)",
+      "instruction_id": "PRE-13922-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "Stop Daily Secli Export agent",
+      "instruction_id": "PRE-13922-2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "PRD : Reschedule Daily CMS-Secli interface to Monday after CSD Migration",
+      "instruction_id": "PRE-13922-3",
+      "nominated_user": "-"
+    }
+  ]
+}

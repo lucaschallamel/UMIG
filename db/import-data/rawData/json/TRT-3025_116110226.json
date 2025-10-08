@@ -1,0 +1,48 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 3025,
+  "title": "STEP - IQ - ALIMENTATION (STEP 6.3 REFRESH IQ)",
+  "predecessor": "TRT-3025",
+  "successor": "TRT-3025",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONFIRM du Job Ex_CREATION_PHASE-6.3-REFRESH-IQ",
+      "instruction_id": "TRT-3025-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "CONFIRM du job Ex_CREATE_PHASE-6.3-REFRESH_IQ",
+      "instruction_id": "TRT-3025-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "CONFIRM du job Ex_001-PH6.3_MAP_E4_T-RFR-REFRESH-VM",
+      "instruction_id": "TRT-3025-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "CONFIRM du job Ex_PHASE-6.3-REFRESH-IQ-ODS_CONDITIONS",
+      "instruction_id": "TRT-3025-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Vérifier que toutes les Tâches IQ, BT-PUB et REFRESH-VM soient bien déclenchées lors du lancement des jobs ci-dessus",
+      "instruction_id": "TRT-3025-5",
+      "nominated_user": ""
+    }
+  ]
+}

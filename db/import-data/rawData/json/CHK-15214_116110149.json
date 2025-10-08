@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15214,
+  "title": "TAX - IT Support for Business TAX Checks",
+  "predecessor": "CHK-15214",
+  "successor": "CHK-15214",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Perform Sanity checks to prepare Business Tax controls",
+      "instruction_id": "CHK-15214-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Support Business during their controls",
+      "instruction_id": "CHK-15214-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 14353,
+  "title": "BUSINESS - ACCOUNTING RECONCILIATION CONTROLS - POST EoM",
+  "predecessor": "BGO-14353",
+  "successor": "BGO-14353",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please provide Cutover Team with Go following BAU accounting checks after EoM - Part1",
+      "instruction_id": "BGO-14353-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14917,
+  "title": "IT CUTOVER - FOREX ALIGNMENT - VERIFY ALIGNMENT OF SPOT FX PRICES BTW SGPBS AND ATLAS",
+  "predecessor": "CHK-14907",
+  "successor": "BGO-6465",
+  "primary_team": "CONTROLS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GE - ACTIONS BETWEEN EOM PART 1 AND PART 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CONTROLS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the below control and confirm FX spot rates are aligned between SGPBS and ATLAS\n\nK0000 - Comparaison des cours spot CHF entre SG UK et UBP",
+      "instruction_id": "IGO-14917-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CONTROLS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Inform SG UK of FX Rates validation",
+      "instruction_id": "IGO-14917-1",
+      "nominated_user": ""
+    }
+  ]
+}

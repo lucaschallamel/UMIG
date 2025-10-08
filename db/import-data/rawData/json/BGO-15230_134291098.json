@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15230,
+  "title": "BUSINESS - Check General Accounting after EoD",
+  "predecessor": "BGO-15230",
+  "successor": "BGO-15230",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Check General Accounting after EoD / Integration of SUN Files",
+      "instruction_id": "BGO-15230-1",
+      "nominated_user": ""
+    }
+  ]
+}

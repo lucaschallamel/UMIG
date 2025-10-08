@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 5727,
+  "title": "RUN1",
+  "predecessor": "TRT-5752",
+  "successor": "TRT-11864",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check file integrity of CONTACT user with AVALOQ role and E-BANKING document",
+      "instruction_id": "TRT-5727-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send file GESECSITSRV_EXPORT_FTC_SECLI_0045_CONTACT_CH_ TO ENGINE with additional column CONTACT_INSERT",
+      "instruction_id": "TRT-5727-2",
+      "nominated_user": ""
+    }
+  ]
+}

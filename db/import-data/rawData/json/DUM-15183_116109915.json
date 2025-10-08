@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 15183,
+  "title": "RUN0",
+  "predecessor": "DUM-15183",
+  "successor": "DUM-15183",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GP - GO - NOGO",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ODS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**\n_Phase ID:_ 260\n****_Phase name:_ ODS_PROD_AFTER_OED_S1**\n\n**_Description:\n_**\n\nFor **ODS**, **AFTER EOD*1 **proceed with the following **BACKUP.**\n\nOn **PROD LIKE**: **BACKUP** **ODS**",
+      "instruction_id": "DUM-15183-1",
+      "nominated_user": ""
+    }
+  ]
+}

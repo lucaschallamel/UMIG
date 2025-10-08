@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 12138,
+  "title": "BUS - CHECK BUS connects to SECLI TEST ENV \u0026amp; ATLAS TEST ENV",
+  "predecessor": "BUS-12138",
+  "successor": "BUS-12138",
+  "primary_team": "SPOC_MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_MIDDLEWARE",
+      "associated_controls": "",
+      "instruction_title": "Check that BUS connect SECLI ENV  \u0026 ATLAS ENV \nFor DR and Cutover this is the expected status. \n\nSee Env. Details above",
+      "instruction_id": "BUS-12138-1",
+      "nominated_user": "-"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15204,
+  "title": "KONDOR+ - Send FX AQDQ / TARF valuation file to MUREX",
+  "predecessor": "TRT-15204",
+  "successor": "TRT-15204",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Task 1 details",
+      "instruction_id": "TRT-15204-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Task 2 details",
+      "instruction_id": "TRT-15204-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": null,
+  "title": "MANAGEMENT - GO/ NO GO - INVARIANT ID CHECK AFTER PARENT FILES",
+  "predecessor": "TRT-14613",
+  "successor": "TRT-14633",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mail from IT Cutover to  PGU for GO/ NO GO - INVARIANT ID CHECK AFTER PARENT FILES",
+      "instruction_id": "BGO-14170",
+      "nominated_user": ""
+    }
+  ]
+}

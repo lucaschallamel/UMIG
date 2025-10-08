@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 15189,
+  "title": "DBA - Back Up Engine Common after P\u0026amp;C Migration",
+  "predecessor": "DUM-15189",
+  "successor": "DUM-15189",
+  "primary_team": "SPOC_DBA",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_DBA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Back Up Engine after P\u0026C Migration :\n_- MSVGVASQLPRD20P.FUSION_TORONTO (CUTOVER)\n- MSVGVASQLEV220P.FUSION_TORONTO (DR2)",
+      "instruction_id": "DUM-15189-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_DBA",
+      "associated_controls": "",
+      "instruction_title": "Provide Tag to [ IT_CUTOVER ](#)",
+      "instruction_id": "DUM-15189-2",
+      "nominated_user": ""
+    }
+  ]
+}

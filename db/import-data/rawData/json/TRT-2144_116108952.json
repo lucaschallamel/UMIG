@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 2144,
+  "title": "PROD LIKE ENVIRONMENT - BANK RELEASE DEPLOYMENT",
+  "predecessor": "TRT-12848",
+  "successor": "TRT-12848",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "",
+      "instruction_title": "Deploy Bank release",
+      "instruction_id": "TRT-2144",
+      "nominated_user": "-"
+    }
+  ]
+}

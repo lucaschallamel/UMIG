@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6913,
+  "title": "CID - COMMUNICATE INSTRUMENTS AND PRICES NUMBERS TO LET PASS INTO ATLAS",
+  "predecessor": "PRE-6913",
+  "successor": "PRE-6913",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "",
+      "instruction_title": "COMMUNIQUER LES NUMEROS DES INSTRUMENTS ET PRIX A LAISSER PASSER",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "",
+      "instruction_title": "Attention :  Ne pas traiter les Telekurs USA2.\nLes USA2 seront traité dès le Lundi post migration en mode nominal.",
+      "instruction_id": "2",
+      "nominated_user": "-"
+    }
+  ]
+}

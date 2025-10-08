@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15218,
+  "title": "TAX - Check CRS file integration after import Unhold",
+  "predecessor": "CHK-15218",
+  "successor": "CHK-15218",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TAX - Check CRS file integration after import Unhold",
+      "instruction_id": "CHK-15218-1",
+      "nominated_user": ""
+    }
+  ]
+}

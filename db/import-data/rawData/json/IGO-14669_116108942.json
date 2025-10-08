@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14669,
+  "title": "PROD LIKE ENVIRONMENT - ACB - SANITY CHECKS",
+  "predecessor": "IGO-14669",
+  "successor": "IGO-14669",
+  "primary_team": "ACB",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ACB",
+      "associated_controls": "",
+      "instruction_title": "Check that ACB is up and running and fit for purpose on PROD-LIKE environment.\n\nIn Particular check dependencies:\n_- DIONE platform\n- JFS Version\n- SECLI Configuration\n- QA and Business users can log in",
+      "instruction_id": "IGO-14669",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ACB",
+      "associated_controls": "",
+      "instruction_title": "**RUN/DR ONLY - PROOF OF DATA CURRENCY**:\nImplement the control you have defined beforehand to check and proove that the database restored in PROD LIKE is the exact copy of teh snapshot used for refresh, as of\n\nYou may elect the technique of your choice:\n_- You may have inserted a subtle **marker **in your data (via UI or DB) before the PROD snapshot, typically in a free text field for y record of the snapshot day for instance.\n- You may be able to run an SQL type (SELECT *) statement in your database to prove that you don\u0027te have any records older than the cutober date\n- If you can thing of any other method, please advise here",
+      "instruction_id": "IGO-14669",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ACB",
+      "associated_controls": "",
+      "instruction_title": "Inform QA Team and Business Cutover by EMAIL",
+      "instruction_id": "IGO-14669",
+      "nominated_user": ""
+    }
+  ]
+}

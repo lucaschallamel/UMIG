@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11107,
+  "title": "DARWIN - AFTER ATLAS EOD*2 - FILES TO BE SAVED",
+  "predecessor": "IGO-9314",
+  "successor": "DUM-6714",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Exécuter le job :Group :              MIGRATION-CHECK\n\nApplication :   E3_DARWIN\n\nTABLE :              E3_T_DRW_CHECK_DARWIN\n\nJOB :                   **E3_CHECK-EOD-FILES **(STAR2)\n\nIF Error Code is different from 0 , please follow the procedure:\n\n\nIF Error Code is different from 0:\nGive the sysout by email to ATLAS cc: SGPBCHMigrationCoordination.",
+      "instruction_id": "IGO-11107-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BATCH ENGINEERING",
+      "associated_controls": "",
+      "instruction_title": "Procedure to follow in case of error:\n\nMessage to send to the SPOC_INTEGRATION and/or ATLAS team:\n\nIn the Control-M sysout, two scenarios may occur:\n\n**1st Case: Incorrect file size:**\n\nSysout:\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nCheck file size for FDWD.R699\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nTypically, the files /host/Host/Initial/FDWD.R699 and /host/Host/Initial/FDWD.R700 contain the complete performance history, and their size should be approximately:\n_- Verify that the file size of /host/Host/Initial/FDWD.R699 is \u003e 200 MB\n- Verify that the file size of /host/Host/Initial/FDWD.R700 is \u003e 500 MB\n\nAttach the sysout to the relevant teams.\n\n**For information:** On the ATLAS server, there is usually a version of the two files sent to ODS incrementally and another sent to Darwin in full.\n\n**2nd Case: Missing files:**\n\nIn this case, send the sysout containing the list of missing files to ATLAS Team. Once All the files are available in ATLAS repository, SPOC_EXPLOITATION and/or SPOC_INTEGRATION have to transfer these files again.\n\nOnce fixed, reRun the job and loop on this Step until it runs Sucessfully.",
+      "instruction_id": "IGO-11107-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Launch back up : **315 DARWIN_FILES_S2**",
+      "instruction_id": "IGO-11107-3",
+      "nominated_user": ""
+    }
+  ]
+}

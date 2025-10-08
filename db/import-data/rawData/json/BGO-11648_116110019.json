@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 11648,
+  "title": "BUSINESS - Legal reporting CH validation",
+  "predecessor": "BGO-11648",
+  "successor": "BGO-11648",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Legal reporting CH validation",
+      "instruction_id": "BGO-11648-1",
+      "nominated_user": ""
+    }
+  ]
+}

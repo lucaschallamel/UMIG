@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14516,
+  "title": "SECLI CH/GVA - CREATE ACTIVE CLIENTS UBP-\u0026gt; SG PBS TIERS/PERSONS MAPPING FOR DCTM",
+  "predecessor": "TRT-14516",
+  "successor": "TRT-14516",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SECLI creates UBP-\u003eSG PBS Tiers/Person mapping for Documentum on EV1\nCREATE MAPPING TABLE ON DOCUMENTUM SWITZERLAND\n-    dbsecli..V_PREVIOUS_NUMBER (mapping between CustomerID and Tiers number)\n-    dbsecli..V_PREVIOUS_NUMBER_PERSON_ALL (mapping between CustomerID and Person number)",
+      "instruction_id": "TRT-14516-1",
+      "nominated_user": ""
+    }
+  ]
+}

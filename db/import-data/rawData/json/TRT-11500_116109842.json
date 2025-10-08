@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11500,
+  "title": "RUN1",
+  "predecessor": "TRT-11500",
+  "successor": "TRT-11500",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Reactivate realtime inbound and outbound connectivity with Atlas on Prod Like Environment:\n - Incoming: ConvFromHost (On-Line), Treasury Link (On-Line), Treasury Link Deposit\n - Outgoing: HostLink FX (On-Line), HostLink MM (On Line), LinkVision Export, Cours Spot Minute\n\nDisable these jobs:\n\nFor me you have to run this job insted of the previous one : E3_T001APP_KDR_LAUNCH-LOOP-START-CONVLINK\n\nFor me you have to run this job insted of the previous one : \n\nE3_T001KDR_NDO871\n\nE3_T001KDR_NDO881\n\n\n\n\nNote : These jobs were deactivated in Task : [PRE-6581](PRE-6581_116109392.html)",
+      "instruction_id": "TRT-11500-1",
+      "nominated_user": ""
+    }
+  ]
+}

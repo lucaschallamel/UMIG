@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 12870,
+  "title": "EXPLOITATION - TEST-ENV ONLY - SYSTEM DATE IS SET TO CUTOVER DATE",
+  "predecessor": "SYS-12870",
+  "successor": "SYS-12870",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "**CSD CUTOVER Date is : **29.08.2025**\n**\n\n**Environment is : **Secli Test Environments",
+      "instruction_id": "SYS-12870-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**FOR SECLI******ChangeLinuxSystemDate job on control-M for LDN \u0026 JRS with the following parameters:**To change **with** reboot SECLI\u0027s date****PARM1 : change**PARM2 : lxvjrssecev403s, lxvjrssecev303s, lxvldnsecev403s AND lxvldnsecev303s**PARM3 : **YYYY-MM-JJ****PARM4 :",
+      "instruction_id": "SYS-12870-1",
+      "nominated_user": ""
+    }
+  ]
+}

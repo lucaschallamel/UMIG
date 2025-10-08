@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 6455,
+  "title": "BUSINESS - INTERVENTION - SECURITIES \u0026amp; PRICES VERIFICATION",
+  "predecessor": "CHK-6412",
+  "successor": "PRE-6564",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Vérification des rapports de control générés par le moteur\n\n\n\n\nK1029 - Contrôle des prix des securities\nK1008 - Liste des instruments en position, absent du référentiel CID\nK1004 - Liste des instruments en position, absent du référentiel ATLAS\nK1006 - Nb multi-currency positions\nK1022 - Contrôle des attributs des securities\n\nControl to be performed every day of the week between the 2 migrations:\n_- Monday\n- Tuesday\n- Wednesday\n- Thursday\n- Friday",
+      "instruction_id": "BGO-6455-1",
+      "nominated_user": ""
+    }
+  ]
+}

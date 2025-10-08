@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 5684,
+  "title": "BUSINESS - CHECK ACCOUNTING EOD*1",
+  "predecessor": "BGO-5684",
+  "successor": "BGO-5684",
+  "primary_team": "-",
+  "impacted_teams": "",
+  "macro_time_sequence": "-",
+  "time_sequence": "-",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHECK COMPTA EOD*1\n\nC1440 - Fiduciary Deposits : Deal Transfers - without anomalies \nC1420 - Fiduciary Deposits : Deal Transfers - with other anomalies\nC1400 - Fiduciary Deposits : Deal Transfers - with balance anomalies \nC6540 - Client Loans - deals transfers with other anomalies\nC6520 - Client Loans - deals transfers without anomalies \nC6480- Client Loans - deals transfers with balance anomalies \nC6280 - Les comptes réconciliés sans différence de solde (Hors bilan) \nC6260 - Les comptes réconciliés sans différence de solde (Au bilan)\nC6141 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP) \nC6121 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts (Côté UBP) \nC6140 - GL ACCOUNT / Les comptes réconciliés sans différence de solde Hors bilan \nC6120 - GL ACCOUNT / Transfert without balance anomalie - Balance sheet accounts\nC6100 - GL ACCOUNT / Transfert with balance anomalie - Off Balance sheet accounts \nC6080 - GL ACCOUNT / Transfert with balance anomalie - Balance sheet accounts \nC6580 - Forex Forwards - Deal transfers without anomalies\nC6560 - Forex Forwards - Deal transfers with other anomalies\nC6540 - Forex Forwards - Deal transfers with balance anomalies\nC6005 - Comptes tiers UBP sans correspondance ex-VICTORIA qui ont bouge avant et apres l\u0027EOD",
+      "instruction_id": "BGO-5684-1",
+      "nominated_user": "KELLY Eamon"
+    }
+  ]
+}

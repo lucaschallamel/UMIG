@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": null,
+  "title": "ENGINE SECRET - CHECK INVARIANT_IDs BASED ON PARENT FILES (P0) - P\u0026amp;C",
+  "predecessor": "IGO-14629",
+  "successor": "TRT-14613",
+  "primary_team": "ANONYMTOOL",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ANONYMTOOL",
+      "associated_controls": "",
+      "instruction_title": "Please restore and provide the number of previous invariants for \nTiers, Personnes, Comptes, BP,Root_ID\nbased on parent files (P0)",
+      "instruction_id": "CHK-13942",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ANONYMTOOL",
+      "associated_controls": "",
+      "instruction_title": "Please provide all KPI on invariants and compare figures with previous RUN (C1001; C1019)",
+      "instruction_id": "CHK-13942",
+      "nominated_user": "-"
+    }
+  ]
+}

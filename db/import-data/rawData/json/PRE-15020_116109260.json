@@ -1,0 +1,83 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15020,
+  "title": "USERS PROVISIONING - PREPARATION",
+  "predecessor": "PRE-15000",
+  "successor": "PRE-15000",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on ATLAS",
+      "instruction_id": "PRE-15020-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on CMS",
+      "instruction_id": "PRE-15020-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on SECLI",
+      "instruction_id": "PRE-15020-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "USERS PROVISIONNING ACTIVITIES on DARWIN",
+      "instruction_id": "PRE-15020-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on ATLAS",
+      "instruction_id": "PRE-15020-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MANAGEMENT RELATIONSHIP STRUCTURE CREATION on SECLI",
+      "instruction_id": "PRE-15020-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MANAGER CODE CREATION on ATLAS",
+      "instruction_id": "PRE-15020-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MANAGER CODE CREATION on SECLI",
+      "instruction_id": "PRE-15020-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ADVISORY CODE CREATION on ATLAS",
+      "instruction_id": "PRE-15020-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ADVISORY CODE CREATION on SECLI",
+      "instruction_id": "PRE-15020-10",
+      "nominated_user": ""
+    }
+  ]
+}

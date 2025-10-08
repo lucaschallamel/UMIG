@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 9150,
+  "title": "CONTROL_M - DESACTIVATION OF CONTACT REPORTS GENERATION JOBS DANS LES PLANS EOD* ATLAS",
+  "predecessor": "SYS-9150",
+  "successor": "SYS-9150",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Holder le job XX_P_RELINT et ses successeurs dans T_HOS_CORE-BANKING application XX_ATLAS Sub Application XX_CORE-BANKING\n(permet de gagner 1h15 de batch si pas besoin de fournir Cont@ct dès le lundi matin aux clients migrés =\u003e Cont@ct sera feedé par le batch du lundi au mardi pour la première fois)",
+      "instruction_id": "SYS-9150-1",
+      "nominated_user": ""
+    }
+  ]
+}

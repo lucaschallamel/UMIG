@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14433,
+  "title": "DARWIN - SPECIFIC TREATMENT BEFORE EOD*2 (RESET FILES)",
+  "predecessor": "GON-2732",
+  "successor": "GON-2732",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Exécuter le job :\nGroup :              MIGRATION-CHECK\nApplication :      E3_ATLAS\nJOB :                  E3_RESET-EOD-FILES STAR2",
+      "instruction_id": "IGO-14433-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IF Error Code is différent to 0:\nGive the sysout by email to TORONTOMigrationCoordinationand follow the errors to _IM_ATLAS.\nOnce corrections are done, relaunch the step 2 until success. Error Code  = 0",
+      "instruction_id": "IGO-14433-2",
+      "nominated_user": ""
+    }
+  ]
+}

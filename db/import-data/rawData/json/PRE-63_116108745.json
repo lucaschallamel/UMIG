@@ -1,0 +1,69 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 63,
+  "title": "ENGINE - PREPARATION - STEP 00 - BEFORE START MIGRATION RUN",
+  "predecessor": "IGO-50",
+  "successor": "DUM-12119",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "_The Cutover Date for is : **29.08.2025**\n_",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TRUNCATE ALL TABLE FUSION",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check FTP to be sure ENGINE have the good environment. : AVANT_START_MIGRATION_CHANGE_FTP",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Ask _IM_ATLAS to have a user on ATLAS",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHANGE_GETDATE = Current date  Replace RUN NAME by the CURRENT",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Replace SYSTEM DATE by the defined BUSINESS DATE =(CURRENT DATE)",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TURNOFF_CLIENT_FILTER",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SETUP Connexion to ATLAS : PROD LIKE AND TEST ENVIRONMENTS",
+      "instruction_id": "PRE-63",
+      "nominated_user": ""
+    }
+  ]
+}

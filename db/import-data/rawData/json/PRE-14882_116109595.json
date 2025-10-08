@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14882,
+  "title": "RUN1",
+  "predecessor": "PRE-14882",
+  "successor": "PRE-14882",
+  "primary_team": "-",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Collect list of SWIFT, OMS and external web users\nLong Process",
+      "instruction_id": "PRE-14882-1",
+      "nominated_user": ""
+    }
+  ]
+}

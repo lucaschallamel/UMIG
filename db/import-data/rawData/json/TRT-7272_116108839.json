@@ -1,0 +1,146 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7272,
+  "title": "ENGINE - STEP 11 - ATLAS PHASE 4.4 – CLIENT PORTFOLIO CREATION FU_PTFR1, - CLIENT DOSSIER - ITERATIVE Steps- WHILE THERE ARE REJECTS, ATLAS WILL SEND PORTFOLIO MAPPING TABLE TO THE ENGINE",
+  "predecessor": "TRT-256",
+  "successor": "IGO-13137",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GK - ATLAS PHASE 4.4 - PORTFOLIO CREATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_FTC_ATLAS_MOTEUR_0156_PORTFOLIOS_FPTFR2",
+      "instruction_id": "1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_ATLAS_MOTEUR_0156_PORTFOLIOS_FPTFR2",
+      "instruction_id": "2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0156_PORTFOLIOS_FPTFR2",
+      "instruction_id": "3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_EN_CAS_DE_REJET_LANCER_CE_JOB",
+      "instruction_id": "4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0091_PORTFOLIOS_FPTFR1_REPRISE",
+      "instruction_id": "5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0091_PORTFOLIOS_FPTFR1_REPRISE",
+      "instruction_id": "6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_K4005_ATLAS_DOSSIER_QTE_SUP_4_DECIMALES",
+      "instruction_id": "7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_K0005_ATLAS_DOSSIER_QTE_SUP_4_DECIMALES",
+      "instruction_id": "8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0104_ATLAS_DOSSIER_POSITIONS_FUTURES",
+      "instruction_id": "9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0104_ATLAS_DOSSIER_POSITIONS_FUTURES",
+      "instruction_id": "10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0105_ATLAS_DOSSIER_POSITIONS_FX_OTC",
+      "instruction_id": "11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0105_ATLAS_DOSSIER_POSITIONS_FX_OTC",
+      "instruction_id": "12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EN MEME TEMPS QUE LE REPORT C105, le moteur génère un fichier qu\u0027il envoit à K+",
+      "instruction_id": "13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_KONDOR_C0105_POSITIONS_FX_OTC",
+      "instruction_id": "14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_KONDOR_C0105_POSITIONS_FX_OTC",
+      "instruction_id": "15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0106_ATLAS_LISTE_INSTRUC_COUPONS_RECUES",
+      "instruction_id": "16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0106_ATLAS_LISTE_INSTRUC_COUPONS_RECUES",
+      "instruction_id": "17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0110_ATLAS_ASSET_CURRENCY_DIFF",
+      "instruction_id": "18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0110_ATLAS_ASSET_CURRENCY_DIFF",
+      "instruction_id": "19",
+      "nominated_user": ""
+    }
+  ]
+}

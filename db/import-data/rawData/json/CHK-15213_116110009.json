@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15213,
+  "title": "ATLAS - Check blocage status in Atlas",
+  "predecessor": "CHK-15213",
+  "successor": "CHK-15213",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check blocage status in Atlas",
+      "instruction_id": "CHK-15213-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 7340,
+  "title": "CHECK THAT ATLAS ENV REFRESHED ON PRD LIKE Environment",
+  "predecessor": "IGO-7340",
+  "successor": "IGO-7340",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **PROD-LIKE ENVIRONMENT** DATABASE + QSAM refresh\n\nExecute\n\nSCRIPT :\nBy [nhprdtxb:/home/migsup/tools/02_Ctrl_refresh.ksh](http://nhprdtxb/home/migsup/tools/Ctrl_refresh.ksh) **TEST ENVIRONMENT**\n\nIn case of difficulty with the script, execute :\n1. SQL Query : count (*)  from T_TRA_DET t  where code_chain_0195 = \u002717\u0027\ncount (*)  from T_TRA_DET t  where code_chain_0195 = \u002732\u0027\non the 2 servers\n\n2. SQL Query : for check the last date process in T_COMPANY :\nSelect t.date_process_last_0143 from NHDBO.t_company t Where t.nbr_co_0143 = 211\n\n3. Access control for QSAM fileson the 2 servers\npiquet@[axvgvatxbsit01p:/files/data/P92/](http://axvgvatxbsit01p/files/data/P92/) $ wc -l F92E.QSAM 5260 F92E.QSAM",
+      "instruction_id": "IGO-7340-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **PROD-LIKE ****ENVIRONMENT **COMPONENTS VERSION refresh",
+      "instruction_id": "IGO-7340-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **PROD-LIKE****ENVIRONMENT **SYSTÈME DATE = Cutover Date",
+      "instruction_id": "IGO-7340-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **PROD-LIKE ****ENVIRONMENT **FTP CONFIGURATION, USER \u0026 PASSWORD\n\nENGAGE IN A TEST SESSION WITH ENGINE (Which orchestartes QSAM files forward and pickups on ATLAS Servers)",
+      "instruction_id": "IGO-7340-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ATLAS on **PROD-LIKE ****ENVIRONMENT **disk space",
+      "instruction_id": "IGO-7340-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Purge all **INBOUND** and **OUTBOUND** queues\n(We do not want any incoming or outgoing messages dates after the cutover date)",
+      "instruction_id": "IGO-7340-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Clean all Log files for data **after** CUTOFF date",
+      "instruction_id": "IGO-7340-7",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**RUN/DR ONLY - PROOF OF DATA CURRENCY**:\nImplement the control you have defined beforehand to check and prove that the database restored in PROD LIKE is the exact copy of teh snapshot used for refresh, as of\n\nYou may elect the technique of your choice:\n_- You may have inserted a subtle **marker **in your data (via UI or DB) before the PROD snapshot, typically in a free text field for y record of the snapshot day for instance.\n- You may be able to run an SQL type (SELECT *) statement in your database to prove that you don\u0027te have any records older than the cutober date\n- If you can thing of any other method, please advise here",
+      "instruction_id": "IGO-7340-8",
+      "nominated_user": ""
+    }
+  ]
+}

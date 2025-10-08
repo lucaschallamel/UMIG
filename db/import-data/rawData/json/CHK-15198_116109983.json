@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15198,
+  "title": "ATLAS  - Confirm reception of ALL Clients by Atlas - PROD LIKE Environment",
+  "predecessor": "TRT-6980",
+  "successor": "CHK-15199",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received ALL LDN clients on PROD LIKE environement",
+      "instruction_id": "CHK-15198-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear ATLAS Team,\nPlease confirm you\u0027ve received ALL JRS clients on PROD LIKE environement",
+      "instruction_id": "CHK-15198-2",
+      "nominated_user": ""
+    }
+  ]
+}

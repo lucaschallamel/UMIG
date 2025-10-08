@@ -1,0 +1,286 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 6470,
+  "title": "ENGINE - CONTROL LIST GENERATION : (une partie du STE 03 - RECONCILIATION INTEGRITY 1)",
+  "predecessor": "TRT-6528",
+  "successor": "BGO-6513",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BREAKPOINT_2_JOB_AVANT_MIGRATION_ATLAS_REPORT_SECURITIES",
+      "instruction_id": "CHK-6470-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_C1750_COMPARE_ESTIMATIF_FILE_WITH_ALL_FILES_RECEIVED",
+      "instruction_id": "CHK-6470-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C1750_COMPARE_ESTIMATIF_FILE_WITH_ALL_FILES_RECEIVED",
+      "instruction_id": "CHK-6470-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_C1751_COMPARE_ESTIMATIF_SUM_POS_WITH_NAV_GLOBALE",
+      "instruction_id": "CHK-6470-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C1751_COMPARE_ESTIMATIF_SUM_POS_WITH_NAV_GLOBALE",
+      "instruction_id": "CHK-6470-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_CID_MOTEUR_0052_SECURITIES_INFOS_BIS",
+      "instruction_id": "CHK-6470-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_URA001_#2",
+      "instruction_id": "CHK-6470-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_FUSION_0102_SECURITIES_POSITIONS_MULTI_CUR",
+      "instruction_id": "CHK-6470-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0053_SECURITIES_LIGHT",
+      "instruction_id": "CHK-6470-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_SECURE_FROM_MARKET",
+      "instruction_id": "CHK-6470-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_T_PRCE",
+      "instruction_id": "CHK-6470-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_ATLAS_IN_T_PRCE",
+      "instruction_id": "CHK-6470-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_CLEAN_ATLAS_IN_DOSSIER_SECURITIES",
+      "instruction_id": "CHK-6470-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_TRUNC_DICO_REPR_NBR_SECURE",
+      "instruction_id": "CHK-6470-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_INSERT_DICO_REPR_NBR_SECURE",
+      "instruction_id": "CHK-6470-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K0003_SECURITIES_FUSION_NOK",
+      "instruction_id": "CHK-6470-16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K0003_SECURITIES_FUSION_NOK",
+      "instruction_id": "CHK-6470-17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K0008_SECURITIES_CID_NOK",
+      "instruction_id": "CHK-6470-18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K0008_SECURITIES_CID_NOK",
+      "instruction_id": "CHK-6470-19",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K1004_SECURITIES_ATLAS_NOK",
+      "instruction_id": "CHK-6470-20",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K1004_SECURITIES_ATLAS_NOK",
+      "instruction_id": "CHK-6470-21",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K0006_SECURITIES_MULTI_CURRENCY",
+      "instruction_id": "CHK-6470-22",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K0006_SECURITIES_MULTI_CURRENCY",
+      "instruction_id": "CHK-6470-23",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K1001_SECURITIES_MULTI_PORTFOLIO",
+      "instruction_id": "CHK-6470-24",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K1001_SECURITIES_MULTI_PORTFOLIO",
+      "instruction_id": "CHK-6470-25",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_MAJ_LIST_DEPOSITAIRE",
+      "instruction_id": "CHK-6470-26",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K1011_ATLAS_LIST_DEPOSITARIES",
+      "instruction_id": "CHK-6470-27",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K1011_ATLAS_LIST_DEPOSITARIES",
+      "instruction_id": "CHK-6470-28",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K0022_CONTROLE_ATTRIBUTS_SECURITIES",
+      "instruction_id": "CHK-6470-29",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K0022_CONTROLE_ATTRIBUTS_SECURITIES",
+      "instruction_id": "CHK-6470-30",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_K0029_CONTROLE_PRICE_SECURITIES",
+      "instruction_id": "CHK-6470-31",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_K0029_CONTROLE_PRICE_SECURITIES",
+      "instruction_id": "CHK-6470-32",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_DEPTRY",
+      "instruction_id": "CHK-6470-33",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_C1013_DEPOSITAIRE_MAPPE_NON_EXISTANT",
+      "instruction_id": "CHK-6470-34",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C1013_DEPOSITAIRE_MAPPE_NON_EXISTANT",
+      "instruction_id": "CHK-6470-35",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_A_C1014_SECURITIES_NOT_EXISTING_ON_MARKET",
+      "instruction_id": "CHK-6470-36",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C1014_A_SECURITIES_NOT_EXISTING_ON_MARKET",
+      "instruction_id": "CHK-6470-37",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXCEL_B_C1014_SECURITIES_EXISTING_ON_MARKET",
+      "instruction_id": "CHK-6470-38",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "MAIL_C1014_B_SECURITIES_EXISTING_ON_MARKET",
+      "instruction_id": "CHK-6470-39",
+      "nominated_user": ""
+    }
+  ]
+}

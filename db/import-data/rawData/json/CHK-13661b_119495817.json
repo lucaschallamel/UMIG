@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": null,
+  "title": "ENGINE - CHECK FPC FILES RECEIVED VS EXPECTED FILE LIST INTO INBOUND DIRECTORY - P\u0026amp;C",
+  "predecessor": "BGO-13575",
+  "successor": "DUM-14623",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please control confidential transfer directory to make sure that we received  FPC files",
+      "instruction_id": "CHK-13661",
+      "nominated_user": "DRAI Yohann"
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm to DATA_FILES team the list of all received files and provide file size and row count for each file",
+      "instruction_id": "CHK-13661",
+      "nominated_user": ""
+    }
+  ]
+}

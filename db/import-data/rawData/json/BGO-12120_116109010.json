@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 12120,
+  "title": "BUSINESS INTERVENTION - SECURITIES \u0026amp; PRICES VERIFICATION - After corrections (if any)",
+  "predecessor": "CHK-12077",
+  "successor": "TRT-9136",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ K1022 ](#) [ K1029 ](#)",
+      "instruction_title": "Vérification des rapports de control générés par le moteur (K1022, K1029, …)",
+      "instruction_id": "BGO-12120-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7248,
+  "title": "BASE TIERS  - RAFRAICHISSEMENT BASE TIERS SUR RACR (BASE TIERS) IF STEP CHK-7224 KO",
+  "predecessor": "TRT-7243",
+  "successor": "TRT-7267",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BASE TIERS  - RAFRAICHISSEMENT BASE TIERS SUR RACR (BASE TIERS) IF STEP CHK-7224 KO",
+      "associated_controls": "",
+      "instruction_title": "**",
+      "instruction_id": "TRT-7248",
+      "nominated_user": ""
+    }
+  ]
+}

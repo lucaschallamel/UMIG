@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12430,
+  "title": "TAX - Check forced SGPBS pools/statuses presence in BT Pub",
+  "predecessor": "TRT-12430",
+  "successor": "TRT-12430",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check presence of SGPBS QI pools and Fatca statuses in BT Pub\n/SECLI results (SGPBS pools/status, indicia) feed BTPub - SGPBS pools and statuses in SECLI are fed into BTPub/",
+      "instruction_id": "TRT-12430-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": null,
+  "title": "ENGINE - IT CONTROLS GENERATION - STEP 03 - RECONCILIATION INTEGRITY 1 - WE P\u0026amp;C",
+  "predecessor": "TRT-794",
+  "successor": "IGO-13701",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "ENGINE to generate the corresponding IT CONTROLs,\n\n**Phase: PreSECLI**\n\n**C1001 **- Check volume of files before engine integration\n**C1002 **- Dummies count in DICO tables\n**C1003 **- Detail of Dummies in DICO tables\n**C1003B **- List of duplicate  invariants\n**C1004 **- Client Scope analysis\n**C1005A **- List of duplicate keys in SG files\n**C1006 **- Statistics on clients received by company\n**C1017 **- List of migrated clients without any assets\n**C1018 **- List of banks without ASSETS \n**C1019 **- Breakdown count of lines per received files\n**C1099 **- Assets received by company\n**C1200 **- List of missing manager codes in ATLAS (Outside 999)\n**C1205 **- List of Missing Contributors in ATLAS (Outside 999)\n**C1243 **- Tech. pre-check, Integrity of all tables\n**C1243B **- Tech. pre-check, integrity of all tables (stats)\n**C1047 **- STATISTICS CLIENTS BY CODE PM RM",
+      "instruction_id": "CHK-836",
+      "nominated_user": "C1001                                                                                    C1019                                                                                    C1005A                                                                                    C1003B                                                                                    C1004                                                                                    C1005A                                                                                    C1006                                                                                    C1017                                                                                    C1018                                                                                    C1019                                                                                    C1099                                                                                    C1200                                                                                    C1205                                                                                    C1243                                                                                    C1243B                                                                                    C1047"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15156,
+  "title": "ATLAS - PHASE 0 - CLIENT ACCOUNT \u0026amp; G ACCOUNT VOLUMETRY CHECKS",
+  "predecessor": "TRT-13246",
+  "successor": "TRT-12904",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GG - ATLAS PHASE 0, 1 AND 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Check ENGINE FILE EXISTING AND SIZE:\n/files/data/PFU/FACCC4.QSAM\n/files/data/PFU/FACCR1.QSAM",
+      "instruction_id": "CHK-15156-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Etat EFV9 - OK - Comptes G des sociétés 302, 303, 304 et 305, donc soldes = 0\n\n+ Comptes et ptf présent uniquement sur les clients NOSTRO créé par Mr KELLY en BI25",
+      "instruction_id": "CHK-15156-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Liste des tt les affaires des tiers repris - (fichier RES.SQL0008.QSAM__date_.txt dans /files/data/PFU)",
+      "instruction_id": "CHK-15156-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Pas de comptes G   à créer - Etat EFUF attendu vide",
+      "instruction_id": "CHK-15156-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Pas de comptes réféchis à créer - Etat EFU9 attendu vide",
+      "instruction_id": "CHK-15156-5",
+      "nominated_user": ""
+    }
+  ]
+}

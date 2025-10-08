@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7708,
+  "title": "SECLI GVA - EXPORT SAFE FILE TO SECLI",
+  "predecessor": "TRT-7603",
+  "successor": "TRT-7723",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SEND TO SECLI BUSINESS THE FILE SAFE",
+      "instruction_id": "TRT-7708-1",
+      "nominated_user": ""
+    }
+  ]
+}

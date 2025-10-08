@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHL",
+  "step_number": 13032,
+  "title": "PMS IT CONTROLS- CHECK CLIENT DATA INTEGRATION ON PMS",
+  "predecessor": "TRT-13026",
+  "successor": "IGO-14307",
+  "primary_team": "PMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "[ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#)",
+      "instruction_title": "Execute PMS Client Data integration IT Controls:  C9047, C9048, C9049, C9050, C9051, C9052, C9053, C9054\nReport results by email.",
+      "instruction_id": "CHL-13032-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "PMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Validate PMS Client Data integration control results.",
+      "instruction_id": "CHL-13032-2",
+      "nominated_user": ""
+    }
+  ]
+}

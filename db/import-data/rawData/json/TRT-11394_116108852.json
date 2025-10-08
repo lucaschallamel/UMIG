@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11394,
+  "title": "CHECK COMPONENTS ALIGNMENT (PROD-LIKE) AND SANITY CHECKS BEFORE MIGRATION",
+  "predecessor": "TRT-11394",
+  "successor": "TRT-11394",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "",
+      "instruction_title": "_- Deploy Last **PRODUCTION **PATCH FOR ALL APPLICATION IN SCOPE OF RUN/DR\n - - Check component alignment [Application to be in Iso Prod version + Hot fixes]\n\n_- Sanity checks [Check Environment space \u0026 temporary database table space] before migration on **PROD LIKE ENVIRONMENT**",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12837,
+  "title": "ATLAS - Sending of the file \u0026quot;ALL-POSITIONS.txt\u0026quot;  (job FCRN2)  generated after EOD 1",
+  "predecessor": "TRT-12837",
+  "successor": "TRT-12837",
+  "primary_team": "-",
+  "impacted_teams": "",
+  "macro_time_sequence": "-",
+  "time_sequence": "-",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Sending files/data/PCR/FCRN2.QSAM file on the weekly transfert \\WEEKLY TRANSFERT\\VICTORIA",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

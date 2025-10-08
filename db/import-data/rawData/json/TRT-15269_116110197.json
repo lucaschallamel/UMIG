@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15269,
+  "title": "ATLAS - VICTORIA GAP TABLE",
+  "predecessor": "TRT-15269",
+  "successor": "TRT-15269",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Cette tache doit être faite à partir du moment ou la T_FU_CLIENT est alimentée, par exemple avant STAR1.\n\nIl s’agit d’un requête SQL pour alimenter une nouvelle table (créée dans le cadre d’un GAP Toronto), elle est donc à destination des DBA.\n\nC’est une tâche non bloquante.",
+      "instruction_id": "TRT-15269-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DBA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "La requête à exécuter est la suivante :\nINSERT INTO NHDBO.T_CLIENT_MIGRATED (NBR_SOC_1217, NBR_CLIENT_1217, ID_MIGR_1217, DATE_MIGR_1217)SELECT NBR_CO_1057, NBR_CLIENT_1057, \u0027SGPBCH\u0027, 20250531 FROM NHDBO.T_FU_CLIENT;COMMIT;```",
+      "instruction_id": "TRT-15269-2",
+      "nominated_user": ""
+    }
+  ]
+}

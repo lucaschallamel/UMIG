@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11979,
+  "title": "SECLI CH/GVA- ACTIVE CLIENTS SENDING TO CMS",
+  "predecessor": "IGO-14312",
+  "successor": "TRT-14626",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Push all clients (actives), all companies, to MOTUS DB",
+      "instruction_id": "TRT-11979-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "Stop BUS",
+      "instruction_id": "TRT-11979-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "Loading CMS\u0027s stagging tables for Active Clients",
+      "instruction_id": "TRT-11979-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "",
+      "instruction_title": "Restart BUS",
+      "instruction_id": "TRT-11979-4",
+      "nominated_user": ""
+    }
+  ]
+}

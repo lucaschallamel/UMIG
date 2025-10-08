@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 1387,
+  "title": "SECLI LDN\u0026amp;JRS - CLIENT CHECKS EXTRACTION ON PROD LIKE",
+  "predecessor": "TRT-7103",
+  "successor": "TRT-6569",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Génération des contrôles suivants pour SECLI :\n\nC2500 - Number of Tiers per ENTITY_TYPE**C2504 - Number of Tiers per CURRENCY - TYPE - MANAGEMENT_TYPE**C2520 - Number of accounts held by individuals**C2540 - Number of accounts held by legal entities**C2541 - Number of companies by company type**C2560.3 - Number of physical person with role 3 active procured on active third-party (nr persons and nr third party) per company**C2715 - Number of addresses per country [Nombre d\u0027adresses par pays]**C2720 - Number of persons per country of nationality**C2740 - Number of persons per country of domicile**C2757 - Instructions without a blocking code**C2780 - Number of accounts by language**C2800.1 - Number of accounts in each reporting frequency**C2800.2 - Number of accounts by frequency of production of estimates**C2880 - Breakdown count of managed \u0027account\u0027 per risk profil **C2940 - Breakdown count of documents types per \u0027account\u0027**C3143 - Number of accounts managed by a particular and per management type (normally SUIVI) [follow-up if not suivi?]**C3147 - Number of accounts and their rubric**C3150 - Number of tiers per country of nationality of the main holder**C3151 - Number of tiers per country of domicile of the main holder**C3157 - Number of persons with/without legal adress**C3163 - Number of accounts per type of management**C3195 - Number of accounts with no currency or with no economic sector**C3197 - Number of mailing instructions with no adress associated or no holdmail associated**C4003 - Nombre de personnes avec passeport ou carte d\u0027identité**C4013 - Number of accounts per MiFID category**C4017 - Number of persons by role**C4019 - Number of persons by MIFID knowledge \u0026 experience",
+      "instruction_id": "CHK-1387-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ENVOI DE LA LISTE DE CONTROLES A SECLI \u0026 SECLI BUSINESS",
+      "instruction_id": "CHK-1387-2",
+      "nominated_user": ""
+    }
+  ]
+}

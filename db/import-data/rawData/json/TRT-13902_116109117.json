@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 13902,
+  "title": "ENGINE SECRET - TO PROVIDE FILES (EBANKING FILES TRANSFER)",
+  "predecessor": "BUS-11501",
+  "successor": "TRT-11717",
+  "primary_team": "ENGINE SECRET",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE SECRET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please provide List of Ebanking files :\nCUSTOMSG PBSCCOUNTS\n\nPlace the files in Sharepoint location and afterwards inform/send email to SECLI Business",
+      "instruction_id": "TRT-13902-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE SECRET",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please provide List of Ebanking files :\n• FPS_5002_CUSTOMERSACCOUNTS_CUSTOMERS_CONTACTINFORMATION_001_xxxxxxxx\n• FPS_5003_CUSTOMERSACCOUNTS_CUSTOMERS_CONTACTINFORMATION_002_xxxxxxxx\n\nPlace the files in Sharepoint location and afterwards inform/send email to SECLI Business",
+      "instruction_id": "TRT-13902-2",
+      "nominated_user": ""
+    }
+  ]
+}

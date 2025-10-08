@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 14623,
+  "title": "ENGINE - BACK-UP FPC FILES AFTER RECEPTION +  PROVIDE THE LIST OF FILE RECEIVED",
+  "predecessor": "CHK-13661",
+  "successor": "PRE-5355",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CC - FILES TRANSFER FROM ANONYMTOOL TO ENGINE AND SECLI",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please take a backup of files in a dedicated folder",
+      "instruction_id": "DUM-14623-1",
+      "nominated_user": ""
+    }
+  ]
+}

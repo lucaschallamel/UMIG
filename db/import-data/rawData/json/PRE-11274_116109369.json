@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 11274,
+  "title": "IMTF - HOLD JOB",
+  "predecessor": "BUS-6324",
+  "successor": "PRE-11315",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "HOLD DU JOB \nEVX-GVA-COM-DC (CONTROL-M COMMON) \nEX_T-IRT-XXXXXXXIMTF\n\nEVX-GVA-SEC-DC (CONTROL-M SECURE)\nEX_T-IRT-XXXXXXXIMTF\n\nEX Correspond à envrionnement \\\"Prod Like\\\"",
+      "instruction_id": "PRE-11274-1",
+      "nominated_user": ""
+    }
+  ]
+}

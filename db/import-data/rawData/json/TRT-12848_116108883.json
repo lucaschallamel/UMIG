@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12848,
+  "title": "PROD LIKE ENVIRONMENT - TARIF PATCH DEPLOYMENT",
+  "predecessor": "TRT-2144",
+  "successor": "TRT-780",
+  "primary_team": "TARIF",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TARIF",
+      "associated_controls": "",
+      "instruction_title": "Deploy LAST PRODUCTION PATCH OF TARIF ON PRD-LIKE IF NECESSARY",
+      "instruction_id": "TRT-12848",
+      "nominated_user": "-"
+    }
+  ]
+}

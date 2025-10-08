@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15236,
+  "title": "KONDOR+ - Manual integration of FX Spot position - Post Star 2",
+  "predecessor": "TRT-15236",
+  "successor": "TRT-15236",
+  "primary_team": "KONDOR+",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Manual integration of FX Spot position - Post Star 2",
+      "instruction_id": "TRT-15236-1",
+      "nominated_user": ""
+    }
+  ]
+}

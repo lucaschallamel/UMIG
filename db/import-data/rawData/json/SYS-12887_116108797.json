@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 12887,
+  "title": "ENSURE SECLI - SYSTEM DATE IS SET TO CURRENT CUTOVER DATE",
+  "predecessor": "SYS-12887",
+  "successor": "SYS-12887",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "_**FOR SECLI**_\n\nChangeLinuxSystemDate job on control-M PRD-GVA-COM-DC with the following parameters:\nTo change without reboot SECLI\u0027s date\n\nPARM1 : change\nPARM2 : lxvgvasecev403s  AND lxvgvasecev303s\nPARM3 : **2025.08.22**\nPARM4 :",
+      "instruction_id": "SYS-12887-1",
+      "nominated_user": ""
+    }
+  ]
+}

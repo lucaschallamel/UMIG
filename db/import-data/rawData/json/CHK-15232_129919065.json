@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15232,
+  "title": "ATLAS - Check Atlas queues before Day Mode - ProdLike Environment",
+  "predecessor": "CHK-15232",
+  "successor": "CHK-15232",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "-",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ATLAS - Check Atlas queues before Day Mode - Prod-Like\n\nAdvise CUTOVER on content to agree on strategy to purge or keep",
+      "instruction_id": "CHK-15232-1",
+      "nominated_user": ""
+    }
+  ]
+}

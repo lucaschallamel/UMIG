@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11663,
+  "title": "eBanking - INTEGRATION",
+  "predecessor": "TRT-12787",
+  "successor": "TRT-13627",
+  "primary_team": "E-BANKING",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CI - E-BANKING DATA LOADING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "E-BANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Process \u0026 load files from Engine and SECLI\n\n**Please Generate files in CSV Format for E-Banking**",
+      "instruction_id": "TRT-11663-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "E-BANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Run sp_VIC_INTEGRATION_PRECHECKS \n\nRun sp_VIC_INTEGRATION_MAPPING",
+      "instruction_id": "TRT-11663-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "E-BANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Share KPI in **CSV Format** to ebanking (VIC_MIGRATION_CONTROLS )",
+      "instruction_id": "TRT-11663-3",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 13359,
+  "title": "MIDDLEWARE - Clean Atlas queue - FX Options",
+  "predecessor": "BUS-13359",
+  "successor": "BUS-13359",
+  "primary_team": "MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "MIDDLEWARE",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Clean Atlas queue - FX Options\n\nQueue to be cleared:\n\n_\n\nList of the 80 messages in the queue to be deleted:\n\n[_](/download/attachments/116110126/FX%20options%20BUS%20messages%20to%20be%20deleted.xlsx?version=1\u0026modificationDate=1749129337000\u0026api=v2)",
+      "instruction_id": "BUS-13359-1",
+      "nominated_user": ""
+    }
+  ]
+}

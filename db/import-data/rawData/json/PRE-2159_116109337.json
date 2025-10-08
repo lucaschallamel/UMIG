@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 2159,
+  "title": "ATLAS - ESTIMATIVE, ADVICE \u0026amp; STATEMENT FREQUENCY CODE UPDATE",
+  "predecessor": "PRE-6360",
+  "successor": "CHK-14192",
+  "primary_team": "DBA",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DBA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**Execute SQL Query to be sure we will not produce any statement SGPBS BANK During EOW**\n\n**Mise à jour du code fréquence des clients migrés (passage à \\\"pas d\u0027édition\\\")**\nREQUETES PRESENTES SOUS :\n\\Clients\\Client_data\\requete maj code fréquence.sql \n\n**1ere requete** : _Nombre de records a updater_\nselect count(*) from  nhdbo.t_client cli\nwhere (cli.nbr_co_0145,  cli.nbr_client_0145) in (\nselect cli2.nbr_co_0145, cli2.nbr_client_0145 from nhdbo.t_fu_client fucli, nhdbo.t_client cli2\nwhere fucli.nbr_co_1057 = cli2.nbr_co_0145\nand fucli.nbr_client_1057 = cli2.nbr_client_0145)\n\n**2eme requête :**_ Requete d\u0027update - CODE_FREQ_STMT_\nupdate nhdbo.t_client cli\nset cli.code_freq_stmt_0145 = 9 \nwhere (cli.nbr_co_0145,  cli.nbr_client_0145) in (\nselect cli2.nbr_co_0145, cli2.nbr_client_0145 from nhdbo.t_fu_client fucli, nhdbo.t_client cli2\nwhere fucli.nbr_co_1057 = cli2.nbr_co_0145\nand fucli.nbr_client_1057 = cli2.nbr_client_0145)",
+      "instruction_id": "PRE-2159-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DBA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**Sélection des clients migrés qui ont un code fréquence PORT différent de 0 (WITHOUT)**\nREQUETES PRESENTES SOUS :\n\\Clients\\Client_data\\ requete maj code fréquence.sql \n\n**1ere requete :** _Nombre de records a updater_\nselect count(*) from nhdbo.t_fu_client fucli, nhdbo.t_client cli\nwhere fucli.nbr_co_1057 = cli.nbr_co_0145\nand fucli.nbr_client_1057 = cli.nbr_client_0145\nand cli.code_freq_port_0145 \u003c\u003e 0;\n--\n**2eme requête **: _Requete d\u0027update - CODE_FREQ_PORT_\nupdate nhdbo.t_client cli\nset cli.code_freq_port_0145 = 0 \nwhere (cli.nbr_co_0145,  cli.nbr_client_0145) in (\nselect cli2.nbr_co_0145, cli2.nbr_client_0145 from nhdbo.t_fu_client fucli, nhdbo.t_client cli2\nwhere fucli.nbr_co_1057 = cli2.nbr_co_0145\nand fucli.nbr_client_1057 = cli2.nbr_client_0145\nand cli2.code_freq_port_0145 \u003c\u003e 0);",
+      "instruction_id": "PRE-2159-2",
+      "nominated_user": ""
+    }
+  ]
+}

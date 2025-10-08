@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 6938,
+  "title": "ATLAS - CONTROL of DUMMIES \u0026amp; PRE-CHECKS send by ENGINE",
+  "predecessor": "BGO-13946",
+  "successor": "CHK-6943",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ATLAS - CONTROL of DUMMIES \u0026 PRE-CHECKS send by ENGINE",
+      "instruction_id": "IGO-6938-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 6696,
+  "title": "EXPLOITATION - CHECK PLAN CONFIGURATION (Test and Prod-Like)",
+  "predecessor": "TRT-11399",
+  "successor": "IGO-7196",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Check CONTROL-M EV3 PLAN CONFIGURATION par check CONTROL-M EV3 GROUPE E3_TOO_Tools/E3_AJF-ATLAS-INTEGRATION-BANQUE / \n                                                                                check Fichier de configuration /appli/ctmsrvintg/CTM_TOOLS/Gestion_Release_Plan/config/RELEASE_PLAN_EV3.cfg\n\nCheck CONTROL-M EV4 PLAN CONFIGURATION par check CONTROL-M EV4 GROUPE E4_TOO_Tools/E4_AJF-ATLAS-INTEGRATION-BANQUE\n                                                                                check Fichier de configuration /appli/ctmsrvintg/CTM_TOOLS/Gestion_Release_Plan/config/RELEASE_PLAN_EV4.cfg",
+      "instruction_id": "IGO-6696",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "PRD Only : \n\nCheck CONTROL-M PROD PLAN CONFIGURATION par check CONTROL-M PROD GROUPE TOO_Tools/ AJF-ATLAS-INTEGRATION-BANQUE  è pour FINAL RUN\n                                                                                check Fichier de configuration /appli/ctmsrvintg/CTM_TOOLS/Gestion_Release_Plan/config/RELEASE_PLAN_PRD.cfg",
+      "instruction_id": "IGO-6696",
+      "nominated_user": ""
+    }
+  ]
+}

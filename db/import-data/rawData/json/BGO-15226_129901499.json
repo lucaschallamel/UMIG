@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15226,
+  "title": "BUSINESS - Migration IRS Clearing Agent",
+  "predecessor": "BGO-15226",
+  "successor": "BGO-15226",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "KONDOR+",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Migration IRS Clearing Agent",
+      "instruction_id": "BGO-15226-1",
+      "nominated_user": ""
+    }
+  ]
+}

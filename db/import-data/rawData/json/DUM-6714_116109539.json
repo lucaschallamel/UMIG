@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 6714,
+  "title": "SPECIFIC TREATMENT DARWIN - CLEAN REPOSITORY AFTER ATLAS EOD*2",
+  "predecessor": "DUM-6714",
+  "successor": "DUM-6714",
+  "primary_team": "DARWIN",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following instructions for \n\n**\n_Phase ID: **320**_\n****_Phase name:_ REFRESH_DARWIN_FILES_S1**",
+      "instruction_id": "DUM-6714-1",
+      "nominated_user": ""
+    }
+  ]
+}

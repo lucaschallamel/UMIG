@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 7637,
+  "title": "DOCUMENTUM - ISOLATION  on PROD Like",
+  "predecessor": "PRE-7637",
+  "successor": "PRE-7637",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CE-2 - SECLI ISOLATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please Stop the following Jobs\n\n\n\n\nP-CLI-XXCUSTOMER\n\n                P001-CLI-STRONGLINK-UPDATE-GVA\n\n\n\n\nP-ECS-DOCUMENTUM\n\n                P001-ECS-BAT-GVA-UBP-BIM-DCTM-EXPORT-CSV\n\n                P001-ECS-BAT-GVA-UBP-CMS-CR-SYNCHRO\n\n                P001-ECS-BAT-GVA-UBP-CMS-PERSON-SYNCHRO\n\n                P001-ECS-BAT-GVA-UBP-CMS-PROSPECT-SYNCHRO\n\n                P001-ECS-BAT-GVA-UBP-CMS-PROSPECT-SYNCHRO-DELTA\n\n                P001-ECS-BAT-GVA-UBP-CMS-TIER-SYNCHRO\n\n                P001-ECS-BAT-GVA-UBP-CMS-TIER-SYNCHRO-DELTA\n\n\n\n\nP-ESC-DOC-CREDIT\n\n                P001-ECS-BAT-IN-IMPORT-CMS-TIERS-GVA-TO-CREDIT",
+      "instruction_id": "PRE-7637-1",
+      "nominated_user": ""
+    }
+  ]
+}

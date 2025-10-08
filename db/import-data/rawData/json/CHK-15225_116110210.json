@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15225,
+  "title": "ATLAS - Confirm reception of EUC File from MUREX",
+  "predecessor": "CHK-15225",
+  "successor": "CHK-15225",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GG - ATLAS PHASE 0, 1 AND 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm reception of EUC File from MUREX",
+      "instruction_id": "CHK-15225-1",
+      "nominated_user": ""
+    }
+  ]
+}

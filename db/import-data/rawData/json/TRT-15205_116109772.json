@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15205,
+  "title": "CID - Load valuation file in CID",
+  "predecessor": "TRT-15205",
+  "successor": "TRT-15205",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Load NMP valuation file in CID\n\nReconciliation Murex Price/ CID Price",
+      "instruction_id": "TRT-15205-1",
+      "nominated_user": ""
+    }
+  ]
+}

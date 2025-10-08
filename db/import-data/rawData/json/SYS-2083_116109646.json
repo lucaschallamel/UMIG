@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 2083,
+  "title": "ATLAS -  STOP SERVICE",
+  "predecessor": "SYS-2083",
+  "successor": "SYS-2083",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : E4_MODE-TX-STOP-START\nJOB : E4_30-STOP_AP_TX-SERIES",
+      "instruction_id": "SYS-2083-1",
+      "nominated_user": ""
+    }
+  ]
+}

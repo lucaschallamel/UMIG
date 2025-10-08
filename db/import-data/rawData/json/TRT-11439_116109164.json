@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11439,
+  "title": "RUN1",
+  "predecessor": "TRT-12169",
+  "successor": "DUM-12131",
+  "primary_team": "DOCUMENTUM",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SPLIT FILE RECEIVED FROM ENGINE BY EMAIL (C2460_CORRESPONDANCE_ID_FUSION_VS_ID_UBP) by Business UNIT (MCO and Swiss)",
+      "instruction_id": "TRT-11439-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "ASK TO SECURITY TO PUT THE FILE ON USB KEY",
+      "instruction_id": "TRT-11439-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SECURITY PASTE THE FILE ON SECLI LAPTOP FOR SWISS AND MCO",
+      "instruction_id": "TRT-11439-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "PAST OF THE FILE DONE",
+      "instruction_id": "TRT-11439-4",
+      "nominated_user": ""
+    }
+  ]
+}

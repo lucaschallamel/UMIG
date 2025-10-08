@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 2814,
+  "title": "ATLAS - SAVE LOGS AFTER EOD*2",
+  "predecessor": "TRT-11828",
+  "successor": "TRT-11828",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Copy the folder :\n/prod/log\nin\n/backup/log_AFTER_EOD2_EXT2\nSCRIPT: /home/migsup/tools/10_Backup_log.ksh",
+      "instruction_id": "PRE-2814-1",
+      "nominated_user": ""
+    }
+  ]
+}

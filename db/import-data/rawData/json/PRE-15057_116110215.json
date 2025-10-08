@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15057,
+  "title": "New ERA - Stop Front to prevent orders",
+  "predecessor": "PRE-15057",
+  "successor": "PRE-15057",
+  "primary_team": "NEW ERA",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "NEW ERA",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**Planned Time: 20h30**\n\nNew ERA - Stop Front to prevent orders",
+      "instruction_id": "PRE-15057-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 12835,
+  "title": "TARIF TO VALIDATE IT CONTROLS - C7010, C7052",
+  "predecessor": "",
+  "successor": "",
+  "primary_team": "CONTROL TEAM",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CONTROL TEAM",
+      "associated_controls": "[ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#) \n\n [ - ](#)",
+      "instruction_title": "Validate control results of established controls:\n\nList of controls: C7000, C7010, C7020, C7030, C7040, C7050, C7060, C7070, C7080, C7090, C7100, C7110, C7120, C7130\n\nReport results by email.",
+      "instruction_id": "IGO-12835-1",
+      "nominated_user": "AOUADI Khalil"
+    }
+  ]
+}

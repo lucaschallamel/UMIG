@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15210,
+  "title": "RUN1",
+  "predecessor": "TRT-4930",
+  "successor": "TRT-4930",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SECLI Team,\n\nPlease ensure that no changes have been made on TEST environment since backup to ensure no discrepency appears with PROD LIKE environement",
+      "instruction_id": "CHK-15210-1",
+      "nominated_user": ""
+    }
+  ]
+}

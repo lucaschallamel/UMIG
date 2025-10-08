@@ -1,0 +1,237 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11746,
+  "title": "ENGINE - CLIENT STATIC DATA PROCESSING - STEP 04 - SECLI CLIENT DATA",
+  "predecessor": "DUM-14660",
+  "successor": "IGO-11781",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CD - DATA RECONCILIATION AND TRANSMISSION TO SATELLITES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0014_CLIENTS_CLIENT",
+      "instruction_id": "TRT-11746-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0021_CLIENTS_TITULAIRE",
+      "instruction_id": "TRT-11746-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0022_CLIENTS_AYANTS_DROITS",
+      "instruction_id": "TRT-11746-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0023_CLIENTS_DOCUMENT",
+      "instruction_id": "TRT-11746-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0024_CLIENTS_PROCURATION",
+      "instruction_id": "TRT-11746-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0025_CLIENTS_F_CLIENT_TVA",
+      "instruction_id": "TRT-11746-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0026_CLIENTS_GSG PBSNTS",
+      "instruction_id": "TRT-11746-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0027_CLIENTS_F_PORTF_IBAN",
+      "instruction_id": "TRT-11746-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0028_CLIENTS_F_USTAX",
+      "instruction_id": "TRT-11746-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0029_CLIENTS_F_INSTRUCTION",
+      "instruction_id": "TRT-11746-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0030_CLIENTS_F_PORT_MNGR",
+      "instruction_id": "TRT-11746-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0031_CLIENTS_CONDITIONS",
+      "instruction_id": "TRT-11746-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0032_CLIENTS_F_CLIENT_STAT",
+      "instruction_id": "TRT-11746-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0041_CLIENTS_F_ADVI_MNGR",
+      "instruction_id": "TRT-11746-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT_FPC_MOTEUR_SECLI_0046_CLIENTS_GSG PBSNTS_LIST",
+      "instruction_id": "TRT-11746-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FILES TRANFER TO SECLI",
+      "instruction_id": "TRT-11746-16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0014_CLIENTS_CLIENT",
+      "instruction_id": "TRT-11746-17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0021_CLIENTS_TITULAIRE",
+      "instruction_id": "TRT-11746-18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0022_CLIENTS_AYANTS_DROITS",
+      "instruction_id": "TRT-11746-19",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0023_CLIENTS_DOCUMENT",
+      "instruction_id": "TRT-11746-20",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0024_CLIENTS_PROCURATION",
+      "instruction_id": "TRT-11746-21",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0025_CLIENTS_F_CLIENT_TVA",
+      "instruction_id": "TRT-11746-22",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0026_CLIENTS_GSG PBSNTS",
+      "instruction_id": "TRT-11746-23",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0027_CLIENTS_F_PORTF_IBAN",
+      "instruction_id": "TRT-11746-24",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0028_CLIENTS_F_USTAX",
+      "instruction_id": "TRT-11746-25",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0029_CLIENTS_F_INSTRUCTION",
+      "instruction_id": "TRT-11746-26",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0030_CLIENTS_F_PORT_MNGR",
+      "instruction_id": "TRT-11746-27",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0031_CLIENTS_CONDITIONS",
+      "instruction_id": "TRT-11746-28",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0032_CLIENTS_F_CLIENT_STAT",
+      "instruction_id": "TRT-11746-29",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0041_CLIENTS_F_ADVI_MNGR",
+      "instruction_id": "TRT-11746-30",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_MOTEUR_SECLI_0046_CLIENTS_GSG PBSNTS_LIST",
+      "instruction_id": "TRT-11746-31",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "C2450 - List of files sent to Secli by Engine",
+      "instruction_id": "TRT-11746-31",
+      "nominated_user": ""
+    }
+  ]
+}

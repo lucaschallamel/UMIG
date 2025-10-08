@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15162,
+  "title": "RUN0",
+  "predecessor": "CHK-15162",
+  "successor": "CHK-15162",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GG - ATLAS PHASE 0, 1 AND 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "To be controlled, more details as per previous migration in **[TORONTO-426](https://jira.corp.ubp.ch/browse/TORONTO-426)**\n_- SYTGBL01 (CRCRGLOA10 NB.ANNEES..)\n- SYTGBL01 (CRSYRTAX01...ACTIVATION)\n- SYTGBL01 (FUFUGPLA20 ... 007/201 FIDUCIAIRE GROUPE/HORSGROUPE)\n- ...",
+      "instruction_id": "CHK-15162",
+      "nominated_user": ""
+    }
+  ]
+}

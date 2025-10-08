@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13856,
+  "title": "RUN1",
+  "predecessor": "IGO-13851",
+  "successor": "BGO-13861",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ C2840 ](#)",
+      "instruction_title": "SECLI TAX  to Validate control results :  on SECLI PROD\n_- SG Classification for QI CRS and FATCA correctly migrated into Secli/BTPub\n- 90 freeze mechanism in place with the correct parameters",
+      "instruction_id": "IGO-13856-1",
+      "nominated_user": "CHING David"
+    }
+  ]
+}

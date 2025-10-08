@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 5378,
+  "title": "SG PBS - SEND DOCUMENTS FILES BY HARD DRIVE",
+  "predecessor": "",
+  "successor": "",
+  "primary_team": "",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "",
+      "instruction_title": "SEND CLIENT DOCUMENTS MIGRATION FILES BY HARD DISK TO UBP",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

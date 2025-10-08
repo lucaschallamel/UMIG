@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14447,
+  "title": "BATCH ENGINEERING - UNHOLD QI/FATCA/CRS IMPORT JOBS - LDN\u0026amp;JRS ON  Prod Like",
+  "predecessor": "PRE-14447",
+  "successor": "PRE-14447",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please UNHOLD QI/FATCA/CRS IMPORT JOBS - LDN\u0026JRS\n\n\n\n\n**ENABLE ENGINE **and UNHOLD mode all Talend Jobs importing data to Secli\n\nType                  Folder Name                                       User Daily                    Control-M Server           \n\nChecked            P007-ENG-ENG-R032                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P007-ENG-ENG-R022                         Specific User Daily       PRD-GVA-SEC-DC \n\nChecked            P007-ENG-ENG-R012                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R032                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R022                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P004-ENG-ENG-R012                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R032                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R022                         Specific User Daily       PRD-GVA-SEC-DC\n\nChecked            P001-ENG-ENG-R012                         Specific User Daily       PRD-GVA-SEC-DC \n\n\n\n\nNote : Hold is done in IP Task [P](PRE-14376_116109982.html)RE-14601",
+      "instruction_id": "PRE-14447-1",
+      "nominated_user": ""
+    }
+  ]
+}

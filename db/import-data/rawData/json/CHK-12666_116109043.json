@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 12666,
+  "title": "CONTROLS - VALIDATE AFTER EOD*1 CONTROL RESULTS",
+  "predecessor": "CHK-12666",
+  "successor": "CHK-12666",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "",
+      "instruction_title": "Validate control results of established controls:\n\nList of controls: STEP13_ATLAS_RECONCILATION_AFTER_EOD*1\nPhase: After EOD*1\n\nReport results by email.",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

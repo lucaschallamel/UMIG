@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15067,
+  "title": "EXPLOITATION - Execute Atlas Phase 0",
+  "predecessor": "PRE-15067",
+  "successor": "PRE-15067",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IC - THURSDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Check de la montée au plan de la phase Ex_PHASE-0-REPRISE-CL-SECLI",
+      "instruction_id": "PRE-15067-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Check de l\u0027exécution de la phase  Ex_PHASE-0-REPRISE-CL-SECLI\nEx_ATLAS\nEx_PHASE-0-REPRISE-CL-SECLI\nConfirmer le job Ex_01-PH0_FU_ACCC5\nFU_ACCC3\nFU_ACCR6",
+      "instruction_id": "PRE-15067-2",
+      "nominated_user": ""
+    }
+  ]
+}

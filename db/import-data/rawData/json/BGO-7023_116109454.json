@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 7023,
+  "title": "BUSINESS INTERVENTION - SECURITIES \u0026amp; PRICES VERIFICATION",
+  "predecessor": "CHK-12635",
+  "successor": "CHK-12635",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Vérification des rapports de control générés par le moteur (K0022, K0029, …)",
+      "instruction_id": "BGO-7023-1",
+      "nominated_user": ""
+    }
+  ]
+}

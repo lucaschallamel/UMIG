@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 1675,
+  "title": "EXPLOITATION - DARWIN EOD*1 EXECUTION",
+  "predecessor": "DUM-6159",
+  "successor": "IGO-1625",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Executer et confirmer les jobs suivants dans l’ordre :\n\n\n\n_**Group :**_              E3_PHASE-6.3-DARWIN_EOD_STAR1\n_**Application :**_     E3_DARWIN\n_**TABLE :**_              -\n_**JOB :**_                  E3_10-PH6.3_MAP_COND_ATLAS_TO_DARWIN_STAR1\n                           E3_20-PH6.3_CONDITIONS_DEL_ADD_DARWIN_STAR1",
+      "instruction_id": "PRE-1675-1",
+      "nominated_user": ""
+    }
+  ]
+}

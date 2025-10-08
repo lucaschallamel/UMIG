@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 4930,
+  "title": "SECLI GVA - SEND TO RIG MESSAGE FOR BASE TIERS PUBLIC ON PROD LIKE",
+  "predecessor": "TRT-2643",
+  "successor": "TRT-7103",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SENDING ALL STEP -  SECLI GVA - SEND AGENT MESSAGE FOR BASE TIERS PUBLIC ON **PROD LIKE**",
+      "instruction_id": "TRT-4930-1",
+      "nominated_user": ""
+    }
+  ]
+}

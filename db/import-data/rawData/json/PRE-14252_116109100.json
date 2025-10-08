@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14252,
+  "title": "SECLI - ENSURE FTC FILES ARE AVAILABLE TO START WITH THE SECLI STAGING LOAD",
+  "predecessor": "IGO-12976",
+  "successor": "BUS-11501",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CE - DATA LOADING IN PRE-STAGING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "FTC_MOTEUR_SECLI_0014_CLIENTS_CLIENT",
+      "associated_controls": "",
+      "instruction_title": "SECLI Team - Please ensure/check all Files available to start Staging Load.\n\nAs of RUN2, here is the list:",
+      "instruction_id": "PRE-14252-1",
+      "nominated_user": "CLIENT"
+    }
+  ]
+}

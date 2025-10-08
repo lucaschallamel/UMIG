@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12219,
+  "title": "SWIFT- VERIFY RECEPTION OF MT950 AND MT535 VIA SWIFT",
+  "predecessor": "TRT-12219",
+  "successor": "TRT-12219",
+  "primary_team": "GT EXCHANGE",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "GT EXCHANGE",
+      "associated_controls": "",
+      "instruction_title": "Missing detailed instructions, please ellaborate [FEY St\u0026eacute;phane](https://confluence.corp.ubp.ch/display/~stf)",
+      "instruction_id": "TRT-12219-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "GT EXCHANGE",
+      "associated_controls": "",
+      "instruction_title": "VERIFY RECEPTION OF SWIFT MESSAGES VIA SWIFT\n_- MT535 (position statements) out of ATLAS and following migration\n- MT950 (Cash operations if any)",
+      "instruction_id": "TRT-12219-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "GT EXCHANGE",
+      "associated_controls": "",
+      "instruction_title": "Chargement des messages SWIFT dans GTMATCH",
+      "instruction_id": "TRT-12219-3",
+      "nominated_user": ""
+    }
+  ]
+}

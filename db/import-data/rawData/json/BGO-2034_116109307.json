@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 2034,
+  "title": "BUSINESS - INTERVENTION - SICAVS DATA : MANUAL INPUT OF PORTFOLIOS INTO APOLLO AND THINKFOLIO (for the scope that doesn’t involve Atlas)",
+  "predecessor": "BGO-15202",
+  "successor": "PRE-721",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mail to  BUSINESS TEAM (BACKOFFICE)  GO FOR BGO-2034 - STEP - BUSINESS - INTERVENTION - SICAVS DATA : MANUAL INPUT OF PORTFOLIOS INTO APOLLO AND THINKFOLIO (for the scope that doesn’t involve Atlas)",
+      "instruction_id": "BGO-2034-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Input SICAV Portfolio and related operations in Apollo",
+      "instruction_id": "BGO-2034-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Input SICAV Portfolio and related operations in ThinkFolio",
+      "instruction_id": "BGO-2034-3",
+      "nominated_user": ""
+    }
+  ]
+}

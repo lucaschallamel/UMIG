@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15212,
+  "title": "SECLI - Check that blockage messages have been consummed by ACB",
+  "predecessor": "CHK-15212",
+  "successor": "CHK-15212",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Check that blockage messages have been consummed by ACB",
+      "instruction_id": "CHK-15212-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Send Total number of blocage by Company (by company and by blocking type) to IT CUTOVER",
+      "instruction_id": "CHK-15212-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Send Total number of blocage by Company and By Tier (by company and by blocking type) to IT CUTOVER :\n\n\n\n\n_select c.NO_SOCI, count(distinct c.NO_CLIENT), count(1)_\n\n_from dbsecli..CLIENT c_\n\n_join dbsecli..F_PREVIOUS_NUMBER p on c.NO_SOCI = p.NO_SOCI and c.NO_CLIENT = p.NO_CLIENT and origin_Bank = \u0027SGKH\u0027_\n\n_join dbsecli..CONDITIONS co on co.NO_SOCI = c.NO_SOCI and co.NO_CLIENT = c.NO_CLIENT_\n\n_join dbsecli..TCONDITION tc on tc.NO_CONDITION = co.NO_CONDITION and tc.CO_CONDITION \u003c\u003e \u0027COC\u0027_\n\n_where c.ETAT = \u0027NULL\u0027 group by c.NO_SOCI_\n\n\n\n\n**_Note : this figure is used in order to compare blocage KPIs with Atlas_**",
+      "instruction_id": "CHK-15212-3",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15055,
+  "title": "BATCH ENGINEERING - Schedule Phase 0 Atlas between Week 1 and Week 2",
+  "predecessor": "PRE-15055",
+  "successor": "PRE-15055",
+  "primary_team": "SPOC_INTEGRATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_INTEGRATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Scheduler la montée de la phase E3_PHASE-0-REPRISE-CL-SECLI tous les jours en automatique (du Lundi 26/05 au Vendredi 30/05)",
+      "instruction_id": "PRE-15055-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_INTEGRATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Scheduler la phase 0 de manière automatique, deux fois par jour (11h00 et 18h00) la phase : E3_PHASE-0-REPRISE-CL-SECLI**E3_ATLAS**E3_PHASE-0-REPRISE-CL-SECLI**Confirmer le job E3_01-PH0_FU_ACCC5**FU_ACCC3**FU_ACCR6",
+      "instruction_id": "PRE-15055-2",
+      "nominated_user": ""
+    }
+  ]
+}

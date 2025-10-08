@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 5675,
+  "title": "TARIF - SPECIFIC TREATMENTS - insert Special conditions in Prod Like Env.",
+  "predecessor": "DUM-13471",
+  "successor": "CHK-1416a",
+  "primary_team": "TARIF",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CO - TRANSMISSION OF DATA TO SATELLITES (PMS, BTP, TARIF, ACB)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TARIF",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Creation des conditions particlulieres pour les clients SG PBS dans l\u0027environement Prod-Like",
+      "instruction_id": "TRT-5675-1",
+      "nominated_user": ""
+    }
+  ]
+}

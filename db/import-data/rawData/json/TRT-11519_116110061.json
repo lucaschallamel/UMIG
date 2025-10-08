@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11519,
+  "title": "DARWIN - PREPARATION BEFORE EOD PostMig",
+  "predecessor": "TRT-11519",
+  "successor": "TRT-11519",
+  "primary_team": "DARWIN",
+  "impacted_teams": "",
+  "macro_time_sequence": "I - POSTMIGRATION",
+  "time_sequence": "IA - MONDAY POST-MIGRATION ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DARWIN",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Vérifier que la migration Darwin EOD*2 s\u0027est bien terminée (risque de collision avec EOD PostMig)",
+      "instruction_id": "TRT-11519-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DARWIN",
+      "associated_controls": "",
+      "instruction_title": "Vérifier que le répertoire de réception des fichier provenant d\u0027ATLAS est vide",
+      "instruction_id": "TRT-11519-2",
+      "nominated_user": ""
+    }
+  ]
+}

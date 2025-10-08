@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 1625,
+  "title": "RUN1",
+  "predecessor": "PRE-1675",
+  "successor": "DUM-6170",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Exécuter le job :\nGroup :              MIGRATION-CHECK\nApplication :   **E3**_DARWIN\nTABLE :              **E3**_T_DRW_CHECK_DARWIN\nJOB :                   **E3**_CHECK-EOD-FILES_STAR1\n\nIF Error Code is different from 0:\nGive the sysout by email to ATLAS cc: SGPBCHMigrationCoordination.",
+      "instruction_id": "IGO-1625-1",
+      "nominated_user": ""
+    }
+  ]
+}

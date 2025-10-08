@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12495,
+  "title": "SECLI / DTCM -Provide to DTCM ESTIMATES FROM SECRET ZONE",
+  "predecessor": "TRT-12327",
+  "successor": "TRT-12332",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Send the top client statements for printing",
+      "instruction_id": "TRT-12495-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm the reception",
+      "instruction_id": "TRT-12495-2",
+      "nominated_user": ""
+    }
+  ]
+}

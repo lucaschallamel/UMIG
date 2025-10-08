@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 15066,
+  "title": "EXPLOITATION - DARWIN DUMP AFTER EOD*2",
+  "predecessor": "IGO-11253",
+  "successor": "GON-2900",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "**CONFIRM **Groupe **335_DARWIN_AFTEREODS2_AAA_BCK_SYBASE_EV3**\n\n**CONFIRM **Sub-groupe **335_DARWIN_AFTEREODS2_AAA_BCK_SYBASE_DARWIN_EV3**",
+      "instruction_id": "DUM-15066-1",
+      "nominated_user": ""
+    }
+  ]
+}

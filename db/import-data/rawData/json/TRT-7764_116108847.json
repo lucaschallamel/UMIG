@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7764,
+  "title": "SECLI GVA - EXPORT LSV FILE TO SECLI",
+  "predecessor": "TRT-7723",
+  "successor": "TRT-11356",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "EXPORT TO SECLI BU THE LSV FILE",
+      "instruction_id": "TRT-7764-1",
+      "nominated_user": ""
+    }
+  ]
+}

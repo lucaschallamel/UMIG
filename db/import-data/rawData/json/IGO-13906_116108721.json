@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13906,
+  "title": "ATLAS - PHASE 2 controls",
+  "predecessor": "CHK-117",
+  "successor": "TRT-7243",
+  "primary_team": "CONTROL TEAM",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CONTROL TEAM",
+      "associated_controls": "",
+      "instruction_title": "Verify controls below  and send results to TORONTO_CUTOVER:\n\nC2255 List of Clients already existing in ATLAS before migration\nC2140 Client Status SECLI / ENGINE\nC2256 List of clients not existing in ATLAS after integration\nC2460 SGPBCH Client ID \u003c=\u003e UBP Client ID mapping table",
+      "instruction_id": "IGO-13906-1",
+      "nominated_user": "C2255                                                                                    C2140                                                                                    C2256                                                                                    C2460"
+    }
+  ]
+}

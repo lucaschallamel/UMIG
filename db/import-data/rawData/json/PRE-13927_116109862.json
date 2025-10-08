@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 13927,
+  "title": "CMS To START (enable) sending data (phones/addresses) to SECLI using MQ",
+  "predecessor": "PRE-13927",
+  "successor": "PRE-13927",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "ONLY DR2 \u0026 CUTOVER",
+      "instruction_id": "PRE-13927-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Enable CMS Fatca agent (at 8 AM on Monday, 25.05.2025) after SECLI De-Isolation is completed - IP Task [PRE-13404](PRE-13404_116109736.html)\n\nNote: CMS FATCA agent is disabled in IP Task [PRE-13922](PRE-13922_116109060.html)",
+      "instruction_id": "PRE-13927-1",
+      "nominated_user": ""
+    }
+  ]
+}

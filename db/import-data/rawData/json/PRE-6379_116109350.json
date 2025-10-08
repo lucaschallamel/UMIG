@@ -1,0 +1,62 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6379,
+  "title": "ENGINE - PREPARATION - Step 00 - BEFORE START MIGRATION",
+  "predecessor": "PRE-15023",
+  "successor": "IGO-6389",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TRUNCATE ALL TABLE FUSION",
+      "instruction_id": "PRE-6379-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check FTP to be sure ENGINE have the good environment. : AVANT_START_MIGRATION_CHANGE_FTP",
+      "instruction_id": "PRE-6379-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Ask _IM_ATLAS to have a user on ATLAS",
+      "instruction_id": "PRE-6379-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHANGE_GETDATE. Replace RUN NAME by the CURRENT : DR2",
+      "instruction_id": "PRE-6379-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Replace SYSTEM DATE by the defined BUSINESS DATE 30.04.2025",
+      "instruction_id": "PRE-6379-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TURNOFF_CLIENT_FILTER",
+      "instruction_id": "PRE-6379-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Connexion to ATLAS Prod Like Environment",
+      "instruction_id": "PRE-6379-7",
+      "nominated_user": ""
+    }
+  ]
+}

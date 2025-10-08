@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14551,
+  "title": "DOCUMENTUM - LDN\u0026amp;JRS - CHECK DATA FILES",
+  "predecessor": "TRT-11733",
+  "successor": "TRT-11733",
+  "primary_team": "DOCUMENTUM",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CJ - DOCUMENTUM FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check all DOCUMENTUM files per package (AVALOQ, PRIV DMS, S2i, KyC)",
+      "instruction_id": "TRT-14551-1",
+      "nominated_user": "BLUSZEZ Laurent"
+    }
+  ]
+}

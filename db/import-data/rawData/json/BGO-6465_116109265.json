@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 6465,
+  "title": "BUSINESS - FOREX ALIGNMENT - VERIFY ALIGNMENT OF SPOT PRICES BTW SGPBS AND ATLAS",
+  "predecessor": "IGO-14917",
+  "successor": "CHK-14469",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the below control and confirm FX spot rates are aligned between SGPBS and ATLAS\n\nK0000 - Comparaison des cours spot CHF entre SGPBS et UBP",
+      "instruction_id": "BGO-6465-1",
+      "nominated_user": ""
+    }
+  ]
+}

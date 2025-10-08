@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14247,
+  "title": "ENGINE - GENERATE STANDING ORDER FILE",
+  "predecessor": "CHK-14397",
+  "successor": "CHK-15157",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Please generate the standing order file (C3517)",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Send generated file to  [PAPI Nicolas](https://confluence.corp.ubp.ch/display/~pni) (PNI)",
+      "instruction_id": "2",
+      "nominated_user": "-"
+    }
+  ]
+}

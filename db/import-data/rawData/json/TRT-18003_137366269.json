@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 18003,
+  "title": "RUN0",
+  "predecessor": "TRT-18003",
+  "successor": "TRT-18003",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Ask DOCUMENTUM to extract GDPR object of the scope",
+      "instruction_id": "TRT-18003-1",
+      "nominated_user": ""
+    }
+  ]
+}

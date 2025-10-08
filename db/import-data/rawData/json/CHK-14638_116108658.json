@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 14638,
+  "title": "ENGINE SECRET - CHECKS ON CHILDREN FILES INVARIANTS + CONTROLS",
+  "predecessor": "TRT-14633",
+  "successor": "TRT-13565",
+  "primary_team": "CONTROLS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CB - ANONYMISATION AND INTEGRATION OF CHILDREN FILES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CONTROLS",
+      "associated_controls": "",
+      "instruction_title": "Please provide all KPI on invariants and compare figures with previous RUN/DR (C1001, C1019)",
+      "instruction_id": "CHK-14638-1",
+      "nominated_user": "AOUADI Khalil"
+    }
+  ]
+}

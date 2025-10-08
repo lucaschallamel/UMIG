@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 13404,
+  "title": "SECLI CH/GVA - START BUS SERVICE FOR CMS - PROD ONLY - after SECLI PROD is De-isolated",
+  "predecessor": "PRE-13404",
+  "successor": "PRE-13404",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**VIDER BUS  POUR METTRE A JOUR LES UPDATES BUSINESS**",
+      "instruction_id": "PRE-13404-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**START SECLI-CMS BUS SERVICE in PROD after SECLLI De-Isolation**",
+      "instruction_id": "PRE-13404-2",
+      "nominated_user": ""
+    }
+  ]
+}

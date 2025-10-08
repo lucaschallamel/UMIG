@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 3547,
+  "title": "RUN1",
+  "predecessor": "DUM-6358",
+  "successor": "IGO-14541",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Take DUMP of SECLI CH PROD and SECLI CH EV4, please ensure that it includes all data servers GVA, ZRH and LUG.\nAfterwards Copy/Restore SECLI CH/GVA EV4 onto SECLI CH/GVA PROD\n\nPhase: - 030_ACTCLI_REF",
+      "instruction_id": "DUM-3547-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14231,
+  "title": "SPOC_INTEGRATION - DISABLE SECLI JOBS/ISOLATION on PROD-Like",
+  "predecessor": "PRE-14231",
+  "successor": "PRE-14231",
+  "primary_team": "SPOC_INTEGRATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_INTEGRATION",
+      "associated_controls": "",
+      "instruction_title": "To send \n\nPlease PUT ON HOLD AND DO NOT EXECUTE the SECLI Batch jobs (Except MIFID \u0026 EMIR) from Friday until Sunday on CSD Weekend 1, on PROD-Like\n\n\n\n\nThe Thursday EOD PROD BANK Batch for SECLI part should have been run as expected.",
+      "instruction_id": "PRE-14231-1",
+      "nominated_user": ""
+    }
+  ]
+}

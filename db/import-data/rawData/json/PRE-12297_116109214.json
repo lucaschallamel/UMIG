@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12297,
+  "title": "CONTROL-M - EOW CSD - PREPARATION : VERIFY THAT THE RIGHT PLAN HAS BEEN SCHEDULED",
+  "predecessor": "PRE-3094",
+  "successor": "PRE-3088",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check to be done once the scheduled plan is confirmed : verify that it is the right plan.\n\nVérification pour éviter que le mauvais plan soit monté et executé\n\nATTENTION A CE QUE TOUS LES EOD ET AUTRES BATCHS NE SOIENT PAS ACTIFS",
+      "instruction_id": "PRE-12297-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "PROD ONLY : Atlas pour bloquer le démarrage du batch Atlas il faudra après 18h le vendredi après-midi holder les jobs suivants : 01-START-EOD plus tous les job du folder P_HOS_CORE-BANKING (uniquement les jobs pas le folder).",
+      "instruction_id": "PRE-12297-2",
+      "nominated_user": ""
+    }
+  ]
+}

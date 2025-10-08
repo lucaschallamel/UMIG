@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15258,
+  "title": "TARIF - Perform specific adaptations before billing",
+  "predecessor": "TRT-15258",
+  "successor": "TRT-15258",
+  "primary_team": "TARIF",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TARIF",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "TARIF - Perform specific adaptations before billing",
+      "instruction_id": "TRT-15258-1",
+      "nominated_user": ""
+    }
+  ]
+}

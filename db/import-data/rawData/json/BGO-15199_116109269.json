@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15199,
+  "title": "RUN0",
+  "predecessor": "GON-14779",
+  "successor": "GON-14779",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GF - PREPARATION PHASE BEFORE MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please provide your feedbacks and validation on the Fire2 file provided by SGBP",
+      "instruction_id": "BGO-15199-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Control reports as basis :**C0200 - Global view with theorical mapping**C1006 - Asset Repartition**C1006 A - Asset Repartition by currency",
+      "instruction_id": "BGO-15199-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "",
+      "instruction_title": "Please provide feedback on accounting post UBP EoM",
+      "instruction_id": "BGO-15199-3",
+      "nominated_user": ""
+    }
+  ]
+}

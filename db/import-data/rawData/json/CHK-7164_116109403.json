@@ -1,0 +1,48 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 7164,
+  "title": "ENGINE MASTER - SECLI MAPPING TABLE INTEGRATION - Step 05 - RECONCILIATION INTEGRITY 2 PART 1",
+  "predecessor": "TRT-7129",
+  "successor": "CHK-7173",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BREAKPOINT_1_ATLAS_FU_CLIENT",
+      "instruction_id": "CHK-7164-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTP_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
+      "instruction_id": "CHK-7164-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_FTC_SECLI_MOTEUR_0042_CLIENTS_MATCHINGNOCLIENT",
+      "instruction_id": "CHK-7164-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ C2140 ](#)",
+      "instruction_title": "EXCEL_C2140_SECLI_REPORT_COMPARE_ETAT",
+      "instruction_id": "CHK-7164-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ C2140 ](#)",
+      "instruction_title": "MAIL_C2140_SECLI_REPORT_COMPARE_ETAT",
+      "instruction_id": "CHK-7164-5",
+      "nominated_user": ""
+    }
+  ]
+}

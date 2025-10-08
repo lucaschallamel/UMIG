@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 7190,
+  "title": "IT CUTOVER -  INFORMER DE l\u0027ENVOI PROCHAIN DES NOUVEAUX CLIENTS",
+  "predecessor": "CHK-7173",
+  "successor": "BUS-7209",
+  "primary_team": "IT_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Faire un mail à Atlas pour annoncer l\u0027envoi à venir des nouveaux clients",
+      "instruction_id": "TRT-7190-1",
+      "nominated_user": ""
+    }
+  ]
+}

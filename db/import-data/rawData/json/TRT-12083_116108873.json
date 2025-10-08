@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12083,
+  "title": "RUN0",
+  "predecessor": "TRT-11864",
+  "successor": "TRT-2377",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify that the table (TIERS_PUBLIC.Tiers_extra_codification) is fulfilled with the new client, if not insert the data",
+      "instruction_id": "TRT-12083-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify if the  F_PREVIOUS_NUMBER table is fulfilled with new number if not insert",
+      "instruction_id": "TRT-12083-2",
+      "nominated_user": ""
+    }
+  ]
+}

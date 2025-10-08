@@ -1,0 +1,97 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12596,
+  "title": "ENGINE - STEP 06_7 - TAXES",
+  "predecessor": "TRT-12596",
+  "successor": "TRT-12596",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_0641_TOS_DOCM_CODES",
+      "instruction_id": "TRT-12596-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_0760_TAX_ASSET_HISTORY",
+      "instruction_id": "TRT-12596-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5609_TAX_TRX_ALL",
+      "instruction_id": "TRT-12596-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5613_TAX_TRX_COUPONS",
+      "instruction_id": "TRT-12596-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5614_TRX_DEPOSITS_LOANS",
+      "instruction_id": "TRT-12596-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5615_TAX_TRX_DIVIDENDS",
+      "instruction_id": "TRT-12596-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5616_TRX_FOREX",
+      "instruction_id": "TRT-12596-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5617_TRX_INTRST_N_FEES",
+      "instruction_id": "TRT-12596-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5680_CASH_MOVEMENTS",
+      "instruction_id": "TRT-12596-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_TAXE_5110_ACCOUNT_STATIC",
+      "instruction_id": "TRT-12596-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Provide NB of record pushed",
+      "instruction_id": "TRT-12596-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONFIRM MVMTS SEND =\u003e Provide nb record received",
+      "instruction_id": "TRT-12596-12",
+      "nominated_user": ""
+    }
+  ]
+}

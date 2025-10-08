@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 5737,
+  "title": "RUN1",
+  "predecessor": "TRT-14331",
+  "successor": "TRT-14402",
+  "primary_team": "EBANKING",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EBANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Run Migration Tool to create user enrollment",
+      "instruction_id": "TRT-5737-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EBANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Re-run SECLI extract (with software token serial number)",
+      "instruction_id": "TRT-5737-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EBANKING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Provide Xls list \u0026 Word Template for publipostage",
+      "instruction_id": "TRT-5737-3",
+      "nominated_user": ""
+    }
+  ]
+}

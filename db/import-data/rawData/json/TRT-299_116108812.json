@@ -1,0 +1,174 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 299,
+  "title": "ENGINE - STEP 12 - ALL FILES - EXTRACTION OF CASH POSITION, SECURITIES POSITION, PLACEMENT, FOREX , LOANS, PERFORMANCE",
+  "predecessor": "BGO-13144",
+  "successor": "CHK-14397",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_12_WAIT_GO_FFUTR1",
+      "instruction_id": "1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0120_DOSSIER_FFUTR1",
+      "instruction_id": "2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0120_DOSSIER_FFUTR1",
+      "instruction_id": "3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0094_ACCOUNTS_FACCR2B",
+      "instruction_id": "4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0094_ACCOUNTS_FACCR2B",
+      "instruction_id": "5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0096_ACCOUNTS_FACCR2",
+      "instruction_id": "6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0096_ACCOUNTS_FACCR2",
+      "instruction_id": "7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0096_PORTFOLIOS_FPTFR3",
+      "instruction_id": "8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0096_PORTFOLIOS_FPTFR3",
+      "instruction_id": "9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0111_LOANSS_FPRER1",
+      "instruction_id": "10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0111_LOANSS_FPRER1",
+      "instruction_id": "11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0165_PORTFOLIOS_FPTFR5",
+      "instruction_id": "12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0165_PORTFOLIOS_FPTFR5",
+      "instruction_id": "13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0170_PLACEMENT_FPLAR1",
+      "instruction_id": "14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0170_PLACEMENT_FPLAR1",
+      "instruction_id": "15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTS_MOTEUR_ATLAS_0145_STANDING_ORDERS",
+      "instruction_id": "16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_T_CLIENT_ALL_INFO",
+      "instruction_id": "17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0000_INSERT_ATLAS_OUT_PERFORMANCE",
+      "instruction_id": "18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0145_PERFORMANCE_FPFMR1",
+      "instruction_id": "19",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0145_PERFORMANCE_FPFMR1",
+      "instruction_id": "20",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_0112_MAJ_TB110_FX_CNRT_ID",
+      "instruction_id": "21",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXPORT_FTC_MOTEUR_ATLAS_0146_FOREX_FFORR1",
+      "instruction_id": "22",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "FTP_FTC_MOTEUR_ATLAS_0146_FOREX_FFORR1",
+      "instruction_id": "23",
+      "nominated_user": ""
+    }
+  ]
+}

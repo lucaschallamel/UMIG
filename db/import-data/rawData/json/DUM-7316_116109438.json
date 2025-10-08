@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 7316,
+  "title": "EXPLOITATION - DUMP BEFORE EOD*1 \u0026amp; ATLAS REFRESH",
+  "predecessor": "CHK-12661",
+  "successor": "IGO-7327",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 275\n****_Phase name:_ ****ATLAS_PROD_BEFORE_EODS1**\n\n_**Description:**_\n\nFor **ATLAS**, **BEFORE EOD*1 **proceed with the following **BACKUP **and **RESTORE **activities.",
+      "instruction_id": "DUM-7316-1",
+      "nominated_user": ""
+    }
+  ]
+}

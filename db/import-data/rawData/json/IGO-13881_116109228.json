@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13881,
+  "title": "VALIDATE IT CONTROL - (C2256 - List of clients not existing in ATLAS after integration) on Prod Like Environment",
+  "predecessor": "BGO-13876",
+  "successor": "IGO-13886",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "",
+      "instruction_title": "Atlas to Validate control results on Prod Like Environment: \nC2256 - List of clients not existing in ATLAS after integration\n\nC2460 - SG Client ID \u003c=\u003e UBP Client ID mapping Table",
+      "instruction_id": "IGO-13881-1",
+      "nominated_user": "GUILLEMAU Pascal"
+    }
+  ]
+}

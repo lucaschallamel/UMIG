@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6728,
+  "title": "UNIX - PREPARATION :  USUAL SCRIPT / BATCHES / … in Production TO REACTIVATE : REDEMARRAGE DU PROCESS XNTPD",
+  "predecessor": "PRE-6728",
+  "successor": "PRE-6728",
+  "primary_team": "UNIX",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "UNIX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Sur nhprdtxb. ATTENTION POUR LES DR NOM DE MACHINE ATLASENV3 est =\u003e axvgvatxbuat01p\n\nRemettre en place le process xntp :\n# lssrc -s xntpd\nSubsystem         Group            PID          Status\nxntpd            tcpip                         inoperative\n\nForcer la synchronisation de l\u0027heure. Obligatoire car il y a plus de 1000 secondes de décallage avec le temps réel.\n\n# ntpdate 10.8.1.109\n\n# startsrc  -s xntpd\n0513-059 The xntpd Subsystem has been started. Subsystem PID is 15007778.\n\n# lssrc -s xntpd\nSubsystem         Group            PID          Status\nxntpd            tcpip            15007778     active\n\net modifier /etc/rc.tcpip en enlevant le dièse devant la commande\n# start -s xntpd\n\n\n\n\nNote : Desactivation is done in Task [PRE-6576](PRE-6576_116109391.html)",
+      "instruction_id": "PRE-6728-1",
+      "nominated_user": ""
+    }
+  ]
+}

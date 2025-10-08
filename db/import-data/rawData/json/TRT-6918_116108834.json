@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6918,
+  "title": "RUN0",
+  "predecessor": "TRT-6794",
+  "successor": "TRT-6980",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Activate trigger for bus",
+      "instruction_id": "TRT-6918-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Flow test : 100 **TIERS FROM EACH COMPANIES (302, 303, 304, 305)** Clients sent",
+      "instruction_id": "TRT-6918-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BTPUB",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Clients reception verification in Base Tiers Public : 100 +100 CLIENTS",
+      "instruction_id": "TRT-6918-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "BTPUB",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the logs\nReport the defect via Jira",
+      "instruction_id": "TRT-6918-6",
+      "nominated_user": ""
+    }
+  ]
+}

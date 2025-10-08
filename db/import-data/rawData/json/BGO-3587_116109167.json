@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 3587,
+  "title": "RUN1",
+  "predecessor": "BGO-13861",
+  "successor": "BGO-12218",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Active Clients Quality data checks on PROD - Like\nPlease provide GO/NO GO post Business Checks are done.",
+      "instruction_id": "BGO-3587-1",
+      "nominated_user": "KARDES Elif"
+    }
+  ]
+}

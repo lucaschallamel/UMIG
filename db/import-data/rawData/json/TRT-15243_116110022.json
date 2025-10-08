@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15243,
+  "title": "CTRLM - STOP AND DECOMISSION DATA FLOWS SET UP BEFORE MIGRATION BETWEEN SG UK and UBP",
+  "predecessor": "TRT-15243",
+  "successor": "TRT-15243",
+  "primary_team": "BATCH ENGINEERING",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GO - BUSSINESS DATA ENTRIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BATCH ENGINEERING",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CTRLM - STOP AND RETIRE THE ALIEN FILES RECEPTION JOBS\n\n→ stop process in charge of forwarding ALIEN files from SG drop zone to UBP file system",
+      "instruction_id": "TRT-15243-1",
+      "nominated_user": "BECHETOILLE Franck"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11903,
+  "title": "RUN1",
+  "predecessor": "CHK-11898",
+  "successor": "IGO-11908",
+  "primary_team": "SGPBS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "",
+      "instruction_title": "Send to UBP IT Cutover team the \\\"6999_FILE_MANIFESTE\\\" file, via email : [toronto_rundr@ubp.ch](mailto:toronto_rundr@ubp.ch)",
+      "instruction_id": "TRT-11903-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SGPBS",
+      "associated_controls": "",
+      "instruction_title": "Update the KPIs file on the ShareFolder : https://spconfidential/projects/toronto-it/07%20%20Cutover/04%20-%20Controls/KPIs/6998_FILE_KPI_TORONTO_SG_with_UBP_mappingRules_040325.xlsx?d=w27019517ed4d4eccaf018423220fe993",
+      "instruction_id": "TRT-11903-2",
+      "nominated_user": ""
+    }
+  ]
+}

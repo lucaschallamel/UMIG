@@ -1,0 +1,195 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 6930,
+  "title": "ENGINE - MASTER 03 - RECONCILIATION INTEGRITY 1 - BREAKPOINT_2_JOB_AVANT_MIGRATION_ATLAS",
+  "predecessor": "BGO-6900",
+  "successor": "IGO-13931",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GE - ACTIONS BETWEEN EOM PART 1 AND PART 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_2_JOB_AVANT_MIGRATION_ATLAS",
+      "instruction_id": "TRT-6930-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "BREAKPOINT_2_JOB_AVANT_MIGRATION_ATLAS_REPORT_ATLAS",
+      "instruction_id": "TRT-6930-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_GL_ACCOUNT",
+      "instruction_id": "TRT-6930-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_K1012_ATLAS_LIST_GL_ACCOUNT_NOT_MAPPED",
+      "instruction_id": "TRT-6930-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_K1012_ATLAS_LIST_GL_ACCOUNT_NOT_MAPPED",
+      "instruction_id": "TRT-6930-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_GL_ACCOUNT_PROD",
+      "instruction_id": "TRT-6930-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_K0050_LISTE_DES_COMPTE_G_NON_MAPPES",
+      "instruction_id": "TRT-6930-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_K0050_LISTE_DES_COMPTE_G_NON_MAPPES",
+      "instruction_id": "TRT-6930-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_K0051_LIST_GL_ACCOUNT_WITHOUT_SUBACCOUNT",
+      "instruction_id": "TRT-6930-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_K0051_LIST_GL_ACCOUNT_WITHOUT_SUBACCOUNT",
+      "instruction_id": "TRT-6930-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "SQL_MOTEUR_MOTEUR_C0009_CHECK_CURRENCIES",
+      "instruction_id": "TRT-6930-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0004_ANALYSE_SCOPE_CLIENT",
+      "instruction_id": "TRT-6930-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0004_ANALYSE_SCOPE_CLIENT",
+      "instruction_id": "TRT-6930-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0004_ANALYSE_SCOPE_CLIENT_DETAIL_ASSET",
+      "instruction_id": "TRT-6930-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0004_ANALYSE_SCOPE_CLIENT_DETAIL_ASSET",
+      "instruction_id": "TRT-6930-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0009_CHECK_CURRENCIES",
+      "instruction_id": "TRT-6930-16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0009_CHECK_CURRENCIES",
+      "instruction_id": "TRT-6930-17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C4005_ATLAS_ACCOUNT_KEY_DOUBLON",
+      "instruction_id": "TRT-6930-18",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C4005_ATLAS_ACCOUNT_KEY_DOUBLON",
+      "instruction_id": "TRT-6930-20",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0008_ACCOUNTS_POSITION_DOUBLONS",
+      "instruction_id": "TRT-6930-21",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0008_ACCOUNTS_POSITION_DOUBLONS",
+      "instruction_id": "TRT-6930-22",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "IMPORT_FTC_ATLAS_MOTEUR_0000_COMPTE_CONTREPARTIE",
+      "instruction_id": "TRT-6930-23",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C0012_ATLAS_LISTE_DES_COMPTES_DE_CONTREPARTIE_MANQUANTS",
+      "instruction_id": "TRT-6930-24",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C0012_ATLAS_LISTE_DES_COMPTES_DE_CONTREPARTIE_MANQUANTS",
+      "instruction_id": "TRT-6930-25",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "EXCEL_C1285_NAME",
+      "instruction_id": "TRT-6930-26",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "MAIL_C1285_NAME",
+      "instruction_id": "TRT-6930-27",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14606,
+  "title": "SECLI CH/GVA - ISOLATION on PROD-Like",
+  "predecessor": "PRE-14606",
+  "successor": "PRE-14606",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Please set the SECLI EVx (PROD-Like) users in read only mode",
+      "instruction_id": "PRE-14606-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_INTEGRATION",
+      "associated_controls": "",
+      "instruction_title": "Please PUT ON HOLD / DO NOT EXECUTE the SECLI batch jobs from from Tuesday until Sunday on CSD migration week",
+      "instruction_id": "PRE-14606-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "\\\"Communication SECLI Satellites: Done by SECLI\nDirect satellites have been informed and have taken action to have a smooth adaptation (Appway Secret will be unplugged, Appway Credit Protocol only reads data, etc.)\\\"",
+      "instruction_id": "PRE-14606-3",
+      "nominated_user": ""
+    }
+  ]
+}

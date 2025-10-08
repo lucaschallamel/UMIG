@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 3617,
+  "title": "SECLI - MAPPING TABLE EXTRACTION FOR ENGINE",
+  "predecessor": "TRT-12645",
+  "successor": "CHK-1181",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Update statistics",
+      "instruction_id": "TRT-3617-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Transfer of the mapping table FPC_SECLI_MOTEUR_999_CLIENTS_MATCHINGNOCLIENT.CSV to the Moteur + - FPC_SECLI_MOTEUR_999_CLIENT_CORRESP",
+      "instruction_id": "TRT-3617-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Transfer of the mapping table to DOCUMENTUM (SMSA server):  FPC_SECLI_MOTEUR_999_CLIENT_CORRESP",
+      "instruction_id": "TRT-3617-3",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 14997,
+  "title": "ATLAS - PREPARATION BEFORE EOM (OR EOW/EOD)",
+  "predecessor": "PRE-3093",
+  "successor": "PRE-15005",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Purge Previous Migration Files + LIVE + LOG (with user migsup)\nSCRIPT : [axvgvatxbEV301p:/home/migsup/tools/03_Purge_files_PFU.ksh](http://axvgvatxbEV401p/home/migsup/tools/Purge_files_PFU.ksh)\nSCRIPT : [axvgvatxbEV301p:/home/migsup/tools/03_Purge_LIVE_LOG.ksh](http://axvgvatxbEV401p/home/migsup/tools/purge_files_PFU.ksh)",
+      "instruction_id": "PRE-14997-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "obsolete",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Refresh last version program (include code fix from RUN 1)",
+      "instruction_id": "PRE-14997-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CODE-TYPE-RISK update in system code\nTransaction UT01 (macro)",
+      "instruction_id": "PRE-14997-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**TECHNICAL BROKER**\nCheck the existance of the technical broker : 001/3203608 302/3203608 303/3203608 304/3203608 305/3203608\n\nTransaction : EN21 with office 001 and Param : A3203608\nTransaction : EN21 with office 302 and Param : A3203608\nTransaction : EN21 with office 303 and Param : A3203608\nTransaction : EN21 with office 304 and Param : A3203608\nTransaction : EN21 with office 305 and Param : A3203608",
+      "instruction_id": "PRE-14997-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Verify deposit correspondance table SGPBS vs UBP.\n\n**Deposit Mapping (TB100)**\nRecovery from the business of the latest deposit mapping\n\n**Price for contracts Future migration (TB111) → PAS DE FUTURES POUR VICTORIA - SEULEMENT IRS**\n\nN/A POUR LE RUN2\n\n\nRecovery from the business deposits and price to use\n\nMANDATORY FOR THE PROCESS : securities position migration",
+      "instruction_id": "PRE-14997-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**DELIVERY INSTRUCTIONS (DEPOT CONFIGURATION)**\n\u003e Check if delivery instructions exist for technical broker with Transaction **SD85**\n\u003e Soc 001 Dept 19600 Broker 3203608 ==\u003e Delivery instruction present\n\nMANDATORY FOR THE PROCESS : Deposit instructions.",
+      "instruction_id": "PRE-14997-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**DELIVERY INSTRUCTIONS (PLACE OF SETTLEMENT CONFIGURATION)**\n\nCheck with Business team data on SPITAB SDTPSET1 parameters for broker used for migration\nAll new segregated deposit must be reported in SDTPSET1 \nCreate them if it\u0027s not done (Per Broker / deposits) as follow\n\nA*NUMERO DEPOT      ........ xxxxx-  \nB*NUMERO BROKER............. 9999999-\nC*NUMERO PLACE BOU.RSE...... 999-    \n\nTransaction SPI2 or SQL Query\nMANDATORY FOR THE PROCESS : deposits instructions (SWIFT messages)",
+      "instruction_id": "PRE-14997-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check the availability of BIC code SG in T_SEPA_BANK_DIRECT table (provide the extract)« select * from NHDBO.T_SEPA_BANK_DIRECT t where t.Code_Bic11_1099 like \u0027%RUEGCHZZXXX%\u0027  »```",
+      "instruction_id": "PRE-14997-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "obsolete",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**DELIVERY INSTRUCTIONS (TRADE DATE \u0026 SETTLEMENT DATE CONFIGURATION)**\nCheck with business Team (SWIFT MT-540 messages deposit output) on SPITAB SYTGBL01.\nCreate them if it\u0027s not done by transaction SPI2.\nMANDATORY FOR THE PROCESS : deposits instructions (SWIFT messages)",
+      "instruction_id": "PRE-14997-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "obsolete",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**DELIVERY INSTRUCTIONS (TRADE DATE \u0026 SETTLEMENT DATE CONFIGURATION)**\nCheck with business Team for the last directives on SPITAB SYTGBL01.\nCreate them if it\u0027s not done Transaction SPI2.",
+      "instruction_id": "PRE-14997-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "obsolete",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**DELIVERY INSTRUCTIONS (TRADE DATE \u0026 SETTLEMENT DATE CONFIGURATION)**\nVerify correspondance table for the value dates (SWIFT MT-540 messages) on SPITAB SYTGBL01.\nCreate them if it\u0027s not done by transaction SPI2.\nMANDATORY FOR THE PROCESS deposits instructions (SWIFT messages)",
+      "instruction_id": "PRE-14997-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**Verify if Counterpart accounts exist. **\n\n\u003c\u003eATLAS Transaction EN22 :\nFor client 302 2000027, accounts must be exist in category 4159 + 9711\nFor client 303 2000015, accounts must be exist in category 4159 + 9711\nFor client 304 2000015, accounts must be exist in category 4159 + 9711\nFor client 305 2000015, accounts must be exist in category 4159 + 9711\n\n\u003c\u003e Transaction BI25 for creation if needed + BB for reflectd account (966000 + 967000)",
+      "instruction_id": "PRE-14997-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Create FUSIGMA repository folder in EOS for saving EFU reports.",
+      "instruction_id": "PRE-14997-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Update table LST-NUM (DNCA \u0026 DNDT)",
+      "instruction_id": "PRE-14997-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Creation du fichier CT1.QSAM (liste des clients migrés)",
+      "instruction_id": "PRE-14997-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "**SPITAB**\n\n\u003c\u003e Vérification paramétrage sociétés à migrer : SYTGBL01 - FU FUSION 000 SOCIETES A TRAITER 000\n\n\u003c\u003e Vérification des tiers de migration : SYTGBL01 - FU FUSION 000 TIERS DE MIGRATION 302 / 303 /304/ 305",
+      "instruction_id": "PRE-14997-16",
+      "nominated_user": ""
+    }
+  ]
+}

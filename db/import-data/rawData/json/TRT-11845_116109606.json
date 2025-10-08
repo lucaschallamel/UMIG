@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11845,
+  "title": "RUN1",
+  "predecessor": "TRT-11845",
+  "successor": "TRT-11845",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Request to Execute the sql update by DBA",
+      "instruction_id": "TRT-11845-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CHECK",
+      "instruction_id": "TRT-11845-2",
+      "nominated_user": ""
+    }
+  ]
+}

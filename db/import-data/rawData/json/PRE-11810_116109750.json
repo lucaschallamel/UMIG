@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 11810,
+  "title": "CONTROL_M - UNHOLD ALL TREATMENTS on ENV 1 - ENV 4 - ENV 3 - ENV 5",
+  "predecessor": "PRE-11810",
+  "successor": "PRE-11810",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "**A NE PAS FAIRE SI EV3 EST SUR UN P9 ISOLE **- IP Task [PRE-5248](https://confluence.corp.ubp.ch/display/E0013782/PRE-5248)",
+      "instruction_id": "PRE-11810-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "lancement de toutes les chaines batchs sur les EV1/2/4/5 holdées lors du DR2 position afin de ne pas venir perturber EV2 \n\nNote : hold done in Task [PRE-11801](PRE-11801_116109365.html)",
+      "instruction_id": "PRE-11810-1",
+      "nominated_user": ""
+    }
+  ]
+}

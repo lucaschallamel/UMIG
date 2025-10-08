@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 15200,
+  "title": "SECLI BUSINESS TO VALIDATE CONTROLS - (C6500 - ATLAS Loan with anomaly)",
+  "predecessor": "IGO-13701",
+  "successor": "IGO-13701",
+  "primary_team": "BUSINESS_CUTOVER",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "BUSINESS_CUTOVER",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SECLI Business to validate C6500 - ATLAS Loan with anomaly",
+      "instruction_id": "BGO-15200-1",
+      "nominated_user": "LY PITTET Sothia"
+    }
+  ]
+}

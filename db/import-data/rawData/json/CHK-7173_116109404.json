@@ -1,0 +1,62 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 7173,
+  "title": "ENGINE -  CLIENT MAPPING TABLE CHECKS BEFORE ATLAS INTEGRATION - Step 05 - RECONCILIATION INTEGRITY 2 PART 2",
+  "predecessor": "CHK-7164",
+  "successor": "TRT-7190",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BREAKPOINT_FTC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT",
+      "instruction_id": "CHK-7173-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "-",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UPLOAD_FTC_MOTEUR_ATLAS_0043_CLIENTS_MATCHINGNOCLIENT",
+      "instruction_id": "CHK-7173-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SQL_MOTEUR_ATLAS_0000_UPD_T_FU_CLIENT",
+      "instruction_id": "CHK-7173-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IMPORT_REP_ATLAS_MOTEUR_0043_FU_CLIENT_AFTER_INSERT",
+      "instruction_id": "CHK-7173-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ C2255 ](#)",
+      "instruction_title": "EXCEL_C2255_ATLAS_CLIENT_BEFORE_SPOC_INTEGRATION",
+      "instruction_id": "CHK-7173-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ C2255 ](#)",
+      "instruction_title": "MAIL_C2255_ATLAS_CLIENT_BEFORE_SPOC_INTEGRATION",
+      "instruction_id": "CHK-7173-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BREAKPOINT_REP_ATLAS_MOTEUR_WAIT_END_BUS_SECLI_TO_ATLAS",
+      "instruction_id": "CHK-7173-7",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15048,
+  "title": "NAVISION - Enable User Interface",
+  "predecessor": "PRE-15048",
+  "successor": "PRE-15048",
+  "primary_team": "NAVISION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GU - RETURN TO BAU - INSTITUTIONAL TREATMENTS",
+  "task_list": [
+    {
+      "instruction_assigned_team": "NAVISION",
+      "associated_controls": "",
+      "instruction_title": "Enable User Interface",
+      "instruction_id": "PRE-15048-1",
+      "nominated_user": ""
+    }
+  ]
+}

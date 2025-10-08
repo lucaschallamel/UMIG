@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14402,
+  "title": "SECLI TO DO EXTRACTS FOR EBANKING CHANNELS COMMUNICATION",
+  "predecessor": "TRT-5737",
+  "successor": "TRT-5737",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "SECLI TO DO EXTRACTS FOR EBANKING CHANNELS COMMUNICATION",
+      "instruction_id": "TRT-14402-1",
+      "nominated_user": ""
+    }
+  ]
+}

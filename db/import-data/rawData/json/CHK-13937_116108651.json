@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 13937,
+  "title": "RUN0",
+  "predecessor": "TRT-13524",
+  "successor": "CHK-13984",
+  "primary_team": "DATA_FILES",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CA - FILES RECEPTION AND PARENT FILES INTEGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Confirm with SPOC_INTEGRATION team the following 228 x source files arriving from SG \n_- MiCA files\n- Olympic files\n- VEGA files\n- MANUAL files\n- AAA files\n- Others (CAS, SUN, Synergy, etc.)",
+      "instruction_id": "CHK-13937-1",
+      "nominated_user": "BECHETOILLE Franck"
+    },
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IN CASE OF STRUCTURAL CHANGE, PAUSE MIGRATION WITH IT_CUTOVER AND ORGANISE EMERGENCY REVIEW WITH DATA GOVERNANCE.",
+      "instruction_id": "CHK-13937",
+      "nominated_user": "NUKOVIC Hugo"
+    },
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "",
+      "instruction_title": "IN CASE OF OTHER DISCREPANCY COMPARED TO MANIFEST: MEETING WITH IT_MANAGEMENT FOR GO/NOGO",
+      "instruction_id": "CHK-13937",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "",
+      "instruction_title": "CONFIRM ALL RECEIVED FILES WITH NO NAME ERROR/NO VOLUME DISCREPANCY / NO STRUCTURAL CHANGE (based on the manifest 6999 File)",
+      "instruction_id": "CHK-13937",
+      "nominated_user": ""
+    }
+  ]
+}

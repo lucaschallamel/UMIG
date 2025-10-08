@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 14361,
+  "title": "RUN1",
+  "predecessor": "BGO-14361",
+  "successor": "BGO-14361",
+  "primary_team": "DATA_FILES",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK 1-\u0026gt;2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "UBP Compliance Key user (Vittorio Franchino)  to request a list of “positive hits”  from Compliance Millennium and then flag the corresponding customers in Pythagoras on the next business day (typically on Monday) so that they do not generate new hits.",
+      "instruction_id": "BGO-14361-1",
+      "nominated_user": ""
+    }
+  ]
+}

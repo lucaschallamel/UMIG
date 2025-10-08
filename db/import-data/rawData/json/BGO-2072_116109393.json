@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": 2072,
+  "title": "CID BUSINESS - EOM SECURITIES PRICES UPDATES",
+  "predecessor": "GON-2062",
+  "successor": "TRT-15005",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONTROL-M PLAN EXECUTION : END OF MONTH BANK PART 1\nPlease answer DONE when the following job is over:\n\n14-START_AP_Check_Satellites_Boucl_Vendredi",
+      "instruction_id": "BGO-2072-1",
+      "nominated_user": ""
+    }
+  ]
+}

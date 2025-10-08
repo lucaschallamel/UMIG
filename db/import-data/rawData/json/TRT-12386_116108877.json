@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12386,
+  "title": "SECLI - Transformation Stage - Tiers and Persons Creation",
+  "predecessor": "BGO-14651",
+  "successor": "IGO-12986",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CF - DATA LOADING IN STAGING TABLES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "CLIENTS SECRET and CONFIDENTIAL DATA LOADING IN STAGING TABLE",
+      "instruction_id": "TRT-12386-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "PROVIDE COUNTERS OF DATA INTEGRATED",
+      "instruction_id": "TRT-12386-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Tiers Creaction",
+      "instruction_id": "TRT-12386-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Person Creation",
+      "instruction_id": "TRT-12386-4",
+      "nominated_user": ""
+    }
+  ]
+}

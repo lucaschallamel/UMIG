@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11757,
+  "title": "ATLAS - FINAL MAPPING TABLE FEEDING - T_CLIENT_MRGD",
+  "predecessor": "TRT-2677",
+  "successor": "CHK-1573",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Executer la demande de Guillaume Grenetier : \nAction : Integrer dans la table T_CLIENT_MRGD tous les clients migrés.\n\nValorisation des colonnes : Idem de T_FU_CLIENT\nNBR_CO_1077 = NBR_CO_1057\nNBR_CLIENT_1077 = NBR_CLIENT_1057\nLOCATION_1077 = LOCATION _1057\nDATE_CLIENT_MRGD_1077 = xxxxxxxx",
+      "instruction_id": "1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Executer le script DBA :\n\nINSERT INTO NHDBO.T_CLIENT_MRGD \n      (NBR_CO_1077, NBR_CLIENT_1077, LOCATION_1077, IBAN_1077, DATE_CLIENT_MRGD_1077) \nSELECT NBR_CO_1057, NBR_CLIENT_1057, LOCATION_1057, IBAN_1057, xxxxxxxx\nFROM NHDBO.T_FU_CLIENT;\n\nCOMMIT;",
+      "instruction_id": "2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Controler la bonne alimentation de la table T_CLIENT_MRGD à partir de la table T_FU_CLIENT",
+      "instruction_id": "3",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15061,
+  "title": "RUN0",
+  "predecessor": "PRE-15061",
+  "successor": "PRE-15061",
+  "primary_team": "FENICS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "_Task to be done in the morning at the start of activities (Might not be Sunday for Run and DR)_",
+      "instruction_id": "PRE-15061-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "FENICS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Fenics is up and running - Sunday",
+      "instruction_id": "PRE-15061-1",
+      "nominated_user": ""
+    }
+  ]
+}

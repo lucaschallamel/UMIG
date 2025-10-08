@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 13197,
+  "title": "SECLI - RECEPTION OF DB CUSTOMER FILES AND CHECK FOR POTENTIAL CREATIONS SINCE PARALLEL RUN",
+  "predecessor": "TRT-14293",
+  "successor": "TRT-14273",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "FZ - RECURING ACTIVITIES BETWEEN W1 AND W2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Reception of the below files and check potential updates to be made due to parallel run:\n\n5099_CUSTOMERSACCOUNTS_CUSTOMERS_EXCLUDEDCUSTOMERS_001\n5006_CUSTOMERSACCOUNTS_CUSTOMERS_CUSTOMERINFORMATION_005\n5103_CUSTOMERSACCOUNTS_ACCOUNTS_BASICINFO_001\n5710_SECURITIESMARKETS_CUSTODYACCOUNT_BASICINFORMATION_001",
+      "instruction_id": "PRE-13197-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "BGO",
+  "step_number": null,
+  "title": "COMPLIANCE CHECKS -  FOR FPC FILE PUSH IN CONFIDENTIAL ZONE",
+  "predecessor": "TRT-13966",
+  "successor": "BGO-13575",
+  "primary_team": "DATA_FILES",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GA - FILES RECEPTION AND P0 INTEGRATION (P\u0026amp;C)",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DATA_FILES",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Data governance to validate no secret data is present in provided FPC files (that have been spotted with difference with DSS)",
+      "instruction_id": "BGO-13494",
+      "nominated_user": "NUKOVIC Hugo"
+    }
+  ]
+}

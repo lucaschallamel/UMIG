@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13799,
+  "title": "SECLI - TO VALIDATE CONTROL (C2140 - Client Status SECLI / ENGINE) FOR SECLI MAPPING TABLE INTEGRATION",
+  "predecessor": "IGO-13957",
+  "successor": "IGO-13804",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "SECLI   (BMC / BRO)  to Validate control results : \nC2140 - Client Status SECLI / ENGINE\nThere is no business validation with this control",
+      "instruction_id": "IGO-13799-1",
+      "nominated_user": "ROPP Beno\u0026icirc;t"
+    }
+  ]
+}

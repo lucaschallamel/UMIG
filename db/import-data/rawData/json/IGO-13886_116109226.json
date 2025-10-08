@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13886,
+  "title": "RUN1",
+  "predecessor": "IGO-13881",
+  "successor": "CHK-1405",
+  "primary_team": "TARIF",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TARIF",
+      "associated_controls": "[ C2460 ](#)",
+      "instruction_title": "Tarif team to Validate control results : \nC2460 - SG Client ID \u003c=\u003e UBP Client ID mapping Table",
+      "instruction_id": "IGO-13886-1",
+      "nominated_user": "FERRARI Bernard"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 9155,
+  "title": "EXPLOITATION - Mount Phase 6.2 and 6.3 Treatments",
+  "predecessor": "SYS-9155",
+  "successor": "SYS-9155",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GP - GO - NOGO",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "Confirm treatment TOOLS-INTG-BANK/T001-TOO-INTG-BNK-MISE-EN-PLACE/**E3_GENERE-NEW-PHASE-INTEGRATION-BATCH**",
+      "instruction_id": "SYS-9155",
+      "nominated_user": ""
+    }
+  ]
+}

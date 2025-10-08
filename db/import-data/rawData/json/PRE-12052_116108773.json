@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 12052,
+  "title": "SECLI LDN\u0026amp;JRS - START BUS SERVICE on Prod Like Environment",
+  "predecessor": "SYS-6260",
+  "successor": "SYS-6260",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CN - SENDING OF CLIENTS TO ATLAS - PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Queue before opening BUS SRV",
+      "instruction_id": "PRE-12052-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "OPEN BUS SERVICE - London and Gibraltar",
+      "instruction_id": "PRE-12052-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "OPEN BUS SERVICE - Jersey and Guernsey",
+      "instruction_id": "PRE-12052-3",
+      "nominated_user": ""
+    }
+  ]
+}

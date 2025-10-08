@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15170,
+  "title": "CID - Check QSAM files",
+  "predecessor": "CHK-15170",
+  "successor": "CHK-15170",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check QSAM files  (Six Telekurs files + yield  - check date price )",
+      "instruction_id": "CHK-15170-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check Bloomberg files is available",
+      "instruction_id": "CHK-15170-2",
+      "nominated_user": ""
+    }
+  ]
+}

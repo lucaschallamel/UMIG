@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12882,
+  "title": "ATLAS - Save of the performance file FPFMR1.QSAM",
+  "predecessor": "TRT-7306",
+  "successor": "CHK-12004",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GL - ATLAS PHASE 5.1 - POSITION MIGRATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Lancer le script 05_backup_file_performance.ksh  \n(sauvegarde fichier FPFMR1.QSAM)",
+      "instruction_id": "1",
+      "nominated_user": "-"
+    }
+  ]
+}

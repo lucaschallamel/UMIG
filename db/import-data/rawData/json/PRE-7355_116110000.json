@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 7355,
+  "title": "ENGINE-ATLAS CONNEXION PREPARATION - PROD-Like",
+  "predecessor": "PRE-7355",
+  "successor": "PRE-7355",
+  "primary_team": "ENGINE COMMON",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ENGINE COMMON",
+      "associated_controls": "",
+      "instruction_title": "Setup and check the link between ENGINE and ATLAS PRODUCTION-Like",
+      "instruction_id": "PRE-7355-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 9323,
+  "title": "RUN1",
+  "predecessor": "PRE-9097",
+  "successor": "PRE-12133",
+  "primary_team": "DOCUMENTUM",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "DOCUMENTUM",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "DÉMARRAGE IMPORT AVEC BACKUP ACTIF",
+      "instruction_id": "PRE-9323-1",
+      "nominated_user": ""
+    }
+  ]
+}

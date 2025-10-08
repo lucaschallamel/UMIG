@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "BUS",
+  "step_number": 13358,
+  "title": "BUS discretionary mode for IBAN",
+  "predecessor": "BUS-13358",
+  "successor": "BUS-13358",
+  "primary_team": "MIDDLEWARE",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "",
+      "associated_controls": "",
+      "instruction_title": "_Check that company code (in bold below) are in line with current  migration_",
+      "instruction_id": "BUS-13358-0",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "MIDDLEWARE",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "BUS discretionary mode for IBAN: We want to let IBAN messages out of ATLAS into BTPUB go through the bus. These messages are coming out of the queue \\\"AQU1\\\":\n\nEDM               router.edm.suspended  [cli.acct.cu](http://cli.acct.cu).**302**  HOST.AQU1.BIIEX1  SENT              xxx\nEDM               router.edm.suspended  [cli.acct.cu](http://cli.acct.cu).**303**  HOST.AQU1.BIIEX1  SENT              xxxx\nEDM               router.edm.suspended  [cli.acct.cu](http://cli.acct.cu).**304**  HOST.AQU1.BIIEX1  SENT              xxx\n\nEDM               router.edm.suspended  [cli.acct.cu](http://cli.acct.cu).**305**  HOST.AQU1.BIIEX1  SENT              xxx",
+      "instruction_id": "BUS-13358-1",
+      "nominated_user": ""
+    }
+  ]
+}

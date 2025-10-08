@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15250,
+  "title": "EXPLOITATION - Launch PrintNet transfer job (Common to Secret) - Post Star2",
+  "predecessor": "TRT-15250",
+  "successor": "TRT-15250",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please execute the following jobs:\n\nE3_T001-PNT-FLW-R000\n\nE3_T001-PNT-FLW-R001 (only GVA=001)\n\n\n\n\nFor Cutover Jobs are :",
+      "instruction_id": "TRT-15250-1",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 6358,
+  "title": "SECLI SWITZERLAND / GVA - BACKUP OF Test Environment (BEFORE RESTORE TO Prod-Like Environment)",
+  "predecessor": "IGO-14541",
+  "successor": "IGO-14541",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CONFIRM groupe 035_ACTCLI_AAA_REFRESH_SYBASE_EV5\nCONFIRM sub-groupe 035_ACTCLI__AAA_REFRESH_SYBASE_EV5",
+      "instruction_id": "DUM-6358-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dump Of SECLI GVA",
+      "instruction_id": "DUM-6358-2",
+      "nominated_user": ""
+    }
+  ]
+}

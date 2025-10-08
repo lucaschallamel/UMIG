@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "SYS",
+  "step_number": 13107,
+  "title": "PUT/OPEN ATLAS IN DAY MODE - PROD-LIKE",
+  "predecessor": "SYS-13107",
+  "successor": "SYS-13107",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "If ATLAS PROD-LIKE TX-SERIES IS UP Do\n\nCONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : Ex_MODE-TX-STOP-START\nJOB : Ex_30-STOP_AP_TX-SERIES",
+      "instruction_id": "SYS-13107-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Set ATLAS PROD-Like  in DAY Mode\n\nCONTROL-M : TEST\nAPPLICATION : ATLAS\nGROUPE : Ex_MODE-TX-DAY-DAY\nJOB : Ex_15-STOP_AV_TX-SERIES",
+      "instruction_id": "SYS-13107-2",
+      "nominated_user": ""
+    }
+  ]
+}

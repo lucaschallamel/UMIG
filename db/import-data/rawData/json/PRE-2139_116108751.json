@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 2139,
+  "title": "IT_ENV - ATLAS - SAVE PRICE FILES FROM PROD",
+  "predecessor": "PRE-2139",
+  "successor": "PRE-2139",
+  "primary_team": "IT_ENV",
+  "impacted_teams": "",
+  "macro_time_sequence": "A - PREMIGRATION",
+  "time_sequence": "AB - PROD LIKE ENV. PREPARATION",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Save the Bloomberg files. Bloomberg files must be saved before 30/08 12:00 in order to save the correct file",
+      "instruction_id": "PRE-2139-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "IT_ENV",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Pouvez-vous récupérer directement sur la machine TX Atlas de Production nhprdtxb avant midi, les fichiers prix FSCIN*.QSAM de Production du  **29.08.2025**\net les copier sur EV3 comme suit svp ?\n\nORIGIN SERVER : nhprdtxb@axvgvatxbprd01p\n\nFOLDER : /files/data/PSC/\nFILES :\nFSCIN7.QSAM\nFSCIN8.QSAM \nFSCIN9.QSAM possible qu\u0027il n\u0027existe pas/plus\nFSCIN10.QSAM possible qu\u0027il n\u0027existe pas/plus\n\nFOLDER : /files/data/COURS\nPour info, dans ce répertoire, les 6 fichiers doivent être en date du 30/08 vers 4h45 du matin\nFILES :\nFSCIN1.QSAM\nFSCIN2.QSAM\nFSCIN3.QSAM\nFSCIN4.QSAM\nFSCIN5.QSAM\nFSCIN6.QSAM\n\nDESTINATION SERVER : nhev3txb@axvgvatxbev301p\nFOLDER : /files/data/COURS_20250822 (le répertoire est à créer). Ne pas mettre des droits root afin que l\u0027on puisse les manipuler svp.",
+      "instruction_id": "PRE-2139-2",
+      "nominated_user": ""
+    }
+  ]
+}

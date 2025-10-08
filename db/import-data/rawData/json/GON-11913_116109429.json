@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 11913,
+  "title": "RUN1",
+  "predecessor": "IGO-11908",
+  "successor": "IGO-11921",
+  "primary_team": "IT_MNGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MNGMT",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Mail FROM UBP TO SGPBS TO Provide GO to SEND DATA FILES",
+      "instruction_id": "GON-11913-1",
+      "nominated_user": ""
+    }
+  ]
+}

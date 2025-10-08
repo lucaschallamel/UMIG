@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 12852,
+  "title": "DROOLS - Overwrite Drools reportability values with SGPBS reportability",
+  "predecessor": "TRT-12852",
+  "successor": "TRT-12852",
+  "primary_team": "TAX",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "POSTMIG",
+  "task_list": [
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "1. Backup calculated CRS values in CRS schema of ODS",
+      "instruction_id": "TRT-12852-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "TAX",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "2. Launch Drools engine CRS script to overwrite Drools reportability with SGPBS reportability.",
+      "instruction_id": "TRT-12852-2",
+      "nominated_user": ""
+    }
+  ]
+}

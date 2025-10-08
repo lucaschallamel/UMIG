@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 21004,
+  "title": "SECLI - Check Refresh on Ev7 After Back Up - End of Secli Migration",
+  "predecessor": "IGO-21004",
+  "successor": "IGO-21004",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CQ - PREPARATORY ACTIVITIES BEFORE EOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Check Secli Refresh on Ev7 After Back Up",
+      "instruction_id": "IGO-21004-1",
+      "nominated_user": ""
+    }
+  ]
+}

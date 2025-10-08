@@ -1,10 +1,10 @@
 # Sprint 8 Execution Plan & Breakdown
 
-**Sprint Duration**: September 30 - October 14, 2025 (15 working days)
-**Current Date**: October 6, 2025 (Day 7 of sprint)
+**Sprint Duration**: September 30 - October 18, 2025 (17 working days) ✅ **EXTENDED Oct 8**
+**Current Date**: October 8, 2025 (Day 9 of sprint)
 **Team**: 1 developer (Lucas) + AI agent support
-**Sprint Commitment**: ~~55~~ **51.5 points** (47 original + ~~8~~ **4.5 TD-016**) ✅ **REVISED Oct 1**
-**Status**: Ahead of schedule (40 points complete, 11.5 remaining) ✅ **US-098 100% COMPLETE Oct 6**
+**Sprint Commitment**: ~~55~~ ~~51.5~~ **66.5 points** (47 original + ~~8~~ 4.5 TD-016 + 15 new) ✅ **EXPANDED Oct 8**
+**Status**: Ahead of schedule (40 points complete, 26.5 remaining over 8 days) ✅ **US-098 100% COMPLETE Oct 6**
 
 ## Executive Summary
 
@@ -22,42 +22,47 @@ Sprint 8 focuses on establishing enterprise-grade test infrastructure (TD-014) a
   - ⏳ TD-014-C: Service Layer Testing (3 points) - NOT STARTED
   - ⏳ TD-014-D: Infrastructure Testing (3 points) - NOT STARTED (includes TR-19, TR-20)
 - ✅ US-098 100% COMPLETE (42 points) - Configuration management system ✅ **COMPLETE Oct 6** 🎉
-- **Required Velocity**: 1.44 points/day (11.5 remaining ÷ 8 days)
+- 🆕 TD-103 ADDED (2 points) - Performance optimization indexes ✅ **ADDED Oct 8** (prerequisite for US-104)
+- 🆕 US-104 ADDED (13 points) - Production data import via Liquibase ✅ **ADDED Oct 8** (P0 Critical)
+- **Required Velocity**: 3.31 points/day (26.5 remaining ÷ 8 days) ⚠️ **INCREASED Oct 8** (reduced 13% buffer)
 
 ## Sprint Health Assessment
 
-### Current State (Day 7)
+### Current State (Day 9) ✅ **UPDATED Oct 8**
 
-- **Velocity**: Ahead of schedule (40 points complete, 78% of sprint)
+- **Velocity**: Ahead of schedule (40 points complete, 60% of expanded sprint)
 - **Capacity**: Single developer with strong AI agent support
-- **Dependencies**: None remaining - US-098 dependency resolution proven successful
-- **Risk Level**: Very Low (exceptional progress, US-098 delivered, only testing/docs remaining)
+- **Dependencies**: TD-103 must precede US-104 (performance indexes required)
+- **Risk Level**: Low-Medium (reduced buffer from 40% to 13%, but achievable velocity)
 - **Notable Achievements**:
   - US-098 100% complete (42 story points delivered)
   - TD-020 core complete with 66% complexity reduction
   - Phase 5C manual testing validated by user
   - Production-ready configuration management system operational
+  - Sprint expanded to accommodate P0 critical production data import (US-104)
 
 ### Velocity Analysis
 
 ```
 Sprint 7 Performance: 224% (130/58 points) - Exceptional but unsustainable
-Sprint 8 Target: 100% (51.5/51.5 points) - Quality-focused sustainable delivery
-Sprint 8 ACTUAL: 78% (40.0/51.5 points) complete with 8 days remaining
-Required Daily Velocity: 1.44 points/day (11.5 remaining ÷ 8 days) ✅ **UPDATED Oct 6**
+Sprint 8 Target: 100% (66.5/66.5 points) - Quality-focused sustainable delivery ✅ **REVISED Oct 8**
+Sprint 8 ACTUAL: 60% (40.0/66.5 points) complete with 8 days remaining ✅ **UPDATED Oct 8**
+Required Daily Velocity: 3.31 points/day (26.5 remaining ÷ 8 days) ⚠️ **INCREASED Oct 8**
 
 Velocity Trend:
 - Week 1: 40 points complete (TD-015: 10 + TD-016: 4.5 + TD-017: 2 + TD-014-B: 6 + TD-020: 4.5 + US-098: 42 - Story point revision: -29)
 - US-098 Achievement: 100% complete (42 points delivered) ✅ **EXCEPTIONAL SUCCESS**
 - TD-014 Progress: 11 of 17 pts (65% complete) - TD-014-A ✅ + TD-014-B ✅
 - TD-020 Progress: 4.5 of 5 pts (90% complete) - Core implementation ✅
-- Target: 1.44 points/day for remaining 8 days (exceptional sustainable velocity with 40% buffer)
+- Sprint Expansion: +15 points (TD-103: 2 + US-104: 13) for production data import ✅ **ADDED Oct 8**
+- New Target: 3.31 points/day for remaining 8 days (achievable with reduced 13% buffer vs original 40%)
 - Capacity Impact: TD-016 delivered 4.5 points (44% reduction from original 8 points) ✅
-- Buffer: ~40% built into remaining sprint work (exceptional risk mitigation)
+- Buffer: ~13% built into remaining sprint work (reduced from 40%, still acceptable)
 - TD-017 Performance: 99.68% improvement (316× faster, 2.5× better than target)
 - TD-014-B Performance: Agent delegation validated (75-85% time savings, 100% quality)
 - TD-020 Performance: 66% complexity reduction (1 file vs 3 files planned)
 - US-098 Performance: Phase 5C manual testing validated, production-ready deployment ✅
+- Sprint Timeline: Extended Oct 14 → Oct 18 (4 additional days) to maintain quality ✅
 ```
 
 ## Three-Phase Execution Strategy
@@ -238,7 +243,7 @@ Velocity Trend:
 
 ---
 
-### Phase 2: Test Coverage Expansion (Days 5-11, 14 points)
+### Phase 2A: Test Coverage Expansion (Days 5-11, 14 points)
 
 **Objective**: Complete TD-014-B (Repository Layer) and TD-014-C (Service Layer) to achieve 85-90% Groovy test coverage
 
@@ -297,7 +302,7 @@ Velocity Trend:
 - Performance validation
 - Coverage gap analysis and remediation
 
-**Phase 2 Quality Gate:**
+**Phase 2A Quality Gate:**
 
 - TD-014 complete: All 4 sub-stories (A, B, C, D) finished
   - ✅ TD-014-A: API Layer (5 pts, 154 tests, 92.3% coverage)
@@ -308,6 +313,191 @@ Velocity Trend:
 - All tests passing (100% pass rate)
 - Test pattern documentation updated
 - Technical debt backlog managed (<5 P0/P1 items)
+
+---
+
+### Phase 2B: Production Data Import (Days 9-16, 15 points) 🆕 **ADDED Oct 8**
+
+**Objective**: Enable production deployment through comprehensive data import via Liquibase migration ✅ **P0 CRITICAL**
+
+**Status**: Planned, not started
+
+**Priority Justification**:
+
+- **P0 Critical**: Blocks production deployment without production data
+- **Business Value**: Immediate operational readiness with real-world cutover scenarios
+- **Risk Mitigation**: TD-103 performance optimization reduces import execution risk
+- **Time Savings**: Eliminates 200+ hours of manual data entry
+
+**Day 9-10: TD-103 - Performance Optimization Migration (2 points) ⚠️ **PREREQUISITE\*\*\*\*
+
+**Scope**: Implement performance indexes based on schema validation recommendations
+
+**Critical Indexes** (MUST BE COMPLETED BEFORE US-104):
+
+```sql
+-- Lookup Performance Indexes (Recommendation #3)
+CREATE INDEX idx_sqm_name_plm ON sequences_master_sqm(plm_id, sqm_name);
+CREATE INDEX idx_phm_name_sqm ON phases_master_phm(sqm_id, phm_name);
+CREATE INDEX idx_ctm_code_phm ON controls_master_ctm(phm_id, ctm_code);
+CREATE INDEX idx_tms_name ON teams_tms(tms_name);
+CREATE INDEX idx_stm_phm ON steps_master_stm(phm_id);
+CREATE INDEX idx_inm_stm ON instructions_master_inm(stm_id);
+
+-- Partial Indexes for Nullable FKs (Recommendation #4)
+CREATE INDEX idx_inm_ctm_not_null ON instructions_master_inm(ctm_id)
+WHERE ctm_id IS NOT NULL;
+CREATE INDEX idx_inm_tms_not_null ON instructions_master_inm(tms_id)
+WHERE tms_id IS NOT NULL;
+
+-- Junction Table Indexes (Recommendation #5)
+CREATE INDEX idx_tms_x_usr_tms ON teams_tms_x_users_usr(tms_id);
+CREATE INDEX idx_tms_x_usr_usr ON teams_tms_x_users_usr(usr_id);
+CREATE INDEX idx_stm_x_tms_stm ON steps_master_stm_x_teams_tms_impacted(stm_id);
+CREATE INDEX idx_stm_x_tms_tms ON steps_master_stm_x_teams_tms_impacted(tms_id);
+```
+
+**Deliverable**:
+
+- ✅ Liquibase changeset: `performance-optimization-pre-import.xml`
+- ✅ Estimated duration: 1-2 hours
+- ✅ Critical path dependency for US-104
+
+**Success Criteria**:
+
+- ✅ All indexes created successfully
+- ✅ Database execution plans validated
+- ✅ Performance improvements verified
+- ✅ Zero breaking changes to existing queries
+
+**Day 11-16: US-104 - Production Data Import via Liquibase (13 points) 🎯 **MAIN DELIVERABLE\*\*\*\*
+
+**Scope**: Import 15,282+ records across 15 tables from 5 Excel files + 1,174 JSON files
+
+**Data Scale**:
+
+- **Bootstrap**: 3 roles, 1 team, 1 user, 1 plan, 1 migration
+- **Excel Files** (~414 records): Applications (≈150), Teams (≈30), Users (≈200), Step Types (≈4), Sequences (≈40)
+- **JSON Files** (~14,900 records): Sequences (≈10-15 additional), Phases (≈120), Steps (≈1,200), Instructions (≈12,000), Controls (≈240)
+- **Associations** (~2,200 records): Team-User memberships (≈400), Step-Team impacts (≈1,800)
+
+**Implementation Phases**:
+
+1. **Phase 1: Bootstrap Data** (Day 11, ~1 point)
+   - Create foundational data (roles, default team, admin user, default plan/migration)
+   - Liquibase changeset: `044_us104_bootstrap_data.sql`
+   - Duration: <1 minute execution
+   - Deliverable: 5 foundational records created
+
+2. **Phase 2: Excel Import** (Day 11-12, ~3 points)
+   - Import 5 Excel files via Groovy → Liquibase SQL generation
+   - Files: applications, step_types, sequences, teams, users
+   - Duration: <5 minutes execution
+   - Deliverable: ≈414 records imported
+
+3. **Phase 3: JSON Hierarchical Import** (Day 12-15, ~6 points)
+   - Import 1,174 JSON files with cascading lookups
+   - Implements lookup-or-create pattern for sequences, phases, controls
+   - ALWAYS creates new steps and instructions (no lookup)
+   - Duration: <20 minutes execution
+   - Deliverable: ≈14,900 records imported
+
+4. **Phase 4: Association Import** (Day 15-16, ~1 point)
+   - Populate many-to-many relationship tables
+   - Team-user memberships and step-team impacts
+   - Duration: <4 minutes execution
+   - Deliverable: ≈2,200 association records
+
+5. **Phase 5: Validation & Testing** (Day 16, ~2 points)
+   - Referential integrity verification
+   - Audit trail validation (created_by='migration', updated_at=created_at)
+   - Idempotency testing (re-import safe)
+   - Performance target validation (<30 minutes total import)
+   - Deliverable: Zero orphaned records, 100% data integrity
+
+**Key Implementation Patterns**:
+
+**Lookup vs Create Logic**:
+
+- **Sequences**: Lookup by `sqm_name` within `plm_id`, create if not found with auto-generated `sqm_order`
+- **Phases**: Lookup by `phm_name` within `sqm_id`, create if not found with auto-generated `phm_order`
+- **Steps**: ALWAYS create new (no lookup) to preserve historical execution records
+- **Instructions**: ALWAYS create new (no lookup)
+- **Controls**: Lookup by `ctm_code` within `phm_id`, create if not found
+- **Teams**: Lookup by `tms_name` (NOT tms_code), create if not found
+
+**Critical Schema Compliance** (ADR-059):
+
+- ✅ No `tms_code` column requirement (schema correct with tms_id + tms_name)
+- ✅ No UNIQUE constraints on sequences/phases (managed via lookup queries)
+- ✅ No CHECK constraints for status values (managed via status_sts table)
+- ✅ Team lookup uses `tms_name`, NOT tms_code
+- ✅ Bootstrap defaults reference status_sts table (ACTIVE, PLANNING)
+- ✅ Explicit `updated_at = created_at` on INSERT operations
+
+**Transaction Boundaries**:
+
+- **Bootstrap**: Single transaction, rollback all on failure
+- **Excel files**: Separate transaction per file, granular rollback
+- **JSON files**: Separate transaction per file, continue on failure
+- **Associations**: Single transaction, rollback all on failure
+
+**Performance Targets**:
+
+- Bootstrap: <1 minute
+- Excel import: <5 minutes
+- JSON import: <20 minutes
+- Association import: <4 minutes
+- **Total duration**: <30 minutes
+
+**Success Criteria** (15 Acceptance Criteria):
+
+- ✅ AC-01: Bootstrap data successfully created (5 foundational records)
+- ✅ AC-02: Excel data successfully imported (≈414 records)
+- ✅ AC-03: JSON hierarchical import succeeds (≈14,900 records)
+- ✅ AC-04: Association tables populated (≈2,200 relationships)
+- ✅ AC-05: Data integrity verification passes (zero orphaned records)
+- ✅ AC-06: Audit trail fields properly set (created_by='migration', updated_at=created_at)
+- ✅ AC-07: Error handling implements ADR-023 (SQL state codes)
+- ✅ AC-08: Transaction boundaries properly defined
+- ✅ AC-09: Import script uses DatabaseUtil pattern (MANDATORY)
+- ✅ AC-10: Import idempotency verified (re-run safe)
+- ✅ AC-11: Performance targets met (<30 minutes total)
+
+**Dependencies**:
+
+- ✅ **TD-103 MUST COMPLETE FIRST**: Performance indexes required for acceptable import performance
+- ✅ Schema migrations 001-043 applied
+- ✅ Bootstrap environment roles, iteration types, step types exist
+- ✅ status_sts table populated with status values
+- ✅ Excel files available at `db/import-data/rawData/*.xlsx`
+- ✅ JSON files available at `db/import-data/rawData/json/*.json`
+
+**Risk Mitigation**:
+
+- **Risk 1**: JSON parsing failures → Granular per-file rollback, continue processing
+- **Risk 2**: Performance degradation → TD-103 prerequisite addresses with indexes
+- **Risk 3**: Data consistency issues → Team lookup by tms_name, standardized formats
+- **Risk 4**: Memory exhaustion → Process one JSON file at a time, streaming parser if needed
+- **Risk 5**: Import duration >30min → TD-103 indexes, consider parallel import if observed
+
+**Documentation Requirements**:
+
+- ✅ Data Import Developer Guide (technical implementation)
+- ✅ Data Import Runbook (operational procedures)
+- ✅ Data Import User Guide (end-user documentation)
+- ✅ ADR documenting import architecture decisions
+
+**Phase 2B Quality Gate:**
+
+- TD-103 complete: All performance indexes deployed successfully
+- US-104 complete: All 15 acceptance criteria met
+- Import execution: <30 minutes total duration
+- Data integrity: Zero orphaned records, 100% referential integrity
+- Audit trail: All records have created_by='migration', updated_at=created_at
+- Idempotency: Re-import produces no duplicates
+- Documentation: All 3 guides complete (developer, runbook, user)
+- ADR created: Import architecture decisions documented
 
 ---
 

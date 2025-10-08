@@ -1,0 +1,41 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 230,
+  "title": "ATLAS - PHASE 4.3 - ACCOUNT STATIC DATA PROCESSING : ACCOUNTS CHECKS",
+  "predecessor": "TRT-6013",
+  "successor": "BGO-14888",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GJ - ATLAS PHASE 4.3 - STATIC DATA PROCESSING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**23-PH4 : Reprise des taux d\u0027intérêts**\nJOB : FU_ACCR3.ksh\nINPUT FILE : FACCR3ALL.QSAM\nREPORT : EFUG, EFUH, EFUI",
+      "instruction_id": "TRT-230-1",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**24-PH4 : Liste des comptes de tiers avec solde \u003c\u003e 0**\nJOB : FU_ACCC4.ksh\nINPUT FILE : FACCC4.QSAM, FACCR3ALL.QSAM\nREPORT : EFV9",
+      "instruction_id": "TRT-230-2",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "**25-PH4 : Extraction des comptes client avec balance et en cours \u003c\u003e 0**\nJOB : FU_ACCX4.ksh\nOUTPUT FILE : FACCX5.QSAM",
+      "instruction_id": "TRT-230-3",
+      "nominated_user": "-"
+    },
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Mail to [victoria_rundr@ubp.ch](mailto:victoria_rundr@ubp.ch)  to give the volumetry",
+      "instruction_id": "TRT-230-4",
+      "nominated_user": "-"
+    }
+  ]
+}

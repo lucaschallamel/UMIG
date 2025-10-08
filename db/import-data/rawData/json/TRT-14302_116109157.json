@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14302,
+  "title": "SECLI - PROVIDE [CLIENT ID SG Vs CLIENT ID UBP] + [PERSON ID SG Vs PERSON ID UBP] EXTRACT TO BUSINESS FOR SIT",
+  "predecessor": "IGO-13819",
+  "successor": "TRT-14317",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Before starting SIT, provide the below excel files and share them with Catherine More:\n\n[CLIENT ID SG Vs CLIENT ID UBP]\n[PERSON ID SG Vs PERSON ID UBP]",
+      "instruction_id": "TRT-14302-1",
+      "nominated_user": ""
+    }
+  ]
+}

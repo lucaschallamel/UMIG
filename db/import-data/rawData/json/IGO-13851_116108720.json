@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13851,
+  "title": "IT CUTOVER - TO VALIDATE Post-SECLI CONTROLS  on - Secli PROD LIKE Environment",
+  "predecessor": "CHK-13844",
+  "successor": "IGO-13856",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CM - DATA VALIDATION IN PROD LIKE ENV.",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IT CUTOVER to Validate IT control results : on SECLI PROD \n\nC2500: Number of Tiers per ENTITY_TYPE - LEGAL_FORM - INDUSTRY_ICB\nC2520: Number of accounts held by individuals\nC2540: Number of accounts held by legal entities\nC2541: Number of PM (company)by UBP company \nC2560.3: Nombre de personnes physiques avec rôle procuré actif sur compte actif (nb personnes et nb comptes) par société\nC3150 : Nombre de  Tiers par pays de nationalité du titulaire principal\nC2715 : Nombre d\u0027adresses par pays\nC2740 : Nombre de personnes par domicile [tous les domiciles]",
+      "instruction_id": "IGO-13851-2",
+      "nominated_user": ""
+    }
+  ]
+}

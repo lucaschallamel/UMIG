@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 13178,
+  "title": "CID - Check C6700 Special CID after star2",
+  "predecessor": "IGO-14146",
+  "successor": "IGO-13182",
+  "primary_team": "CID",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CID",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Execute the below controls and share results by mail :\n\nC6700 - Estimatif Positions - Spécial CID",
+      "instruction_id": "IGO-13178-1",
+      "nominated_user": ""
+    }
+  ]
+}

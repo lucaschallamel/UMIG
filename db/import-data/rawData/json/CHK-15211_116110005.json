@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "CHK",
+  "step_number": 15211,
+  "title": "SECLI - Check integration of Trading Area and Occupation in Base Tiers Privée",
+  "predecessor": "CHK-15211",
+  "successor": "CHK-15211",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CR - CMS ACTIVITIES FLOW",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check integration of Trading Area and Occupation in Base Tiers Privée",
+      "instruction_id": "CHK-15211-1",
+      "nominated_user": ""
+    }
+  ]
+}

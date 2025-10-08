@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14671,
+  "title": "PGU - TO VALIDATE CONTROL (C2255 AND C2140)",
+  "predecessor": "IGO-14671",
+  "successor": "IGO-14671",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CH - DATA VALIDATION IN TEST ENVIRONMENT",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "",
+      "instruction_title": "PGU to Validate control results on : C2255 and C2140",
+      "instruction_id": "IGO-14671-1",
+      "nominated_user": ""
+    }
+  ]
+}

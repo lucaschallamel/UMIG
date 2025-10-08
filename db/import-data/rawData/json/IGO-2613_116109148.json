@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 2613,
+  "title": "SECLI - CONTROL of DUMMIES \u0026amp; PRE-CHECKS send by ENGINE",
+  "predecessor": "BGO-13774",
+  "successor": "BGO-13774",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "[ C1002 ](#) \n\n [ C1003 ](#)",
+      "instruction_title": "CONTROL of DUMMIES \u0026 PRE-CHECKS send by ENGINE:\n\nConntrols C1002, C1003",
+      "instruction_id": "IGO-2613-1",
+      "nominated_user": ""
+    }
+  ]
+}

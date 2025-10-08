@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "DUM",
+  "step_number": 13676,
+  "title": "ALL APPLICATION - DUMP - BEFORE EOM",
+  "predecessor": "DUM-13676",
+  "successor": "DUM-13676",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EE - FRIDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Dear SPOC_EXPLOITATION team,\n\nPlease proceed with the following backup phase:\n\n**_Phase ID:_ 240\n****_Phase name:_ **ALL_APP_PROD_BEFORE_EOM****\n\n_**Description:**_\n\nFor all applications included in the migration process, **BEFORE EOW/EOM BATCH** please proceed with the following **BACKUP **** **activities.\n\nOn **PROD LIKE**: **BACKUP **all applications related to migration",
+      "instruction_id": "DUM-13676-1",
+      "nominated_user": ""
+    }
+  ]
+}

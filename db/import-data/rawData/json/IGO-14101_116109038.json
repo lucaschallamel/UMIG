@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 14101,
+  "title": "ATLAS - PROVIDE RESULTS OF EOS REPORTS",
+  "predecessor": "IGO-14101",
+  "successor": "IGO-14101",
+  "primary_team": "ATLAS",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GN - ATLAS PHASE 5.3 - PROCESSING AFTER STAR 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": "",
+      "instruction_title": "Please provide results of controls below:\n\nC0060 E35I : List of fiduciary placements\nC0070 EW29 - APTF Subtotals by currency\nC0210 EYY4 : Term deposits by currency to deliver\nC0800 EFUJ: List of SGPBCH client - type client\nC0820 EFUK: List of SGPBCH clients - manager code\nC0990 EFV1: List of clients positions securities\nC0992 EFVA: State of securities positions different than 0\nC1040 E41G/E41K: movements on current accounts, daily/weekly\nC1042 EYY6 / EYY7 : List forex exchange\nC1044E54Q: negative (debit) account without pledges\nC1046 EB31/EB32/EB09: List on investements\nC1048 E50Q: credit overflow\nC1050 EJ09: Perfomances in anomaly\nC1052 E51Q/E52Q/E53Q: List of credit overflow\nC1056 EJ15: List of current account opened automatically\nC1058 E04Z: List of cash operation / buy-sell of notes\nC2440 Statements printing (quantity per society to be defined) from SGPBCH and UBP to validate:asset amounts, performances, PMA",
+      "instruction_id": "1",
+      "nominated_user": "EOS E35IEOS EW29EOS EYY4EOS EFUJEOF EFUKEOS EFV1EOS EFVAEOS E41G/E41KEOS EYY6/EYY7EOS EB31/EB32/EB09EOS E50QEOS E51Q/E52Q/E53QEOS EJ15EOS E04Z"
+    }
+  ]
+}

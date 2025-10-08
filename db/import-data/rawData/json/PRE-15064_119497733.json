@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 15064,
+  "title": "EXPLOITATION - Reativate Positional pooling",
+  "predecessor": "PRE-15064",
+  "successor": "PRE-15064",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Reactivate the positional pooling by  removing dummy mode on :\n_- SC_POL01\n- SC_POL02\n- P_TITPOL\n\nNote : These job were put in dummy within IP Task [PRE-15063](PRE-15063_119497642.html)",
+      "instruction_id": "PRE-15064-1",
+      "nominated_user": ""
+    }
+  ]
+}

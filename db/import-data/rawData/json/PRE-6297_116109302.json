@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "PRE",
+  "step_number": 6297,
+  "title": "CID - INPUT FLUX ISOLATION",
+  "predecessor": "CHK-15000",
+  "successor": "PRE-6596",
+  "primary_team": "SPOC_EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "STOP bussrv  via job ctrlm - Feed Atlas and CIDR",
+      "instruction_id": "PRE-6297-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SPOC_EXPLOITATION",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "STOP xmlsrv  via job ctrlm - CIDR Data Integration",
+      "instruction_id": "PRE-6297-2",
+      "nominated_user": ""
+    }
+  ]
+}

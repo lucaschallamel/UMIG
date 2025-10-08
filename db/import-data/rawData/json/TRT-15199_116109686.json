@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 15199,
+  "title": "Secli - Transfer Swift Address Data to Engine",
+  "predecessor": "TRT-15199",
+  "successor": "TRT-15199",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "E - WEEK 1-\u0026gt;2",
+  "time_sequence": "EA - MONDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Please Send Swift address to Engine : FTC_SECLI_MOTEUR_060_ADR_SWIFT to moteur\n\n\n\n\nDetailed instruction; \n\none 1 unix server having data, run the following:\ncd $DATA\n. ~/.sybaserc.sh\nbcp exabn..sgh_FTC_SECLI_MOTEUR_060_ADR_SWIFT out FTC_SECLI_MOTEUR_060_ADR_SWIFT.csv -t \\; -S $DDSQUERY -U $dbaname -P \\\"$dbapwd\\\"  -c -r \\\\n\n. $TRAITEMENT/cfg/.ftp\nscp FTC_SECLI_MOTEUR_060_ADR_SWIFT.csv $ftpusr@$ftpsrv:$ftpdir_push\nssh $ftpusr@$ftpsrv \\\"chmod 666 $ftpdir_push/FTC_SECLI_MOTEUR_060_ADR_SWIFT.csv\\\"",
+      "instruction_id": "TRT-15199-1",
+      "nominated_user": ""
+    }
+  ]
+}

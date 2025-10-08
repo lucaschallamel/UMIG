@@ -1,0 +1,27 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 3030,
+  "title": "EXPLOITATION  - Start AMBITFOCUS EOD*2",
+  "predecessor": "GON-3030",
+  "successor": "GON-3030",
+  "primary_team": "EXPLOITATION",
+  "impacted_teams": "",
+  "macro_time_sequence": "G - WEEK-END 2 - P\u0026amp;C",
+  "time_sequence": "GS - SATELLITES STAR 1 AND STAR 2",
+  "task_list": [
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "RUN THE AMBITFOCUS BATCH EOD *2",
+      "instruction_id": "GON-3030-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "EXPLOITATION",
+      "associated_controls": "",
+      "instruction_title": "INFORM AFTER THE BATCH IS COMPLETED",
+      "instruction_id": "GON-3030-2",
+      "nominated_user": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "GON",
+  "step_number": 3466,
+  "title": "RUN0",
+  "predecessor": "GON-3466",
+  "successor": "GON-3466",
+  "primary_team": "IT_MGMT",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CL - CHECKS AND TRANSFER FROM TEST ENV. TO PRD LIKE",
+  "task_list": [
+    {
+      "instruction_assigned_team": "IT_MGMT",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "IT MGMT to confirm that CHECKS are DONE AND MARKER ADDED - Last Step before Test to Prod Transfer",
+      "instruction_id": "GON-3466-1",
+      "nominated_user": ""
+    }
+  ]
+}

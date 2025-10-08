@@ -1,0 +1,20 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 14531,
+  "title": "CMS MOVE DATA FROM STAGING TO CMS MAIN DB",
+  "predecessor": "TRT-14526",
+  "successor": "PRE-13286",
+  "primary_team": "CMS",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CR - CMS ACTIVITIES FLOW CS - CSD SATURDAY ACTIVITIES",
+  "task_list": [
+    {
+      "instruction_assigned_team": "CMS",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "CMS to move data from Staging to Main DB",
+      "instruction_id": "TRT-14531-1",
+      "nominated_user": ""
+    }
+  ]
+}

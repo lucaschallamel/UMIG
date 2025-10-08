@@ -1,0 +1,34 @@
+﻿{
+  "step_type": "TRT",
+  "step_number": 11717,
+  "title": "SECLI GVA CLIENTS SECRET and CONFIDENTIAL DATA LOADING IN PRE-STAGING TABLE",
+  "predecessor": "TRT-14226",
+  "successor": "DUM-14660",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CE - DATA LOADING IN PRE-STAGING",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Check that pre-staging tables are empty\nTake a snapshot of key SECLI Tables",
+      "instruction_id": "TRT-11717-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Load data in pre-staging tables - Secret (based on FPS)\nProvide number integrated",
+      "instruction_id": "TRT-11717-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "",
+      "instruction_title": "Load data in pre-staging tables - Confidential (based on FTC)\nProvide number integrated",
+      "instruction_id": "TRT-11717-3",
+      "nominated_user": ""
+    }
+  ]
+}

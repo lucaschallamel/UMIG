@@ -1,0 +1,139 @@
+﻿{
+  "step_type": "IGO",
+  "step_number": 11781,
+  "title": "SECLI GVA -  GET \u0026amp; CONFIRM ALL FILES FROM ENGINE RECEIVED",
+  "predecessor": "TRT-11746",
+  "successor": "BGO-14651",
+  "primary_team": "SECLI",
+  "impacted_teams": "",
+  "macro_time_sequence": "",
+  "time_sequence": "WEEK-END 1",
+  "task_list": [
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "Check that all following files are available on the FTP\nCheck that all requested confidential files are available on the FTP",
+      "instruction_id": "IGO-11781-1",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0014_CLIENTS_CLIENT",
+      "instruction_id": "IGO-11781-2",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0021_CLIENTS_TITULAIRE",
+      "instruction_id": "IGO-11781-3",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0022_CLIENTS_AYANTS_DROITS",
+      "instruction_id": "IGO-11781-4",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0023_CLIENTS_DOCUMENT",
+      "instruction_id": "IGO-11781-5",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0024_CLIENTS_PROCURATION",
+      "instruction_id": "IGO-11781-6",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0025_CLIENTS_F_CLIENT_TVA",
+      "instruction_id": "IGO-11781-7",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0026_CLIENTS_GSG PBSNTS",
+      "instruction_id": "IGO-11781-8",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0027_CLIENTS_F_PORTF_IBAN",
+      "instruction_id": "IGO-11781-9",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0028_CLIENTS_F_USTAX",
+      "instruction_id": "IGO-11781-10",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0029_CLIENTS_F_INSTRUCTION",
+      "instruction_id": "IGO-11781-11",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0030_CLIENTS_F_PORT_MNGR",
+      "instruction_id": "IGO-11781-12",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0031_CLIENTS_CONDITIONS",
+      "instruction_id": "IGO-11781-13",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0032_CLIENTS_F_CLIENT_STAT",
+      "instruction_id": "IGO-11781-14",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0041_CLIENTS_F_ADVI_MNGR",
+      "instruction_id": "IGO-11781-15",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FPC_MOTEUR_SECLI_0046_CLIENTS_GSG PBSNTS_LIST",
+      "instruction_id": "IGO-11781-16",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ - ](#)",
+      "instruction_title": "FTC_MOTEUR_SECLI_0048_CLIENTS_F_SUIV_MNGR",
+      "instruction_id": "IGO-11781-17",
+      "nominated_user": ""
+    },
+    {
+      "instruction_assigned_team": "SECLI",
+      "associated_controls": "[ C1001 ](#) \n\n [ C1019 ](#)",
+      "instruction_title": "C1001_2- File volume check before engine integration\nC1019_ 2- Breakdown count of lines per received files",
+      "instruction_id": "IGO-11781-18",
+      "nominated_user": ""
+    }
+  ]
+}
